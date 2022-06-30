@@ -1,2 +1,2 @@
-# george-mitchell.github.io
-My professional website
+# George Mitchell
+Repository for my professional website. 
