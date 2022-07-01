@@ -1,13 +1,48 @@
 body{
     padding:20px;
-    background-color:gray;
-    color:white;
+    background-color:rgba(34, 94, 94, 0);
+    color:rgb(0, 0, 0);
+    font-family: Montserrat, serif;
+    font-size: 16px;
 }
+
 p{
-    color:rgb(62, 108, 192);
+    color:rgb(0, 0, 0);
+    text-align: justify;
+    margin-right: 40px;
+    margin-top: 20px;
+    font-family: Montserrat, serif;
 }
+h1 {
+    font-family: Montserrat, serif;
+    font-size: 30px;  
+  }
+
 input[type=button] {
  padding:10px;
  margin:20px 0px;
  border:1px solid;
 }
+
+li { padding: 10px 10px; }
+li:first-child { margin-bottom: 0px; }
+
+/* Three image containers (use 25% for four, and 50% for two, etc) */
+.column {
+    float: left;
+    width: 30%;
+    padding: 11.5px;
+  }
+
+.column2{
+    float: left;
+    width: 21%;
+    padding: 12px;
+  }
+  
+  /* Clear floats after image containers */
+  .row::after {
+    content: "";
+    clear: both;
+    display: table;
+  }
