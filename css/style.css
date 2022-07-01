@@ -1,5 +1,6 @@
 body{
-    width: 850px;
+    max-width: 960;
+    margin: auto;
     padding:20px;
     background-color:rgba(34, 94, 94, 0);
     color:rgb(0, 0, 0);
@@ -12,6 +13,7 @@ body{
   max-width: 960px;
   margin: auto;
 }
+
 
 p{
     color:rgb(0, 0, 0);
