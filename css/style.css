@@ -1,12 +1,11 @@
-body{
-    max-width: 960px;
-    margin: auto;
-    padding:20px;
-    background-color:rgba(34, 94, 94, 0);
-    color:rgb(0, 0, 0);
-    font-family: Montserrat, serif;
-    font-size: 18px;
-  
+body {
+  max-width: 960px;
+  margin: auto;
+  padding: 20px;
+  background-color: rgba(34, 94, 94, 0);
+  color: rgb(0, 0, 0);
+  font-family: Montserrat, serif;
+  font-size: 18px;
 }
 
 .content {
@@ -14,44 +13,47 @@ body{
   margin: auto;
 }
 
-
-p{
-    color:rgb(0, 0, 0);
-    text-align: justify;
-    margin-right: 40px;
-    margin-top: 20px;
-    font-family: Montserrat, serif;
+p {
+  color: rgb(0, 0, 0);
+  text-align: justify;
+  margin-right: 40px;
+  margin-top: 20px;
+  font-family: Montserrat, serif;
 }
 h1 {
-    font-family: Montserrat, serif;
-    font-size: 40px;  
-  }
-
-input[type=button] {
- padding:10px;
- margin:20px 0px;
- border:1px solid;
+  font-family: Montserrat, serif;
+  font-size: 40px;
 }
 
-li { padding: 10px 10px; }
-li:first-child { margin-bottom: 0px; }
+input[type="button"] {
+  padding: 10px;
+  margin: 20px 0px;
+  border: 1px solid;
+}
+
+li {
+  padding: 10px 10px;
+}
+li:first-child {
+  margin-bottom: 0px;
+}
 
 /* Three image containers (use 25% for four, and 50% for two, etc) */
 .column {
-    float: left;
-    width: 30%;
-    padding: 11.5px;
-  }
+  float: left;
+  width: 30%;
+  padding: 11.5px;
+}
 
-.column2{
-    float: left;
-    width: 21%;
-    padding: 12px;
-  }
-  
-  /* Clear floats after image containers */
-  .row::after {
-    content: "";
-    clear: both;
-    display: table;
-  }
+.column2 {
+  float: left;
+  width: 21%;
+  padding: 12px;
+}
+
+/* Clear floats after image containers */
+.row::after {
+  content: "";
+  clear: both;
+  display: table;
+}
