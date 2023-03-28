@@ -3,11 +3,11 @@
   }
   
   body {
-    font-family: 'Noto Sans Math', sans-serif;
+    font-family: 'Latin Modern Sans', sans-serif;
     padding: 20px;
     background: #edf2f4;
     color:  #2a2c3d;
-    font-size: 16px;
+    font-size: 18px;
     /*#f1f1f1 */
   }
 
@@ -16,14 +16,14 @@
   }
 
   math {
-    font-family: 'Noto Sans Math', sans-serif;
+    font-family: 'Latin Modern Math', sans-serif;
   }
   
   /* Header/Blog Title */
   .header {
     padding: 30px;
-    font-size: 18px;
-    font-family: 'Noto Sans Math', sans-serif;
+    font-size: 20px;
+    font-family: 'Latin Modern Sans', sans-serif;
     text-align: center;
     background: white;
   }
@@ -35,8 +35,8 @@
   }
 
   .post {
-    font-size: 16px;
-    font-family: 'Noto Sans Math', sans-serif;
+    font-size: 18px;
+    font-family: 'Latin Modern Sans', sans-serif;
   }
 
   /* Create two unequal columns that floats next to each other */
