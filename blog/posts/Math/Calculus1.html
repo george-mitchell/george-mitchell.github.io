@@ -28,10 +28,10 @@
           
           <div class="row">
             <div class="leftcolumn">
-              <div class="card">
+              <div class="card post">
 
                 <!------BLOG POST STARTS HERE---------->
-                <h2>The Tropic of Calculus I - A Study Guide of Derivatives and Integrals</h2>
+                <h2>The Tropic of Calculus I - Derivatives and Integrals</h2>
                 <h5>March 27th 2023 - A brief summary of undergraduate calculus. </h5>
                 <hr>
                 <p> In this post we will cover the very basics of undergraduate calculus, starting with derivatives and then moving on to integrals, stating some important results upon the way. 
@@ -55,16 +55,134 @@
 
                 Using these rules we can compute the derivative of many common functions, like polynomials, rational functions and compositions of such functions. 
                 </p>
-                <p class = "example">
-                  <strong>Example:</strong> Compute $y'$ when $y =\ln(x)^{\ln(x)}.$
-                </p>
-                <p class = 'example'>
+
+                <p> 
+                  Here are some useful formulas and results: 
+                  
+                    $$\frac{d}{dx}[x^n] = nx^{n-1},$$ 
+                  
+                  
+                    $$\frac{d}{dx}[\sin(x)] = \cos(x), ~~ \frac{d}{dx}[\cos(x)] = -\sin(x),$$
+                  
+                    $$e^x := \lim_{n \to \infty}\left(1 + \frac{x}{n} \right)^n, ~~ \frac{d}{dx}[e^{f(x)}] = f'(x)e^x ,$$
+                  
+                    $$\ln(e^x) = x = e^{\ln(x)}, ~~ \frac{d}{dx}[\ln(f(x))] = \frac{f'(x)}{f(x)},$$
+                  
+                    $$ a^x := e^{a\ln(x)}, ~~ \ln(ab) = \ln(a) + \ln(b), $$
+                  
+                    $$ \lim_{x \to \infty} \frac{\ln(x)}{x^r} = 0 = \lim_{x \to \infty} \frac{x^r}{e^x}, ~ \text{ for } r > 0.$$
                   
                 </p>
-          
-          
+
+                <br>
+
+                The following is a nice example of using the various rules above.
+                <p class = "example">
+                  <strong>Example:</strong> <em>Compute $y'$ when $y =\ln(x)^{\ln(x)}.$</em>
+                  <br>
+                  <br>
+                  If we let $u = \ln(y)$ then we have $u = \ln(x) \cdot \ln(\ln(x)). $ Using the product and chain rule, we find that:
+                  $$ u' = \frac{y'}{y} = \frac{1}{x} \ln(\ln(x)) + \frac{1}{x} $$ which results in $y' = \frac{\ln(x)^{\ln(x)}}{x}(\ln(\ln(x)) + 1). $
+                </p>
+                <hr width="400px">
+                <h3>Extreme Values</h3>
+                <p>
+                  For $a \in \mathbb{R},$ the value of the derivative $f'(a)$ represents the slope of the tangent line to $f(x)$ at the point $x = a$. Therefore, if $f(x) > 0$ for $x \in [a,b]$ then $f(x)$ is <strong>increasing</strong> on the interval $[a,b]$. Likewise, $f(x)$ is <strong>decreasing</strong> on an interval if $f'(x) < 0$ on the interval. 
+                </p>
+
+                <p> 
+                  We can therefore use the derivatives of a function $f(x)$ to determine its local extreme values, i.e. its maximum and minimum values. 
+
+                  <li>
+                    <strong>Maxima/Minima:</strong> If $x = c$ is a local maximum (resp. minimum) of a differentiable function $f(x)$, then $f'(c) = 0$. 
+                  </li>
+                  <li>
+                    <strong>Extreme Value Theorem:</strong> If $f(x)$ is differentiable on a closed interval $[a,b]$, then the maximum/minimum value of $f(x)$ occurs at either an endpoint, or at a critical point such that $f'(c) = 0$. 
+                  </li>
+                  <li>
+                    <strong>Second Derivative Test:</strong> Suppose the second derivative $f''(x)$ is continuous around a point $x = c$ and that $f'(c) = 0$. If $f''(c) > 0$ then $f(x)$ has a local minimum at $x = c$, and if $f''(c) < 0$ then $f(x)$ has a local maximum at $x = c$. 
+                  </li>
+                </p>
+                <p class="example">
+                  <strong>Example:</strong> <em>Without computing numerical values, decide which is the larger of $e^\pi$ or $\pi^e$.</em>
+                  <br>
+                  <br>
+                  We wish to decide whether $e^\pi > \pi^e$ is true or not. By taking logarithms and rearranging, we see that it is equivalent to check whether $$ \frac{\ln(e)}{e} > \frac{\ln(\pi)}{\pi} $$ is true or not. To this end, let $f(x) = \frac{\ln(x)}{x}$. Then we can compute:
+                  $$ f'(x) = \frac{1 - \ln(x)}{x^2}. $$
+                  From this we can deduce that $f'(e) = 0$ is the unique critical point. Also, $f'(x) > 0 $ for $x < e$ and $f'(x) < 0$ for $x > e$. It therefore follows that $f(x)$ is constantly increasing until $x=e$, whereby it has a global maximum, and then decreases constantly thereafter. It follows that $f(e) > f(\pi)$, so we may conclude that indeed:
+                  $$ e^\pi > \pi^e. $$
+                </p>
+                <hr width="400px">
+              
+                <h3>Integration</h3>
+                <p> Integration is a summing process, where we accumulate values of the function over an interval. It requires more setup than the derivative. 
+                </p>
+                <p> Let $f(x)$ be a function defined on a closed interval $[a,b]$. Subdivide $[a,b]$ into $n$ even subintervals $[a, x_1], \dots, [x_{n-1}, b]$ each with width $\Delta x$. For each subinterval, choose an element $x_i^* \in [x_{i-1}, x_i]$ (a common choice is to take $x_i^*$ to be one of the endpoints). We then define the <strong>integral</strong> of $f(x)$ between $a$ and $b$ to be:
+                  $$ \int_a^b f(x)dx := \lim_{\Delta x \to 0} \sum_{i = 1}^n f(x_i^*) \Delta x $$ provided the limit exists. For $f(x)$ piecewise-continuous, the limit will always exist. 
+                </p>
+
+                <p>
+                  Here are some of the main results regarding integration:
+                  <li>
+                    <strong>Evaluation Theorem:</strong> Let $F(x)$ be an antiderivative of $f(x)$ (that is, $F'(x) = f(x)$). Then $$ \int_a^b f(x) dx = F(b) - F(a). $$
+                    For this reason, we adopt the notation that $\int f(x)dx$ is an antiderivative for $f(x)$, and is well defined up to a constant.
+                  </li>
+                  <li>
+                    <strong>Fundamental Theorem of Calculus:</strong> We have that $$ \frac{d}{dt} \int_a^t f(x)dx = f(t) = \int_a^t f'(x) dx. $$ That is, when defined, integration and differentiation are inverse operators.
+                  </li>
+                  <li>
+                    <strong>Substitution:</strong> We have that $$ \int f'(g(x))g'(x)dx = \int f(u)du $$ where $u = g(x)$. This is the integral inversion of the chain rule.
+                  </li>
+                  <li>
+                    <strong>Integration By Parts:</strong> We have that $$ \int u dv = uv - \int v du. $$ This is derived from the product rule for differentiation, and is used mainly when the integral on the right is simpler than the one on the left. 
+                  </li>
+                </p>
+
+                <p class="example">
+                  <strong>Example:</strong> <em>Compute the integral $\int_{0}^{\infty} e^{-x^2/2}dx$.</em>
+                  <br>
+                  <br>
+                  Let $I = \int_{-\infty}^{\infty} e^{-x^2/2}dx$ be the value we wish to compute. Then 
+                  $$ I^2 = \int_{-\infty}^{\infty} e^{-x^2/2}dx \cdot \int_{-\infty}^{\infty} e^{-y^2/2}dy $$
+                  and so combining the integrals (this requires <a href="https://en.wikipedia.org/wiki/Fubini%27s_theorem">Fubini's Theorem</a>) we obtain:
+                  $$ I^2 = \int_{-\infty}^\infty \int_{-\infty}^\infty e^{-(x^2 + y^2)/2}dxdy. $$ We now make the substitutions $x = r\cos(\theta)$ and $y = r \sin(\theta)$ (these are called polar coordinates) and the integral becomes: 
+                  $$ I^2 = \int_0^\infty \int_{0}^{2\pi} e^{-r^2/2} rdrd\theta = \left[ e^{-r^2/2} \right]^\infty_0 \cdot \left[\theta \right]^{
+                  2\pi}_0 = 2\pi.$$
+                  Thus we have that: $$ \int_0^\infty e^{-x^2/2}dx = \frac{1}{2}I = \sqrt{\frac{\pi}{2}}.$$
+
+                  This example actually shows that the function $f(x) = \frac{1}{\sqrt{2 \pi}} e^{-x^2/2}$ integrates to 1, and thus defines a valid probability density function (pdf) on the interval $(0,\infty)$. This is none other than the standard normal distribution.
+                </p>
+
+                One of the main applications of integration in undergraduate calculus is to calculate areas and volumes. 
+
+                <hr width="400px">
+
+                <h3>Volumes of Solids</h3>
+
+                The 3D volume of a surface is given by
+                $$ \int_{a}^{b} A(z)dz $$ where $A(z)$ is the cross-sectional area obtained by intersecting the surface with a plane that is perpendicular to the $z$-axis.
+
+                <p class="example">
+                  <strong>Example:</strong> <em>The snow began to fall at some point in time before noon, at a constant rate. The city sent out a snowplow at noon to clear the snow. The plow removed snow at a constant volume per minute. By $1$pm, the plow had moved $2$ miles. By $2$pm, it had moved $3$ miles. When did the snow begin to fall?</em>
+
+                  <br>
+                  <br>
+                  Let noon be $t = 0$ and suppose snow began to fall $T$ hours before noon. The more snow there is, the slower the plow will travel. Therefore, if $v$ is the slowplow's velocity, we have $$ v = \frac{c_1}{A(t)} $$ where $c_1$ is some constant, and $A(t)$ is the cross-sectional area of the snow. If $t$ represents time in the afternoon, then $A(t) = c_2(t+T)$ where $c_2$ is the constant rate of snowfall per hour. Thus we have that $v = \frac{c}{t+T}$ for some constant $c$. Integrating to equate the volumes we have:
+                  $$ \int_0^1 \frac{c}{t+T}dt = c\ln \left(\frac{1+T}{T} \right) = 2 $$
+                  $$ \int_0^2 \frac{c}{t+T}dt = c\ln \left(\frac{2+T}{T} \right) = 3. $$
+
+                  Equating we find that 
+                  $$ T^2 - T + 1 = 0 ~~\Longrightarrow~ T = \frac{\sqrt{5}-1}{2}.$$
+                </p>
+
+                <hr width="400px">
+
+                This concludes the first post on calculus. In our next post, we will cover Taylor series. 
+
                 
               </div>
+
+              <!-------------------END OF POST--------------------->
             </div>
             <div class="rightcolumn">
               <div class="card">
@@ -119,7 +237,7 @@
           
           
           <div class="footer">
-            <h5>The post's title <it>Tropic of Calculus is a reference to the comedian and musician Tom Lehrer, who during a performance of his well known "New Math" song, jokes that this title would be the name of his best-selling Calculus textbook. </it> </h5>
+            <h5>The post's title <em>Tropic of Calculus</em> is a reference to the comedian and musician Tom Lehrer, who during a performance of his well known <em>New Math</em> song, jokes that this title would be the name of his best-selling Calculus textbook. </it> </h5>
           </div> 
         
 

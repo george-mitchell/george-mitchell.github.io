@@ -3,27 +3,43 @@
   }
   
   body {
-    font-family: Montserrat, sans-serif;
+    font-family: "Montserrat", sans-serif;
     padding: 20px;
     background: #edf2f4;
     color:  #2a2c3d;
     font-size: 16px;
     /*#f1f1f1 */
   }
+
+  li{
+    margin: 10px 0;
+  }
+
+  math {
+    font-family: "Latin Modern Math";
+  }
   
   /* Header/Blog Title */
   .header {
     padding: 30px;
-    font-size: 20px;
-    font-family: Montserrat;
+    font-size: 18px;
+    font-family: "Montserrat";
     text-align: center;
     background: white;
   }
 
   .example {
-    color: #0361ad;
+    color: #035ca5;
+    font-family: "Latin Modern Roman";
+    background: #edf2f4;
+    padding: 10px;
   }
-  
+
+  .post {
+    font-family: "Latin Modern Roman";
+    font-size: 18px;
+  }
+
   /* Create two unequal columns that floats next to each other */
   /* Left column */
   .leftcolumn {
