@@ -3,7 +3,7 @@
   }
   
   body {
-    font-family: "Montserrat", sans-serif;
+    font-family: 'Noto Sans Math', sans-serif;
     padding: 20px;
     background: #edf2f4;
     color:  #2a2c3d;
@@ -16,28 +16,27 @@
   }
 
   math {
-    font-family: "Latin Modern Math";
+    font-family: 'Noto Sans Math', sans-serif;
   }
   
   /* Header/Blog Title */
   .header {
     padding: 30px;
     font-size: 18px;
-    font-family: "Montserrat";
+    font-family: 'Noto Sans Math', sans-serif;
     text-align: center;
     background: white;
   }
 
   .example {
     color: #035ca5;
-    font-family: "Latin Modern Roman";
     background: #edf2f4;
     padding: 10px;
   }
 
   .post {
-    font-family: "Latin Modern Roman";
-    font-size: 18px;
+    font-size: 16px;
+    font-family: 'Noto Sans Math', sans-serif;
   }
 
   /* Create two unequal columns that floats next to each other */
