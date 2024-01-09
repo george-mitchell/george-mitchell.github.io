@@ -1,2 +1,2 @@
 # George Mitchell
-Repository for my professional website. 
+Repository for my website. 
