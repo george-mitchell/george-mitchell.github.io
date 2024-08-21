@@ -4,7 +4,7 @@ body {
   padding: 20px;
   background-color: rgba(34, 94, 94, 0);
   color: rgb(0, 0, 0);
-  font-family: Montserrat, serif;
+  font-family: "Proxima Nova", Roboto, Helvetica, sans-serif;
   font-size: 16px;
 }
 
@@ -18,10 +18,10 @@ p {
   text-align: justify;
   margin-right: 40px;
   margin-top: 20px;
-  font-family: Montserrat, serif;
+  font-family: "Proxima Nova", Roboto, Helvetica, sans-serif;
 }
 h1 {
-  font-family: Montserrat, serif;
+  font-family: "Proxima Nova", Roboto, Helvetica, sans-serif;
   font-size: 40px;
 }
 
