@@ -196,10 +196,10 @@ defaults:
       layout: page
       permalink: /:title/
   - scope:
-      path: ""
+      path: _projects
       type: projects
     values:
-      layout: post
+      layout: project
 ```
 
 sass:
