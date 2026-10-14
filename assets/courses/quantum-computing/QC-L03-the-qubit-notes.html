@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Lecture 3 — The Qubit: Born Rule and Bloch Sphere</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+  /* course additions, same family */
+  .crypto{border-left-color:var(--moss);background:var(--surface2)} .crypto .lbl{color:var(--moss)}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  dl.gloss dt{font-family:var(--mono);color:var(--sky);font-size:.95rem;margin-top:.9em}
+  dl.gloss dd{margin:.1em 0 0 1.1em}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<style id="spot-css">
+.spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+  border-radius:6px;padding:12px 16px;margin:1.3em 0;transition:background .25s,border-color .25s}
+.spot .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em;color:var(--sky)}
+.spot > p{margin:.35em 0}
+.spot .hint,.spot .why,.spot .oh{display:none}
+.spot .fb{display:none;margin:.55em 0 0;font-size:.97rem}
+.spot .fb > :first-child{margin-top:0}.spot .fb > :last-child{margin-bottom:0}
+.spot.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 13%,var(--surface))}
+.spot.ok .lbl{color:var(--moss)}
+.spot.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 13%,var(--surface))}
+.spot.bad .lbl{color:var(--amber)}
+.spot.ok .fb{display:block;color:var(--ink)} .spot.bad .fb{display:block;color:var(--ink)}
+.spot .fb .tag{font-family:var(--mono);font-size:.85rem;margin-right:.4em}
+.spot.ok .fb .tag{color:var(--moss)} .spot.bad .fb .tag{color:var(--amber)}
+.spot ul.opts{list-style:none;padding:0;margin:.5em 0}
+.spot ul.opts li{display:block;padding:4px 8px 4px 2.1em;text-indent:-1.5em;margin:3px 0;border-radius:5px;cursor:pointer;
+  border:1px solid transparent;overflow-wrap:anywhere}
+.spot ul.opts li > *{text-indent:0}
+.spot ul.opts li:hover{border-color:var(--rule)}
+.spot ul.opts li input{accent-color:var(--sky);margin:0 .6em 0 0;width:.9em;vertical-align:-1px}
+.spot ul.opts li.right{border-color:var(--moss)}
+.spot .row{display:flex;flex-wrap:wrap;gap:.6em 1em;align-items:center;margin:.55em 0 .2em}
+.spot .row label{font-family:var(--mono);font-size:.88rem;color:var(--muted);display:flex;gap:.45em;align-items:center}
+.spot input.ans{font-family:var(--mono);font-size:.95rem;width:9.5em;max-width:100%;padding:5px 8px;border-radius:5px;
+  border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.spot input.ans:focus,.spot select:focus{outline:2px solid var(--sky);outline-offset:1px}
+.spot select{font-family:var(--mono);font-size:.9rem;padding:3px 6px;border-radius:5px;border:1px solid var(--rule);
+  background:var(--bg);color:var(--ink);max-width:100%}
+.spot .btns{display:flex;gap:.5em;flex-wrap:wrap;margin-top:.5em}
+.spot .btns button{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--sky);border:1px solid var(--sky);
+  padding:5px 12px;border-radius:999px;cursor:pointer}
+.spot .btns button:hover{background:var(--sky);color:var(--bg)}
+.spot .btns button.reveal{color:var(--muted);border-color:var(--rule)}
+.spot .btns button.reveal:hover{background:var(--rule);color:var(--ink)}
+.spot .fmt{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+@media print{.spot .btns,.spot .fmt{display:none}}
+</style>
+<script src="/assets/courses/common/course-nav.js" data-course="quantum-computing" defer></script>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Quantum Computing · Lecture 3</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Lecture 3<br>The Qubit: Born Rule and Bloch Sphere</h1>
+<p class="kicker">Week 2 &nbsp;|&nbsp; states, measurement, phase, and a ball to draw them on &nbsp;|&nbsp; reading: Watrous §1.2</p>
+
+<figure class="toon">
+<svg viewBox="0 0 600 210" width="600" height="210" role="img" aria-labelledby="c3t c3d">
+<title id="c3t">Cartoon: a whole sphere of states goes in, one bit comes out</title><desc id="c3d">A stick figure stands next to a sphere with an arrow pointing to a spot on its surface. An arrow leads from the sphere into a box labelled measure, and out of the box comes a single digit 0. A speech bubble says: a whole sphere of states, and I get one bit?</desc>
+<defs><filter id="rough33" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="33" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough33)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="60" cy="128" r="11"/><path d="M 60 139 L 60 165"/><path d="M 60 145 L 47 163"/><path d="M 60 145 L 84 136"/><path d="M 60 165 L 49 190"/><path d="M 60 165 L 71 190"/>
+<circle cx="200" cy="130" r="46" fill="var(--surface2)"/><ellipse cx="200" cy="130" rx="46" ry="13" stroke-width="1.4"/>
+<path d="M 200 130 L 228 100" stroke="var(--rose)" stroke-width="2.6"/><path d="M 219 101 L 229 99 L 226 109" stroke="var(--rose)"/>
+<path d="M 254 130 L 330 130"/><path d="M 321 124 L 331 130 L 321 136"/>
+<rect x="336" y="104" width="104" height="52" rx="6" fill="var(--surface2)"/>
+<path d="M 444 130 L 500 130"/><path d="M 491 124 L 501 130 L 491 136"/>
+<rect x="84" y="10" width="252" height="56" rx="9" fill="var(--surface2)"/>
+<path d="M 108 63 L 80 102 L 140 63" fill="var(--surface2)" stroke-width="1.6"/>
+<path d="M 20 198 L 580 198" stroke-width="1.6"/>
+</g>
+<text x="98" y="34" class="ctext">a whole sphere of states...</text><text x="98" y="54" class="ctext">and I get one bit?</text>
+<text x="356" y="135" class="ctext">measure</text><text x="512" y="137" class="ctext" style="font-size:22px">0</text>
+</svg>
+<figcaption class="tooncap">infinitely many states in, one bit out: both halves of that sentence matter</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">The qubit, officially</a></li>
+<li><a href="#s2">Measuring in other bases</a></li>
+<li><a href="#s3">Measurement is sampling</a></li>
+<li><a href="#s4">Global phase and relative phase</a></li>
+<li><a href="#s5">Two angles describe every qubit</a></li>
+<li><a href="#s6">The Bloch sphere</a></li>
+<li><a href="#s7">One bit out</a></li>
+<li><a href="#s8">Try it in code</a></li>
+<li><a href="#s9">Summary and exercises</a></li>
+</ol>
+</div>
+
+<p>Lecture 1 promised that a qubit is a unit vector of amplitudes, and Lecture 2 built the language for such vectors. This lecture turns the promise into rules. By the end you should be able to compute the probabilities of any measurement on any qubit state; say which differences between state vectors are physical and which are only bookkeeping; describe any qubit by two angles; and place it, and read its measurement statistics, on the Bloch sphere.</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; The qubit, officially</h2>
+
+<div class="box def">
+<span class="lbl">definition 3.1 &mdash; qubit state</span>
+<p>The state of a qubit is a unit vector in \(\mathbb C^2\):</p>
+$$|\psi\rangle=\alpha\,|0\rangle+\beta\,|1\rangle=\begin{pmatrix}\alpha\\[2pt] \beta\end{pmatrix},\qquad |\alpha|^2+|\beta|^2=1 .$$
+<p>The numbers \(\alpha\) and \(\beta\) are the <strong>amplitudes</strong> of \(|0\rangle\) and \(|1\rangle\).</p>
+</div>
+
+<div class="spot" data-kind="num" data-ans="sqrt(3)/2">
+<p>For which positive real number \(c\) is \(\tfrac12|0\rangle+c\,|1\rangle\) a qubit state?</p>
+<div class="hint">The only condition is normalisation: \(|\alpha|^2+|\beta|^2=1\). Here \(|\alpha|^2=\tfrac14\).</div>
+<div class="why">\(\tfrac14+c^2=1\) gives \(c=\tfrac{\sqrt3}{2}\approx0.866\).</div>
+</div>
+
+<p>A state on its own predicts nothing until we say what happens when we look at it. That is the job of a single rule, which we take as an axiom.</p>
+
+<div class="box thm">
+<span class="lbl">axiom 3.2 &mdash; the Born rule</span>
+<p>Measuring \(|\psi\rangle\) in the standard basis gives outcome \(k\in\{0,1\}\) with probability</p>
+$$P(k)=|\langle k|\psi\rangle|^2,\qquad\text{so}\qquad P(0)=|\alpha|^2,\quad P(1)=|\beta|^2 .$$
+<p>Immediately after the measurement the qubit is in the state \(|k\rangle\) that was observed. More generally, measuring in any orthonormal basis \(\{|b_0\rangle,|b_1\rangle\}\) gives outcome \(b_k\) with probability \(|\langle b_k|\psi\rangle|^2\) and leaves the qubit in \(|b_k\rangle\).</p>
+</div>
+
+<p>Two things are packed into the axiom. The first is the probability rule, which you have been using since Lecture 1. The second is <strong>collapse</strong>: measurement is not a passive look. Whatever superposition the qubit was in is replaced by the basis state you saw, so measuring again in the same basis gives the same answer with certainty.</p>
+
+<div class="spot" data-kind="select">
+<p>A qubit in the state \(\tfrac12|0\rangle+\tfrac{\sqrt3}{2}|1\rangle\) is measured in the standard basis, and the outcome is 1. It is measured again, immediately, in the same basis. The second measurement gives 1 with probability
+<select><option data-hint="That is the probability for the first measurement, not the second.">3/4</option><option data-hint="That would be true for a coin, but the first measurement changed the state.">1/2</option><option data-ok>1</option><option data-hint="Collapse left the qubit in the state you saw, so the outcome 1 cannot become impossible.">0</option></select>.</p>
+<div class="hint">After the first outcome, collapse replaces the state by the basis state that was observed.</div>
+<div class="why">The first measurement left the qubit in \(|1\rangle\), so the second one returns 1 with certainty.</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 3.1 &mdash; the running example</span>
+<p>Let \(|\psi\rangle=\tfrac35|0\rangle+\tfrac{4i}{5}|1\rangle\). Check that it is a valid state, find the outcome probabilities in the standard basis, and say what state the qubit is in after the outcome 1 is observed.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The squared sizes of the amplitudes are \(|3/5|^2=9/25\) and \(|4i/5|^2=16/25\). They add to 1, so this is a state, and</p>
+$$P(0)=\frac{9}{25}=0.36,\qquad P(1)=\frac{16}{25}=0.64 .$$
+<p>The factor \(i\) on the second amplitude has no effect on these numbers, since \(|i|=1\). After outcome 1 the qubit is in \(|1\rangle\): the original amplitudes, including that factor of \(i\), are gone.</p>
+</div>
+</div>
+
+<div class="box hist">
+<span class="lbl">history &mdash; a footnote that changed physics</span>
+<p>In 1926 Erwin Schrödinger wrote down his wave equation without being sure what the wave meant. That summer Max Born, studying collisions between particles, proposed that the wave gives the <em>probability</em> of finding a particle, and in a note added while the paper was in proof he corrected himself: the probability is proportional to the <em>square</em> of the amplitude. Born received the Nobel Prize for it in 1954. Nearly a century later the rule has never failed a test, and no one has derived it from anything simpler. We take it as given, as physicists do.</p>
+</div>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; Measuring in other bases</h2>
+
+<p>The standard basis is the one quantum hardware measures natively, but the Born rule works for any orthonormal basis. Lecture 2 introduced the three bases that matter most: Z \((|0\rangle,|1\rangle)\), X \((|+\rangle,|-\rangle)\) and Y \((|{+i}\rangle,|{-i}\rangle)\). Measuring the same state in different bases asks it different questions, and the answers can be very different.</p>
+
+<div class="spot" data-kind="num" data-ans="1/2" data-labels="P(+)">
+<p>The qubit is in \(|0\rangle\). It is measured in the X basis \(\{|+\rangle,|-\rangle\}\). What is the probability of the outcome \(+\)?</p>
+<div class="hint">Use the general Born rule: \(P(+)=|\langle+|0\rangle|^2\), and \(\langle+|=\tfrac1{\sqrt2}(1\;\;1)\).</div>
+<div class="why">\(\langle+|0\rangle=\tfrac1{\sqrt2}\), so \(P(+)=\tfrac12\). A state that is certain in one basis can be a coin toss in another.</div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 3.2 &mdash; three questions, one state</span>
+<p>For \(|\psi\rangle=\tfrac35|0\rangle+\tfrac{4i}{5}|1\rangle\), find the outcome probabilities in the X basis and in the Y basis.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>X basis. With \(\langle+|=\tfrac1{\sqrt2}(1\;\;1)\),</p>
+$$\langle+|\psi\rangle=\frac{1}{\sqrt2}\Big(\frac35+\frac{4i}{5}\Big),\qquad P(+)=\frac12\cdot\frac{|3+4i|^2}{25}=\frac12\cdot\frac{25}{25}=\frac12,$$
+<p>and so \(P(-)=\tfrac12\). The X basis sees a fair coin.</p>
+<p>Y basis. Remember the conjugate: \(\langle{+i}|=\tfrac{1}{\sqrt2}(1\;\;-i)\). Then</p>
+$$\langle{+i}|\psi\rangle=\frac{1}{\sqrt2}\Big(\frac35+(-i)\frac{4i}{5}\Big)=\frac{1}{\sqrt2}\Big(\frac35+\frac45\Big)=\frac{7}{5\sqrt2},$$
+$$P({+i})=\frac{49}{50}=0.98,$$
+<p>and so \(P({-i})=0.02\). In the Y basis the state is almost certain. The same qubit is 36/64 in Z, 50/50 in X and 98/2 in Y.</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; a state is a list of answers to every possible question</span>
+<p>No single measurement tells you what a qubit "is". The state \(|\psi\rangle\) is best thought of as a compact rule that predicts the answer statistics for <em>every</em> measurement you could make, in every basis at once. Example 3.2 shows how different those answers can be. Section 6 will show that three numbers, the Z, X and Y answers, are enough to pin the state down completely.</p>
+</div>
+
+<div class="widget">
+<h4>Measure a qubit</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Choose a state and a basis, then take shots. The dashed lines are the Born-rule probabilities; the bars are what you actually see. Changing the basis starts a fresh experiment on fresh copies of the same state.</p>
+<div class="ctrls" id="msState"></div>
+<div class="ctrls" id="msBasis"></div>
+<svg id="msSvg" viewBox="0 0 600 220" width="600" height="220" role="img" aria-labelledby="msSvg-t msSvg-d"><title id="msSvg-t">Histogram of measurement outcomes with the Born-rule probabilities marked</title><desc id="msSvg-d">Interactive figure, redrawn as you use the controls next to it; the text readout below it describes what is currently shown.</desc></svg>
+<div class="ctrls">
+<button class="ctl" data-shots="10">+10 shots</button><button class="ctl" data-shots="100">+100</button><button class="ctl" data-shots="1000">+1000</button><button class="ctl" id="msReset">reset</button>
+</div>
+<p class="readout" role="status" aria-live="polite" id="msOut"></p>
+</div>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; Measurement is sampling</h2>
+
+<p>Collapse has an uncomfortable consequence. You cannot measure the same qubit twice to learn more about it, because after the first measurement the old state is gone. To learn \(P(0)\) you need many identically prepared copies, one measurement per copy. Each run of the circuit is called a <strong>shot</strong>, and what a quantum computer returns is a table of counts. In the language of probability and statistics, each shot is a Bernoulli trial with success probability \(p=P(0)\), and the proportion of zeros \(\hat p\) estimates \(p\) with the familiar standard error \(\sqrt{\hat p(1-\hat p)/n}\).</p>
+
+<div class="box ex">
+<span class="lbl">example 3.3 &mdash; which state was it?</span>
+<p>A device is supposed to prepare either the running example \(|\psi\rangle\) (with \(P(0)=0.36\)) or the state \(|+\rangle\) (with \(P(0)=0.5\)). You measure 100 copies in the standard basis and see 38 zeros. Build a 95% confidence interval for \(P(0)\). Which state is consistent with the data?</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(\hat p=0.38\) and the half-width is \(1.96\sqrt{0.38\cdot0.62/100}\approx0.095\), so the interval is</p>
+$$(0.285,\;0.475).$$
+<p>It contains 0.36 and excludes 0.5, so the data point to \(|\psi\rangle\). With only 100 shots the interval is almost 0.2 wide: telling two states apart is a statistics problem, and its cost is paid in shots.</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; you never see the amplitudes</span>
+<p>Amplitudes are never observed directly, not even their sizes. What you observe are frequencies, which converge to \(|\alpha|^2\) at the slow rate \(1/\sqrt n\). Every quantum algorithm in this course ends the same way: run the circuit many times and read off the most common answer. A good algorithm is one where the right answer is common enough to stand out after a modest number of shots.</p>
+</div>
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; Global phase and relative phase</h2>
+
+<p>Two different vectors can describe the same physical state. The simplest case is multiplying the whole vector by a number of size 1.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 3.1 &mdash; global phase is invisible</span>
+<p>For any real \(\gamma\), the states \(|\psi\rangle\) and \(e^{i\gamma}|\psi\rangle\) give identical probabilities for every measurement in every basis. They are the same physical state.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>For any basis vector \(|b\rangle\), linearity and \(|e^{i\gamma}|=1\) give</p>
+$$\big|\langle b|\,e^{i\gamma}\psi\rangle\big|^2=|e^{i\gamma}|^2\,|\langle b|\psi\rangle|^2=|\langle b|\psi\rangle|^2 .$$
+<p>No measurement can tell the two vectors apart. The same holds after any gate \(U\), because \(U(e^{i\gamma}|\psi\rangle)=e^{i\gamma}U|\psi\rangle\): the factor just rides along to the end.</p>
+</div>
+</div>
+
+<p>So \(|0\rangle\) and \(-|0\rangle\) are the same state, and so are \(|{+i}\rangle\) and \(i|{+i}\rangle\). A factor multiplying the <em>whole</em> vector is called a <strong>global phase</strong>, and we are free to drop it.</p>
+
+<p>A phase between the two amplitudes is a different matter. Compare \(|+\rangle=\tfrac{1}{\sqrt2}(|0\rangle+|1\rangle)\) and \(|-\rangle=\tfrac{1}{\sqrt2}(|0\rangle-|1\rangle)\). In the standard basis both give 50/50, but in the X basis \(|+\rangle\) gives \(+\) with certainty and \(|-\rangle\) gives \(-\) with certainty. They are as different as two states can be. The minus sign here is a <strong>relative phase</strong>: it multiplies only one amplitude, so it cannot be factored out of the whole vector.</p>
+
+<div class="spot" data-kind="multi">
+<p>Tick every pair that describes the <em>same</em> physical state.</p>
+<ul class="opts">
+<li data-ok>\(|0\rangle\) and \(-|0\rangle\)</li>
+<li>\(|+\rangle\) and \(|-\rangle\)<span class="oh">\(|+\rangle\) and \(|-\rangle\) differ by a relative phase: the X basis tells them apart with certainty.</span></li>
+<li data-ok>\(|1\rangle\) and \(i|1\rangle\)</li>
+<li data-ok>\(\tfrac1{\sqrt2}(|0\rangle+|1\rangle)\) and \(\tfrac1{\sqrt2}(i|0\rangle+i|1\rangle)\)</li>
+<li>\(\tfrac1{\sqrt2}(|0\rangle+|1\rangle)\) and \(\tfrac1{\sqrt2}(|0\rangle+i|1\rangle)\)<span class="oh">In the last pair only the \(|1\rangle\) amplitude was multiplied by \(i\): that is a relative phase, and these two states sit at different points of the equator.</span></li>
+</ul>
+<div class="hint">Ask of each pair: is the second vector the first multiplied, as a whole, by one number of size 1?</div>
+<div class="why">Three pairs differ by a global phase (\(-1\), \(i\), \(i\)); the other two differ by a relative phase, which is physical.</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 3.4 &mdash; dialing the relative phase</span>
+<p>For each real \(\varphi\), let \(|\psi_\varphi\rangle=\tfrac{1}{\sqrt2}\big(|0\rangle+e^{i\varphi}|1\rangle\big)\). Find \(P(0)\) in the standard basis and \(P(+)\) in the X basis as functions of \(\varphi\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Standard basis: \(P(0)=|1/\sqrt2|^2=\tfrac12\) for every \(\varphi\). The Z measurement is blind to \(\varphi\). X basis:</p>
+$$\langle+|\psi_\varphi\rangle=\frac12\big(1+e^{i\varphi}\big),$$
+$$P(+)=\frac14\,\big|1+e^{i\varphi}\big|^2=\frac14\big(2+2\cos\varphi\big)=\frac{1+\cos\varphi}{2}.$$
+<p>Here we used \(|1+e^{i\varphi}|^2=(1+e^{i\varphi})(1+e^{-i\varphi})=2+2\cos\varphi\). As \(\varphi\) runs around the circle, \(P(+)\) swings from 1 at \(|+\rangle\), through \(\tfrac12\) at \(|{+i}\rangle\), to 0 at \(|-\rangle\), and back.</p>
+</div>
+</div>
+
+<figure>
+<svg viewBox="0 0 640 320" width="640" height="320" role="img" aria-labelledby="pft pfd"><title id="pft">Relative phase is invisible in the Z basis but not in the X basis</title><desc id="pfd">For the states (|0> + e^(i phi)|1>)/sqrt(2), as phi runs from 0 to 2 pi, the probability of reading 0 in the standard basis stays flat at 1/2, while the probability of the outcome + in the X basis traces the fringe (1 + cos phi)/2: 1 at phi = 0 (the state |+>), 1/2 at pi/2 (|+i>), 0 at pi (|->), 1/2 at 3 pi/2 (|-i>), and back to 1.</desc><rect x="56" y="36" width="562" height="228" class="plot-bg" stroke="var(--rule)"/><line class="gridline" x1="56" y1="264.0" x2="618" y2="264.0"/><text class="axtext" x="48.0" y="268.0" text-anchor="end">0</text><line class="gridline" x1="56" y1="207.0" x2="618" y2="207.0"/><text class="axtext" x="48.0" y="211.0" text-anchor="end">0.25</text><line class="gridline" x1="56" y1="150.0" x2="618" y2="150.0"/><text class="axtext" x="48.0" y="154.0" text-anchor="end">0.5</text><line class="gridline" x1="56" y1="93.0" x2="618" y2="93.0"/><text class="axtext" x="48.0" y="97.0" text-anchor="end">0.75</text><line class="gridline" x1="56" y1="36.0" x2="618" y2="36.0"/><text class="axtext" x="48.0" y="40.0" text-anchor="end">1</text><text class="axtext" x="56.0" y="284.0" text-anchor="middle">0</text><text class="axtext" x="196.5" y="284.0" text-anchor="middle">pi/2</text><text class="axtext" x="337.0" y="284.0" text-anchor="middle">pi</text><text class="axtext" x="477.5" y="284.0" text-anchor="middle">3pi/2</text><text class="axtext" x="618.0" y="284.0" text-anchor="middle">2pi</text><line class="axis" x1="56" y1="264" x2="618" y2="264"/><text class="axtext" x="337.0" y="308.0" text-anchor="middle">relative phase phi</text><line x1="56" y1="150.0" x2="618" y2="150.0" stroke="var(--amber)" stroke-width="2.5"/><path class="curve" d="M56.0,36.0 L59.1,36.1 L62.2,36.3 L65.4,36.6 L68.5,37.1 L71.6,37.7 L74.7,38.5 L77.9,39.4 L81.0,40.4 L84.1,41.6 L87.2,42.9 L90.3,44.3 L93.5,45.9 L96.6,47.5 L99.7,49.3 L102.8,51.3 L106.0,53.3 L109.1,55.5 L112.2,57.8 L115.3,60.2 L118.4,62.7 L121.6,65.3 L124.7,68.0 L127.8,70.8 L130.9,73.7 L134.1,76.7 L137.2,79.8 L140.3,83.0 L143.4,86.3 L146.5,89.6 L149.7,93.0 L152.8,96.5 L155.9,100.0 L159.0,103.6 L162.2,107.3 L165.3,111.0 L168.4,114.8 L171.5,118.6 L174.6,122.4 L177.8,126.3 L180.9,130.2 L184.0,134.1 L187.1,138.1 L190.3,142.0 L193.4,146.0 L196.5,150.0 L199.6,154.0 L202.7,158.0 L205.9,161.9 L209.0,165.9 L212.1,169.8 L215.2,173.7 L218.4,177.6 L221.5,181.4 L224.6,185.2 L227.7,189.0 L230.8,192.7 L234.0,196.4 L237.1,200.0 L240.2,203.5 L243.3,207.0 L246.5,210.4 L249.6,213.7 L252.7,217.0 L255.8,220.2 L258.9,223.3 L262.1,226.3 L265.2,229.2 L268.3,232.0 L271.4,234.7 L274.6,237.3 L277.7,239.8 L280.8,242.2 L283.9,244.5 L287.0,246.7 L290.2,248.7 L293.3,250.7 L296.4,252.5 L299.5,254.1 L302.7,255.7 L305.8,257.1 L308.9,258.4 L312.0,259.6 L315.1,260.6 L318.3,261.5 L321.4,262.3 L324.5,262.9 L327.6,263.4 L330.8,263.7 L333.9,263.9 L337.0,264.0 L340.1,263.9 L343.2,263.7 L346.4,263.4 L349.5,262.9 L352.6,262.3 L355.7,261.5 L358.9,260.6 L362.0,259.6 L365.1,258.4 L368.2,257.1 L371.3,255.7 L374.5,254.1 L377.6,252.5 L380.7,250.7 L383.8,248.7 L387.0,246.7 L390.1,244.5 L393.2,242.2 L396.3,239.8 L399.4,237.3 L402.6,234.7 L405.7,232.0 L408.8,229.2 L411.9,226.3 L415.1,223.3 L418.2,220.2 L421.3,217.0 L424.4,213.7 L427.5,210.4 L430.7,207.0 L433.8,203.5 L436.9,200.0 L440.0,196.4 L443.2,192.7 L446.3,189.0 L449.4,185.2 L452.5,181.4 L455.6,177.6 L458.8,173.7 L461.9,169.8 L465.0,165.9 L468.1,161.9 L471.3,158.0 L474.4,154.0 L477.5,150.0 L480.6,146.0 L483.7,142.0 L486.9,138.1 L490.0,134.1 L493.1,130.2 L496.2,126.3 L499.4,122.4 L502.5,118.6 L505.6,114.8 L508.7,111.0 L511.8,107.3 L515.0,103.6 L518.1,100.0 L521.2,96.5 L524.3,93.0 L527.5,89.6 L530.6,86.3 L533.7,83.0 L536.8,79.8 L539.9,76.7 L543.1,73.7 L546.2,70.8 L549.3,68.0 L552.4,65.3 L555.6,62.7 L558.7,60.2 L561.8,57.8 L564.9,55.5 L568.0,53.3 L571.2,51.3 L574.3,49.3 L577.4,47.5 L580.5,45.9 L583.7,44.3 L586.8,42.9 L589.9,41.6 L593.0,40.4 L596.1,39.4 L599.3,38.5 L602.4,37.7 L605.5,37.1 L608.6,36.6 L611.8,36.3 L614.9,36.1 L618.0,36.0"/><circle cx="56.0" cy="36.0" r="5" fill="var(--sky)"/><text class="lbltext" x="62.0" y="26.0" text-anchor="start">|+&gt;</text><circle cx="196.5" cy="150.0" r="5" fill="var(--sky)"/><text class="lbltext" x="196.5" y="138.0" text-anchor="middle">|+i&gt;</text><circle cx="337.0" cy="264.0" r="5" fill="var(--sky)"/><text class="lbltext" x="337.0" y="252.0" text-anchor="middle">|-&gt;</text><circle cx="477.5" cy="150.0" r="5" fill="var(--sky)"/><text class="lbltext" x="477.5" y="138.0" text-anchor="middle">|-i&gt;</text><circle cx="618.0" cy="36.0" r="5" fill="var(--sky)"/><text class="lbltext" x="612.0" y="26.0" text-anchor="end">|+&gt;</text><text class="lbltext" x="266.2" y="140.0" text-anchor="start" style="fill:var(--amber)">P(0), standard basis</text><text class="lbltext" x="494.3" y="52.0" text-anchor="end" style="fill:var(--sky)">P(+), X basis</text></svg>
+<figcaption>The relative phase \(\varphi\) is invisible to the standard basis (flat line at \(\tfrac12\)) but controls the X-basis outcome completely. The curve \((1+\cos\varphi)/2\) is an <em>interference fringe</em>, the same arithmetic as the cancelling paths of Lecture 1, now inside a single qubit.</figcaption>
+</figure>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; physical versus bookkeeping</span>
+<p>The rule is simple: <em>a phase is physical exactly when it is relative</em>. A global phase is like choosing where to start measuring angles: change it and nothing observable changes. A relative phase is an angle <em>between</em> two amplitudes, and angles between things are always measurable, provided you ask in a basis that mixes the two amplitudes, as the X and Y bases do. Much of the design of quantum algorithms is the design of relative phases.</p>
+</div>
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; Two angles describe every qubit</h2>
+
+<p>A qubit state has two complex amplitudes, which is four real numbers. Normalisation removes one and the invisible global phase removes another, which leaves two. Here they are.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 3.2 &mdash; the standard form of a qubit</span>
+<p>Every qubit state can be written, up to a global phase, as</p>
+$$|\psi\rangle=\cos\frac{\theta}{2}\,|0\rangle+e^{i\varphi}\sin\frac{\theta}{2}\,|1\rangle,\qquad 0\le\theta\le\pi,\quad 0\le\varphi<2\pi .$$
+<p>The angles are unique, except that \(\varphi\) is irrelevant when \(\theta=0\) or \(\theta=\pi\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Write the amplitudes in polar form, \(\alpha=|\alpha|e^{ia}\) and \(\beta=|\beta|e^{ib}\), and pull out the global phase \(e^{ia}\):</p>
+$$|\psi\rangle=e^{ia}\Big(|\alpha|\,|0\rangle+e^{i(b-a)}|\beta|\,|1\rangle\Big).$$
+<p>Since \(|\alpha|^2+|\beta|^2=1\) with both sizes nonnegative, there is a unique \(\theta\in[0,\pi]\) with \(|\alpha|=\cos(\theta/2)\) and \(|\beta|=\sin(\theta/2)\). Set \(\varphi=b-a\), reduced to \([0,2\pi)\). If \(\beta=0\) or \(\alpha=0\) the relative phase multiplies zero, so any \(\varphi\) works.</p>
+</div>
+</div>
+
+<div class="spot" data-kind="num" data-ans="1/4" data-labels="P(1)">
+<p>A state in standard form has \(\theta=\pi/3\) and \(\varphi=\pi/2\). What is the probability of outcome 1 in the standard basis?</p>
+<div class="hint">\(P(1)=\big|e^{i\varphi}\sin\tfrac\theta2\big|^2=\sin^2\tfrac\theta2\). The phase \(\varphi\) does not matter here. Remember the half angle.</div>
+<div class="why">\(\sin^2(\pi/6)=\tfrac14\). In the standard basis only \(\theta\) matters; \(\varphi\) shows up only in other bases.</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 3.5 &mdash; strip the global phase</span>
+<p>Find \(\theta\) and \(\varphi\) for \(|\chi\rangle=\tfrac{1+i}{2}|0\rangle+\tfrac{1}{\sqrt2}|1\rangle\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(\big|\tfrac{1+i}{2}\big|=\tfrac{\sqrt2}{2}=\tfrac1{\sqrt2}\), so \(\cos(\theta/2)=\tfrac1{\sqrt2}\) and \(\theta=\pi/2\). The first amplitude has phase \(\pi/4\) and the second has phase 0. Pulling out \(e^{i\pi/4}\):</p>
+$$|\chi\rangle=e^{i\pi/4}\Big(\frac{1}{\sqrt2}|0\rangle+e^{-i\pi/4}\frac{1}{\sqrt2}|1\rangle\Big),$$
+<p>so \(\varphi=-\pi/4\), which is \(7\pi/4\) in \([0,2\pi)\). The state lies on the equator of the sphere of the next section, halfway between \(|+\rangle\) and \(|{-i}\rangle\).</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 3.6 &mdash; aiming for a probability</span>
+<p>Find a real state with \(P(0)=\tfrac34\), and give its \(\theta\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>We need \(\cos^2(\theta/2)=\tfrac34\), so \(\cos(\theta/2)=\tfrac{\sqrt3}{2}\) and \(\theta/2=\pi/6\). The state is \(\cos\tfrac\pi6|0\rangle+\sin\tfrac\pi6|1\rangle=\tfrac{\sqrt3}{2}|0\rangle+\tfrac12|1\rangle\), with \(\theta=\pi/3\). In general \(P(0)=\cos^2(\theta/2)\) depends on \(\theta\) alone: \(\theta\) controls the Z statistics and \(\varphi\) controls the rest.</p>
+</div>
+</div>
+
+<h3>Why \(\theta/2\)?</h3>
+<p>The half angle looks like an odd choice, but it is forced on us. Orthogonal states, such as \(|0\rangle\) and \(|1\rangle\), are 90° apart as vectors. We want them at <em>opposite</em> ends of our picture, 180° apart, because they are perfectly distinguishable. So every angle between state vectors is doubled when we draw it. The formula uses \(\theta/2\) so that \(\theta\) itself is the angle in the picture.</p>
+
+<figure>
+<svg viewBox="0 0 720 350" width="720" height="350" role="img" aria-labelledby="hat had"><title id="hat">Why theta/2: angles double on the Bloch sphere</title><desc id="had">Left: real amplitude vectors (cos(theta/2), sin(theta/2)) in the plane. |0> points right, |+> at 45 degrees, |1> straight up: |0> and |1> are 90 degrees apart and orthogonal. Right: the same states on the xz great circle of the Bloch sphere, where every angle is doubled: |+> is 90 degrees from |0>, and |1> is 180 degrees away, at the opposite pole. Orthogonal states are antipodal.</desc><rect x="0" y="0" width="720" height="350" rx="8" class="plot-bg"/><defs><marker id="haA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--sky)"/></marker><marker id="haB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--moss)"/></marker><marker id="haC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--amber)"/></marker></defs><text class="lbltext" x="190.0" y="28.0" text-anchor="middle">amplitude plane: angle theta/2</text><line class="axis" x1="70" y1="260" x2="300" y2="260"/><line class="axis" x1="90" y1="280" x2="90" y2="60"/><path d="M270,260 A180,180 0 0 0 90,80" fill="none" stroke="var(--axis)" stroke-dasharray="4 5"/><line x1="90" y1="260" x2="270.0" y2="260.0" stroke="var(--sky)" stroke-width="2.6" marker-end="url(#haA)"/><text class="lbltext" x="280.0" y="278.0" text-anchor="start" style="fill:var(--sky)">|0&gt;</text><line x1="90" y1="260" x2="217.3" y2="132.7" stroke="var(--moss)" stroke-width="2.6" marker-end="url(#haB)"/><text class="lbltext" x="225.3" y="126.7" text-anchor="start" style="fill:var(--moss)">|+&gt;</text><line x1="90" y1="260" x2="90.0" y2="80.0" stroke="var(--amber)" stroke-width="2.6" marker-end="url(#haC)"/><text class="lbltext" x="102.0" y="98.0" text-anchor="start" style="fill:var(--amber)">|1&gt;</text><path d="M140,260 A50,50 0 0 0 125.4,224.6" fill="none" stroke="var(--moss)" stroke-width="1.6"/><text class="axtext" x="146.0" y="246.0" text-anchor="start" style="fill:var(--moss)">45 deg</text><text class="axtext" x="190.0" y="294.0" text-anchor="middle">|0&gt; and |1&gt;: 90 deg apart, orthogonal</text><text class="lbltext" x="540.0" y="28.0" text-anchor="middle">Bloch sphere (xz circle): angle theta</text><circle cx="540" cy="175" r="115" fill="none" stroke="var(--axis)" stroke-width="1.4"/><line class="gridline" x1="405" y1="175" x2="675" y2="175"/><line class="gridline" x1="540" y1="40" x2="540" y2="310"/><line x1="540" y1="175" x2="540.0" y2="60.0" stroke="var(--sky)" stroke-width="2.6" marker-end="url(#haA)"/><text class="lbltext" x="554.0" y="66.0" text-anchor="start" style="fill:var(--sky)">|0&gt;</text><line x1="540" y1="175" x2="655.0" y2="175.0" stroke="var(--moss)" stroke-width="2.6" marker-end="url(#haB)"/><text class="lbltext" x="665.0" y="167.0" text-anchor="start" style="fill:var(--moss)">|+&gt;</text><line x1="540" y1="175" x2="540.0" y2="290.0" stroke="var(--amber)" stroke-width="2.6" marker-end="url(#haC)"/><text class="lbltext" x="554.0" y="290.0" text-anchor="start" style="fill:var(--amber)">|1&gt;</text><path d="M540,133 A42,42 0 0 1 582,175" fill="none" stroke="var(--moss)" stroke-width="1.6"/><text class="axtext" x="570.0" y="141.0" text-anchor="start" style="fill:var(--moss)">90 deg</text><text class="axtext" x="540.0" y="334.0" text-anchor="middle">|0&gt; and |1&gt;: 180 deg apart, antipodal</text><line x1="360" y1="45" x2="360" y2="325" stroke="var(--rule)" stroke-width="1.5"/></svg>
+<figcaption>Left: real state vectors \((\cos\tfrac\theta2,\sin\tfrac\theta2)\) in the amplitude plane, where \(|0\rangle\) and \(|1\rangle\) are 90° apart. Right: the same states on the Bloch sphere, where every angle doubles, so \(|+\rangle\) sits 90° from \(|0\rangle\) and \(|1\rangle\) sits at the opposite pole.</figcaption>
+</figure>
+
+<!-- =================== 6 =================== -->
+<h2 id="s6">6 &mdash; The Bloch sphere</h2>
+
+<div class="box def">
+<span class="lbl">definition 3.3 &mdash; Bloch vector</span>
+<p>The <strong>Bloch vector</strong> of \(\cos\tfrac\theta2|0\rangle+e^{i\varphi}\sin\tfrac\theta2|1\rangle\) is the point of the unit sphere with polar angle \(\theta\) (measured from the north pole) and azimuth \(\varphi\):</p>
+$$\vec r=(x,\;y,\;z)=\big(\sin\theta\cos\varphi,\;\;\sin\theta\sin\varphi,\;\;\cos\theta\big).$$
+<p>Every qubit state corresponds to exactly one point of the sphere, and every point to exactly one state (up to global phase).</p>
+</div>
+
+<figure>
+<svg viewBox="0 0 700 500" width="700" height="500" role="img" aria-labelledby="bst bsd"><title id="bst">The Bloch sphere with the six cardinal states and the example state</title><desc id="bsd">A sphere drawn in perspective with the z axis up. The state |0> sits at the north pole and |1> at the south pole. On the equator, |+> is on the positive x axis pointing toward the viewer, |-> is opposite it, |+i> is on the positive y axis to the right, and |-i> is opposite it. The example state (3|0> + 4i|1>)/5 is drawn as an arrow to the point (0, 0.96, -0.28): almost at |+i>, tipped slightly below the equator.</desc><defs><marker id="bsA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--rose)"/></marker></defs><rect x="0" y="0" width="700" height="500" rx="8" class="plot-bg"/><circle cx="280" cy="250" r="175" fill="var(--surface2)" fill-opacity="0.55" stroke="var(--axis)" stroke-width="1.6"/><path d="M192.5,296.8 L196.5,297.5 L200.6,298.2 L204.7,298.8 L208.8,299.4 L213.0,300.0 L217.3,300.5 L221.6,301.0 L225.9,301.4 L230.3,301.9 L234.7,302.2 L239.1,302.6 L243.6,302.9 L248.1,303.2 L252.6,303.4 L257.2,303.6 L261.7,303.8 L266.3,303.9 L270.8,304.0 L275.4,304.1 L280.0,304.1 L284.6,304.1 L289.2,304.0 L293.7,303.9 L298.3,303.8 L302.8,303.6 L307.4,303.4 L311.9,303.2 L316.4,302.9 L320.9,302.6 L325.3,302.2 L329.7,301.9 L334.1,301.4 L338.4,301.0 L342.7,300.5 L347.0,300.0 L351.2,299.4 L355.3,298.8 L359.4,298.2 L363.5,297.5 L367.5,296.8 L371.4,296.1 L375.3,295.4 L379.1,294.6 L382.9,293.8 L386.5,292.9 L390.1,292.0 L393.7,291.1 L397.1,290.2 L400.5,289.2 L403.7,288.2 L406.9,287.2 L410.1,286.2 L413.1,285.1 L416.0,284.0 L418.8,282.9 L421.6,281.8 L424.2,280.6 L426.8,279.5 L429.2,278.3 L431.6,277.0 L433.8,275.8 L435.9,274.6 L438.0,273.3 L439.9,272.0 L441.7,270.7 L443.4,269.4 L445.0,268.1 L446.4,266.7 L447.8,265.4 L449.0,264.0 L450.2,262.6 L451.2,261.2 L452.1,259.9 L452.8,258.5 L453.5,257.1 L454.0,255.7 L454.5,254.2 L454.8,252.8 L454.9,251.4 L455.0,250.0" fill="none" stroke="var(--axis)" stroke-width="1.4"/><path d="M455.0,250.0 L454.9,248.6 L454.8,247.2 L454.5,245.8 L454.0,244.3 L453.5,242.9 L452.8,241.5 L452.1,240.1 L451.2,238.8 L450.2,237.4 L449.0,236.0 L447.8,234.6 L446.4,233.3 L445.0,231.9 L443.4,230.6 L441.7,229.3 L439.9,228.0 L438.0,226.7 L435.9,225.4 L433.8,224.2 L431.6,223.0 L429.2,221.7 L426.8,220.5 L424.2,219.4 L421.6,218.2 L418.8,217.1 L416.0,216.0 L413.1,214.9 L410.1,213.8 L406.9,212.8 L403.7,211.8 L400.5,210.8 L397.1,209.8 L393.7,208.9 L390.1,208.0 L386.5,207.1 L382.9,206.2 L379.1,205.4 L375.3,204.6 L371.4,203.9 L367.5,203.2 L363.5,202.5 L359.4,201.8 L355.3,201.2 L351.2,200.6 L347.0,200.0 L342.7,199.5 L338.4,199.0 L334.1,198.6 L329.7,198.1 L325.3,197.8 L320.9,197.4 L316.4,197.1 L311.9,196.8 L307.4,196.6 L302.8,196.4 L298.3,196.2 L293.7,196.1 L289.2,196.0 L284.6,195.9 L280.0,195.9 L275.4,195.9 L270.8,196.0 L266.3,196.1 L261.7,196.2 L257.2,196.4 L252.6,196.6 L248.1,196.8 L243.6,197.1 L239.1,197.4 L234.7,197.8 L230.3,198.1 L225.9,198.6 L221.6,199.0 L217.3,199.5 L213.0,200.0 L208.8,200.6 L204.7,201.2 L200.6,201.8 L196.5,202.5 L192.5,203.2 L188.6,203.9 L184.7,204.6 L180.9,205.4 L177.1,206.2 L173.5,207.1 L169.9,208.0 L166.3,208.9 L162.9,209.8 L159.5,210.8 L156.3,211.8 L153.1,212.8 L149.9,213.8 L146.9,214.9 L144.0,216.0 L141.2,217.1 L138.4,218.2 L135.8,219.4 L133.2,220.5 L130.8,221.7 L128.4,223.0 L126.2,224.2 L124.1,225.4 L122.0,226.7 L120.1,228.0 L118.3,229.3 L116.6,230.6 L115.0,231.9 L113.6,233.3 L112.2,234.6 L111.0,236.0 L109.8,237.4 L108.8,238.8 L107.9,240.1 L107.2,241.5 L106.5,242.9 L106.0,244.3 L105.5,245.8 L105.2,247.2 L105.1,248.6" fill="none" stroke="var(--axis)" stroke-width="1.1" stroke-dasharray="4 5"/><path d="M105.1,248.6 L105.0,250.0 L105.1,251.4 L105.2,252.8 L105.5,254.2 L106.0,255.7 L106.5,257.1 L107.2,258.5 L107.9,259.9 L108.8,261.2 L109.8,262.6 L111.0,264.0 L112.2,265.4 L113.6,266.7 L115.0,268.1 L116.6,269.4 L118.3,270.7 L120.1,272.0 L122.0,273.3 L124.1,274.6 L126.2,275.8 L128.4,277.0 L130.8,278.3 L133.2,279.5 L135.8,280.6 L138.4,281.8 L141.2,282.9 L144.0,284.0 L146.9,285.1 L149.9,286.2 L153.1,287.2 L156.3,288.2 L159.5,289.2 L162.9,290.2 L166.3,291.1 L169.9,292.0 L173.5,292.9 L177.1,293.8 L180.9,294.6 L184.7,295.4 L188.6,296.1 L192.5,296.8" fill="none" stroke="var(--axis)" stroke-width="1.4"/><path d="M280.0,83.6 L277.7,84.8 L275.4,86.2 L273.1,87.8 L270.9,89.4 L268.6,91.1 L266.3,92.9 L264.1,94.9 L261.8,96.9 L259.6,99.1 L257.4,101.4 L255.1,103.7 L253.0,106.2 L250.8,108.7 L248.6,111.4 L246.5,114.2 L244.4,117.0 L242.3,119.9 L240.3,123.0 L238.2,126.1 L236.2,129.3 L234.3,132.6 L232.3,135.9 L230.4,139.4 L228.6,142.9 L226.7,146.5 L224.9,150.1 L223.2,153.9 L221.5,157.7 L219.8,161.5 L218.1,165.4 L216.5,169.4 L215.0,173.4 L213.5,177.5 L212.0,181.7 L210.6,185.8 L209.2,190.1 L207.9,194.3 L206.6,198.6 L205.4,203.0 L204.2,207.3 L203.1,211.7 L202.0,216.2 L201.0,220.6 L200.1,225.1 L199.2,229.6 L198.3,234.1 L197.5,238.6 L196.8,243.1 L196.1,247.6 L195.5,252.2 L194.9,256.7 L194.4,261.2 L194.0,265.7 L193.6,270.2 L193.2,274.7 L193.0,279.2 L192.8,283.6 L192.6,288.1 L192.5,292.5 L192.5,296.8 L192.5,301.2 L192.6,305.5 L192.8,309.7 L193.0,314.0 L193.2,318.2 L193.6,322.3 L194.0,326.4 L194.4,330.4 L194.9,334.4 L195.5,338.3 L196.1,342.2 L196.8,346.0 L197.5,349.7 L198.3,353.4 L199.2,357.0 L200.1,360.5 L201.0,363.9 L202.0,367.3 L203.1,370.6 L204.2,373.8 L205.4,376.9 L206.6,379.9 L207.9,382.9 L209.2,385.7 L210.6,388.5 L212.0,391.1 L213.5,393.7 L215.0,396.2 L216.5,398.5 L218.1,400.8 L219.8,403.0 L221.5,405.0 L223.2,407.0 L224.9,408.8 L226.7,410.6 L228.6,412.2 L230.4,413.7 L232.3,415.1 L234.3,416.4 L236.2,417.6 L238.2,418.6 L240.3,419.6 L242.3,420.4 L244.4,421.1 L246.5,421.7 L248.6,422.2" fill="none" stroke="var(--axis)" stroke-width="1.4"/><path d="M248.6,422.2 L250.8,422.5 L253.0,422.8 L255.1,422.9 L257.4,422.9 L259.6,422.8 L261.8,422.5 L264.1,422.2 L266.3,421.7 L268.6,421.1 L270.9,420.4 L273.1,419.6 L275.4,418.7 L277.7,417.6 L280.0,416.4 L282.3,415.2 L284.6,413.8 L286.9,412.2 L289.1,410.6 L291.4,408.9 L293.7,407.1 L295.9,405.1 L298.2,403.1 L300.4,400.9 L302.6,398.6 L304.9,396.3 L307.0,393.8 L309.2,391.3 L311.4,388.6 L313.5,385.8 L315.6,383.0 L317.7,380.1 L319.7,377.0 L321.8,373.9 L323.8,370.7 L325.7,367.4 L327.7,364.1 L329.6,360.6 L331.4,357.1 L333.3,353.5 L335.1,349.9 L336.8,346.1 L338.5,342.3 L340.2,338.5 L341.9,334.6 L343.5,330.6 L345.0,326.6 L346.5,322.5 L348.0,318.3 L349.4,314.2 L350.8,309.9 L352.1,305.7 L353.4,301.4 L354.6,297.0 L355.8,292.7 L356.9,288.3 L358.0,283.8 L359.0,279.4 L359.9,274.9 L360.8,270.4 L361.7,265.9 L362.5,261.4 L363.2,256.9 L363.9,252.4 L364.5,247.8 L365.1,243.3 L365.6,238.8 L366.0,234.3 L366.4,229.8 L366.8,225.3 L367.0,220.8 L367.2,216.4 L367.4,211.9 L367.5,207.5 L367.5,203.2 L367.5,198.8 L367.4,194.5 L367.2,190.3 L367.0,186.0 L366.8,181.8 L366.4,177.7 L366.0,173.6 L365.6,169.6 L365.1,165.6 L364.5,161.7 L363.9,157.8 L363.2,154.0 L362.5,150.3 L361.7,146.6 L360.8,143.0 L359.9,139.5 L359.0,136.1 L358.0,132.7 L356.9,129.4 L355.8,126.2 L354.6,123.1 L353.4,120.1 L352.1,117.1 L350.8,114.3 L349.4,111.5 L348.0,108.9 L346.5,106.3 L345.0,103.8 L343.5,101.5 L341.9,99.2 L340.2,97.0 L338.5,95.0 L336.8,93.0 L335.1,91.2 L333.3,89.4 L331.4,87.8 L329.6,86.3 L327.7,84.9 L325.7,83.6 L323.7,82.4 L321.8,81.4 L319.7,80.4 L317.7,79.6 L315.6,78.9 L313.5,78.3 L311.4,77.8" fill="none" stroke="var(--axis)" stroke-width="1.1" stroke-dasharray="4 5"/><path d="M311.4,77.8 L309.2,77.5 L307.0,77.2 L304.9,77.1 L302.6,77.1 L300.4,77.2 L298.2,77.5 L295.9,77.8 L293.7,78.3 L291.4,78.9 L289.1,79.6 L286.9,80.4 L284.6,81.3 L282.3,82.4 L280.0,83.6" fill="none" stroke="var(--axis)" stroke-width="1.4"/><line x1="280" y1="250" x2="192.5" y2="296.8" stroke="var(--axis)" stroke-width="1" stroke-dasharray="3 4"/><line x1="280" y1="250" x2="367.5" y2="203.2" stroke="var(--axis)" stroke-width="1" stroke-dasharray="3 4"/><line x1="280" y1="250" x2="431.6" y2="277.0" stroke="var(--axis)" stroke-width="1" stroke-dasharray="3 4"/><line x1="280" y1="250" x2="128.4" y2="223.0" stroke="var(--axis)" stroke-width="1" stroke-dasharray="3 4"/><line x1="280" y1="250" x2="280.0" y2="83.6" stroke="var(--axis)" stroke-width="1" stroke-dasharray="3 4"/><line x1="280" y1="250" x2="280.0" y2="416.4" stroke="var(--axis)" stroke-width="1" stroke-dasharray="3 4"/><circle cx="280.0" cy="83.6" r="5" fill="var(--sky)" stroke="var(--sky)" stroke-width="2"/><text class="lbltext" x="280.0" y="69.6" text-anchor="middle" style="fill:var(--sky)">|0&gt;</text><circle cx="280.0" cy="416.4" r="5" fill="var(--surface)" stroke="var(--sky)" stroke-width="2"/><text class="lbltext" x="280.0" y="442.4" text-anchor="middle" style="fill:var(--sky)">|1&gt;</text><circle cx="192.5" cy="296.8" r="5" fill="var(--sky)" stroke="var(--sky)" stroke-width="2"/><text class="lbltext" x="182.5" y="318.8" text-anchor="end" style="fill:var(--sky)">|+&gt;</text><circle cx="367.5" cy="203.2" r="5" fill="var(--surface)" stroke="var(--sky)" stroke-width="2"/><text class="lbltext" x="377.5" y="193.2" text-anchor="start" style="fill:var(--sky)">|-&gt;</text><circle cx="431.6" cy="277.0" r="5" fill="var(--sky)" stroke="var(--sky)" stroke-width="2"/><text class="lbltext" x="443.6" y="282.0" text-anchor="start" style="fill:var(--sky)">|+i&gt;</text><circle cx="128.4" cy="223.0" r="5" fill="var(--surface)" stroke="var(--sky)" stroke-width="2"/><text class="lbltext" x="116.4" y="228.0" text-anchor="end" style="fill:var(--sky)">|-i&gt;</text><text class="axtext" x="310.0" y="71.6" text-anchor="start">z</text><text class="axtext" x="186.5" y="336.8" text-anchor="end">x</text><text class="axtext" x="443.6" y="265.0" text-anchor="start">y</text><line x1="425.5" y1="322.6" x2="425.5" y2="276.0" stroke="var(--rose)" stroke-width="1.4" stroke-dasharray="3 3"/><line x1="280" y1="250" x2="425.5" y2="322.6" stroke="var(--rose)" stroke-width="3" marker-end="url(#bsA)"/><circle cx="425.5" cy="322.6" r="4.5" fill="var(--rose)"/><text class="lbltext" x="441.5" y="332.6" text-anchor="start" style="fill:var(--rose)">psi = (3|0&gt; + 4i|1&gt;)/5</text><text class="axtext" x="441.5" y="352.6" text-anchor="start">(x,y,z) = (0, 0.96, -0.28)</text><circle cx="280" cy="250" r="3" fill="var(--ink)"/></svg>
+<figcaption>The Bloch sphere. The Z basis sits at the poles, the X basis on the \(x\) axis (pointing toward you) and the Y basis on the \(y\) axis. Hollow markers are on the far side. The running example \((3|0\rangle+4i|1\rangle)/5\) sits at \((0,\,0.96,\,-0.28)\), very close to \(|{+i}\rangle\).</figcaption>
+</figure>
+
+<div style="overflow-x:auto"><table>
+<tr><th>state</th><th>\(\theta\)</th><th>\(\varphi\)</th><th>\((x,y,z)\)</th><th>where</th></tr>
+<tr><td>\(|0\rangle\)</td><td>\(0\)</td><td>any</td><td>\((0,0,1)\)</td><td>north pole</td></tr>
+<tr><td>\(|1\rangle\)</td><td>\(\pi\)</td><td>any</td><td>\((0,0,-1)\)</td><td>south pole</td></tr>
+<tr><td>\(|+\rangle\)</td><td>\(\pi/2\)</td><td>\(0\)</td><td>\((1,0,0)\)</td><td>equator, \(+x\)</td></tr>
+<tr><td>\(|-\rangle\)</td><td>\(\pi/2\)</td><td>\(\pi\)</td><td>\((-1,0,0)\)</td><td>equator, \(-x\)</td></tr>
+<tr><td>\(|{+i}\rangle\)</td><td>\(\pi/2\)</td><td>\(\pi/2\)</td><td>\((0,1,0)\)</td><td>equator, \(+y\)</td></tr>
+<tr><td>\(|{-i}\rangle\)</td><td>\(\pi/2\)</td><td>\(3\pi/2\)</td><td>\((0,-1,0)\)</td><td>equator, \(-y\)</td></tr>
+</table></div>
+
+<div class="spot" data-kind="num" data-ans="sqrt(6)/4|sqrt(6)/4|-1/2" data-labels="x|y|z" data-show="x = y = √6/4 ≈ 0.612, z = −1/2">
+<p>Find the Bloch vector of \(\tfrac12|0\rangle+\tfrac{\sqrt3}{2}e^{i\pi/4}|1\rangle\).</p>
+<div class="hint">Read off \(\theta\) and \(\varphi\) first: \(\cos\tfrac\theta2=\tfrac12\) gives \(\theta=2\pi/3\), and \(\varphi=\pi/4\). Then use \((\sin\theta\cos\varphi,\ \sin\theta\sin\varphi,\ \cos\theta)\).</div>
+<div class="why">\(\sin\theta=\tfrac{\sqrt3}{2}\) and \(\cos\theta=-\tfrac12\), so \(x=y=\tfrac{\sqrt3}{2}\cdot\tfrac{\sqrt2}{2}=\tfrac{\sqrt6}{4}\approx0.612\) and \(z=-\tfrac12\): below the equator, halfway in longitude between the \(+x\) and \(+y\) directions.</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 3.7 &mdash; placing the running example</span>
+<p>Find the Bloch vector of \(|\psi\rangle=\tfrac35|0\rangle+\tfrac{4i}{5}|1\rangle\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The amplitudes are already in standard form: \(\cos(\theta/2)=\tfrac35\), \(\sin(\theta/2)=\tfrac45\), and \(e^{i\varphi}=i\), so \(\varphi=\pi/2\). The double-angle formulas give the Bloch coordinates without finding \(\theta\) itself:</p>
+$$z=\cos\theta=\cos^2\frac\theta2-\sin^2\frac\theta2=\frac{9}{25}-\frac{16}{25}=-0.28,$$
+$$\sin\theta=2\sin\frac\theta2\cos\frac\theta2=\frac{24}{25}=0.96 .$$
+<p>With \(\varphi=\pi/2\), \(x=0.96\cos\tfrac\pi2=0\) and \(y=0.96\sin\tfrac\pi2=0.96\). So \(\vec r=(0,\;0.96,\;-0.28)\). Check: \(0^2+0.96^2+0.28^2=0.9216+0.0784=1\).</p>
+</div>
+</div>
+
+<p>Now compare those coordinates with Example 3.2: \(P(0)-P(1)=0.36-0.64=-0.28\), \(P(+)-P(-)=0.5-0.5=0\), and \(P({+i})-P({-i})=0.98-0.02=0.96\). That is not a coincidence.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 3.3 &mdash; the coordinates are measurable</span>
+<p>For any qubit state with Bloch vector \((x,y,z)\),</p>
+$$z=P(0)-P(1),\qquad x=P(+)-P(-),\qquad y=P({+i})-P({-i}),$$
+<p>where each difference comes from measuring in the Z, X or Y basis respectively. Equivalently, \(P(0)=\tfrac{1+z}{2}\), \(P(+)=\tfrac{1+x}{2}\) and \(P({+i})=\tfrac{1+y}{2}\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Write \(c=\cos(\theta/2)\) and \(s=\sin(\theta/2)\), so the state is \((c,\;e^{i\varphi}s)\).</p>
+<p><em>Z.</em> \(P(0)-P(1)=c^2-s^2=\cos\theta=z\).</p>
+<p><em>X.</em> \(\langle\pm|\psi\rangle=\tfrac{1}{\sqrt2}(c\pm e^{i\varphi}s)\), so</p>
+$$P(\pm)=\frac12\big|c\pm e^{i\varphi}s\big|^2=\frac12\big(c^2+s^2\pm2cs\cos\varphi\big)=\frac12\big(1\pm\sin\theta\cos\varphi\big),$$
+<p>and \(P(+)-P(-)=\sin\theta\cos\varphi=x\).</p>
+<p><em>Y.</em> The same computation with \(\langle{\pm i}|=\tfrac{1}{\sqrt2}(1\;\;\mp i)\) is exercise 4.</p>
+</div>
+</div>
+
+<div class="spot" data-kind="num" data-ans="0.8|0.2" data-labels="P(0)|P(1)">
+<p>A state has Bloch vector \((0.48,\ 0.64,\ 0.6)\). What are the outcome probabilities in the standard basis?</p>
+<div class="hint">Only \(z\) matters for the Z basis: \(P(0)=\tfrac{1+z}{2}\).</div>
+<div class="why">\(P(0)=\tfrac{1.6}{2}=0.8\) and \(P(1)=0.2\). The \(x\) and \(y\) coordinates would show up in the X and Y bases.</div>
+</div>
+
+<p>This proposition changes what the sphere means. The Bloch vector is not only a drawing of the amplitudes; it is a summary of three experiments. Measure many copies in each of the three bases, compute three differences of frequencies, and you have estimated the state. This is <strong>state tomography</strong>, and you will do it in Lab 2. More generally, for any two states the overlap is</p>
+$$|\langle\chi|\psi\rangle|^2=\frac{1+\vec r_\chi\cdot\vec r_\psi}{2},$$
+<p>which contains Proposition 3.3 as the special cases \(|\chi\rangle=|0\rangle,|+\rangle,|{+i}\rangle\). We will prove it in Lecture 18.</p>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; orthogonal means opposite</span>
+<p>The overlap formula explains the most common confusion about the sphere. Two states are orthogonal, and therefore perfectly distinguishable, exactly when \(\vec r_\chi\cdot\vec r_\psi=-1\), which means their Bloch vectors point in <em>opposite</em> directions. Orthogonal states are antipodal, not at right angles. Two states at right angles on the sphere, such as \(|0\rangle\) and \(|+\rangle\), have overlap \(\tfrac12\): measuring one in the other's basis is a coin toss.</p>
+</div>
+
+<div class="spot" data-kind="mc">
+<p>Which state is orthogonal to \(|{+i}\rangle\)?</p>
+<ul class="opts">
+<li>\(|+\rangle\)<span class="oh">\(|+\rangle\) is at right angles to \(|{+i}\rangle\) on the sphere, so their overlap is \(\tfrac12\), not 0.</span></li>
+<li data-ok>\(|{-i}\rangle\)</li>
+<li>\(|1\rangle\)<span class="oh">\(|1\rangle\) is at the south pole, at right angles to the \(y\) axis: overlap \(\tfrac12\).</span></li>
+<li>\(|-\rangle\)<span class="oh">\(|-\rangle\) is on the equator a quarter turn from \(|{+i}\rangle\): overlap \(\tfrac12\).</span></li>
+</ul>
+<div class="hint">Orthogonal means opposite on the sphere: look for the antipode of \((0,1,0)\).</div>
+<div class="why">\(|{-i}\rangle\) sits at \((0,-1,0)\), the antipode, so \(\vec r\cdot\vec r'=-1\) and the overlap is 0.</div>
+</div>
+
+
+<div class="widget">
+<h4>Bloch sphere explorer</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Set \(\theta\) and \(\varphi\), or jump to a named state. Drag across the sphere (or use the view slider) to turn it. The readout gives the amplitudes, the Bloch vector, and the probabilities of the "plus" outcome in each basis. Check that each probability equals \((1+\text{coordinate})/2\).</p>
+<svg id="bxSvg" viewBox="0 0 600 420" width="600" height="420" role="img" aria-labelledby="bxSvg-t bxSvg-d" style="touch-action:none;cursor:grab"><title id="bxSvg-t">Interactive Bloch sphere showing the current state as an arrow</title><desc id="bxSvg-d">Interactive figure, redrawn as you use the controls next to it; the text readout below it describes what is currently shown.</desc></svg>
+<div class="ctrls" id="bxPresets"></div>
+<div class="ctrls">
+<label><span>theta = <span id="bxTv">1.00</span> pi</span><input type="range" id="bxT" min="0" max="180" step="1" value="180"></label>
+<label><span>phi = <span id="bxPv">0.00</span> pi</span><input type="range" id="bxP" min="0" max="359" step="1" value="0"></label>
+<label><span>view angle </span><input type="range" id="bxV" min="-180" max="180" step="1" value="30"></label>
+</div>
+<p class="readout" role="status" aria-live="polite" id="bxOut"></p>
+</div>
+
+<!-- =================== 7 =================== -->
+<h2 id="s7">7 &mdash; One bit out</h2>
+
+<p>The sphere invites a tempting mistake. A qubit's state is a point on a continuous sphere, described by two real numbers with unlimited decimal places. Can we store a whole library in \(\theta\) and \(\varphi\) and read it back?</p>
+
+<p>No. Every measurement of a qubit returns one bit, 0 or 1, and destroys the state it measured. From one copy you learn one bit about \(\theta\) and \(\varphi\), and no clever choice of basis changes that. Estimating the angles precisely requires many copies, and the precision grows only like the square root of the number of copies, exactly as in Section 3. (A theorem of Alexander Holevo from 1973 makes this airtight: \(n\) qubits can deliver at most \(n\) bits of classical information.) The continuum inside a qubit is real, and quantum algorithms exploit it through interference, but it cannot simply be read out.</p>
+
+<div class="box crypto">
+<span class="lbl">crypto connection &mdash; the disturbance that makes quantum cryptography work</span>
+<p>Take the four states \(|0\rangle,|1\rangle\) (poles) and \(|+\rangle,|-\rangle\) (equator). Someone who does not know which pair was used must guess a basis. Guessing wrong gives a 50/50 random answer, because poles and equator are at right angles on the sphere, and the measurement collapses the state onto the wrong axis, which leaves detectable damage. This is the whole idea of the BB84 key-distribution protocol (Lecture 20): an eavesdropper cannot read the key without disturbing it, and the disturbance is visible in the statistics.</p>
+</div>
+
+<!-- =================== 8 =================== -->
+<h2 id="s8">8 &mdash; Try it in code</h2>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; the Born rule in three bases (numpy)</span>
+<pre>import numpy as np
+
+psi = np.array([3/5, 4j/5])
+r = 1/np.sqrt(2)
+bases = {"Z": ([1, 0], [0, 1]),
+         "X": ([r, r], [r, -r]),
+         "Y": ([r, 1j*r], [r, -1j*r])}
+for name, (b0, b1) in bases.items():
+    p0 = abs(np.vdot(b0, psi))**2           <span class="cm"># Born rule: |&lt;b|psi&gt;|^2</span>
+    p1 = abs(np.vdot(b1, psi))**2
+    print(name, round(p0, 4), round(p1, 4), " difference:", round(p0 - p1, 4))</pre>
+<pre class="out">Z 0.36 0.64  difference: -0.28
+X 0.5 0.5  difference: 0.0
+Y 0.98 0.02  difference: 0.96</pre>
+<p>The three differences are the Bloch vector \((x,y,z)=(0,\,0.96,\,-0.28)\), read off in the order z, x, y (Proposition 3.3).</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; states, shots and phases in qiskit (tested with qiskit 2.5)</span>
+<pre>import numpy as np
+from qiskit.quantum_info import Statevector, Pauli
+
+psi = Statevector([3/5, 4j/5])
+print(psi.probabilities())                  <span class="cm"># Born rule, standard basis</span>
+
+psi.seed(7)                                 <span class="cm"># fix the random sampler</span>
+counts = psi.sample_counts(shots=1000)      <span class="cm"># what an experiment actually returns</span>
+print({str(k): int(v) for k, v in counts.items()})
+
+bloch = [psi.expectation_value(Pauli(p)).real for p in "XYZ"]
+print(np.round(bloch, 4))                   <span class="cm"># Bloch vector (x, y, z)</span>
+
+shifted = Statevector(np.exp(0.7j) * psi.data)   <span class="cm"># multiply by a global phase</span>
+print(psi.equiv(shifted))                   <span class="cm"># same physical state?</span></pre>
+<pre class="out">[0.36 0.64]
+{'0': 366, '1': 634}
+[ 0.    0.96 -0.28]
+True</pre>
+<p><code>expectation_value(Pauli("Z"))</code> is exactly \(P(0)-P(1)\), and likewise for X and Y, which is Proposition 3.3 in one line. <code>equiv</code> compares states up to global phase.</p>
+</div>
+
+<!-- =================== 9 =================== -->
+<h2 id="s9">9 &mdash; Summary and exercises</h2>
+
+<div class="box thm">
+<span class="lbl">summary</span>
+<ul>
+<li>A qubit state is a unit vector \(\alpha|0\rangle+\beta|1\rangle\). The <strong>Born rule</strong>: measuring in an orthonormal basis gives \(b_k\) with probability \(|\langle b_k|\psi\rangle|^2\), and the state <strong>collapses</strong> to \(|b_k\rangle\).</li>
+<li>Measurement is sampling: learning a probability takes many shots, with error shrinking like \(1/\sqrt n\).</li>
+<li><strong>Global phase</strong> is unobservable; <strong>relative phase</strong> is physical and shows up in bases that mix \(|0\rangle\) and \(|1\rangle\).</li>
+<li>Every state is \(\cos\tfrac\theta2|0\rangle+e^{i\varphi}\sin\tfrac\theta2|1\rangle\), a point \((\sin\theta\cos\varphi,\,\sin\theta\sin\varphi,\,\cos\theta)\) on the <strong>Bloch sphere</strong>.</li>
+<li>The coordinates are measurable: \(z=P(0)-P(1)\), \(x=P(+)-P(-)\), \(y=P({+i})-P({-i})\). Orthogonal states are antipodal.</li>
+<li>One measurement yields one bit, so the continuum of states cannot simply be read out, and a wrong-basis measurement disturbs the state (the root of BB84).</li>
+</ul>
+<p><strong>Next time:</strong> gates as rotations of the Bloch sphere, measuring in other bases on real hardware, and the launch of <strong>Lab 1</strong>. <strong>HW2</strong> is posted.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 3</span>
+<ol>
+<li>Let \(|\psi\rangle=\tfrac{1}{\sqrt3}|0\rangle+\sqrt{\tfrac23}\,e^{i\pi/4}|1\rangle\). Find \(P(0)\) and \(P(1)\), the angles \(\theta\) and \(\varphi\), and the Bloch vector.</li>
+<li>(a) Are \(\tfrac{1}{\sqrt2}(i|0\rangle-|1\rangle)\) and \(\tfrac{1}{\sqrt2}(|0\rangle+i|1\rangle)\) the same physical state? (b) Are \(\tfrac{1}{\sqrt2}(|0\rangle+i|1\rangle)\) and \(\tfrac{1}{\sqrt2}(|0\rangle-i|1\rangle)\)?</li>
+<li>Find the state antipodal to \(\cos\tfrac\theta2|0\rangle+e^{i\varphi}\sin\tfrac\theta2|1\rangle\) on the Bloch sphere, and check directly that the two states are orthogonal.</li>
+<li>Finish the proof of Proposition 3.3: show that \(P({+i})-P({-i})=\sin\theta\sin\varphi\).</li>
+<li>The running example has \(P(0)=0.36\). (a) In 400 shots, between what counts of zeros will the result fall about 95% of the time? (b) How many shots guarantee a 95% interval of half-width at most 0.07, whatever the state? Why is 0.07 a natural target for telling the running example from \(|+\rangle\)?</li>
+<li>For \(|\psi_\varphi\rangle=\tfrac1{\sqrt2}(|0\rangle+e^{i\varphi}|1\rangle)\), find every \(\varphi\in[0,2\pi)\) with \(P(+)=\tfrac34\). Where are these states on the sphere?</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>\(P(0)=\tfrac13\) and \(P(1)=\tfrac23\). \(\cos(\theta/2)=\tfrac1{\sqrt3}\), so \(\cos\theta=2\cdot\tfrac13-1=-\tfrac13\), and \(\varphi=\pi/4\). Also \(\sin\theta=2\cdot\tfrac1{\sqrt3}\cdot\sqrt{\tfrac23}=\tfrac{2\sqrt2}{3}\), so
+$$\vec r=\Big(\tfrac{2\sqrt2}{3}\cos\tfrac\pi4,\;\tfrac{2\sqrt2}{3}\sin\tfrac\pi4,\;-\tfrac13\Big)=\Big(\tfrac23,\;\tfrac23,\;-\tfrac13\Big),$$
+and \(\tfrac49+\tfrac49+\tfrac19=1\).</li>
+<li>(a) Yes: \(i|0\rangle-|1\rangle=i\,(|0\rangle+i|1\rangle)\), a global phase \(i\). (b) No: these are \(|{+i}\rangle\) and \(|{-i}\rangle\), which differ by a relative phase. They are orthogonal (Lecture 2, Example 2.5), antipodal on the sphere, and perfectly distinguished by a Y-basis measurement.</li>
+<li>Antipodal means \(\theta\to\pi-\theta\) and \(\varphi\to\varphi+\pi\), giving \(\sin\tfrac\theta2|0\rangle-e^{i\varphi}\cos\tfrac\theta2|1\rangle\). Orthogonality: \(\sin\tfrac\theta2\cos\tfrac\theta2+\big(-e^{-i\varphi}\cos\tfrac\theta2\big)\big(e^{i\varphi}\sin\tfrac\theta2\big)=0\).</li>
+<li>\(\langle{\pm i}|\psi\rangle=\tfrac1{\sqrt2}\big(c\mp i\,e^{i\varphi}s\big)\), and \(\mp i\,e^{i\varphi}=e^{i(\varphi\mp\pi/2)}\). As in the X case, \(P(\pm i)=\tfrac12\big(1+2cs\cos(\varphi\mp\tfrac\pi2)\big)=\tfrac12(1\pm\sin\theta\sin\varphi)\), since \(\cos(\varphi\mp\tfrac\pi2)=\pm\sin\varphi\). So the difference is \(\sin\theta\sin\varphi=y\).</li>
+<li>(a) The count is binomial with mean \(400(0.36)=144\) and standard deviation \(\sqrt{400(0.36)(0.64)}=9.6\), so about 95% of experiments give between \(144-1.96(9.6)\approx125\) and \(144+1.96(9.6)\approx163\) zeros. (b) The worst case \(p=\tfrac12\) needs \(1.96\sqrt{0.25/n}\le0.07\), i.e. \(n\ge196\). The two candidates, 0.36 and 0.5, are 0.14 apart, with midpoint 0.43. A half-width of 0.07 is half that gap, so an interval centred at either true value stays on its own side of the midpoint.</li>
+<li>\((1+\cos\varphi)/2=\tfrac34\) gives \(\cos\varphi=\tfrac12\), so \(\varphi=\pi/3\) or \(5\pi/3\). Both states are on the equator (\(\theta=\pi/2\)), \(60^\circ\) either side of \(|+\rangle\), with \(x=\tfrac12\) in agreement with \(P(+)=\tfrac{1+x}{2}\).</li>
+</ol>
+</div>
+</div>
+
+<h3>Reading and sources</h3>
+<ul>
+<li>J. Watrous, <em>Understanding Quantum Information and Computation</em>, §1.2, "Quantum information" (<a href="https://arxiv.org/abs/2507.11536">arXiv:2507.11536</a>; IBM course <a href="https://quantum.cloud.ibm.com/learning/en/courses/basics-of-quantum-information">Basics of Quantum Information</a>, Lesson 1).</li>
+<li>R. de Wolf, <em>Quantum Computing: Lecture Notes</em>, Ch. 1 (<a href="https://arxiv.org/abs/1907.09415">arXiv:1907.09415</a>).</li>
+<li>T. G. Wong, <em>Introduction to Classical and Quantum Computing</em>, the one-qubit chapter, which includes a careful Bloch-sphere treatment (<a href="https://www.thomaswong.net/introduction-to-classical-and-quantum-computing-1e4p.pdf">free PDF</a>).</li>
+<li>Qiskit documentation for <a href="https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.quantum_info.Statevector">Statevector</a> (<code>probabilities</code>, <code>sample_counts</code>, <code>expectation_value</code>, <code>equiv</code>).</li>
+</ul>
+<p class="kicker" style="margin-top:2.4em">all numbers and figures in these notes are computed in python (verify_L03.py) and follow the page theme</p>
+</div>
+
+<script>
+/* ---------- shared helpers ---------- */
+var NS=['http:','','www.w3.org','2000','svg'].join('/');
+function mk(tag,at,parent,txt){var e=document.createElementNS(NS,tag);for(var k in at)e.setAttribute(k,at[k]);if(txt!==undefined)e.textContent=txt;if(parent)parent.appendChild(e);return e;}
+function clr(s){[].slice.call(s.childNodes).forEach(function(c){if(c.nodeName!=='title'&&c.nodeName!=='desc')s.removeChild(c);});}
+function fx(x,d){d=(d===undefined?3:d);var v=Number(x).toFixed(d);return /^-0\.?0*$/.test(v)?v.slice(1):v;}
+function cfmt(re,im,d){d=d===undefined?3:d;var r=Math.abs(re)<5e-4?0:re,i=Math.abs(im)<5e-4?0:im;
+  if(i===0)return fx(r,d); if(r===0)return (i<0?'-':'')+fx(Math.abs(i),d)+'i'; return fx(r,d)+(i<0?' - ':' + ')+fx(Math.abs(i),d)+'i';}
+/* a qubit state from (theta, phi): [[re,im],[re,im]] */
+function stateTP(th,ph){return [[Math.cos(th/2),0],[Math.sin(th/2)*Math.cos(ph),Math.sin(th/2)*Math.sin(ph)]];}
+function blochOf(s){var a=s[0],b=s[1]; /* conj(a)*b */ var re=a[0]*b[0]+a[1]*b[1], im=a[0]*b[1]-a[1]*b[0];
+  return [2*re,2*im,(a[0]*a[0]+a[1]*a[1])-(b[0]*b[0]+b[1]*b[1])];}
+/* probability of the "plus" outcome in basis Z, X or Y: (1 + coordinate)/2 */
+function plusProb(s,basis){var r=blochOf(s);return (1+(basis==='Z'?r[2]:basis==='X'?r[0]:r[1]))/2;}
+var OUT={Z:['0','1'],X:['+','-'],Y:['+i','-i']};
+
+/* ---------- widget 1: measure a qubit ---------- */
+(function(){
+  var svg=document.getElementById('msSvg'); if(!svg) return;
+  var r=1/Math.sqrt(2);
+  var presets={'(3|0>+4i|1>)/5':[[0.6,0],[0,0.8]],'|0>':[[1,0],[0,0]],'|+>':[[r,0],[r,0]],'|->':[[r,0],[-r,0]],'|+i>':[[r,0],[0,r]]};
+  var cur='(3|0>+4i|1>)/5', basis='Z', n=0, c0=0, pending=0, raf=null;
+  var hs=document.getElementById('msState'), hb=document.getElementById('msBasis');
+  function btns(host,label,items,get,set){var l=document.createElement('span');l.textContent=label;l.style.minWidth='3.6em';host.appendChild(l);
+    items.forEach(function(it){var b=document.createElement('button');b.className='ctl';b.textContent=it.t;b.dataset.k=it.k;
+      b.addEventListener('click',function(){set(it.k);reset();});host.appendChild(b);});}
+  btns(hs,'state',Object.keys(presets).map(function(k){return {k:k,t:k};}),null,function(k){cur=k;});
+  btns(hb,'basis',[{k:'Z',t:'Z  {0,1}'},{k:'X',t:'X  {+,-}'},{k:'Y',t:'Y  {+i,-i}'}],null,function(k){basis=k;});
+  function mark(){Array.prototype.forEach.call(hs.querySelectorAll('button'),function(b){b.classList.toggle('on',b.dataset.k===cur);});
+                 Array.prototype.forEach.call(hb.querySelectorAll('button'),function(b){b.classList.toggle('on',b.dataset.k===basis);});}
+  function draw(){
+    mark(); clr(svg);
+    var p=plusProb(presets[cur],basis), W=600,H=220,base=180,top=26,h=base-top;
+    mk('rect',{x:0,y:0,width:W,height:H,rx:8,class:'plot-bg'},svg);
+    [0,0.25,0.5,0.75,1].forEach(function(v){var y=base-v*h;mk('line',{x1:60,y1:y,x2:W-20,y2:y,class:'gridline'},svg);
+      mk('text',{x:52,y:y+4,'text-anchor':'end',class:'axtext'},svg,v.toFixed(2));});
+    var fr=[n?c0/n:0, n?(n-c0)/n:0], ex=[p,1-p], xs=[150,390], cols=['var(--sky)','var(--amber)'];
+    for(var i=0;i<2;i++){
+      mk('rect',{x:xs[i],y:base-fr[i]*h,width:120,height:fr[i]*h,fill:cols[i],'fill-opacity':0.8},svg);
+      mk('line',{x1:xs[i]-10,y1:base-ex[i]*h,x2:xs[i]+130,y2:base-ex[i]*h,stroke:'var(--ink)','stroke-width':2,'stroke-dasharray':'6 4'},svg);
+      mk('text',{x:xs[i]+60,y:base+22,'text-anchor':'middle',class:'lbltext'},svg,'outcome '+OUT[basis][i]);
+    }
+    mk('line',{x1:60,y1:base,x2:W-20,y2:base,class:'axis'},svg);
+    var out='state '+cur+', basis '+basis+':  Born rule P('+OUT[basis][0]+') = '+fx(p,3)+'  |  shots n = '+n;
+    if(n){var ph=c0/n, hw=1.96*Math.sqrt(ph*(1-ph)/n);
+      out+='  |  observed '+c0+' x '+OUT[basis][0]+', '+(n-c0)+' x '+OUT[basis][1]+'  |  p-hat = '+fx(ph,3)+', 95% CI ('+fx(Math.max(0,ph-hw),3)+', '+fx(Math.min(1,ph+hw),3)+')';}
+    document.getElementById('msOut').textContent=out;
+  }
+  function one(){var p=plusProb(presets[cur],basis); n++; if(Math.random()<p) c0++;}
+  function tick(){var c=Math.max(1,Math.ceil(pending/20)); for(var i=0;i<c&&pending>0;i++){one();pending--;} draw();
+    if(pending>0) raf=requestAnimationFrame(tick); else raf=null;}
+  function reset(){n=0;c0=0;pending=0;draw();}
+  Array.prototype.forEach.call(document.querySelectorAll('[data-shots]'),function(b){b.addEventListener('click',function(){
+    pending+=parseInt(b.dataset.shots,10); if(!raf) raf=requestAnimationFrame(tick);});});
+  document.getElementById('msReset').addEventListener('click',reset);
+  draw();
+})();
+
+/* ---------- widget 2: Bloch sphere explorer ---------- */
+(function(){
+  var svg=document.getElementById('bxSvg'); if(!svg) return;
+  var W=600,H=420,cx=300,cy=210,R=150,EL=18*Math.PI/180, az=30*Math.PI/180;
+  var tS=document.getElementById('bxT'), pS=document.getElementById('bxP'), vS=document.getElementById('bxV');
+  function basis(){var D=[Math.cos(EL)*Math.cos(az),Math.cos(EL)*Math.sin(az),Math.sin(EL)],
+    Er=[-Math.sin(az),Math.cos(az),0],Eu=[-Math.sin(EL)*Math.cos(az),-Math.sin(EL)*Math.sin(az),Math.cos(EL)];return [D,Er,Eu];}
+  function dot(a,b){return a[0]*b[0]+a[1]*b[1]+a[2]*b[2];}
+  var presets=[['|0>',0,0],['|1>',180,0],['|+>',90,0],['|->',90,180],['|+i>',90,90],['|-i>',90,270],['(3|0>+4i|1>)/5',2*Math.acos(0.6)*180/Math.PI,90]];
+  var hp=document.getElementById('bxPresets');
+  presets.forEach(function(p){var b=document.createElement('button');b.className='ctl';b.textContent=p[0];
+    b.addEventListener('click',function(){tS.value=Math.round(p[1]);pS.value=p[2];exact=p;draw();});hp.appendChild(b);});
+  var exact=null; // keep the exact theta of the example preset (73.74 deg) instead of the rounded slider value
+  function draw(){
+    var B=basis(),D=B[0],Er=B[1],Eu=B[2];
+    function S(p){return [cx+R*dot(p,Er), cy-R*dot(p,Eu)];}
+    var thd=(exact&&Math.round(exact[1])==+tS.value&&exact[2]==+pS.value)?exact[1]:+tS.value;
+    var th=thd*Math.PI/180, ph=(+pS.value)*Math.PI/180;
+    document.getElementById('bxTv').textContent=fx(thd/180,2); document.getElementById('bxPv').textContent=fx((+pS.value)/180,2);
+    clr(svg);
+    var d=mk('defs',{},svg); var m=mk('marker',{id:'bxA',viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:7,markerHeight:7,orient:'auto-start-reverse'},d);
+    mk('path',{d:'M0,0 L10,5 L0,10 z',fill:'var(--rose)'},m);
+    mk('rect',{x:0,y:0,width:W,height:H,rx:8,class:'plot-bg'},svg);
+    mk('circle',{cx:cx,cy:cy,r:R,fill:'var(--surface2)','fill-opacity':0.55,stroke:'var(--axis)','stroke-width':1.6},svg);
+    function circle(fn){var seg=[],fr=null,out=[];for(var i=0;i<=200;i++){var t=2*Math.PI*i/200,p=fn(t),f=dot(p,D)>=0,q=S(p);
+        if(fr===null||f===fr)seg.push(q);else{out.push([fr,seg]);seg=[seg[seg.length-1],q];}fr=f;}out.push([fr,seg]);
+      out.forEach(function(o){if(o[1].length<2)return;var dd=o[1].map(function(q,i){return (i?'L':'M')+q[0].toFixed(1)+','+q[1].toFixed(1);}).join(' ');
+        mk('path',{d:dd,fill:'none',stroke:'var(--axis)','stroke-width':o[0]?1.4:1.1,'stroke-dasharray':o[0]?'none':'4 5'},svg);});}
+    circle(function(t){return [Math.cos(t),Math.sin(t),0];});
+    circle(function(t){return [Math.sin(t)*Math.cos(ph),Math.sin(t)*Math.sin(ph),Math.cos(t)];}); // meridian through the state
+    var labs=[['|0>',[0,0,1]],['|1>',[0,0,-1]],['|+>',[1,0,0]],['|->',[-1,0,0]],['|+i>',[0,1,0]],['|-i>',[0,-1,0]]];
+    labs.forEach(function(l){var q=S(l[1]),f=dot(l[1],D)>=-1e-9;
+      mk('line',{x1:cx,y1:cy,x2:q[0],y2:q[1],stroke:'var(--axis)','stroke-width':1,'stroke-dasharray':'3 4'},svg);
+      mk('circle',{cx:q[0],cy:q[1],r:4.5,fill:f?'var(--sky)':'var(--surface)',stroke:'var(--sky)','stroke-width':2},svg);
+      var ox=q[0]-cx, oy=q[1]-cy, L=Math.hypot(ox,oy)||1;
+      mk('text',{x:q[0]+ox/L*24,y:q[1]+oy/L*24+5,'text-anchor':'middle',class:'lbltext',style:'fill:var(--sky)'},svg,l[0]);});
+    var st=stateTP(th,ph), r=blochOf(st), e=S(r), f=S([r[0],r[1],0]);
+    mk('line',{x1:e[0],y1:e[1],x2:f[0],y2:f[1],stroke:'var(--rose)','stroke-width':1.3,'stroke-dasharray':'3 3'},svg);
+    mk('line',{x1:cx,y1:cy,x2:f[0],y2:f[1],stroke:'var(--rose)','stroke-width':1.1,'stroke-dasharray':'2 4'},svg);
+    mk('line',{x1:cx,y1:cy,x2:e[0],y2:e[1],stroke:'var(--rose)','stroke-width':3,'marker-end':'url(#bxA)'},svg);
+    mk('circle',{cx:e[0],cy:e[1],r:4.5,fill:dot(r,D)>=0?'var(--rose)':'var(--surface)',stroke:'var(--rose)','stroke-width':2},svg);
+    mk('circle',{cx:cx,cy:cy,r:3,fill:'var(--ink)'},svg);
+    mk('text',{x:14,y:H-14,class:'axtext'},svg,'drag to turn the sphere');
+    var a=st[0],b=st[1];
+    document.getElementById('bxOut').textContent=
+      'state = '+cfmt(a[0],a[1])+' |0>  +  ('+cfmt(b[0],b[1])+') |1>   |   (x, y, z) = ('+fx(r[0])+', '+fx(r[1])+', '+fx(r[2])+')   |   '+
+      'P(0) = '+fx(plusProb(st,'Z'))+',  P(+) = '+fx(plusProb(st,'X'))+',  P(+i) = '+fx(plusProb(st,'Y'));
+  }
+  [tS,pS].forEach(function(s){s.addEventListener('input',function(){exact=null;draw();});});
+  vS.addEventListener('input',function(){az=(+vS.value)*Math.PI/180;draw();});
+  var drag=null;
+  svg.addEventListener('pointerdown',function(e){drag={x:e.clientX,az:az};svg.setPointerCapture(e.pointerId);svg.style.cursor='grabbing';});
+  svg.addEventListener('pointermove',function(e){if(!drag)return;var rect=svg.getBoundingClientRect(),k=W/rect.width;
+    az=drag.az-(e.clientX-drag.x)*k*Math.PI/300; var deg=((az*180/Math.PI+180)%360+360)%360-180; vS.value=Math.round(deg); draw();});
+  svg.addEventListener('pointerup',function(){drag=null;svg.style.cursor='grab';});
+  draw();
+})();
+</script>
+
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    var lab=b.getAttribute('data-lab')||b.textContent.replace(/^(show|hide) /,''); b.setAttribute('data-lab',lab);
+    b.textContent=(open?'hide ':'show ')+lab;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+
+<script id="spot-js">
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×/g,'*').replace(/π/g,'pi').replace(/,/g,'');
+    var pct=/%$/.test(s); if(pct) s=s.slice(0,-1);
+    s=s.replace(/√\s*\(/g,'sqrt(').replace(/√\s*([0-9.]+)/g,'sqrt($1)');
+    if(!s||!/^[0-9a-z+\-*\/^().\s]*$/.test(s)) return NaN;
+    var ok=s.replace(/sqrt|pi|ln|log|exp|sin|cos|tan|e(?![a-z])/g,'').replace(/[0-9+\-*\/^().\s]/g,'');
+    if(ok.length) return NaN;
+    s=s.replace(/\^/g,'**').replace(/(\d)\s*(pi|sqrt|\()/g,'$1*$2').replace(/\)\s*(\d|pi|sqrt|\()/g,')*$1')
+       .replace(/sqrt/g,'Math.sqrt').replace(/pi/g,'Math.PI').replace(/\blog\b/g,'Math.log10').replace(/\bln\b/g,'Math.log')
+       .replace(/exp/g,'Math.exp').replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos').replace(/tan/g,'Math.tan')
+       .replace(/(^|[^a-z.0-9])e(?![a-z0-9(])/g,'$1Math.E');
+    try{ var v=Function('"use strict";return ('+s+')')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function typeset(el){ if(window.MathJax&&MathJax.typesetPromise){ MathJax.typesetPromise([el]).catch(function(){}); } }
+  function fb(spot,ok,html){
+    var f=spot.querySelector('.fb'); spot.classList.toggle('ok',ok); spot.classList.toggle('bad',!ok);
+    f.innerHTML='<p><span class="tag">'+(ok?'correct.':'not yet.')+'</span>'+(html||'')+'</p>'; typeset(f);
+  }
+  function part(spot,sel){ var e=spot.querySelector(sel); return e? e.innerHTML : ''; }
+  var n=0, lec=(document.title.match(/^Lecture (\d+)/)||[])[1];
+  document.querySelectorAll('.spot').forEach(function(spot){
+    n++; var kind=spot.getAttribute('data-kind')||'num', tries=0;
+    var lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent='spot check '+(lec?lec+'.':'')+n+(spot.getAttribute('data-tag')?' — '+spot.getAttribute('data-tag'):'');
+    spot.insertBefore(lbl,spot.firstChild);
+    var area=document.createElement('div'), btns=document.createElement('div'), f=document.createElement('div');
+    btns.className='btns'; f.className='fb'; f.setAttribute('role','status'); f.setAttribute('aria-live','polite');
+    var check=document.createElement('button'); check.type='button'; check.textContent='check';
+    var reveal=document.createElement('button'); reveal.type='button'; reveal.className='reveal'; reveal.textContent='show answer'; reveal.style.display='none';
+    btns.appendChild(check); btns.appendChild(reveal);
+    var grade, show;
+    if(kind==='num'){
+      var ans=spot.getAttribute('data-ans').split('|').map(evalNum), labs=(spot.getAttribute('data-labels')||'').split('|');
+      var tol=spot.getAttribute('data-tol'), row=document.createElement('div'); row.className='row'; area.appendChild(row);
+      var ins=ans.map(function(a,i){ var lab=document.createElement('label'), inp=document.createElement('input');
+        inp.className='ans'; inp.type='text'; inp.setAttribute('inputmode','text'); inp.setAttribute('autocomplete','off');
+        inp.setAttribute('aria-label',labs[i]||'answer'); if(labs[i]){ lab.appendChild(document.createTextNode(labs[i]+' =')); }
+        lab.appendChild(inp); row.appendChild(lab);
+        inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); check.click(); } }); return inp; });
+      var fmt=document.createElement('div'); fmt.className='fmt'; fmt.textContent='decimals, fractions, sqrt(2)/2, pi/4 or 2^-3 all work';
+      area.appendChild(fmt);
+      grade=function(){ var bad=[]; ins.forEach(function(inp,i){ var v=evalNum(inp.value), a=ans[i];
+          var t= tol!==null? Number(tol) : Math.max(0.005, 0.005*Math.abs(a)); if(!(Math.abs(v-a)<=t)) bad.push(i); });
+        var empty=ins.some(function(inp){return !inp.value.trim();});
+        if(empty) return {ok:false,msg:'Fill in '+(ins.length>1?'every box':'the box')+' first.',soft:true};
+        var unparsed=ins.some(function(inp){return isNaN(evalNum(inp.value));});
+        if(unparsed) return {ok:false,msg:'I could not read that as a number. Try a decimal or a fraction such as 3/8.',soft:true};
+        return {ok:!bad.length, which:bad}; };
+      show=function(){ var s=spot.getAttribute('data-show'); if(!s){ s=spot.getAttribute('data-ans').split('|').map(function(a,i){return (labs[i]?labs[i]+' = ':'')+a;}).join(', '); } return 'The answer is '+s+'.'; };
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=spot.querySelector('ul.opts'), name='spot'+n, lis=[].slice.call(ul.querySelectorAll(':scope > li'));
+      lis.forEach(function(li,i){ var inp=document.createElement('input'); inp.type= kind==='mc'?'radio':'checkbox'; inp.name=name; inp.value=i;
+        inp.setAttribute('aria-label','option '+(i+1)); li.insertBefore(inp,li.firstChild);
+        li.addEventListener('click',function(e){ if(e.target!==inp&&e.target.tagName!=='A'){ if(kind==='mc') inp.checked=true; else inp.checked=!inp.checked; } }); });
+      grade=function(){ var picked=lis.filter(function(li){return li.querySelector('input').checked;});
+        if(!picked.length) return {ok:false,msg:'Pick '+(kind==='mc'?'an answer':'at least one option')+' first.',soft:true};
+        var ok= lis.every(function(li){ return li.hasAttribute('data-ok')===li.querySelector('input').checked; });
+        var oh=''; picked.forEach(function(li){ if(!li.hasAttribute('data-ok')){ var h=li.querySelector('.oh'); if(h) oh+=' '+h.innerHTML; } });
+        if(kind==='multi'&&!ok&&!oh){ var miss=lis.filter(function(li){return li.hasAttribute('data-ok')&&!li.querySelector('input').checked;});
+          if(miss.length&&picked.every(function(li){return li.hasAttribute('data-ok');})) oh=' Everything you ticked is right, but something is missing.'; }
+        return {ok:ok, extra:oh}; };
+      show=function(){ lis.forEach(function(li){ li.classList.toggle('right',li.hasAttribute('data-ok')); }); return 'The right '+(kind==='mc'?'option is':'options are')+' outlined.'; };
+    } else if(kind==='select'){
+      var sels=[].slice.call(spot.querySelectorAll('select'));
+      sels.forEach(function(s){ var o=document.createElement('option'); o.textContent='choose…'; o.value=''; o.selected=true; s.insertBefore(o,s.firstChild);
+        s.setAttribute('aria-label', s.getAttribute('aria-label')||'choose an answer'); });
+      grade=function(){ if(sels.some(function(s){return !s.value;})) return {ok:false,msg:'Make a choice in '+(sels.length>1?'every menu':'the menu')+' first.',soft:true};
+        var oh=''; var ok=sels.every(function(s){ var o=s.options[s.selectedIndex]; if(!o.hasAttribute('data-ok')&&o.getAttribute('data-hint')) oh+=' '+o.getAttribute('data-hint'); return o.hasAttribute('data-ok'); });
+        return {ok:ok, extra:oh}; };
+      show=function(){ sels.forEach(function(s){ [].forEach.call(s.options,function(o,i){ if(o.hasAttribute('data-ok')) s.selectedIndex=i; }); }); return 'The right choices are now selected.'; };
+    }
+    var anchor=null;
+    [].forEach.call(spot.children,function(c){ if(!anchor&&(c.classList.contains('hint')||c.classList.contains('why'))) anchor=c; });
+    if(kind==='select'){ spot.insertBefore(btns,anchor); } else { spot.insertBefore(area,anchor); spot.insertBefore(btns,anchor); }
+    spot.appendChild(f);
+    check.addEventListener('click',function(){ var r=grade();
+      if(r.soft){ spot.classList.remove('ok'); spot.classList.add('bad'); f.innerHTML='<p><span class="tag">hold on.</span>'+r.msg+'</p>'; return; }
+      if(r.ok){ fb(spot,true,part(spot,'.why')); reveal.style.display='none'; }
+      else { tries++; var h=part(spot,'.hint'); var extra=r.extra||'';
+        if(r.which&&r.which.length&&ans.length>1){ extra=' Check '+r.which.map(function(i){return labs[i]||('box '+(i+1));}).join(' and ')+'.'+extra; }
+        fb(spot,false,(extra?extra+' ':'')+h); if(tries>=2) reveal.style.display=''; } });
+    reveal.addEventListener('click',function(){ var msg=show(); spot.classList.remove('ok'); spot.classList.add('bad');
+      f.innerHTML='<p><span class="tag">answer.</span>'+msg+' '+part(spot,'.why')+'</p>'; typeset(f); });
+  });
+})();
+</script>
+</body>
+</html>

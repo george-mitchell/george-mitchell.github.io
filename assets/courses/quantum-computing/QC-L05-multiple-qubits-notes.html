@@ -1,0 +1,1067 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Lecture 5 — Multiple Qubits: Tensor Products and Entanglement</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+  /* course additions, same family */
+  .crypto{border-left-color:var(--moss);background:var(--surface2)} .crypto .lbl{color:var(--moss)}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  dl.gloss dt{font-family:var(--mono);color:var(--sky);font-size:.95rem;margin-top:.9em}
+  dl.gloss dd{margin:.1em 0 0 1.1em}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<style id="spot-css">
+.spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+  border-radius:6px;padding:12px 16px;margin:1.3em 0;transition:background .25s,border-color .25s}
+.spot .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em;color:var(--sky)}
+.spot > p{margin:.35em 0}
+.spot .hint,.spot .why,.spot .oh{display:none}
+.spot .fb{display:none;margin:.55em 0 0;font-size:.97rem}
+.spot .fb > :first-child{margin-top:0}.spot .fb > :last-child{margin-bottom:0}
+.spot.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 13%,var(--surface))}
+.spot.ok .lbl{color:var(--moss)}
+.spot.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 13%,var(--surface))}
+.spot.bad .lbl{color:var(--amber)}
+.spot.ok .fb{display:block;color:var(--ink)} .spot.bad .fb{display:block;color:var(--ink)}
+.spot .fb .tag{font-family:var(--mono);font-size:.85rem;margin-right:.4em}
+.spot.ok .fb .tag{color:var(--moss)} .spot.bad .fb .tag{color:var(--amber)}
+.spot ul.opts{list-style:none;padding:0;margin:.5em 0}
+.spot ul.opts li{display:block;padding:4px 8px 4px 2.1em;text-indent:-1.5em;margin:3px 0;border-radius:5px;cursor:pointer;
+  border:1px solid transparent;overflow-wrap:anywhere}
+.spot ul.opts li > *{text-indent:0}
+.spot ul.opts li:hover{border-color:var(--rule)}
+.spot ul.opts li input{accent-color:var(--sky);margin:0 .6em 0 0;width:.9em;vertical-align:-1px}
+.spot ul.opts li.right{border-color:var(--moss)}
+.spot .row{display:flex;flex-wrap:wrap;gap:.6em 1em;align-items:center;margin:.55em 0 .2em}
+.spot .row label{font-family:var(--mono);font-size:.88rem;color:var(--muted);display:flex;gap:.45em;align-items:center}
+.spot input.ans{font-family:var(--mono);font-size:.95rem;width:9.5em;max-width:100%;padding:5px 8px;border-radius:5px;
+  border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.spot input.ans:focus,.spot select:focus{outline:2px solid var(--sky);outline-offset:1px}
+.spot select{font-family:var(--mono);font-size:.9rem;padding:3px 6px;border-radius:5px;border:1px solid var(--rule);
+  background:var(--bg);color:var(--ink);max-width:100%}
+.spot .btns{display:flex;gap:.5em;flex-wrap:wrap;margin-top:.5em}
+.spot .btns button{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--sky);border:1px solid var(--sky);
+  padding:5px 12px;border-radius:999px;cursor:pointer}
+.spot .btns button:hover{background:var(--sky);color:var(--bg)}
+.spot .btns button.reveal{color:var(--muted);border-color:var(--rule)}
+.spot .btns button.reveal:hover{background:var(--rule);color:var(--ink)}
+.spot .fmt{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+@media print{.spot .btns,.spot .fmt{display:none}}
+</style>
+<script src="/assets/courses/common/course-nav.js" data-course="quantum-computing" defer></script>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Quantum Computing · Lecture 5</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Lecture 5<br>Multiple Qubits: Tensor Products and Entanglement</h1>
+<p class="kicker">Week 3 &nbsp;|&nbsp; two qubits live in C<sup>4</sup>, and most of C<sup>4</sup> is entangled &nbsp;|&nbsp; reading: Watrous §2.1–2.2</p>
+
+<figure class="toon">
+<svg viewBox="0 0 600 210" width="600" height="210" role="img" aria-labelledby="c5t c5d">
+<title id="c5t">Cartoon: two halves of a torn ticket</title><desc id="c5d">Two stick figures stand far apart. Each holds up one half of a ticket torn in two with a jagged edge. A speech bubble over the left figure says: my half tells you nothing on its own. A caption under the ticket halves says: the whole is not the sum of its halves.</desc>
+<defs><filter id="rough55" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="55" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough55)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="80" cy="120" r="11"/><path d="M 80 131 L 80 160"/><path d="M 80 138 L 66 156"/><path d="M 80 138 L 118 116"/><path d="M 80 160 L 69 186"/><path d="M 80 160 L 91 186"/>
+<path d="M 118 96 L 176 96 L 170 104 L 178 112 L 170 120 L 176 128 L 118 128 Z" fill="var(--surface2)" stroke="var(--sky)"/>
+<circle cx="520" cy="120" r="11"/><path d="M 520 131 L 520 160"/><path d="M 520 138 L 534 156"/><path d="M 520 138 L 482 116"/><path d="M 520 160 L 509 186"/><path d="M 520 160 L 531 186"/>
+<path d="M 482 96 L 424 96 L 418 104 L 426 112 L 418 120 L 424 128 L 482 128 Z" fill="var(--surface2)" stroke="var(--rose)"/>
+<path d="M 200 112 L 396 112" stroke-dasharray="6 7" stroke-width="1.4"/>
+<rect x="30" y="12" width="270" height="56" rx="9" fill="var(--surface2)"/>
+<path d="M 70 65 L 80 96 L 100 65" fill="var(--surface2)" stroke-width="1.6"/>
+<path d="M 20 196 L 580 196" stroke-width="1.6"/>
+</g>
+<text x="44" y="36" class="ctext">my half tells you nothing</text><text x="44" y="56" class="ctext">on its own.</text>
+<text x="300" y="150" class="ccap" text-anchor="middle">the whole is not the sum of its halves</text>
+</svg>
+<figcaption class="tooncap">an entangled pair has a definite joint state, but neither qubit has a state of its own</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">Two qubits</a></li>
+<li><a href="#s2">The tensor product</a></li>
+<li><a href="#s3">Which qubit is which: the ordering convention</a></li>
+<li><a href="#s4">Product states and entangled states</a></li>
+<li><a href="#s5">The singular value decomposition</a></li>
+<li><a href="#s6">The Schmidt decomposition: how entangled?</a></li>
+<li><a href="#s7">n qubits and the memory wall</a></li>
+<li><a href="#s8">Try it in code</a></li>
+<li><a href="#s9">Summary and exercises</a></li>
+</ol>
+</div>
+
+<p>So far we have studied one qubit at a time. Every interesting quantum computation uses many, and the way qubits combine is where quantum information parts company with classical information for good. By the end of this lecture you should be able to build multi-qubit states and gates with the tensor product, read Qiskit's qubit labels without getting them backwards, decide whether a two-qubit state is entangled, measure <em>how</em> entangled it is, and explain why a laptop cannot simulate 50 qubits.</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; Two qubits</h2>
+
+<p>Two classical bits have four possible values, \(00,01,10,11\). A probabilistic pair of bits is a probability vector with four entries, one per value. The quantum version replaces probabilities by amplitudes, exactly as in Lecture 3.</p>
+
+<div class="box def">
+<span class="lbl">definition 5.1 &mdash; two-qubit state</span>
+<p>The state of two qubits is a unit vector in \(\mathbb C^4\),</p>
+$$|\psi\rangle=c_{00}|00\rangle+c_{01}|01\rangle+c_{10}|10\rangle+c_{11}|11\rangle,\qquad \sum_{i,j}|c_{ij}|^2=1 ,$$
+<p>where the <strong>computational basis</strong> \(|00\rangle,|01\rangle,|10\rangle,|11\rangle\) is the standard basis \(e_0,e_1,e_2,e_3\) of \(\mathbb C^4\), in that order. Measuring both qubits gives the two-bit outcome \(ij\) with probability \(|c_{ij}|^2\) (the Born rule), and leaves the state \(|ij\rangle\).</p>
+</div>
+
+<p>Nothing new is needed yet: this is Lecture 3's definition with four outcomes instead of two. For example, measuring \(|\psi\rangle=\tfrac12|00\rangle+\tfrac{i}{2}|01\rangle-\tfrac{1}{\sqrt2}|11\rangle\) gives \(00\) and \(01\) with probability \(\tfrac14\) each, \(10\) never, and \(11\) with probability \(\tfrac12\). The new questions are structural. How do the two single-qubit descriptions fit together into one vector? And can every vector in \(\mathbb C^4\) be split back into two single-qubit states? The first question is answered by the tensor product; the answer to the second is <em>no</em>, and the states that cannot be split are the entangled ones.</p>
+
+<div class="spot" data-kind="num" data-ans="8/9" data-labels="P(agree)">
+<p>Both qubits of \(|\psi\rangle=\tfrac13\big(2|00\rangle+|01\rangle-2i|11\rangle\big)\) are measured. What is the probability that the two bits agree?</p>
+<div class="hint">The bits agree for the outcomes \(00\) and \(11\). Add their probabilities \(|c_{00}|^2+|c_{11}|^2\), and remember that \(|-2i|^2=4\).</div>
+<div class="why">\(P(00)+P(11)=\tfrac49+\tfrac49=\tfrac89\); the remaining \(\tfrac19\) is the outcome \(01\).</div>
+</div>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; The tensor product</h2>
+
+<p>If the first qubit is in \(|a\rangle=a_0|0\rangle+a_1|1\rangle\) and the second, independently, is in \(|b\rangle=b_0|0\rangle+b_1|1\rangle\), the amplitude of the joint outcome \(ij\) should be the product \(a_ib_j\), just as independent probabilities multiply. That is the whole definition.</p>
+
+<div class="box def">
+<span class="lbl">definition 5.2 &mdash; tensor product of vectors</span>
+<p>For \(a\in\mathbb C^2\) and \(b\in\mathbb C^2\), the <strong>tensor product</strong> (or Kronecker product) is the vector in \(\mathbb C^4\)</p>
+$$|a\rangle\otimes|b\rangle=\begin{pmatrix}a_0\\[2pt] a_1\end{pmatrix}\otimes\begin{pmatrix}b_0\\[2pt] b_1\end{pmatrix}=\begin{pmatrix}a_0\,b\\[2pt] a_1\,b\end{pmatrix}=\begin{pmatrix}a_0b_0\\[2pt] a_0b_1\\[2pt] a_1b_0\\[2pt] a_1b_1\end{pmatrix}.$$
+<p>We abbreviate \(|a\rangle\otimes|b\rangle\) as \(|a\rangle|b\rangle\) or \(|ab\rangle\). In particular \(|i\rangle\otimes|j\rangle=|ij\rangle\): the basis vectors of \(\mathbb C^4\) are tensor products of basis vectors of \(\mathbb C^2\). The same rule, "each entry of the left factor times the whole right factor", defines \(a\otimes b\) for vectors of any lengths \(m\) and \(n\), giving a vector of length \(mn\).</p>
+</div>
+
+<div class="spot" data-kind="num" data-ans="-0.6/sqrt(2)|0.8/sqrt(2)" data-labels="c_01|c_10" data-show="c₀₁ = −0.6/√2 ≈ −0.424, c₁₀ = 0.8/√2 ≈ 0.566">
+<p>Let \(|a\rangle=0.6|0\rangle+0.8|1\rangle\). Find the amplitudes \(c_{01}\) and \(c_{10}\) of \(|a\rangle\otimes|-\rangle\).</p>
+<div class="hint">\(c_{ij}=a_i\,b_j\), where the first digit belongs to the left factor. Here \(b=\tfrac1{\sqrt2}(1,\,-1)\).</div>
+<div class="why">\(c_{01}=a_0b_1=-\tfrac{0.6}{\sqrt2}\approx-0.424\) and \(c_{10}=a_1b_0=\tfrac{0.8}{\sqrt2}\approx0.566\). Mixing up the factors would swap which amplitude carries the minus sign.</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 5.1 &mdash; order matters</span>
+<p>Compute \(|+\rangle\otimes|0\rangle\) and \(|0\rangle\otimes|+\rangle\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+$$|+\rangle\otimes|0\rangle=\frac{1}{\sqrt2}\begin{pmatrix}1\\[2pt] 0\\[2pt] 1\\[2pt] 0\end{pmatrix}=\frac{|00\rangle+|10\rangle}{\sqrt2},$$
+$$|0\rangle\otimes|+\rangle=\frac{1}{\sqrt2}\begin{pmatrix}1\\[2pt] 1\\[2pt] 0\\[2pt] 0\end{pmatrix}=\frac{|00\rangle+|01\rangle}{\sqrt2}.$$
+<p>The two answers are different vectors: the tensor product is not commutative. In the first, the left qubit is in superposition and the right one is definitely 0; in the second it is the other way round. Keeping track of which factor is which qubit is the subject of Section 3.</p>
+</div>
+</div>
+
+<p>Gates on two qubits are \(4\times4\) unitaries. When a gate \(A\) acts on the left qubit and \(B\) on the right one, the combined matrix is their tensor product, defined by the same "entry times whole block" rule.</p>
+
+<div class="box def">
+<span class="lbl">definition 5.3 &mdash; tensor product of matrices</span>
+<p>For \(2\times2\) matrices \(A=(a_{ij})\) and \(B\),</p>
+$$A\otimes B=\begin{pmatrix}a_{00}B & a_{01}B\\[2pt] a_{10}B & a_{11}B\end{pmatrix},$$
+<p>a \(4\times4\) matrix made of four \(2\times2\) blocks. Its entry in row \(ik\), column \(jl\) is \(a_{ij}b_{kl}\).</p>
+</div>
+
+<figure>
+<svg viewBox="0 0 720 330" width="720" height="330" role="img" aria-labelledby="kbt kbd"><title id="kbt">The Kronecker product H tensor I built block by block</title><desc id="kbd">Left: the 2 by 2 matrix H with entries 1, 1, 1, -1 times 1/sqrt(2). Middle: the 2 by 2 identity I. Right: the 4 by 4 matrix H tensor I, made of four 2 by 2 blocks, each block equal to one entry of H times I. The top-left, top-right and bottom-left blocks are I/sqrt(2); the bottom-right block is -I/sqrt(2). Row and column labels read |00>, |01>, |10>, |11>.</desc><rect x="0" y="0" width="720" height="330" rx="8" class="plot-bg"/><text class="lbltext" x="86.0" y="90.0" text-anchor="middle">H (times 1/sqrt2)</text><rect x="40" y="110" width="46" height="46" fill="var(--sky)" fill-opacity="0.25" stroke="var(--sky)" stroke-width="1.6"/><text class="lbltext" x="63.0" y="138.0" text-anchor="middle">1</text><rect x="86" y="110" width="46" height="46" fill="var(--moss)" fill-opacity="0.25" stroke="var(--moss)" stroke-width="1.6"/><text class="lbltext" x="109.0" y="138.0" text-anchor="middle">1</text><rect x="40" y="156" width="46" height="46" fill="var(--amber)" fill-opacity="0.25" stroke="var(--amber)" stroke-width="1.6"/><text class="lbltext" x="63.0" y="184.0" text-anchor="middle">1</text><rect x="86" y="156" width="46" height="46" fill="var(--rose)" fill-opacity="0.25" stroke="var(--rose)" stroke-width="1.6"/><text class="lbltext" x="109.0" y="184.0" text-anchor="middle">-1</text><text class="lbltext" x="154.0" y="162.0" text-anchor="middle">(x)</text><text class="lbltext" x="222.0" y="90.0" text-anchor="middle">I</text><rect x="176" y="110" width="46" height="46" fill="none" stroke="var(--axis)" stroke-width="1.2"/><text class="lbltext" x="199.0" y="138.0" text-anchor="middle">1</text><rect x="222" y="110" width="46" height="46" fill="none" stroke="var(--axis)" stroke-width="1.2"/><text class="lbltext" x="245.0" y="138.0" text-anchor="middle">0</text><rect x="176" y="156" width="46" height="46" fill="none" stroke="var(--axis)" stroke-width="1.2"/><text class="lbltext" x="199.0" y="184.0" text-anchor="middle">0</text><rect x="222" y="156" width="46" height="46" fill="none" stroke="var(--axis)" stroke-width="1.2"/><text class="lbltext" x="245.0" y="184.0" text-anchor="middle">1</text><text class="lbltext" x="292.0" y="162.0" text-anchor="middle">=</text><text class="lbltext" x="496.0" y="36.0" text-anchor="middle">H (x) I   (times 1/sqrt2)</text><text class="axtext" x="390.0" y="99.0" text-anchor="end">|00&gt;</text><text class="axtext" x="424.0" y="60.0" text-anchor="middle">|00&gt;</text><rect x="400" y="70" width="48" height="48" fill="var(--sky)" fill-opacity="0.28" stroke="var(--rule)"/><text class="lbltext" x="424.0" y="99.0" text-anchor="middle">1</text><rect x="448" y="70" width="48" height="48" fill="var(--sky)" fill-opacity="0.08" stroke="var(--rule)"/><text class="lbltext" x="472.0" y="99.0" text-anchor="middle">0</text><rect x="496" y="70" width="48" height="48" fill="var(--moss)" fill-opacity="0.28" stroke="var(--rule)"/><text class="lbltext" x="520.0" y="99.0" text-anchor="middle">1</text><rect x="544" y="70" width="48" height="48" fill="var(--moss)" fill-opacity="0.08" stroke="var(--rule)"/><text class="lbltext" x="568.0" y="99.0" text-anchor="middle">0</text><text class="axtext" x="390.0" y="147.0" text-anchor="end">|01&gt;</text><text class="axtext" x="472.0" y="60.0" text-anchor="middle">|01&gt;</text><rect x="400" y="118" width="48" height="48" fill="var(--sky)" fill-opacity="0.08" stroke="var(--rule)"/><text class="lbltext" x="424.0" y="147.0" text-anchor="middle">0</text><rect x="448" y="118" width="48" height="48" fill="var(--sky)" fill-opacity="0.28" stroke="var(--rule)"/><text class="lbltext" x="472.0" y="147.0" text-anchor="middle">1</text><rect x="496" y="118" width="48" height="48" fill="var(--moss)" fill-opacity="0.08" stroke="var(--rule)"/><text class="lbltext" x="520.0" y="147.0" text-anchor="middle">0</text><rect x="544" y="118" width="48" height="48" fill="var(--moss)" fill-opacity="0.28" stroke="var(--rule)"/><text class="lbltext" x="568.0" y="147.0" text-anchor="middle">1</text><text class="axtext" x="390.0" y="195.0" text-anchor="end">|10&gt;</text><text class="axtext" x="520.0" y="60.0" text-anchor="middle">|10&gt;</text><rect x="400" y="166" width="48" height="48" fill="var(--amber)" fill-opacity="0.28" stroke="var(--rule)"/><text class="lbltext" x="424.0" y="195.0" text-anchor="middle">1</text><rect x="448" y="166" width="48" height="48" fill="var(--amber)" fill-opacity="0.08" stroke="var(--rule)"/><text class="lbltext" x="472.0" y="195.0" text-anchor="middle">0</text><rect x="496" y="166" width="48" height="48" fill="var(--rose)" fill-opacity="0.28" stroke="var(--rule)"/><text class="lbltext" x="520.0" y="195.0" text-anchor="middle">-1</text><rect x="544" y="166" width="48" height="48" fill="var(--rose)" fill-opacity="0.08" stroke="var(--rule)"/><text class="lbltext" x="568.0" y="195.0" text-anchor="middle">0</text><text class="axtext" x="390.0" y="243.0" text-anchor="end">|11&gt;</text><text class="axtext" x="568.0" y="60.0" text-anchor="middle">|11&gt;</text><rect x="400" y="214" width="48" height="48" fill="var(--amber)" fill-opacity="0.08" stroke="var(--rule)"/><text class="lbltext" x="424.0" y="243.0" text-anchor="middle">0</text><rect x="448" y="214" width="48" height="48" fill="var(--amber)" fill-opacity="0.28" stroke="var(--rule)"/><text class="lbltext" x="472.0" y="243.0" text-anchor="middle">1</text><rect x="496" y="214" width="48" height="48" fill="var(--rose)" fill-opacity="0.08" stroke="var(--rule)"/><text class="lbltext" x="520.0" y="243.0" text-anchor="middle">0</text><rect x="544" y="214" width="48" height="48" fill="var(--rose)" fill-opacity="0.28" stroke="var(--rule)"/><text class="lbltext" x="568.0" y="243.0" text-anchor="middle">-1</text><line x1="496" y1="70" x2="496" y2="262" stroke="var(--ink)" stroke-width="2.6"/><line x1="400" y1="166" x2="592" y2="166" stroke="var(--ink)" stroke-width="2.6"/><text class="axtext" x="360.0" y="314.0" text-anchor="middle">each entry h_ij of H becomes the block h_ij I</text></svg>
+<figcaption>The Kronecker product \(H\otimes I\), block by block. Each entry of \(H\) (coloured) becomes a whole \(2\times2\) block, equal to that entry times \(I\). The thick lines separate the blocks; rows and columns are labelled by the basis states \(|00\rangle,\dots,|11\rangle\).</figcaption>
+</figure>
+
+<p>Reading off the figure,</p>
+$$H\otimes I=\frac{1}{\sqrt2}\begin{pmatrix}1&0&1&0\\[2pt] 0&1&0&1\\[2pt] 1&0&-1&0\\[2pt] 0&1&0&-1\end{pmatrix},\qquad (H\otimes I)|00\rangle=\frac{1}{\sqrt2}\begin{pmatrix}1\\[2pt] 0\\[2pt] 1\\[2pt] 0\end{pmatrix}=|+\rangle|0\rangle .$$
+<p>The first column of the matrix is the image of \(|00\rangle\), and it says what we expected: \(H\) turned the left qubit into \(|+\rangle\) and \(I\) left the right one alone. Proposition 5.1 makes this "each factor acts on its own qubit" rule official.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 5.1 &mdash; rules for tensor products</span>
+<p>For vectors \(a,b,c,d\), matrices \(A,B,C,D\) of matching sizes and scalars \(\lambda\):</p>
+<ol>
+<li><strong>Bilinearity.</strong> \((a+c)\otimes b=a\otimes b+c\otimes b\), \(a\otimes(b+d)=a\otimes b+a\otimes d\), and \((\lambda a)\otimes b=a\otimes(\lambda b)=\lambda(a\otimes b)\).</li>
+<li><strong>Acting factor by factor.</strong> \((A\otimes B)(a\otimes b)=Aa\otimes Bb\), and more generally \((A\otimes B)(C\otimes D)=AC\otimes BD\).</li>
+<li><strong>Inner products multiply.</strong> \(\langle a\otimes b\,|\,c\otimes d\rangle=\langle a|c\rangle\,\langle b|d\rangle\).</li>
+<li><strong>Adjoints.</strong> \((A\otimes B)^\dagger=A^\dagger\otimes B^\dagger\). Consequently, if \(U\) and \(V\) are unitary then so is \(U\otimes V\).</li>
+</ol>
+<button class="sol-btn">show proof of 3</button>
+<div class="sol">
+<p>Every rule is a one-line index computation, so we do one of them in full. The entry of \(a\otimes b\) in position \(ik\) is \(a_ib_k\), so</p>
+$$\langle a\otimes b\,|\,c\otimes d\rangle=\sum_{i,k}\overline{a_ib_k}\;c_id_k=\Big(\sum_i\overline{a_i}\,c_i\Big)\Big(\sum_k\overline{b_k}\,d_k\Big)=\langle a|c\rangle\,\langle b|d\rangle .$$
+<p>In particular \(\|a\otimes b\|=\|a\|\,\|b\|\): a tensor product of two unit vectors is again a unit vector, so \(|a\rangle|b\rangle\) is a legitimate two-qubit state. Rule 2 is the same kind of computation with one more index (it is also HW3 practice), and the last claim of rule 4 follows from rules 2 and 4 together: \((U\otimes V)^\dagger(U\otimes V)=U^\dagger U\otimes V^\dagger V=I\otimes I=I\).</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; a gate on one qubit is a tensor product with the identity</span>
+<p>To apply \(U\) to one qubit of a pair and do nothing to the other, use \(U\otimes I\) or \(I\otimes U\), depending on which factor is that qubit. By rule 2, \((U\otimes I)(|a\rangle|b\rangle)=U|a\rangle\,|b\rangle\), and by linearity this extends to every two-qubit state, entangled or not. Two gates on different qubits commute, because \((U\otimes I)(I\otimes V)=U\otimes V=(I\otimes V)(U\otimes I)\). That is why a circuit diagram can draw them in either order.</p>
+</div>
+
+<div class="spot" data-kind="select">
+<p>\((X\otimes H)\big(|0\rangle\otimes|1\rangle\big)\) equals
+<select><option data-ok>|1⟩|−⟩</option><option data-hint="H|1⟩ is |−⟩, not |+⟩.">|1⟩|+⟩</option><option data-hint="X acts on the left factor only, so the left factor must change.">|0⟩|−⟩</option><option data-hint="The factors keep their positions: the left gate acts on the left factor.">|−⟩|1⟩</option></select>.</p>
+<div class="hint">Proposition 5.1(2): \((A\otimes B)(a\otimes b)=Aa\otimes Bb\). Apply \(X\) to \(|0\rangle\) and \(H\) to \(|1\rangle\).</div>
+<div class="why">\(X|0\rangle=|1\rangle\) and \(H|1\rangle=|-\rangle\), so the result is \(|1\rangle\otimes|-\rangle\). Each factor acts on its own qubit.</div>
+</div>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; Which qubit is which: the ordering convention</h2>
+
+<p>Definition 5.2 attaches the <em>left</em> tensor factor to the <em>leftmost</em> symbol in a ket, so in \(|ij\rangle\) the digit \(i\) belongs to the left factor. What remains is a naming decision: which physical qubit is the left factor? Textbooks, including Nielsen–Chuang, usually make the first-listed qubit the leftmost digit. Qiskit makes the opposite choice, and since we check everything in Qiskit, <strong>this course uses Qiskit's convention throughout</strong>.</p>
+
+<div class="box def">
+<span class="lbl">definition 5.4 &mdash; ordering convention (Qiskit, little-endian)</span>
+<p>For qubits numbered \(0,1,\dots,n-1\), basis states are written with qubit 0 on the <em>right</em>:</p>
+$$|q_{n-1}\cdots q_1\,q_0\rangle=|q_{n-1}\rangle\otimes\cdots\otimes|q_1\rangle\otimes|q_0\rangle .$$
+<p>The basis state \(|q_{n-1}\cdots q_0\rangle\) is standard basis vector number \(\sum_k q_k2^k\), the usual binary value of the bit string. In particular, a gate \(U\) on qubit 0 of a pair is \(I\otimes U\), and a gate on qubit 1 is \(U\otimes I\).</p>
+</div>
+
+<figure>
+<svg viewBox="0 0 720 250" width="720" height="250" role="img" aria-labelledby="ort ord"><title id="ort">Qubit ordering: the top wire is qubit 0 but its bit is written on the right</title><desc id="ord">A three-qubit circuit with wires labelled q0 at the top, q1 in the middle and q2 at the bottom. An X gate acts on q0 only. The output ket is written |q2 q1 q0> = |001>: qubit 0 is the rightmost bit, and the basis state's index is 4 q2 + 2 q1 + q0 = 1.</desc><rect x="0" y="0" width="720" height="250" rx="8" class="plot-bg"/><text class="lbltext" x="30.0" y="65.0" text-anchor="start" style="fill:var(--sky)">q0</text><text class="lbltext" x="70.0" y="65.0" text-anchor="start">|0&gt;</text><line x1="104" y1="60" x2="330" y2="60" stroke="var(--ink)" stroke-width="2"/><text class="lbltext" x="30.0" y="125.0" text-anchor="start" style="fill:var(--sky)">q1</text><text class="lbltext" x="70.0" y="125.0" text-anchor="start">|0&gt;</text><line x1="104" y1="120" x2="330" y2="120" stroke="var(--ink)" stroke-width="2"/><text class="lbltext" x="30.0" y="185.0" text-anchor="start" style="fill:var(--sky)">q2</text><text class="lbltext" x="70.0" y="185.0" text-anchor="start">|0&gt;</text><line x1="104" y1="180" x2="330" y2="180" stroke="var(--ink)" stroke-width="2"/><rect x="170" y="40" width="46" height="40" rx="5" fill="var(--surface2)" stroke="var(--rose)" stroke-width="2"/><text class="lbltext" x="193.0" y="66.0" text-anchor="middle" style="fill:var(--rose)">X</text><path d="M340,50 Q360,50 360,70 L360,170 Q360,190 340,190" fill="none" stroke="var(--axis)" stroke-width="1.6"/><text class="axtext" x="390.0" y="96.0" text-anchor="start">output ket, written |q2 q1 q0&gt;:</text><text class="lbltext" x="392.0" y="150.0" text-anchor="middle">|</text><text class="lbltext" x="412.0" y="150.0" text-anchor="middle">0</text><text class="axtext" x="412.0" y="130.0" text-anchor="middle" style="fill:var(--sky)">q2</text><text class="lbltext" x="436.0" y="150.0" text-anchor="middle">0</text><text class="axtext" x="436.0" y="130.0" text-anchor="middle" style="fill:var(--sky)">q1</text><text class="lbltext" x="460.0" y="150.0" text-anchor="middle" style="fill:var(--rose)">1</text><text class="axtext" x="460.0" y="130.0" text-anchor="middle" style="fill:var(--sky)">q0</text><text class="lbltext" x="480.0" y="150.0" text-anchor="middle">&gt;</text><line x1="460" y1="158" x2="460" y2="176" stroke="var(--rose)" stroke-width="1.6"/><text class="axtext" x="460.0" y="192.0" text-anchor="middle" style="fill:var(--rose)">q0 is the rightmost bit</text><text class="axtext" x="390.0" y="224.0" text-anchor="start">index = 4 q2 + 2 q1 + q0 = 1</text></svg>
+<figcaption>In a Qiskit circuit diagram, qubit 0 is the top wire, but its bit is written at the right-hand end of the ket. Flipping qubit 0 of \(|000\rangle\) gives \(|001\rangle\), which is basis vector number 1.</figcaption>
+</figure>
+
+<p>The name "little-endian" is borrowed from computer memory: the least significant bit comes first in the numbering (qubit 0 is the ones place), and is printed last. Once you accept that qubit \(k\) is the \(2^k\) place of a binary number, everything is consistent. The widget below lets you practise until it is automatic.</p>
+
+<div class="spot" data-kind="select">
+<p>Three qubits start in \(|000\rangle\) and a Qiskit circuit applies <code>x(2)</code>. The resulting ket is
+<select><option data-hint="Qubit 0 is the rightmost digit; qubit 2 is the leftmost.">|001⟩</option><option data-hint="That would be x(1).">|010⟩</option><option data-ok>|100⟩</option></select>,
+which is standard basis vector number
+<select><option data-hint="Index 1 is |001⟩, where qubit 0 is set.">1</option><option data-hint="Index 2 is |010⟩, where qubit 1 is set.">2</option><option data-ok>4</option></select>.</p>
+<div class="hint">Definition 5.4: qubit \(k\) is the \(2^k\) place, written \(k\) positions from the right.</div>
+<div class="why">Qubit 2 is the leftmost digit and the \(2^2\) place, so the state is \(|100\rangle\), vector number 4.</div>
+</div>
+
+<div class="widget">
+<h4>Ordering decoder</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Toggle an \(X\) gate on each of three qubits that start in \(|0\rangle\). The circuit is drawn Qiskit-style (qubit 0 on top). The panel shows the output ket in \(|q_2q_1q_0\rangle\) order, its index in the state vector, the label Qiskit prints, and the eight amplitudes.</p>
+<svg id="ordSvg" viewBox="0 0 600 270" width="600" height="270" role="img" aria-labelledby="ordSvg-t ordSvg-d"><title id="ordSvg-t">Three-qubit circuit, output ket and the eight amplitudes of the state vector</title><desc id="ordSvg-d">Interactive figure, redrawn as you use the controls next to it; the text readout below it describes what is currently shown.</desc></svg>
+<div class="ctrls" id="ordBtns"></div>
+<p class="readout" role="status" aria-live="polite" id="ordOut"></p>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 5.2 &mdash; the same gate on different qubits</span>
+<p>On two qubits starting in \(|00\rangle\), compare \(X\) on qubit 0 with \(X\) on qubit 1. Then read the state \(\tfrac{1}{\sqrt2}(|00\rangle+|10\rangle)\) in Qiskit terms: which qubit is in superposition?</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(X\) on qubit 0 is \(I\otimes X\), and \((I\otimes X)|0\rangle|0\rangle=|0\rangle|1\rangle=|01\rangle\), basis vector number 1. \(X\) on qubit 1 is \(X\otimes I\), giving \(|10\rangle\), basis vector number 2.</p>
+<p>For the second part, factor out: \(\tfrac{1}{\sqrt2}(|00\rangle+|10\rangle)=\tfrac{1}{\sqrt2}(|0\rangle+|1\rangle)\otimes|0\rangle=|+\rangle\otimes|0\rangle\). The left factor is qubit 1, so qubit 1 is in \(|+\rangle\) and qubit 0 is in \(|0\rangle\). In Qiskit this state comes from <code>qc.h(1)</code>, not <code>qc.h(0)</code>. Notice that factoring the ket never depends on the convention; only the <em>names</em> of the factors do.</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; three habits that prevent ordering bugs</span>
+<p>(1) When you write a ket by hand, write the qubit names above the digits, \(|\overset{q_1}{0}\,\overset{q_0}{1}\rangle\), until you no longer need to. (2) When comparing with a textbook, check its convention first; reversing every bit string converts one convention to the other. (3) When a Qiskit result looks wrong, test the ordering on a basis state: prepare \(|0\cdots01\rangle\) with a single <code>x(0)</code> and print it.</p>
+</div>
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; Product states and entangled states</h2>
+
+<p>Section 2 built two-qubit states out of one-qubit states. The central question of this lecture is whether every two-qubit state arises that way.</p>
+
+<div class="box def">
+<span class="lbl">definition 5.5 &mdash; product state, entangled state</span>
+<p>A two-qubit state \(|\psi\rangle\) is a <strong>product state</strong> if \(|\psi\rangle=|a\rangle\otimes|b\rangle\) for some single-qubit states \(|a\rangle,|b\rangle\). Otherwise \(|\psi\rangle\) is <strong>entangled</strong>.</p>
+</div>
+
+<p>A product state is a pair of qubits, each with a state of its own. An entangled state is a single object: it describes the pair perfectly, yet (as Lecture 18 will make precise) neither qubit has a pure state of its own. The first example shows that entangled states exist.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 5.2 &mdash; the singlet is entangled</span>
+<p>The state \(|\Psi^-\rangle=\tfrac{1}{\sqrt2}(|01\rangle-|10\rangle)\) is not a product state.</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Suppose \(|\Psi^-\rangle=(a_0|0\rangle+a_1|1\rangle)\otimes(b_0|0\rangle+b_1|1\rangle)\). Expanding the right-hand side with Definition 5.2 and comparing the four amplitudes gives</p>
+$$a_0b_0=0,\qquad a_0b_1=\tfrac{1}{\sqrt2},\qquad a_1b_0=-\tfrac{1}{\sqrt2},\qquad a_1b_1=0 .$$
+<p>The second equation forces \(a_0\neq0\), and then the first forces \(b_0=0\). But then \(a_1b_0=0\), contradicting the third equation. So no such factors exist.</p>
+</div>
+</div>
+
+<p>The proof worked by trying to solve for the factors and failing. A cleaner test comes from arranging the four amplitudes in a square.</p>
+
+<div class="box def">
+<span class="lbl">definition 5.6 &mdash; coefficient matrix</span>
+<p>The <strong>coefficient matrix</strong> of \(|\psi\rangle=\sum_{i,j}c_{ij}|ij\rangle\) is the \(2\times2\) matrix</p>
+$$C=\begin{pmatrix}c_{00}&c_{01}\\[2pt] c_{10}&c_{11}\end{pmatrix},$$
+<p>whose rows are indexed by the left qubit (\(q_1\)) and columns by the right qubit (\(q_0\)). Its entries are the state vector read in order, two at a time.</p>
+</div>
+
+<div class="box thm">
+<span class="lbl">theorem 5.3 &mdash; the determinant test</span>
+<p>A two-qubit state is a product state if and only if \(\det C=0\), that is, \(c_{00}c_{11}=c_{01}c_{10}\).</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>(\(\Rightarrow\)) If \(|\psi\rangle=|a\rangle\otimes|b\rangle\) then \(c_{ij}=a_ib_j\), so \(C=a\,b^{\mathsf T}\) is an outer product of two vectors, and</p>
+$$\det C=a_0b_0\,a_1b_1-a_0b_1\,a_1b_0=0 .$$
+<p>(\(\Leftarrow\)) Suppose \(\det C=0\). Since \(|\psi\rangle\neq0\), some row of \(C\) is nonzero; call it \(w^{\mathsf T}\). A \(2\times2\) matrix with zero determinant has linearly dependent rows, so each row is a multiple of \(w^{\mathsf T}\), say row \(i\) equals \(\lambda_iw^{\mathsf T}\). Then \(C=\lambda\,w^{\mathsf T}\), which means \(c_{ij}=\lambda_iw_j\) and \(|\psi\rangle=|\lambda\rangle\otimes|w\rangle\) with \(|\lambda\rangle=\lambda_0|0\rangle+\lambda_1|1\rangle\) and \(|w\rangle=w_0|0\rangle+w_1|1\rangle\). Finally rescale: \(\|\lambda\|\,\|w\|=\||\psi\rangle\|=1\), so \(|\lambda\rangle/\|\lambda\|\) and \(\|\lambda\|\,|w\rangle\) are unit vectors with the same tensor product.</p>
+</div>
+</div>
+
+<div class="spot" data-kind="multi">
+<p>Tick every product state.</p>
+<ul class="opts">
+<li data-ok>\(\tfrac12\big(|00\rangle-|01\rangle-|10\rangle+|11\rangle\big)\)</li>
+<li>\(\tfrac1{\sqrt2}\big(|01\rangle+|10\rangle\big)\)<span class="oh">\(C=\tfrac1{\sqrt2}\begin{pmatrix}0&amp;1\\ 1&amp;0\end{pmatrix}\) has determinant \(-\tfrac12\neq0\): this is a Bell state.</span></li>
+<li>\(\tfrac1{\sqrt5}\big(|00\rangle+2|11\rangle\big)\)<span class="oh">Unequal amplitudes do not make it a product: \(\det C=\tfrac25\neq0\).</span></li>
+<li data-ok>\(\tfrac1{\sqrt2}\big(|00\rangle+i|01\rangle\big)\)</li>
+<li>\(\tfrac12\big(|00\rangle+|01\rangle+|10\rangle+i|11\rangle\big)\)<span class="oh">Four terms of equal size are not enough: \(\det C=\tfrac14(i-1)\neq0\), so this one is entangled.</span></li>
+</ul>
+<div class="hint">Theorem 5.3: write the coefficient matrix and check whether \(c_{00}c_{11}=c_{01}c_{10}\).</div>
+<div class="why">The first is \(|-\rangle\otimes|-\rangle\) and the fourth is \(|0\rangle\otimes|{+i}\rangle\); both have \(\det C=0\). The other three have nonzero determinants and are entangled.</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 5.3 &mdash; three quick verdicts</span>
+<p>Decide which of these are product states, and factor the ones that are:</p>
+$$\begin{aligned}|\alpha\rangle&=\tfrac12\big(|00\rangle+|01\rangle+|10\rangle+|11\rangle\big),\\[2pt] |\beta\rangle&=\tfrac12\big(|00\rangle+|01\rangle+|10\rangle-|11\rangle\big),\\[2pt] |\Phi^+\rangle&=\tfrac{1}{\sqrt2}\big(|00\rangle+|11\rangle\big).\end{aligned}$$
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The coefficient matrices and determinants are</p>
+$$C_\alpha=\frac12\begin{pmatrix}1&1\\[2pt] 1&1\end{pmatrix},\quad C_\beta=\frac12\begin{pmatrix}1&1\\[2pt] 1&-1\end{pmatrix},\quad C_{\Phi^+}=\frac{1}{\sqrt2}\begin{pmatrix}1&0\\[2pt] 0&1\end{pmatrix},$$
+$$\det C_\alpha=\tfrac14(1-1)=0,\quad \det C_\beta=\tfrac14(-1-1)=-\tfrac12,\quad \det C_{\Phi^+}=\tfrac12 .$$
+<p>So \(|\alpha\rangle\) is a product state, and the proof of Theorem 5.3 finds the factors: both rows are \(\tfrac12(1,1)\), so \(|\alpha\rangle=|+\rangle\otimes|+\rangle\). The other two are entangled. Notice how little separates \(|\alpha\rangle\) from \(|\beta\rangle\): one sign. Entanglement is not about how many terms a state has; it is about whether the amplitudes factor.</p>
+</div>
+</div>
+
+<p>The <strong>Bell state</strong> \(|\Phi^+\rangle\) in Example 5.3 is the standard entangled pair, and Lecture 6 shows how to make it with two gates. Measure both qubits and the outcomes are \(00\) or \(11\), each with probability \(\tfrac12\): each bit alone is a fair coin, yet the two always agree. Explore the determinant test with the widget.</p>
+
+<div class="widget">
+<h4>Is it entangled?</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Pick a preset or set four real amplitudes (they are normalised for you) and a phase on the \(|11\rangle\) amplitude. The panel shows the coefficient matrix \(C\), its determinant, the Schmidt coefficients of Section 6 and the entanglement entropy. For a product state it also shows the two factors.</p>
+<svg id="entSvg" viewBox="0 0 600 250" width="600" height="250" role="img" aria-labelledby="entSvg-t entSvg-d"><title id="entSvg-t">Coefficient matrix of the state, bars for the two squared Schmidt coefficients, and an entropy gauge</title><desc id="entSvg-d">Interactive figure, redrawn as you use the controls next to it; the text readout below it describes what is currently shown.</desc></svg>
+<div class="ctrls" id="entPre"></div>
+<div class="ctrls">
+<label><span>c<sub>00</sub> = <span id="e00v"></span></span><input type="range" id="e00" min="-100" max="100" value="50"></label>
+<label><span>c<sub>01</sub> = <span id="e01v"></span></span><input type="range" id="e01" min="-100" max="100" value="50"></label>
+<label><span>c<sub>10</sub> = <span id="e10v"></span></span><input type="range" id="e10" min="-100" max="100" value="50"></label>
+<label><span>|c<sub>11</sub>| = <span id="e11v"></span></span><input type="range" id="e11" min="0" max="100" value="50"></label>
+<label><span>phase of c<sub>11</sub> = <span id="ephv"></span>&deg;</span><input type="range" id="eph" min="0" max="360" step="15" value="0"></label>
+</div>
+<p class="readout" role="status" aria-live="polite" id="entOut"></p>
+</div>
+
+<div class="box crypto">
+<span class="lbl">crypto connection &mdash; entanglement as a key source</span>
+<p>In the E91 protocol (Lecture 20) Alice and Bob each hold one qubit of many \(|\Phi^+\rangle\) pairs. Measuring in the same basis gives identical random bits: a shared key that neither of them chose. The security argument rests on a property of pure entangled states that we will prove with density matrices in Lecture 18: if Alice and Bob can verify that their pairs really are in the pure state \(|\Phi^+\rangle\), then the state of the whole universe factors as (their pair) \(\otimes\) (everything else), so no eavesdropper can be correlated with their bits. Entanglement is <em>monogamous</em>.</p>
+</div>
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; The singular value decomposition</h2>
+
+<p>The determinant test is a yes/no answer. Both \(|\Phi^+\rangle\) and the slightly lopsided state \(\sqrt{0.99}\,|00\rangle+\sqrt{0.01}\,|11\rangle\) are entangled, but the second is almost the product state \(|00\rangle\). To measure <em>how</em> entangled a state is, we need a tool that most first courses in linear algebra skip: the singular value decomposition. This section develops it from scratch for \(2\times2\) matrices, which is all we need; everything works the same way for any size.</p>
+
+<p>Lecture 2's spectral theorem diagonalises a Hermitian matrix \(M\) using one orthonormal basis: \(M=\sum_k\lambda_k|e_k\rangle\langle e_k|\). A coefficient matrix \(C\) is usually not Hermitian, or even diagonalisable by a unitary. The SVD fixes this by allowing <em>two</em> orthonormal bases, one for the inputs of \(C\) and one for its outputs.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 5.4 &mdash; singular value decomposition</span>
+<p>For every complex \(2\times2\) matrix \(C\) there are orthonormal bases \(\{|w_1\rangle,|w_2\rangle\}\) and \(\{|u_1\rangle,|u_2\rangle\}\) of \(\mathbb C^2\) and numbers \(s_1\ge s_2\ge0\) such that</p>
+$$\begin{aligned}&C\,|w_k\rangle=s_k\,|u_k\rangle\quad(k=1,2),\\[4pt] &\text{equivalently}\quad C=s_1|u_1\rangle\langle w_1|+s_2|u_2\rangle\langle w_2| .\end{aligned}$$
+<p>The \(s_k\) are the <strong>singular values</strong> of \(C\), the \(|w_k\rangle\) are its <strong>right singular vectors</strong> and the \(|u_k\rangle\) its <strong>left singular vectors</strong>. The singular values are unique: \(s_1^2\) and \(s_2^2\) are the eigenvalues of \(C^\dagger C\). In matrix form, \(C=U\Sigma W\) where \(U\) is the unitary with columns \(|u_k\rangle\), \(\Sigma=\mathrm{diag}(s_1,s_2)\), and \(W\) is the unitary with rows \(\langle w_k|\).</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>The proof is a recipe, and it is how you compute an SVD by hand.</p>
+<p><strong>Step 1.</strong> The matrix \(C^\dagger C\) is Hermitian, since \((C^\dagger C)^\dagger=C^\dagger C\). Its eigenvalues are nonnegative: if \(C^\dagger C|x\rangle=\lambda|x\rangle\) with \(\|x\|=1\), then \(\lambda=\langle x|C^\dagger C|x\rangle=\|Cx\|^2\ge0\). By the spectral theorem (Lecture 2) it has orthonormal eigenvectors \(|w_1\rangle,|w_2\rangle\) with eigenvalues \(\lambda_1\ge\lambda_2\ge0\).</p>
+<p><strong>Step 2.</strong> Put \(s_k=\sqrt{\lambda_k}\).</p>
+<p><strong>Step 3.</strong> For each \(s_k>0\) put \(|u_k\rangle=C|w_k\rangle/s_k\). These are orthonormal:</p>
+$$\langle u_j|u_k\rangle=\frac{\langle w_j|C^\dagger C|w_k\rangle}{s_js_k}=\frac{\lambda_k\langle w_j|w_k\rangle}{s_js_k}=\begin{cases}1,&j=k\\ 0,&j\ne k.\end{cases}$$
+<p>If \(s_2=0\), then \(\|Cw_2\|^2=\lambda_2=0\), so \(C|w_2\rangle=0\), and we may take \(|u_2\rangle\) to be any unit vector orthogonal to \(|u_1\rangle\). (If \(C=0\), both singular values are 0 and any orthonormal bases work.)</p>
+<p><strong>Step 4.</strong> Both sides of \(C=\sum_k s_k|u_k\rangle\langle w_k|\) send \(|w_j\rangle\) to \(s_j|u_j\rangle\). Two linear maps that agree on a basis are equal. Uniqueness of the \(s_k\): from the formula, \(C^\dagger C=\sum_k s_k^2|w_k\rangle\langle w_k|\), so the \(s_k^2\) are its eigenvalues.</p>
+</div>
+</div>
+
+<p>Geometrically, the SVD says that every matrix is a rotation, then a stretch along the axes, then another rotation (rotations possibly combined with a reflection or phases). Real \(2\times2\) matrices can be drawn: \(C\) maps the unit circle to an ellipse whose semi-axes are \(s_1|u_1\rangle\) and \(s_2|u_2\rangle\). So \(s_1\) is the largest factor by which \(C\) stretches any unit vector, \(s_2\) the smallest, and \(s_1s_2=|\det C|\) is the factor by which \(C\) scales areas.</p>
+
+<div class="spot" data-kind="num" data-ans="3|2" data-labels="s_1|s_2">
+<p>Find the singular values of \(M=\begin{pmatrix}0&amp;3\\ -2&amp;0\end{pmatrix}\).</p>
+<div class="hint">Compute \(M^{\mathsf T}M\) first; the singular values are the square roots of its eigenvalues, listed largest first. They are not the eigenvalues of \(M\).</div>
+<div class="why">\(M^{\mathsf T}M=\mathrm{diag}(4,9)\), so \(s_1=3\) and \(s_2=2\). The eigenvalues of \(M\) are \(\pm i\sqrt6\), which are not even real. Check: \(s_1s_2=6=|\det M|\).</div>
+</div>
+
+<figure>
+<svg viewBox="0 0 720 310" width="720" height="310" role="img" aria-labelledby="sgt sgd"><title id="sgt">The SVD of A = [[3,0],[4,5]] as rotate, stretch, rotate</title><desc id="sgd">Four panels. Panel 1: the unit circle with the right singular vectors w1 = (1,1)/sqrt2 and w2 = (-1,1)/sqrt2; a highlighted quarter arc runs from (1,0) to (0,1). Panel 2: after W, a rotation by -45 degrees, w1 and w2 land on the coordinate axes and the circle is unchanged. Panel 3: after Sigma the circle is stretched into an axis-aligned ellipse with semi-axes 3 sqrt5 = 6.71 and sqrt5 = 2.24. Panel 4: after U, a rotation, the ellipse is tilted, with semi-axes s1 u1 along (1,3) and s2 u2 along (-3,1). Panel 4 is exactly the image of the unit circle under A. Panels 3 and 4 are drawn at one seventh of the scale of panels 1 and 2.</desc><rect x="0" y="0" width="720" height="310" rx="8" class="plot-bg"/><defs><marker id="sgArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--axis)"/></marker></defs><text class="axtext" x="90.0" y="34.0" text-anchor="middle">unit circle</text><line class="gridline" x1="10" y1="160" x2="170" y2="160"/><line class="gridline" x1="90" y1="80" x2="90" y2="240"/><path class="curve" d="M162.0,160.0 L162.0,158.7 L162.0,157.5 L161.9,156.2 L161.8,155.0 L161.7,153.7 L161.6,152.5 L161.5,151.2 L161.3,150.0 L161.1,148.7 L160.9,147.5 L160.7,146.3 L160.4,145.0 L160.2,143.8 L159.9,142.6 L159.5,141.4 L159.2,140.2 L158.9,138.9 L158.5,137.8 L158.1,136.6 L157.7,135.4 L157.2,134.2 L156.8,133.0 L156.3,131.9 L155.8,130.7 L155.3,129.6 L154.7,128.4 L154.2,127.3 L153.6,126.2 L153.0,125.1 L152.4,124.0 L151.7,122.9 L151.1,121.8 L150.4,120.8 L149.7,119.7 L149.0,118.7 L148.2,117.7 L147.5,116.7 L146.7,115.7 L146.0,114.7 L145.2,113.7 L144.3,112.8 L143.5,111.8 L142.7,110.9 L141.8,110.0 L140.9,109.1 L140.0,108.2 L139.1,107.3 L138.2,106.5 L137.2,105.7 L136.3,104.8 L135.3,104.0 L134.3,103.3 L133.3,102.5 L132.3,101.8 L131.3,101.0 L130.3,100.3 L129.2,99.6 L128.2,98.9 L127.1,98.3 L126.0,97.6 L124.9,97.0 L123.8,96.4 L122.7,95.8 L121.6,95.3 L120.4,94.7 L119.3,94.2 L118.1,93.7 L117.0,93.2 L115.8,92.8 L114.6,92.3 L113.4,91.9 L112.2,91.5 L111.1,91.1 L109.8,90.8 L108.6,90.5 L107.4,90.1 L106.2,89.8 L105.0,89.6 L103.7,89.3 L102.5,89.1 L101.3,88.9 L100.0,88.7 L98.8,88.5 L97.5,88.4 L96.3,88.3 L95.0,88.2 L93.8,88.1 L92.5,88.0 L91.3,88.0 L90.0,88.0 L88.7,88.0 L87.5,88.0 L86.2,88.1 L85.0,88.2 L83.7,88.3 L82.5,88.4 L81.2,88.5 L80.0,88.7 L78.7,88.9 L77.5,89.1 L76.3,89.3 L75.0,89.6 L73.8,89.8 L72.6,90.1 L71.4,90.5 L70.2,90.8 L68.9,91.1 L67.8,91.5 L66.6,91.9 L65.4,92.3 L64.2,92.8 L63.0,93.2 L61.9,93.7 L60.7,94.2 L59.6,94.7 L58.4,95.3 L57.3,95.8 L56.2,96.4 L55.1,97.0 L54.0,97.6 L52.9,98.3 L51.8,98.9 L50.8,99.6 L49.7,100.3 L48.7,101.0 L47.7,101.8 L46.7,102.5 L45.7,103.3 L44.7,104.0 L43.7,104.8 L42.8,105.7 L41.8,106.5 L40.9,107.3 L40.0,108.2 L39.1,109.1 L38.2,110.0 L37.3,110.9 L36.5,111.8 L35.7,112.8 L34.8,113.7 L34.0,114.7 L33.3,115.7 L32.5,116.7 L31.8,117.7 L31.0,118.7 L30.3,119.7 L29.6,120.8 L28.9,121.8 L28.3,122.9 L27.6,124.0 L27.0,125.1 L26.4,126.2 L25.8,127.3 L25.3,128.4 L24.7,129.6 L24.2,130.7 L23.7,131.9 L23.2,133.0 L22.8,134.2 L22.3,135.4 L21.9,136.6 L21.5,137.8 L21.1,138.9 L20.8,140.2 L20.5,141.4 L20.1,142.6 L19.8,143.8 L19.6,145.0 L19.3,146.3 L19.1,147.5 L18.9,148.7 L18.7,150.0 L18.5,151.2 L18.4,152.5 L18.3,153.7 L18.2,155.0 L18.1,156.2 L18.0,157.5 L18.0,158.7 L18.0,160.0 L18.0,161.3 L18.0,162.5 L18.1,163.8 L18.2,165.0 L18.3,166.3 L18.4,167.5 L18.5,168.8 L18.7,170.0 L18.9,171.3 L19.1,172.5 L19.3,173.7 L19.6,175.0 L19.8,176.2 L20.1,177.4 L20.5,178.6 L20.8,179.8 L21.1,181.1 L21.5,182.2 L21.9,183.4 L22.3,184.6 L22.8,185.8 L23.2,187.0 L23.7,188.1 L24.2,189.3 L24.7,190.4 L25.3,191.6 L25.8,192.7 L26.4,193.8 L27.0,194.9 L27.6,196.0 L28.3,197.1 L28.9,198.2 L29.6,199.2 L30.3,200.3 L31.0,201.3 L31.8,202.3 L32.5,203.3 L33.3,204.3 L34.0,205.3 L34.8,206.3 L35.7,207.2 L36.5,208.2 L37.3,209.1 L38.2,210.0 L39.1,210.9 L40.0,211.8 L40.9,212.7 L41.8,213.5 L42.8,214.3 L43.7,215.2 L44.7,216.0 L45.7,216.7 L46.7,217.5 L47.7,218.2 L48.7,219.0 L49.7,219.7 L50.8,220.4 L51.8,221.1 L52.9,221.7 L54.0,222.4 L55.1,223.0 L56.2,223.6 L57.3,224.2 L58.4,224.7 L59.6,225.3 L60.7,225.8 L61.9,226.3 L63.0,226.8 L64.2,227.2 L65.4,227.7 L66.6,228.1 L67.8,228.5 L68.9,228.9 L70.2,229.2 L71.4,229.5 L72.6,229.9 L73.8,230.2 L75.0,230.4 L76.3,230.7 L77.5,230.9 L78.7,231.1 L80.0,231.3 L81.2,231.5 L82.5,231.6 L83.7,231.7 L85.0,231.8 L86.2,231.9 L87.5,232.0 L88.7,232.0 L90.0,232.0 L91.3,232.0 L92.5,232.0 L93.8,231.9 L95.0,231.8 L96.3,231.7 L97.5,231.6 L98.8,231.5 L100.0,231.3 L101.3,231.1 L102.5,230.9 L103.7,230.7 L105.0,230.4 L106.2,230.2 L107.4,229.9 L108.6,229.5 L109.8,229.2 L111.1,228.9 L112.2,228.5 L113.4,228.1 L114.6,227.7 L115.8,227.2 L117.0,226.8 L118.1,226.3 L119.3,225.8 L120.4,225.3 L121.6,224.7 L122.7,224.2 L123.8,223.6 L124.9,223.0 L126.0,222.4 L127.1,221.7 L128.2,221.1 L129.2,220.4 L130.3,219.7 L131.3,219.0 L132.3,218.2 L133.3,217.5 L134.3,216.7 L135.3,216.0 L136.3,215.2 L137.2,214.3 L138.2,213.5 L139.1,212.7 L140.0,211.8 L140.9,210.9 L141.8,210.0 L142.7,209.1 L143.5,208.2 L144.3,207.2 L145.2,206.3 L146.0,205.3 L146.7,204.3 L147.5,203.3 L148.2,202.3 L149.0,201.3 L149.7,200.3 L150.4,199.2 L151.1,198.2 L151.7,197.1 L152.4,196.0 L153.0,194.9 L153.6,193.8 L154.2,192.7 L154.7,191.6 L155.3,190.4 L155.8,189.3 L156.3,188.1 L156.8,187.0 L157.2,185.8 L157.7,184.6 L158.1,183.4 L158.5,182.2 L158.9,181.1 L159.2,179.8 L159.5,178.6 L159.9,177.4 L160.2,176.2 L160.4,175.0 L160.7,173.7 L160.9,172.5 L161.1,171.3 L161.3,170.0 L161.5,168.8 L161.6,167.5 L161.7,166.3 L161.8,165.0 L161.9,163.8 L162.0,162.5 L162.0,161.3 L162.0,160.0 Z" fill="none"/><path d="M162.0,160.0 L162.0,158.1 L161.9,156.2 L161.8,154.3 L161.6,152.3 L161.4,150.4 L161.1,148.5 L160.8,146.7 L160.4,144.8 L159.9,142.9 L159.5,141.1 L158.9,139.2 L158.4,137.4 L157.7,135.6 L157.1,133.8 L156.3,132.0 L155.6,130.2 L154.8,128.5 L153.9,126.8 L153.0,125.1 L152.0,123.4 L151.0,121.8 L150.0,120.2 L148.9,118.6 L147.8,117.1 L146.6,115.5 L145.4,114.0 L144.2,112.6 L142.9,111.2 L141.6,109.8 L140.2,108.4 L138.8,107.1 L137.4,105.8 L136.0,104.6 L134.5,103.4 L132.9,102.2 L131.4,101.1 L129.8,100.0 L128.2,99.0 L126.6,98.0 L124.9,97.0 L123.2,96.1 L121.5,95.2 L119.8,94.4 L118.0,93.7 L116.2,92.9 L114.4,92.3 L112.6,91.6 L110.8,91.1 L108.9,90.5 L107.1,90.1 L105.2,89.6 L103.3,89.2 L101.5,88.9 L99.6,88.6 L97.7,88.4 L95.7,88.2 L93.8,88.1 L91.9,88.0 L90.0,88.0" fill="none" stroke="var(--amber)" stroke-width="4" stroke-linecap="round"/><line x1="90" y1="160" x2="140.9" y2="109.1" stroke="var(--sky)" stroke-width="2.6"/><circle cx="140.9" cy="109.1" r="3.6" fill="var(--sky)"/><text class="axtext" x="152.9" y="103.1" text-anchor="start" style="fill:var(--sky)">w1</text><line x1="90" y1="160" x2="39.1" y2="109.1" stroke="var(--rose)" stroke-width="2.6"/><circle cx="39.1" cy="109.1" r="3.6" fill="var(--rose)"/><text class="axtext" x="27.1" y="103.1" text-anchor="end" style="fill:var(--rose)">w2</text><text class="lbltext" x="180.0" y="268.0" text-anchor="middle">W</text><path d="M158.0,280 L202.0,280" stroke="var(--axis)" stroke-width="1.6" marker-end="url(#sgArr)"/><text class="axtext" x="270.0" y="34.0" text-anchor="middle">after W: rotate</text><line class="gridline" x1="190" y1="160" x2="350" y2="160"/><line class="gridline" x1="270" y1="80" x2="270" y2="240"/><path class="curve" d="M320.9,210.9 L321.8,210.0 L322.7,209.1 L323.5,208.2 L324.3,207.2 L325.2,206.3 L326.0,205.3 L326.7,204.3 L327.5,203.3 L328.2,202.3 L329.0,201.3 L329.7,200.3 L330.4,199.2 L331.1,198.2 L331.7,197.1 L332.4,196.0 L333.0,194.9 L333.6,193.8 L334.2,192.7 L334.7,191.6 L335.3,190.4 L335.8,189.3 L336.3,188.1 L336.8,187.0 L337.2,185.8 L337.7,184.6 L338.1,183.4 L338.5,182.2 L338.9,181.1 L339.2,179.8 L339.5,178.6 L339.9,177.4 L340.2,176.2 L340.4,175.0 L340.7,173.7 L340.9,172.5 L341.1,171.3 L341.3,170.0 L341.5,168.8 L341.6,167.5 L341.7,166.3 L341.8,165.0 L341.9,163.8 L342.0,162.5 L342.0,161.3 L342.0,160.0 L342.0,158.7 L342.0,157.5 L341.9,156.2 L341.8,155.0 L341.7,153.7 L341.6,152.5 L341.5,151.2 L341.3,150.0 L341.1,148.7 L340.9,147.5 L340.7,146.3 L340.4,145.0 L340.2,143.8 L339.9,142.6 L339.5,141.4 L339.2,140.2 L338.9,138.9 L338.5,137.8 L338.1,136.6 L337.7,135.4 L337.2,134.2 L336.8,133.0 L336.3,131.9 L335.8,130.7 L335.3,129.6 L334.7,128.4 L334.2,127.3 L333.6,126.2 L333.0,125.1 L332.4,124.0 L331.7,122.9 L331.1,121.8 L330.4,120.8 L329.7,119.7 L329.0,118.7 L328.2,117.7 L327.5,116.7 L326.7,115.7 L326.0,114.7 L325.2,113.7 L324.3,112.8 L323.5,111.8 L322.7,110.9 L321.8,110.0 L320.9,109.1 L320.0,108.2 L319.1,107.3 L318.2,106.5 L317.2,105.7 L316.3,104.8 L315.3,104.0 L314.3,103.3 L313.3,102.5 L312.3,101.8 L311.3,101.0 L310.3,100.3 L309.2,99.6 L308.2,98.9 L307.1,98.3 L306.0,97.6 L304.9,97.0 L303.8,96.4 L302.7,95.8 L301.6,95.3 L300.4,94.7 L299.3,94.2 L298.1,93.7 L297.0,93.2 L295.8,92.8 L294.6,92.3 L293.4,91.9 L292.2,91.5 L291.1,91.1 L289.8,90.8 L288.6,90.5 L287.4,90.1 L286.2,89.8 L285.0,89.6 L283.7,89.3 L282.5,89.1 L281.3,88.9 L280.0,88.7 L278.8,88.5 L277.5,88.4 L276.3,88.3 L275.0,88.2 L273.8,88.1 L272.5,88.0 L271.3,88.0 L270.0,88.0 L268.7,88.0 L267.5,88.0 L266.2,88.1 L265.0,88.2 L263.7,88.3 L262.5,88.4 L261.2,88.5 L260.0,88.7 L258.7,88.9 L257.5,89.1 L256.3,89.3 L255.0,89.6 L253.8,89.8 L252.6,90.1 L251.4,90.5 L250.2,90.8 L248.9,91.1 L247.8,91.5 L246.6,91.9 L245.4,92.3 L244.2,92.8 L243.0,93.2 L241.9,93.7 L240.7,94.2 L239.6,94.7 L238.4,95.3 L237.3,95.8 L236.2,96.4 L235.1,97.0 L234.0,97.6 L232.9,98.3 L231.8,98.9 L230.8,99.6 L229.7,100.3 L228.7,101.0 L227.7,101.8 L226.7,102.5 L225.7,103.3 L224.7,104.0 L223.7,104.8 L222.8,105.7 L221.8,106.5 L220.9,107.3 L220.0,108.2 L219.1,109.1 L218.2,110.0 L217.3,110.9 L216.5,111.8 L215.7,112.8 L214.8,113.7 L214.0,114.7 L213.3,115.7 L212.5,116.7 L211.8,117.7 L211.0,118.7 L210.3,119.7 L209.6,120.8 L208.9,121.8 L208.3,122.9 L207.6,124.0 L207.0,125.1 L206.4,126.2 L205.8,127.3 L205.3,128.4 L204.7,129.6 L204.2,130.7 L203.7,131.9 L203.2,133.0 L202.8,134.2 L202.3,135.4 L201.9,136.6 L201.5,137.8 L201.1,138.9 L200.8,140.2 L200.5,141.4 L200.1,142.6 L199.8,143.8 L199.6,145.0 L199.3,146.3 L199.1,147.5 L198.9,148.7 L198.7,150.0 L198.5,151.2 L198.4,152.5 L198.3,153.7 L198.2,155.0 L198.1,156.2 L198.0,157.5 L198.0,158.7 L198.0,160.0 L198.0,161.3 L198.0,162.5 L198.1,163.8 L198.2,165.0 L198.3,166.3 L198.4,167.5 L198.5,168.8 L198.7,170.0 L198.9,171.3 L199.1,172.5 L199.3,173.7 L199.6,175.0 L199.8,176.2 L200.1,177.4 L200.5,178.6 L200.8,179.8 L201.1,181.1 L201.5,182.2 L201.9,183.4 L202.3,184.6 L202.8,185.8 L203.2,187.0 L203.7,188.1 L204.2,189.3 L204.7,190.4 L205.3,191.6 L205.8,192.7 L206.4,193.8 L207.0,194.9 L207.6,196.0 L208.3,197.1 L208.9,198.2 L209.6,199.2 L210.3,200.3 L211.0,201.3 L211.8,202.3 L212.5,203.3 L213.3,204.3 L214.0,205.3 L214.8,206.3 L215.7,207.2 L216.5,208.2 L217.3,209.1 L218.2,210.0 L219.1,210.9 L220.0,211.8 L220.9,212.7 L221.8,213.5 L222.8,214.3 L223.7,215.2 L224.7,216.0 L225.7,216.7 L226.7,217.5 L227.7,218.2 L228.7,219.0 L229.7,219.7 L230.8,220.4 L231.8,221.1 L232.9,221.7 L234.0,222.4 L235.1,223.0 L236.2,223.6 L237.3,224.2 L238.4,224.7 L239.6,225.3 L240.7,225.8 L241.9,226.3 L243.0,226.8 L244.2,227.2 L245.4,227.7 L246.6,228.1 L247.8,228.5 L248.9,228.9 L250.2,229.2 L251.4,229.5 L252.6,229.9 L253.8,230.2 L255.0,230.4 L256.3,230.7 L257.5,230.9 L258.7,231.1 L260.0,231.3 L261.2,231.5 L262.5,231.6 L263.7,231.7 L265.0,231.8 L266.2,231.9 L267.5,232.0 L268.7,232.0 L270.0,232.0 L271.3,232.0 L272.5,232.0 L273.8,231.9 L275.0,231.8 L276.3,231.7 L277.5,231.6 L278.8,231.5 L280.0,231.3 L281.3,231.1 L282.5,230.9 L283.7,230.7 L285.0,230.4 L286.2,230.2 L287.4,229.9 L288.6,229.5 L289.8,229.2 L291.1,228.9 L292.2,228.5 L293.4,228.1 L294.6,227.7 L295.8,227.2 L297.0,226.8 L298.1,226.3 L299.3,225.8 L300.4,225.3 L301.6,224.7 L302.7,224.2 L303.8,223.6 L304.9,223.0 L306.0,222.4 L307.1,221.7 L308.2,221.1 L309.2,220.4 L310.3,219.7 L311.3,219.0 L312.3,218.2 L313.3,217.5 L314.3,216.7 L315.3,216.0 L316.3,215.2 L317.2,214.3 L318.2,213.5 L319.1,212.7 L320.0,211.8 L320.9,210.9 Z" fill="none"/><path d="M320.9,210.9 L322.2,209.5 L323.5,208.1 L324.8,206.7 L326.0,205.2 L327.2,203.7 L328.4,202.2 L329.5,200.6 L330.5,199.0 L331.5,197.4 L332.5,195.7 L333.4,194.0 L334.3,192.3 L335.2,190.6 L336.0,188.9 L336.7,187.1 L337.4,185.3 L338.0,183.5 L338.7,181.7 L339.2,179.9 L339.7,178.0 L340.2,176.2 L340.6,174.3 L340.9,172.4 L341.2,170.5 L341.5,168.6 L341.7,166.7 L341.8,164.8 L341.9,162.9 L342.0,161.0 L342.0,159.0 L341.9,157.1 L341.8,155.2 L341.7,153.3 L341.5,151.4 L341.2,149.5 L340.9,147.6 L340.6,145.7 L340.2,143.8 L339.7,142.0 L339.2,140.1 L338.7,138.3 L338.0,136.5 L337.4,134.7 L336.7,132.9 L336.0,131.1 L335.2,129.4 L334.3,127.7 L333.4,126.0 L332.5,124.3 L331.5,122.6 L330.5,121.0 L329.5,119.4 L328.4,117.8 L327.2,116.3 L326.0,114.8 L324.8,113.3 L323.5,111.9 L322.2,110.5 L320.9,109.1" fill="none" stroke="var(--amber)" stroke-width="4" stroke-linecap="round"/><line x1="270" y1="160" x2="342.0" y2="160.0" stroke="var(--sky)" stroke-width="2.6"/><circle cx="342.0" cy="160.0" r="3.6" fill="var(--sky)"/><text class="axtext" x="342.0" y="180.0" text-anchor="middle" style="fill:var(--sky)">e1</text><line x1="270" y1="160" x2="270.0" y2="88.0" stroke="var(--rose)" stroke-width="2.6"/><circle cx="270.0" cy="88.0" r="3.6" fill="var(--rose)"/><text class="axtext" x="260.0" y="86.0" text-anchor="end" style="fill:var(--rose)">e2</text><text class="lbltext" x="360.0" y="268.0" text-anchor="middle">Sigma</text><path d="M338.0,280 L382.0,280" stroke="var(--axis)" stroke-width="1.6" marker-end="url(#sgArr)"/><text class="axtext" x="450.0" y="34.0" text-anchor="middle">after Sigma: stretch</text><line class="gridline" x1="370" y1="160" x2="530" y2="160"/><line class="gridline" x1="450" y1="80" x2="450" y2="240"/><path class="curve" d="M498.8,176.3 L499.6,176.0 L500.5,175.7 L501.3,175.4 L502.1,175.1 L502.9,174.8 L503.6,174.5 L504.4,174.2 L505.1,173.8 L505.8,173.5 L506.5,173.2 L507.2,172.9 L507.9,172.5 L508.5,172.2 L509.1,171.8 L509.8,171.5 L510.3,171.2 L510.9,170.8 L511.5,170.4 L512.0,170.1 L512.5,169.7 L513.0,169.4 L513.5,169.0 L514.0,168.6 L514.4,168.2 L514.8,167.9 L515.2,167.5 L515.6,167.1 L516.0,166.7 L516.3,166.3 L516.6,166.0 L516.9,165.6 L517.2,165.2 L517.5,164.8 L517.7,164.4 L518.0,164.0 L518.1,163.6 L518.3,163.2 L518.5,162.8 L518.6,162.4 L518.7,162.0 L518.8,161.6 L518.9,161.2 L519.0,160.8 L519.0,160.4 L519.0,160.0 L519.0,159.6 L519.0,159.2 L518.9,158.8 L518.8,158.4 L518.7,158.0 L518.6,157.6 L518.5,157.2 L518.3,156.8 L518.1,156.4 L518.0,156.0 L517.7,155.6 L517.5,155.2 L517.2,154.8 L516.9,154.4 L516.6,154.0 L516.3,153.7 L516.0,153.3 L515.6,152.9 L515.2,152.5 L514.8,152.1 L514.4,151.8 L514.0,151.4 L513.5,151.0 L513.0,150.6 L512.5,150.3 L512.0,149.9 L511.5,149.6 L510.9,149.2 L510.3,148.8 L509.8,148.5 L509.1,148.2 L508.5,147.8 L507.9,147.5 L507.2,147.1 L506.5,146.8 L505.8,146.5 L505.1,146.2 L504.4,145.8 L503.6,145.5 L502.9,145.2 L502.1,144.9 L501.3,144.6 L500.5,144.3 L499.6,144.0 L498.8,143.7 L497.9,143.5 L497.1,143.2 L496.2,142.9 L495.3,142.6 L494.4,142.4 L493.4,142.1 L492.5,141.9 L491.5,141.6 L490.6,141.4 L489.6,141.2 L488.6,140.9 L487.6,140.7 L486.6,140.5 L485.5,140.3 L484.5,140.1 L483.5,139.9 L482.4,139.7 L481.3,139.5 L480.2,139.3 L479.2,139.2 L478.1,139.0 L477.0,138.8 L475.8,138.7 L474.7,138.5 L473.6,138.4 L472.5,138.3 L471.3,138.1 L470.2,138.0 L469.0,137.9 L467.9,137.8 L466.7,137.7 L465.5,137.6 L464.3,137.5 L463.2,137.4 L462.0,137.3 L460.8,137.3 L459.6,137.2 L458.4,137.2 L457.2,137.1 L456.0,137.1 L454.8,137.1 L453.6,137.0 L452.4,137.0 L451.2,137.0 L450.0,137.0 L448.8,137.0 L447.6,137.0 L446.4,137.0 L445.2,137.1 L444.0,137.1 L442.8,137.1 L441.6,137.2 L440.4,137.2 L439.2,137.3 L438.0,137.3 L436.8,137.4 L435.7,137.5 L434.5,137.6 L433.3,137.7 L432.1,137.8 L431.0,137.9 L429.8,138.0 L428.7,138.1 L427.5,138.3 L426.4,138.4 L425.3,138.5 L424.2,138.7 L423.0,138.8 L421.9,139.0 L420.8,139.2 L419.8,139.3 L418.7,139.5 L417.6,139.7 L416.5,139.9 L415.5,140.1 L414.5,140.3 L413.4,140.5 L412.4,140.7 L411.4,140.9 L410.4,141.2 L409.4,141.4 L408.5,141.6 L407.5,141.9 L406.6,142.1 L405.6,142.4 L404.7,142.6 L403.8,142.9 L402.9,143.2 L402.1,143.5 L401.2,143.7 L400.4,144.0 L399.5,144.3 L398.7,144.6 L397.9,144.9 L397.1,145.2 L396.4,145.5 L395.6,145.8 L394.9,146.2 L394.2,146.5 L393.5,146.8 L392.8,147.1 L392.1,147.5 L391.5,147.8 L390.9,148.2 L390.2,148.5 L389.7,148.8 L389.1,149.2 L388.5,149.6 L388.0,149.9 L387.5,150.3 L387.0,150.6 L386.5,151.0 L386.0,151.4 L385.6,151.8 L385.2,152.1 L384.8,152.5 L384.4,152.9 L384.0,153.3 L383.7,153.7 L383.4,154.0 L383.1,154.4 L382.8,154.8 L382.5,155.2 L382.3,155.6 L382.0,156.0 L381.9,156.4 L381.7,156.8 L381.5,157.2 L381.4,157.6 L381.3,158.0 L381.2,158.4 L381.1,158.8 L381.0,159.2 L381.0,159.6 L381.0,160.0 L381.0,160.4 L381.0,160.8 L381.1,161.2 L381.2,161.6 L381.3,162.0 L381.4,162.4 L381.5,162.8 L381.7,163.2 L381.9,163.6 L382.0,164.0 L382.3,164.4 L382.5,164.8 L382.8,165.2 L383.1,165.6 L383.4,166.0 L383.7,166.3 L384.0,166.7 L384.4,167.1 L384.8,167.5 L385.2,167.9 L385.6,168.2 L386.0,168.6 L386.5,169.0 L387.0,169.4 L387.5,169.7 L388.0,170.1 L388.5,170.4 L389.1,170.8 L389.7,171.2 L390.2,171.5 L390.9,171.8 L391.5,172.2 L392.1,172.5 L392.8,172.9 L393.5,173.2 L394.2,173.5 L394.9,173.8 L395.6,174.2 L396.4,174.5 L397.1,174.8 L397.9,175.1 L398.7,175.4 L399.5,175.7 L400.4,176.0 L401.2,176.3 L402.1,176.5 L402.9,176.8 L403.8,177.1 L404.7,177.4 L405.6,177.6 L406.6,177.9 L407.5,178.1 L408.5,178.4 L409.4,178.6 L410.4,178.8 L411.4,179.1 L412.4,179.3 L413.4,179.5 L414.5,179.7 L415.5,179.9 L416.5,180.1 L417.6,180.3 L418.7,180.5 L419.8,180.7 L420.8,180.8 L421.9,181.0 L423.0,181.2 L424.2,181.3 L425.3,181.5 L426.4,181.6 L427.5,181.7 L428.7,181.9 L429.8,182.0 L431.0,182.1 L432.1,182.2 L433.3,182.3 L434.5,182.4 L435.7,182.5 L436.8,182.6 L438.0,182.7 L439.2,182.7 L440.4,182.8 L441.6,182.8 L442.8,182.9 L444.0,182.9 L445.2,182.9 L446.4,183.0 L447.6,183.0 L448.8,183.0 L450.0,183.0 L451.2,183.0 L452.4,183.0 L453.6,183.0 L454.8,182.9 L456.0,182.9 L457.2,182.9 L458.4,182.8 L459.6,182.8 L460.8,182.7 L462.0,182.7 L463.2,182.6 L464.3,182.5 L465.5,182.4 L466.7,182.3 L467.9,182.2 L469.0,182.1 L470.2,182.0 L471.3,181.9 L472.5,181.7 L473.6,181.6 L474.7,181.5 L475.8,181.3 L477.0,181.2 L478.1,181.0 L479.2,180.8 L480.2,180.7 L481.3,180.5 L482.4,180.3 L483.5,180.1 L484.5,179.9 L485.5,179.7 L486.6,179.5 L487.6,179.3 L488.6,179.1 L489.6,178.8 L490.6,178.6 L491.5,178.4 L492.5,178.1 L493.4,177.9 L494.4,177.6 L495.3,177.4 L496.2,177.1 L497.1,176.8 L497.9,176.5 L498.8,176.3 Z" fill="none"/><path d="M498.8,176.3 L500.1,175.8 L501.3,175.4 L502.5,174.9 L503.7,174.4 L504.8,174.0 L505.9,173.5 L507.0,173.0 L508.0,172.5 L509.0,171.9 L509.9,171.4 L510.8,170.9 L511.6,170.3 L512.4,169.8 L513.2,169.2 L513.9,168.7 L514.6,168.1 L515.2,167.5 L515.8,166.9 L516.3,166.3 L516.8,165.8 L517.2,165.2 L517.6,164.6 L518.0,164.0 L518.3,163.4 L518.5,162.7 L518.7,162.1 L518.8,161.5 L518.9,160.9 L519.0,160.3 L519.0,159.7 L518.9,159.1 L518.8,158.5 L518.7,157.9 L518.5,157.3 L518.3,156.6 L518.0,156.0 L517.6,155.4 L517.2,154.8 L516.8,154.2 L516.3,153.7 L515.8,153.1 L515.2,152.5 L514.6,151.9 L513.9,151.3 L513.2,150.8 L512.4,150.2 L511.6,149.7 L510.8,149.1 L509.9,148.6 L509.0,148.1 L508.0,147.5 L507.0,147.0 L505.9,146.5 L504.8,146.0 L503.7,145.6 L502.5,145.1 L501.3,144.6 L500.1,144.2 L498.8,143.7" fill="none" stroke="var(--amber)" stroke-width="4" stroke-linecap="round"/><line x1="450" y1="160" x2="519.0" y2="160.0" stroke="var(--sky)" stroke-width="2.6"/><circle cx="519.0" cy="160.0" r="3.6" fill="var(--sky)"/><text class="axtext" x="523.0" y="182.0" text-anchor="middle" style="fill:var(--sky)">s1 e1</text><line x1="450" y1="160" x2="450.0" y2="137.0" stroke="var(--rose)" stroke-width="2.6"/><circle cx="450.0" cy="137.0" r="3.6" fill="var(--rose)"/><text class="axtext" x="458.0" y="129.0" text-anchor="start" style="fill:var(--rose)">s2 e2</text><text class="lbltext" x="540.0" y="268.0" text-anchor="middle">U</text><path d="M518.0,280 L562.0,280" stroke="var(--axis)" stroke-width="1.6" marker-end="url(#sgArr)"/><text class="axtext" x="630.0" y="34.0" text-anchor="middle">after U: rotate</text><line class="gridline" x1="550" y1="160" x2="710" y2="160"/><line class="gridline" x1="630" y1="80" x2="630" y2="240"/><path class="curve" d="M660.9,118.9 L660.9,118.0 L660.8,117.1 L660.8,116.2 L660.8,115.4 L660.7,114.5 L660.7,113.7 L660.6,112.9 L660.6,112.1 L660.5,111.3 L660.4,110.6 L660.3,109.8 L660.2,109.1 L660.1,108.3 L659.9,107.6 L659.8,106.9 L659.7,106.3 L659.5,105.6 L659.3,105.0 L659.2,104.4 L659.0,103.7 L658.8,103.2 L658.6,102.6 L658.4,102.0 L658.2,101.5 L658.0,101.0 L657.7,100.5 L657.5,100.0 L657.2,99.5 L657.0,99.1 L656.7,98.7 L656.4,98.2 L656.2,97.9 L655.9,97.5 L655.6,97.1 L655.3,96.8 L655.0,96.5 L654.6,96.2 L654.3,95.9 L654.0,95.7 L653.6,95.4 L653.3,95.2 L652.9,95.0 L652.6,94.8 L652.2,94.7 L651.8,94.5 L651.4,94.4 L651.0,94.3 L650.6,94.3 L650.2,94.2 L649.8,94.2 L649.4,94.1 L649.0,94.1 L648.6,94.2 L648.1,94.2 L647.7,94.3 L647.3,94.4 L646.8,94.5 L646.4,94.6 L645.9,94.7 L645.4,94.9 L645.0,95.1 L644.5,95.3 L644.0,95.5 L643.5,95.7 L643.0,96.0 L642.6,96.3 L642.1,96.6 L641.6,96.9 L641.1,97.2 L640.6,97.6 L640.0,98.0 L639.5,98.4 L639.0,98.8 L638.5,99.2 L638.0,99.7 L637.5,100.1 L636.9,100.6 L636.4,101.1 L635.9,101.7 L635.4,102.2 L634.8,102.8 L634.3,103.3 L633.8,103.9 L633.2,104.6 L632.7,105.2 L632.2,105.8 L631.6,106.5 L631.1,107.2 L630.5,107.9 L630.0,108.6 L629.5,109.3 L628.9,110.0 L628.4,110.8 L627.8,111.6 L627.3,112.4 L626.8,113.2 L626.2,114.0 L625.7,114.8 L625.2,115.6 L624.6,116.5 L624.1,117.4 L623.6,118.2 L623.1,119.1 L622.5,120.1 L622.0,121.0 L621.5,121.9 L621.0,122.8 L620.5,123.8 L620.0,124.8 L619.4,125.7 L618.9,126.7 L618.4,127.7 L617.9,128.7 L617.4,129.8 L617.0,130.8 L616.5,131.8 L616.0,132.9 L615.5,133.9 L615.0,135.0 L614.6,136.0 L614.1,137.1 L613.6,138.2 L613.2,139.3 L612.7,140.4 L612.3,141.5 L611.9,142.6 L611.4,143.7 L611.0,144.8 L610.6,145.9 L610.2,147.0 L609.8,148.2 L609.4,149.3 L609.0,150.4 L608.6,151.6 L608.2,152.7 L607.8,153.9 L607.4,155.0 L607.1,156.2 L606.7,157.3 L606.4,158.5 L606.0,159.6 L605.7,160.8 L605.4,161.9 L605.0,163.1 L604.7,164.2 L604.4,165.4 L604.1,166.5 L603.8,167.6 L603.6,168.8 L603.3,169.9 L603.0,171.1 L602.8,172.2 L602.5,173.3 L602.3,174.4 L602.0,175.6 L601.8,176.7 L601.6,177.8 L601.4,178.9 L601.2,180.0 L601.0,181.1 L600.8,182.2 L600.7,183.2 L600.5,184.3 L600.3,185.4 L600.2,186.4 L600.1,187.5 L599.9,188.5 L599.8,189.6 L599.7,190.6 L599.6,191.6 L599.5,192.6 L599.4,193.6 L599.4,194.6 L599.3,195.5 L599.3,196.5 L599.2,197.5 L599.2,198.4 L599.2,199.3 L599.1,200.2 L599.1,201.1 L599.1,202.0 L599.2,202.9 L599.2,203.8 L599.2,204.6 L599.3,205.5 L599.3,206.3 L599.4,207.1 L599.4,207.9 L599.5,208.7 L599.6,209.4 L599.7,210.2 L599.8,210.9 L599.9,211.7 L600.1,212.4 L600.2,213.1 L600.3,213.7 L600.5,214.4 L600.7,215.0 L600.8,215.6 L601.0,216.3 L601.2,216.8 L601.4,217.4 L601.6,218.0 L601.8,218.5 L602.0,219.0 L602.3,219.5 L602.5,220.0 L602.8,220.5 L603.0,220.9 L603.3,221.3 L603.6,221.8 L603.8,222.1 L604.1,222.5 L604.4,222.9 L604.7,223.2 L605.0,223.5 L605.4,223.8 L605.7,224.1 L606.0,224.3 L606.4,224.6 L606.7,224.8 L607.1,225.0 L607.4,225.2 L607.8,225.3 L608.2,225.5 L608.6,225.6 L609.0,225.7 L609.4,225.7 L609.8,225.8 L610.2,225.8 L610.6,225.9 L611.0,225.9 L611.4,225.8 L611.9,225.8 L612.3,225.7 L612.7,225.6 L613.2,225.5 L613.6,225.4 L614.1,225.3 L614.6,225.1 L615.0,224.9 L615.5,224.7 L616.0,224.5 L616.5,224.3 L617.0,224.0 L617.4,223.7 L617.9,223.4 L618.4,223.1 L618.9,222.8 L619.4,222.4 L620.0,222.0 L620.5,221.6 L621.0,221.2 L621.5,220.8 L622.0,220.3 L622.5,219.9 L623.1,219.4 L623.6,218.9 L624.1,218.3 L624.6,217.8 L625.2,217.2 L625.7,216.7 L626.2,216.1 L626.8,215.4 L627.3,214.8 L627.8,214.2 L628.4,213.5 L628.9,212.8 L629.5,212.1 L630.0,211.4 L630.5,210.7 L631.1,210.0 L631.6,209.2 L632.2,208.4 L632.7,207.6 L633.2,206.8 L633.8,206.0 L634.3,205.2 L634.8,204.4 L635.4,203.5 L635.9,202.6 L636.4,201.8 L636.9,200.9 L637.5,199.9 L638.0,199.0 L638.5,198.1 L639.0,197.2 L639.5,196.2 L640.0,195.2 L640.6,194.3 L641.1,193.3 L641.6,192.3 L642.1,191.3 L642.6,190.2 L643.0,189.2 L643.5,188.2 L644.0,187.1 L644.5,186.1 L645.0,185.0 L645.4,184.0 L645.9,182.9 L646.4,181.8 L646.8,180.7 L647.3,179.6 L647.7,178.5 L648.1,177.4 L648.6,176.3 L649.0,175.2 L649.4,174.1 L649.8,173.0 L650.2,171.8 L650.6,170.7 L651.0,169.6 L651.4,168.4 L651.8,167.3 L652.2,166.1 L652.6,165.0 L652.9,163.8 L653.3,162.7 L653.6,161.5 L654.0,160.4 L654.3,159.2 L654.6,158.1 L655.0,156.9 L655.3,155.8 L655.6,154.6 L655.9,153.5 L656.2,152.4 L656.4,151.2 L656.7,150.1 L657.0,148.9 L657.2,147.8 L657.5,146.7 L657.7,145.6 L658.0,144.4 L658.2,143.3 L658.4,142.2 L658.6,141.1 L658.8,140.0 L659.0,138.9 L659.2,137.8 L659.3,136.8 L659.5,135.7 L659.7,134.6 L659.8,133.6 L659.9,132.5 L660.1,131.5 L660.2,130.4 L660.3,129.4 L660.4,128.4 L660.5,127.4 L660.6,126.4 L660.6,125.4 L660.7,124.5 L660.7,123.5 L660.8,122.5 L660.8,121.6 L660.8,120.7 L660.9,119.8 L660.9,118.9 Z" fill="none"/><path d="M660.9,118.9 L660.8,117.5 L660.8,116.2 L660.8,114.9 L660.7,113.6 L660.6,112.4 L660.5,111.2 L660.3,110.0 L660.2,108.9 L660.0,107.8 L659.8,106.8 L659.5,105.8 L659.3,104.8 L659.0,103.9 L658.7,103.0 L658.4,102.1 L658.1,101.3 L657.8,100.5 L657.4,99.8 L657.0,99.1 L656.6,98.4 L656.2,97.8 L655.7,97.3 L655.3,96.8 L654.8,96.3 L654.3,95.9 L653.8,95.5 L653.2,95.2 L652.7,94.9 L652.1,94.6 L651.5,94.5 L650.9,94.3 L650.3,94.2 L649.7,94.1 L649.1,94.1 L648.4,94.2 L647.7,94.3 L647.1,94.4 L646.4,94.6 L645.7,94.8 L645.0,95.1 L644.2,95.4 L643.5,95.8 L642.8,96.2 L642.0,96.6 L641.2,97.1 L640.5,97.7 L639.7,98.3 L638.9,98.9 L638.1,99.6 L637.3,100.3 L636.5,101.0 L635.7,101.8 L634.9,102.7 L634.1,103.6 L633.3,104.5 L632.5,105.5 L631.6,106.5 L630.8,107.5 L630.0,108.6" fill="none" stroke="var(--amber)" stroke-width="4" stroke-linecap="round"/><line x1="630" y1="160" x2="651.8" y2="94.5" stroke="var(--sky)" stroke-width="2.6"/><circle cx="651.8" cy="94.5" r="3.6" fill="var(--sky)"/><text class="axtext" x="661.8" y="98.5" text-anchor="start" style="fill:var(--sky)">s1 u1</text><line x1="630" y1="160" x2="608.2" y2="152.7" stroke="var(--rose)" stroke-width="2.6"/><circle cx="608.2" cy="152.7" r="3.6" fill="var(--rose)"/><text class="axtext" x="604.2" y="140.7" text-anchor="end" style="fill:var(--rose)">s2 u2</text><text class="axtext" x="360.0" y="302.0" text-anchor="middle">A = U Sigma W: the unit circle becomes an ellipse with semi-axes s1 u1 and s2 u2</text></svg>
+<figcaption>The SVD of the matrix \(A\) of Example 5.4, applied to the unit circle one factor at a time. \(W\) rotates the right singular vectors onto the axes, \(\Sigma\) stretches by \(s_1=3\sqrt5\) and \(s_2=\sqrt5\), and \(U\) rotates the axes onto the left singular vectors. The amber arc (the first quadrant of the circle) shows where each point goes. The last two panels are drawn at \(1/7\) of the scale of the first two.</figcaption>
+</figure>
+
+<div class="box ex">
+<span class="lbl">example 5.4 &mdash; an SVD by hand</span>
+<p>Find the SVD of</p>
+$$A=\begin{pmatrix}3&0\\[2pt] 4&5\end{pmatrix}.$$
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p><strong>Step 1.</strong> \(A\) is real, so \(A^\dagger=A^{\mathsf T}\) and</p>
+$$A^{\mathsf T}A=\begin{pmatrix}3&4\\[2pt] 0&5\end{pmatrix}\begin{pmatrix}3&0\\[2pt] 4&5\end{pmatrix}=\begin{pmatrix}25&20\\[2pt] 20&25\end{pmatrix}.$$
+<p>Its characteristic polynomial is \((25-\lambda)^2-400\), so \(25-\lambda=\pm20\) and \(\lambda_1=45\), \(\lambda_2=5\). The eigenvectors are</p>
+$$|w_1\rangle=\frac{1}{\sqrt2}\begin{pmatrix}1\\[2pt] 1\end{pmatrix}\ (\lambda_1=45),\qquad |w_2\rangle=\frac{1}{\sqrt2}\begin{pmatrix}-1\\[2pt] 1\end{pmatrix}\ (\lambda_2=5).$$
+<p><strong>Step 2.</strong> \(s_1=\sqrt{45}=3\sqrt5\approx6.708\) and \(s_2=\sqrt5\approx2.236\).</p>
+<p><strong>Step 3.</strong> Apply \(A\) and divide:</p>
+$$|u_1\rangle=\frac{A|w_1\rangle}{s_1}=\frac{1}{3\sqrt5}\cdot\frac{1}{\sqrt2}\begin{pmatrix}3\\[2pt] 9\end{pmatrix}=\frac{1}{\sqrt{10}}\begin{pmatrix}1\\[2pt] 3\end{pmatrix},$$
+$$|u_2\rangle=\frac{A|w_2\rangle}{s_2}=\frac{1}{\sqrt5}\cdot\frac{1}{\sqrt2}\begin{pmatrix}-3\\[2pt] 1\end{pmatrix}=\frac{1}{\sqrt{10}}\begin{pmatrix}-3\\[2pt] 1\end{pmatrix}.$$
+<p>They are orthogonal, as the proof promised: \(1\cdot(-3)+3\cdot1=0\).</p>
+<p><strong>Step 4.</strong> Assemble:</p>
+$$A=\underbrace{\frac{1}{\sqrt{10}}\begin{pmatrix}1&-3\\[2pt] 3&1\end{pmatrix}}_{U}\;\underbrace{\begin{pmatrix}3\sqrt5&0\\[2pt] 0&\sqrt5\end{pmatrix}}_{\Sigma}\;\underbrace{\frac{1}{\sqrt2}\begin{pmatrix}1&1\\[2pt] -1&1\end{pmatrix}}_{W}.$$
+<p>Multiplying out confirms it. Two checks worth making every time: \(s_1s_2=15=|\det A|\), and \(s_1^2+s_2^2=50\), the sum of the squares of all four entries of \(A\) (because both equal \(\mathrm{tr}\,A^{\mathsf T}A\)).</p>
+<p>Notice that the eigenvalues of \(A\) are 3 and 5 (it is triangular), which are <em>not</em> its singular values. Eigenvalues describe vectors that \(A\) maps to multiples of themselves; singular values describe how much \(A\) stretches, and they need two different bases.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 5.5 &mdash; a complex coefficient matrix</span>
+<p>Find the SVD of the coefficient matrix of</p>
+$$|\psi\rangle=\frac{1}{\sqrt{10}}\big(2|00\rangle+i|01\rangle+2i|10\rangle+|11\rangle\big).$$
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Reading the amplitudes two at a time (Definition 5.6),</p>
+$$C=\frac{1}{\sqrt{10}}\begin{pmatrix}2&i\\[2pt] 2i&1\end{pmatrix},\qquad C^\dagger=\frac{1}{\sqrt{10}}\begin{pmatrix}2&-2i\\[2pt] -i&1\end{pmatrix}.$$
+<p><strong>Step 1.</strong> Multiply carefully, remembering \((-2i)(2i)=4\) and \((-i)(i)=1\):</p>
+$$C^\dagger C=\frac{1}{10}\begin{pmatrix}4+4&2i-2i\\[2pt] -2i+2i&1+1\end{pmatrix}=\begin{pmatrix}\tfrac45&0\\[2pt] 0&\tfrac15\end{pmatrix}.$$
+<p>It is already diagonal, so \(|w_1\rangle=|0\rangle\) and \(|w_2\rangle=|1\rangle\), with \(\lambda_1=\tfrac45\) and \(\lambda_2=\tfrac15\).</p>
+<p><strong>Step 2.</strong> \(s_1=\tfrac{2}{\sqrt5}\approx0.894\) and \(s_2=\tfrac{1}{\sqrt5}\approx0.447\).</p>
+<p><strong>Step 3.</strong> The columns of \(C\) are \(C|0\rangle\) and \(C|1\rangle\), so</p>
+$$|u_1\rangle=\frac{\sqrt5}{2}\cdot\frac{1}{\sqrt{10}}\begin{pmatrix}2\\[2pt] 2i\end{pmatrix}=\frac{1}{\sqrt2}\begin{pmatrix}1\\[2pt] i\end{pmatrix}=|{+i}\rangle,$$
+$$|u_2\rangle=\sqrt5\cdot\frac{1}{\sqrt{10}}\begin{pmatrix}i\\[2pt] 1\end{pmatrix}=\frac{i}{\sqrt2}\begin{pmatrix}1\\[2pt] -i\end{pmatrix}=i\,|{-i}\rangle .$$
+<p><strong>Step 4.</strong> So \(C=\tfrac{2}{\sqrt5}\,|{+i}\rangle\langle0|+\tfrac{1}{\sqrt5}\,i|{-i}\rangle\langle1|\). The checks: \(s_1s_2=\tfrac25=|\det C|\), since \(\det C=\tfrac{1}{10}(2-i\cdot2i)=\tfrac{4}{10}\); and \(s_1^2+s_2^2=1\), as it must be for a state. We will read off what this says about \(|\psi\rangle\) in the next section.</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; the SVD by hand, in one line each</span>
+<p>(1) Compute \(C^\dagger C\) and find its eigenvalues \(\lambda_1\ge\lambda_2\) and orthonormal eigenvectors \(|w_1\rangle,|w_2\rangle\). (2) Take square roots: \(s_k=\sqrt{\lambda_k}\). (3) Set \(|u_k\rangle=C|w_k\rangle/s_k\). (4) Check \(s_1s_2=|\det C|\) and \(s_1^2+s_2^2=\sum|c_{ij}|^2\). For a \(2\times2\) matrix the eigenvalues in step 1 come straight from the trace and determinant: \(\lambda^2-\mathrm{tr}(C^\dagger C)\,\lambda+|\det C|^2=0\). In numpy, <code>U, s, W = np.linalg.svd(C)</code> returns the three factors with \(C = U\Sigma W\); its vectors may differ from yours by signs or phases (see the code below), but the \(s_k\) always agree.</p>
+</div>
+
+<div class="widget">
+<h4>SVD explorer</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Set the four entries of a real \(2\times2\) matrix. Left: the unit circle and the right singular vectors \(w_1\) (blue) and \(w_2\) (red). Right: its image, an ellipse, with \(s_1u_1\) and \(s_2u_2\) along the semi-axes. The amber dot is \((1,0)\) and its image. Try a rotation (both singular values 1), a shear, and a rank-one matrix (the ellipse collapses to a segment).</p>
+<svg id="svdSvg" viewBox="0 0 600 280" width="600" height="280" role="img" aria-labelledby="svdSvg-t svdSvg-d"><title id="svdSvg-t">Unit circle with right singular vectors, and its image ellipse with the scaled left singular vectors</title><desc id="svdSvg-d">Interactive figure, redrawn as you use the controls next to it; the text readout below it describes what is currently shown.</desc></svg>
+<div class="ctrls" id="svdPre"></div>
+<div class="ctrls">
+<label><span>a = <span id="svaV"></span></span><input type="range" id="sva" min="-4" max="4" step="0.25" value="3"></label>
+<label><span>b = <span id="svbV"></span></span><input type="range" id="svb" min="-4" max="4" step="0.25" value="0"></label>
+<label><span>c = <span id="svcV"></span></span><input type="range" id="svc" min="-4" max="4" step="0.25" value="4"></label>
+<label><span>d = <span id="svdV"></span></span><input type="range" id="svd" min="-4" max="4" step="0.25" value="5"></label>
+</div>
+<p class="readout" role="status" aria-live="polite" id="svdOut"></p>
+</div>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; checking Example 5.4 with numpy</span>
+<pre>import numpy as np
+
+A = np.array([[3, 0], [4, 5]])
+U, s, W = np.linalg.svd(A)          <span class="cm"># A = U @ diag(s) @ W</span>
+print(s.round(4))
+print(U.round(4))
+print(W.round(4))
+print(np.allclose(U @ np.diag(s) @ W, A), np.linalg.eigvals(A))</pre>
+<pre class="out">[6.7082 2.2361]
+[[-0.3162 -0.9487]
+ [-0.9487  0.3162]]
+[[-0.7071 -0.7071]
+ [-0.7071  0.7071]]
+True [5. 3.]</pre>
+<p>The singular values match. The second pair of singular vectors is ours exactly; the first pair is \(-|u_1\rangle\) and \(-\langle w_1|\). Flipping both signs of a pair changes nothing, because \((-|u\rangle)(-\langle w|)=|u\rangle\langle w|\). The last output confirms that the eigenvalues, 5 and 3, are different numbers.</p>
+</div>
+
+<!-- =================== 6 =================== -->
+<h2 id="s6">6 &mdash; The Schmidt decomposition: how entangled?</h2>
+
+<p>Now apply the SVD to the coefficient matrix of a state. The result is the most useful normal form for two-part quantum states.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 5.5 &mdash; Schmidt decomposition (two qubits)</span>
+<p>Every two-qubit state can be written as</p>
+$$|\psi\rangle=s_1\,|u_1\rangle|v_1\rangle+s_2\,|u_2\rangle|v_2\rangle,$$
+<p>where \(\{|u_1\rangle,|u_2\rangle\}\) and \(\{|v_1\rangle,|v_2\rangle\}\) are orthonormal bases of \(\mathbb C^2\) and the <strong>Schmidt coefficients</strong> \(s_1\ge s_2\ge0\) are the singular values of \(C\). They satisfy \(s_1^2+s_2^2=1\) and \(|\det C|=s_1s_2\).</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Write the SVD as \(C=\sum_k s_k|u_k\rangle\langle w_k|\). Entrywise, \(c_{ij}=\sum_k s_k\,(u_k)_i\,\overline{(w_k)_j}\). Substituting into \(|\psi\rangle=\sum_{i,j}c_{ij}|i\rangle|j\rangle\) and regrouping,</p>
+$$|\psi\rangle=\sum_k s_k\Big(\sum_i (u_k)_i|i\rangle\Big)\Big(\sum_j\overline{(w_k)_j}\,|j\rangle\Big)=\sum_k s_k\,|u_k\rangle|v_k\rangle ,$$
+<p>where \(|v_k\rangle=|\overline{w_k}\rangle\) is \(|w_k\rangle\) with its entries conjugated (for real \(w_k\) the two are the same). Conjugating entries preserves inner products up to conjugation, so the \(|v_k\rangle\) are orthonormal. Next, \(\sum_{i,j}|c_{ij}|^2=\mathrm{tr}(C^\dagger C)=s_1^2+s_2^2\), which is 1 for a state. Finally \(|\det C|^2=\det(C^\dagger C)=s_1^2s_2^2\).</p>
+</div>
+</div>
+
+<p>For Example 5.5 this reads off immediately: the right singular vectors \(|0\rangle,|1\rangle\) are real, so</p>
+$$|\psi\rangle=\frac{2}{\sqrt5}\,|{+i}\rangle|0\rangle+\frac{1}{\sqrt5}\,\big(i|{-i}\rangle\big)|1\rangle ,$$
+<p>which you can confirm by expanding. The product state \(|+\rangle|-\rangle\), by contrast, has a coefficient matrix whose two rows are both \(\tfrac12(1,-1)\). It has rank one, its singular values are 1 and 0, and its Schmidt decomposition has a single term.</p>
+
+<p>Theorem 5.5 contains Theorem 5.3: \(\det C=0\) exactly when \(s_2=0\), and then the decomposition has a single term, a product state. Because the Schmidt probabilities \(s_1^2,s_2^2\) add to 1, they measure how evenly the state is spread over its two terms. The standard way to turn them into one number is Shannon entropy.</p>
+
+<div class="box def">
+<span class="lbl">definition 5.7 &mdash; entanglement entropy</span>
+<p>The <strong>entanglement entropy</strong> of a two-qubit pure state with Schmidt coefficients \(s_1,s_2\) is</p>
+$$E(\psi)=-\,s_1^2\log_2 s_1^2-s_2^2\log_2 s_2^2\quad\text{bits},$$
+<p>with \(0\log 0=0\). It is 0 exactly for product states, and it reaches its maximum of 1 bit exactly when \(s_1=s_2=\tfrac{1}{\sqrt2}\), in which case the state is called <strong>maximally entangled</strong>.</p>
+</div>
+
+<p>By the AM–GM inequality, \(s_1s_2\le\tfrac12(s_1^2+s_2^2)=\tfrac12\), so \(|\det C|\le\tfrac12\) for every state, with equality exactly at maximal entanglement. The quantity \(2|\det C|\), which runs from 0 to 1, is called the <strong>concurrence</strong> of the (pure) state. For \(|\Phi^+\rangle\) and \(|\beta\rangle\) of Example 5.3, \(|\det C|=\tfrac12\): both are maximally entangled.</p>
+
+<div class="spot" data-kind="num" data-ans="0.9|0.1" data-labels="s_1²|s_2²">
+<p>A two-qubit state has \(|\det C|=0.3\). Find its Schmidt probabilities \(s_1^2\ge s_2^2\).</p>
+<div class="hint">You know \(s_1^2+s_2^2=1\) and \(s_1^2s_2^2=|\det C|^2=0.09\). So \(s_1^2\) and \(s_2^2\) are the roots of \(x^2-x+0.09=0\).</div>
+<div class="why">\(x=\tfrac{1\pm\sqrt{1-0.36}}{2}=\tfrac{1\pm0.8}{2}\), so \(s_1^2=0.9\) and \(s_2^2=0.1\). The concurrence is \(2|\det C|=0.6\).</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 5.6 &mdash; Schmidt forms of two entangled states</span>
+<p>(a) Write \(|\beta\rangle=\tfrac12(|00\rangle+|01\rangle+|10\rangle-|11\rangle)\) in Schmidt form. (b) Find the Schmidt coefficients and entanglement entropy of \(|\gamma\rangle=\tfrac{1}{\sqrt3}(|00\rangle+|01\rangle+|10\rangle)\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>(a) The coefficient matrix is a multiple of the unitary \(H\):</p>
+$$C_\beta=\frac12\begin{pmatrix}1&1\\[2pt] 1&-1\end{pmatrix}=\frac{1}{\sqrt2}H=I\cdot\Big(\tfrac{1}{\sqrt2}I\Big)\cdot H ,$$
+<p>and the right-hand side is already an SVD. Both singular values are \(\tfrac{1}{\sqrt2}\), the \(u\)'s are the columns of \(I\), and the \(v\)'s are the rows of \(H\), namely \(|+\rangle\) and \(|-\rangle\):</p>
+$$|\beta\rangle=\frac{1}{\sqrt2}\Big(|0\rangle|+\rangle+|1\rangle|-\rangle\Big).$$
+<p>Expanding the right-hand side confirms it. \(E(\beta)=1\) bit: maximally entangled, like \(|\Phi^+\rangle\).</p>
+<p>(b) Here</p>
+$$C_\gamma=\frac{1}{\sqrt3}\begin{pmatrix}1&1\\[2pt] 1&0\end{pmatrix}.$$
+<p>This matrix is real symmetric, so its singular values are the absolute values of its eigenvalues: if \(C=\sum_k\lambda_k|e_k\rangle\langle e_k|\) (spectral theorem), then \(C^{\mathsf T}C=\sum_k\lambda_k^2|e_k\rangle\langle e_k|\), so \(s_k=\sqrt{\lambda_k^2}=|\lambda_k|\). The eigenvalues of \(\sqrt3\,C_\gamma\) solve \(\lambda^2-\lambda-1=0\), so they are the golden ratio \(\varphi=\tfrac{1+\sqrt5}{2}\) and \(1-\varphi=-1/\varphi\). Hence</p>
+$$\begin{aligned}s_1&=\frac{\varphi}{\sqrt3}\approx 0.9342, & s_2&=\frac{\varphi-1}{\sqrt3}\approx 0.3568,\\[4pt] s_1^2&\approx0.8727, & s_2^2&\approx0.1273 .\end{aligned}$$
+<p>Check: \(s_1s_2=\tfrac{\varphi(\varphi-1)}{3}=\tfrac13=|\det C_\gamma|\). The eigenvectors give the Schmidt bases: with \(|e_1\rangle=\cos t\,|0\rangle+\sin t\,|1\rangle\), \(|e_2\rangle=\sin t\,|0\rangle-\cos t\,|1\rangle\) and \(\tan t=1/\varphi\) (so \(t\approx31.72^\circ\)),</p>
+$$|\gamma\rangle=s_1\,|e_1\rangle|e_1\rangle-s_2\,|e_2\rangle|e_2\rangle ,$$
+<p>where the minus sign (from the negative eigenvalue) can be absorbed into \(|v_2\rangle=-|e_2\rangle\). The entanglement entropy is</p>
+$$E(\gamma)=-0.8727\log_2 0.8727-0.1273\log_2 0.1273\approx 0.550\ \text{bits}.$$
+<p>So \(|\gamma\rangle\) is entangled, but only about half as much as a Bell pair.</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; entanglement cannot be created by local gates</span>
+<p>If \(U\) and \(V\) are single-qubit gates, then \((U\otimes V)|\psi\rangle\) has coefficient matrix \(UCV^{\mathsf T}\), which has the same singular values as \(C\). So gates applied to the qubits separately never change the Schmidt coefficients, and never change the amount of entanglement. Creating entanglement requires a gate that acts on both qubits at once. That is Lecture 6.</p>
+</div>
+
+<div class="spot" data-kind="mc">
+<p>Alice holds qubit 1 of \(|\Phi^+\rangle\) and applies \(H\) to it. What is the entanglement entropy of the new two-qubit state?</p>
+<ul class="opts">
+<li data-ok>still 1 bit</li>
+<li>0 bits<span class="oh">A gate on one qubit cannot undo entanglement: the coefficient matrix becomes \(HC\), with the same singular values.</span></li>
+<li>half a bit<span class="oh">Local gates do not change the Schmidt coefficients at all, so the entropy cannot move part of the way either.</span></li>
+<li>it depends on which qubit she acts on<span class="oh">On either qubit the coefficient matrix becomes \(UC\) or \(CU^{\mathsf T}\), and multiplying by a unitary never changes the singular values.</span></li>
+</ul>
+<div class="hint">Use the idea just above: a local gate turns \(C\) into \(UCV^{\mathsf T}\). What happens to the singular values?</div>
+<div class="why">The Schmidt coefficients stay \(\tfrac1{\sqrt2},\tfrac1{\sqrt2}\), so the entropy stays 1 bit. Only a gate acting on both qubits can change it.</div>
+</div>
+
+<!-- =================== 7 =================== -->
+<h2 id="s7">7 &mdash; n qubits and the memory wall</h2>
+
+<p>Everything above extends to \(n\) qubits. The state space is \((\mathbb C^2)^{\otimes n}=\mathbb C^{2^n}\), with basis \(|q_{n-1}\cdots q_0\rangle\) indexed by \(n\)-bit strings, so a general state needs \(2^n\) complex amplitudes. A product state \(|a_{n-1}\rangle\otimes\cdots\otimes|a_0\rangle\) needs only \(2n\), two per qubit. The gap between \(2n\) and \(2^n\) is filled by entangled states, and it is the first hint of why quantum computers might be powerful.</p>
+
+<figure>
+<svg viewBox="0 0 700 340" width="700" height="340" role="img" aria-labelledby="mwt mwd"><title id="mwt">Memory needed to store an n-qubit state vector</title><desc id="mwd">Log-scale plot of 16 times 2 to the n bytes against the number of qubits n, from 1 to 60. A 16 gigabyte laptop holds at most 29 qubits; one petabyte holds at most 45 qubits; 50 qubits need about 18 petabytes. Every added qubit doubles the memory.</desc><rect x="92" y="20" width="588" height="266" class="plot-bg" stroke="var(--rule)"/><line class="gridline" x1="92" y1="271.2" x2="680" y2="271.2"/><text class="axtext" x="84.0" y="275.2" text-anchor="end">1 kB</text><line class="gridline" x1="92" y1="226.9" x2="680" y2="226.9"/><text class="axtext" x="84.0" y="230.9" text-anchor="end">1 MB</text><line class="gridline" x1="92" y1="182.6" x2="680" y2="182.6"/><text class="axtext" x="84.0" y="186.6" text-anchor="end">1 GB</text><line class="gridline" x1="92" y1="138.2" x2="680" y2="138.2"/><text class="axtext" x="84.0" y="142.2" text-anchor="end">1 TB</text><line class="gridline" x1="92" y1="93.9" x2="680" y2="93.9"/><text class="axtext" x="84.0" y="97.9" text-anchor="end">1 PB</text><line class="gridline" x1="92" y1="49.6" x2="680" y2="49.6"/><text class="axtext" x="84.0" y="53.6" text-anchor="end">1 EB</text><text class="axtext" x="92.0" y="306.0" text-anchor="middle">0</text><text class="axtext" x="190.0" y="306.0" text-anchor="middle">10</text><text class="axtext" x="288.0" y="306.0" text-anchor="middle">20</text><text class="axtext" x="386.0" y="306.0" text-anchor="middle">30</text><text class="axtext" x="484.0" y="306.0" text-anchor="middle">40</text><text class="axtext" x="582.0" y="306.0" text-anchor="middle">50</text><text class="axtext" x="680.0" y="306.0" text-anchor="middle">60</text><line class="axis" x1="92" y1="286" x2="680" y2="286"/><text class="axtext" x="386.0" y="328.0" text-anchor="middle">number of qubits n</text><path class="curve" d="M121.4,284.4 L131.2,280.0 L141.0,275.5 L150.8,271.1 L160.6,266.6 L170.4,262.2 L180.2,257.7 L190.0,253.3 L199.8,248.8 L209.6,244.4 L219.4,239.9 L229.2,235.5 L239.0,231.0 L248.8,226.6 L258.6,222.1 L268.4,217.7 L278.2,213.2 L288.0,208.8 L297.8,204.3 L307.6,199.9 L317.4,195.4 L327.2,191.0 L337.0,186.5 L346.8,182.1 L356.6,177.7 L366.4,173.2 L376.2,168.8 L386.0,164.3 L395.8,159.9 L405.6,155.4 L415.4,151.0 L425.2,146.5 L435.0,142.1 L444.8,137.6 L454.6,133.2 L464.4,128.7 L474.2,124.3 L484.0,119.8 L493.8,115.4 L503.6,110.9 L513.4,106.5 L523.2,102.0 L533.0,97.6 L542.8,93.1 L552.6,88.7 L562.4,84.2 L572.2,79.8 L582.0,75.3 L591.8,70.9 L601.6,66.4 L611.4,62.0 L621.2,57.5 L631.0,53.1 L640.8,48.6 L650.6,44.2 L660.4,39.7 L670.2,35.3 L680.0,30.8"/><circle cx="376.2" cy="168.8" r="5" fill="var(--amber)"/><text class="lbltext" x="366.2" y="156.8" text-anchor="end" style="fill:var(--amber)">16 GB laptop: 29 qubits</text><circle cx="533.0" cy="97.6" r="5" fill="var(--amber)"/><text class="lbltext" x="539.0" y="123.6" text-anchor="start" style="fill:var(--amber)">1 PB: 45 qubits</text><circle cx="582.0" cy="75.3" r="5" fill="var(--amber)"/><text class="lbltext" x="572.0" y="63.3" text-anchor="end" style="fill:var(--amber)">50 qubits: about 18 PB</text></svg>
+<figcaption>Memory for a full state vector at 16 bytes per amplitude (two 64-bit floats), on a logarithmic scale. Every added qubit doubles the requirement. A 16 GB laptop holds at most 29 qubits, a petabyte (\(10^{15}\) bytes) holds 45, and 50 qubits need about \(1.8\times10^{16}\) bytes, or 18 PB.</figcaption>
+</figure>
+
+<p>The numbers are easy to check: \(16\cdot2^{29}\approx8.6\times10^9\) bytes fits in 16 GB, but \(16\cdot2^{30}\approx1.7\times10^{10}\) does not; and \(16\cdot2^{50}\approx1.80\times10^{16}\) bytes is about 18 PB, more than the memory of the largest supercomputers. This is the <strong>memory wall</strong> for brute-force simulation.</p>
+
+<div class="spot" data-kind="num" data-ans="68.7" data-tol="0.5" data-labels="GB">
+<p>At 16 bytes per amplitude, how many gigabytes (\(10^9\) bytes) does the state vector of 32 qubits need?</p>
+<div class="hint">There are \(2^{32}\approx4.29\times10^9\) amplitudes. Multiply by 16 bytes and divide by \(10^9\).</div>
+<div class="why">\(16\cdot2^{32}\approx6.87\times10^{10}\) bytes, about 68.7 GB: past a laptop, though within reach of a large workstation. Each extra qubit doubles it.</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; what the wall does and does not mean</span>
+<p>It does <em>not</em> mean that 50 qubits compute \(2^{50}\) things at once for us to read. Measurement returns \(n\) bits, and Lecture 1's warning stands: quantum speedups come only from interference arranged by an algorithm. It also does not mean every 50-qubit circuit is hard to simulate. States with little entanglement, measured by Schmidt coefficients across cuts, can be compressed; this is the idea behind tensor-network simulators. What the wall does mean is that a device whose states are generically entangled cannot be tracked by storing its state vector.</p>
+</div>
+
+<!-- =================== 8 =================== -->
+<h2 id="s8">8 &mdash; Try it in code</h2>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; labels, circuits and tensor products agree (tested with qiskit 2.5)</span>
+<pre>from qiskit import QuantumCircuit
+from qiskit.quantum_info import Statevector, Operator
+
+def probs(sv):                                  <span class="cm"># tidy printing of probabilities_dict()</span>
+    return {str(k): round(float(v), 4) for k, v in sv.probabilities_dict().items()}
+
+print(Statevector.from_label("01"))           <span class="cm"># the label is read |q1 q0&gt;</span>
+
+qc = QuantumCircuit(2)
+qc.x(0)                                       <span class="cm"># flip qubit 0 only</span>
+print(probs(Statevector.from_instruction(qc)))
+
+plus, zero = Statevector.from_label("+"), Statevector.from_label("0")
+print(probs(plus ^ zero))                     <span class="cm"># plus on qubit 1, zero on qubit 0</span>
+
+h0 = QuantumCircuit(2); h0.h(0)
+print(Operator(h0).equiv(Operator.from_label("IH")))   <span class="cm"># H on qubit 0 is I (x) H</span></pre>
+<pre class="out">Statevector([0.+0.j, 1.+0.j, 0.+0.j, 0.+0.j],
+            dims=(2, 2))
+{'01': 1.0}
+{'00': 0.5, '10': 0.5}
+True</pre>
+<p>The label <code>"01"</code> and the circuit with <code>x(0)</code> give the same state, amplitude 1 at index 1. The operator <code>^</code> is Qiskit's tensor product, with the <em>right</em> operand becoming qubit 0, so <code>plus ^ zero</code> is Example 5.2's \(|+\rangle\otimes|0\rangle\). Pauli labels such as <code>"IH"</code> are read the same way: the rightmost letter acts on qubit 0.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; coefficient matrix, determinant and Schmidt coefficients</span>
+<pre>import numpy as np
+from qiskit.quantum_info import Statevector, schmidt_decomposition
+
+psi = Statevector(np.array([1, 1, 1, 0]) / np.sqrt(3))   <span class="cm"># |gamma&gt; of Example 5.6</span>
+C = psi.data.reshape(2, 2)          <span class="cm"># C[q1, q0]: row = qubit 1, column = qubit 0</span>
+print("det C =", np.linalg.det(C).real.round(4))
+s = np.linalg.svd(C, compute_uv=False)
+print("Schmidt coefficients:", s.round(4))
+p = s**2
+print("entanglement entropy:", round(float(-(p * np.log2(p)).sum()), 4), "bits")
+
+for coef, a, b in schmidt_decomposition(psi, [0]):
+    print(round(float(coef), 4), a.data.real.round(4), b.data.real.round(4))</pre>
+<pre class="out">det C = -0.3333
+Schmidt coefficients: [0.9342 0.3568]
+entanglement entropy: 0.55 bits
+0.9342 [-0.8507 -0.5257] [-0.8507 -0.5257]
+0.3568 [-0.5257  0.8507] [ 0.5257 -0.8507]</pre>
+<p><code>reshape(2, 2)</code> fills rows first, which is exactly Definition 5.6. Qiskit's <code>schmidt_decomposition</code> returns the same coefficients, with Schmidt vectors that match Example 5.6 up to sign: the first pair is \(-|e_1\rangle,-|e_1\rangle\) (two signs that cancel) and the second pair is \(-|e_2\rangle,|e_2\rangle\), which carries the minus sign of Example 5.6. Signs and phases of Schmidt vectors are never unique; only the coefficients are.</p>
+</div>
+
+<!-- =================== 9 =================== -->
+<h2 id="s9">9 &mdash; Summary and exercises</h2>
+
+<div class="box thm">
+<span class="lbl">summary</span>
+<ul>
+<li>Two qubits live in \(\mathbb C^4=\mathbb C^2\otimes\mathbb C^2\), with basis \(|00\rangle,|01\rangle,|10\rangle,|11\rangle\); \(n\) qubits need \(2^n\) amplitudes.</li>
+<li>\(a\otimes b\) stacks \(a_0b\) on top of \(a_1b\); \(A\otimes B\) is the block matrix \((a_{ij}B)\). Tensor products act factor by factor, and their inner products multiply.</li>
+<li>Qiskit (and this course) writes \(|q_{n-1}\cdots q_0\rangle\): qubit 0 is the rightmost bit and the \(2^0\) place. A gate on qubit 0 of a pair is \(I\otimes U\).</li>
+<li>A state is a product state if it factors as \(|a\rangle\otimes|b\rangle\), and entangled otherwise. For two qubits: product \(\iff\det C=0\).</li>
+<li>Every matrix has an SVD \(C=\sum_k s_k|u_k\rangle\langle w_k|\): the \(s_k^2\) are the eigenvalues of \(C^\dagger C\), the \(|w_k\rangle\) its eigenvectors, and \(|u_k\rangle=C|w_k\rangle/s_k\). Geometrically: rotate, stretch, rotate.</li>
+<li>Schmidt form \(s_1|u_1\rangle|v_1\rangle+s_2|u_2\rangle|v_2\rangle\) comes from the SVD of \(C\); \(|\det C|=s_1s_2\le\tfrac12\), and the entanglement entropy runs from 0 (product) to 1 bit (maximally entangled).</li>
+<li>Local gates \(U\otimes V\) never change the Schmidt coefficients. The state vector of 50 qubits needs about 18 PB.</li>
+</ul>
+<p><strong>Next time:</strong> gates that act on two qubits at once, CNOT and friends, the four Bell states, and measuring only part of a system. <strong>HW3</strong> covers Lectures 5 and 6.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 5</span>
+<ol>
+<li>Compute \(\tfrac{1}{\sqrt2}(|0\rangle+i|1\rangle)\otimes|1\rangle\) and \(|1\rangle\otimes\tfrac{1}{\sqrt2}(|0\rangle+i|1\rangle)\) as vectors in \(\mathbb C^4\). In Qiskit's convention, which qubit is in the superposition in each case?</li>
+<li>Which of these states are product states? Factor those that are.
+$$\begin{aligned}&\text{(a) }\tfrac12\big(|00\rangle-|01\rangle+|10\rangle-|11\rangle\big)\\[4pt] &\text{(b) }\tfrac{1}{\sqrt2}\big(|00\rangle-|11\rangle\big)\\[4pt] &\text{(c) }\tfrac15\big(3|00\rangle+4|01\rangle\big)\\[4pt] &\text{(d) }\tfrac12\big(|00\rangle+i|01\rangle+i|10\rangle-|11\rangle\big)\end{aligned}$$</li>
+<li>Compute \((I\otimes H)(|0\rangle\otimes|+\rangle)\) and \((H\otimes H)|00\rangle\). Which Qiskit qubit does \(I\otimes H\) act on?</li>
+<li>For which angles \(a\) is \(\cos a\,|00\rangle+\sin a\,|11\rangle\) a product state? Find its Schmidt coefficients and entanglement entropy, and the angles at which it is maximally entangled.</li>
+<li>Prove that \((A\otimes B)^\dagger=A^\dagger\otimes B^\dagger\) for \(2\times2\) matrices, and deduce that \(U\otimes V\) is unitary when \(U\) and \(V\) are.</li>
+<li>How many complex amplitudes describe 20 qubits, and how many bytes is that at 16 bytes each? How many numbers describe a 20-qubit product state? What is the largest number of qubits whose state vector fits in 1 TB (\(10^{12}\) bytes)?</li>
+<li>Find the SVD of \(B\) below by the four-step recipe, and compare its singular values with its eigenvalues.
+$$B=\begin{pmatrix}2&2\\[2pt] 1&-1\end{pmatrix}$$</li>
+<li>Show that all singular values of a \(2\times2\) unitary are 1. Deduce that a two-qubit state is maximally entangled exactly when its coefficient matrix is \(\tfrac{1}{\sqrt2}\) times a unitary, and check this for the four Bell states.</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>Using Definition 5.2,
+$$\tfrac{1}{\sqrt2}(|0\rangle+i|1\rangle)\otimes|1\rangle=\frac{1}{\sqrt2}\begin{pmatrix}0\\[2pt] 1\\[2pt] 0\\[2pt] i\end{pmatrix},$$
+$$|1\rangle\otimes\tfrac{1}{\sqrt2}(|0\rangle+i|1\rangle)=\frac{1}{\sqrt2}\begin{pmatrix}0\\[2pt] 0\\[2pt] 1\\[2pt] i\end{pmatrix}.$$
+In the first, the left factor, qubit 1, is in the superposition \(|{+i}\rangle\) and qubit 0 is \(|1\rangle\). In the second, qubit 1 is \(|1\rangle\) and qubit 0 is in \(|{+i}\rangle\).</li>
+<li>(a) The coefficient matrix
+$$C=\frac12\begin{pmatrix}1&-1\\[2pt] 1&-1\end{pmatrix}$$
+has \(\det C=0\): product. Both rows are \(\tfrac12(1,-1)\), so the state is \(|+\rangle\otimes|-\rangle\).<br>(b) \(\det C=-\tfrac12\neq0\): entangled (it is the Bell state \(|\Phi^-\rangle\)).<br>(c) The bottom row of \(C\) is zero, so \(\det C=0\): product, \(|0\rangle\otimes\tfrac15(3|0\rangle+4|1\rangle)\).<br>(d) \(\det C=\tfrac14\big(1\cdot(-1)-i\cdot i\big)=0\): product. The rows are \(\tfrac12(1,i)\) and \(\tfrac{i}{2}(1,i)\), so the state is \(|{+i}\rangle\otimes|{+i}\rangle\).</li>
+<li>By Proposition 5.1, \((I\otimes H)(|0\rangle\otimes|+\rangle)=|0\rangle\otimes H|+\rangle=|0\rangle|0\rangle=|00\rangle\), and \((H\otimes H)|00\rangle=|+\rangle|+\rangle=\tfrac12(|00\rangle+|01\rangle+|10\rangle+|11\rangle)\). The right factor is qubit 0, so \(I\otimes H\) is <code>h(0)</code>.</li>
+<li>\(C=\mathrm{diag}(\cos a,\sin a)\) and \(\det C=\cos a\sin a=\tfrac12\sin 2a\), which vanishes exactly when \(a\) is a multiple of \(\pi/2\) (then the state is \(\pm|00\rangle\) or \(\pm|11\rangle\)). The state is already in Schmidt form, with coefficients \(|\cos a|\) and \(|\sin a|\) (signs go into the Schmidt vectors), so
+$$E=-\cos^2\!a\,\log_2\cos^2\!a-\sin^2\!a\,\log_2\sin^2\!a .$$
+It equals 1 bit exactly when \(\cos^2a=\sin^2a=\tfrac12\), that is, \(a=\pi/4+k\pi/2\); at \(a=\pi/4\) the state is \(|\Phi^+\rangle\).</li>
+<li>The entry of \(A\otimes B\) in row \(ik\), column \(jl\) is \(a_{ij}b_{kl}\). The adjoint's entry in row \(jl\), column \(ik\) is the conjugate of that, \(\overline{a_{ij}}\,\overline{b_{kl}}=(A^\dagger)_{ji}(B^\dagger)_{lk}\), which is the entry of \(A^\dagger\otimes B^\dagger\) in row \(jl\), column \(ik\). Then, by Proposition 5.1(2), \((U\otimes V)^\dagger(U\otimes V)=(U^\dagger U)\otimes(V^\dagger V)=I\otimes I\), the \(4\times4\) identity.</li>
+<li>\(2^{20}=1{,}048{,}576\) amplitudes, which is \(16\cdot2^{20}=16{,}777{,}216\) bytes, about 16.8 MB: easy. A product state needs \(2\cdot20=40\) amplitudes. For 1 TB we need \(16\cdot2^n\le10^{12}\), i.e. \(2^n\le6.25\times10^{10}\). Since \(2^{35}\approx3.4\times10^{10}\) and \(2^{36}\approx6.9\times10^{10}\), the answer is 35 qubits.</li>
+<li>First,
+$$B^{\mathsf T}B=\begin{pmatrix}5&3\\[2pt] 3&5\end{pmatrix},$$
+with eigenvalues 8 and 2 and eigenvectors \(|w_1\rangle=\tfrac{1}{\sqrt2}(1,1)\) and \(|w_2\rangle=\tfrac{1}{\sqrt2}(1,-1)\). So \(s_1=2\sqrt2\) and \(s_2=\sqrt2\). Then \(|u_1\rangle=B|w_1\rangle/s_1=\tfrac{1}{2\sqrt2}\cdot\tfrac{1}{\sqrt2}(4,0)=(1,0)\) and \(|u_2\rangle=B|w_2\rangle/s_2=\tfrac{1}{\sqrt2}\cdot\tfrac{1}{\sqrt2}(0,2)=(0,1)\). Hence \(U=I\) and
+$$B=\begin{pmatrix}2\sqrt2&0\\[2pt] 0&\sqrt2\end{pmatrix}\cdot\frac{1}{\sqrt2}\begin{pmatrix}1&1\\[2pt] 1&-1\end{pmatrix}.$$
+Checks: \(s_1s_2=4=|\det B|\) and \(s_1^2+s_2^2=10=4+4+1+1\). The eigenvalues solve \(\lambda^2-\lambda-4=0\), so they are \(\tfrac{1\pm\sqrt{17}}{2}\approx2.56,\,-1.56\): different numbers again, and one of them is negative, which a singular value never is.</li>
+<li>If \(C\) is unitary then \(C^\dagger C=I\), whose eigenvalues are 1 and 1, so \(s_1=s_2=1\). A state has \(s_1^2+s_2^2=1\), and it is maximally entangled when \(s_1=s_2=\tfrac{1}{\sqrt2}\), i.e. when \(C^\dagger C=\tfrac12I\), i.e. when \(\sqrt2\,C\) is unitary. For \(|\Phi^+\rangle,|\Phi^-\rangle,|\Psi^+\rangle,|\Psi^-\rangle\) the matrix \(\sqrt2\,C\) is \(I\), \(Z\), \(X\) and \(iY\) respectively, all unitary.</li>
+</ol>
+</div>
+</div>
+
+<h3>Reading and sources</h3>
+<ul>
+<li>J. Watrous, <em>Understanding Quantum Information and Computation</em>, §2.1–2.2 on multiple systems, tensor products and entangled states (<a href="https://arxiv.org/abs/2507.11536">arXiv:2507.11536</a>; IBM course <a href="https://quantum.cloud.ibm.com/learning/en/courses/basics-of-quantum-information">Basics of Quantum Information</a>, Lesson 2).</li>
+<li>Qiskit documentation: <a href="https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.quantum_info.Statevector">Statevector</a> (labels, <code>tensor</code>, <code>probabilities_dict</code>) and <a href="https://quantum.cloud.ibm.com/docs/en/api/qiskit/quantum_info">quantum_info</a> (<code>schmidt_decomposition</code>). Qiskit's documentation also has a short guide to its bit-ordering convention.</li>
+<li>M. A. Nielsen and I. L. Chuang, <em>Quantum Computation and Quantum Information</em>, §2.1.7 (tensor products) and §2.5 (the Schmidt decomposition, stated for any dimensions). Nielsen–Chuang number qubits in the opposite order.</li>
+</ul>
+<p class="kicker" style="margin-top:2.4em">all numbers and figures in these notes are computed in python (verify_L05.py) and follow the page theme</p>
+</div>
+
+<script>
+/* ---------- helpers ---------- */
+var NS=['http:','','www.w3.org','2000','svg'].join('/');
+function mk(tag,at,parent,txt){var e=document.createElementNS(NS,tag);for(var k in at)e.setAttribute(k,at[k]);if(txt!==undefined)e.textContent=txt;if(parent)parent.appendChild(e);return e;}
+function clr(s){[].slice.call(s.childNodes).forEach(function(c){if(c.nodeName!=='title'&&c.nodeName!=='desc')s.removeChild(c);});}
+function fx(x,d){d=(d===undefined?3:d);var v=Number(x).toFixed(d);return /^-0\.?0*$/.test(v)?v.slice(1):v;}
+function cfmt(re,im,d){d=d===undefined?3:d;var r=Math.abs(re)<5e-4?0:re,i=Math.abs(im)<5e-4?0:im;
+  if(i===0)return fx(r,d); if(r===0)return (i<0?'-':'')+fx(Math.abs(i),d)+'i'; return fx(r,d)+(i<0?' - ':' + ')+fx(Math.abs(i),d)+'i';}
+function cmul(a,b){return [a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]];}
+function csub(a,b){return [a[0]-b[0],a[1]-b[1]];}
+function cabs(a){return Math.hypot(a[0],a[1]);}
+function cconj(a){return [a[0],-a[1]];}
+function cphase(a,t){return cmul(a,[Math.cos(t),Math.sin(t)]);}
+
+/* ---------- ordering decoder ---------- */
+(function(){
+  var svg=document.getElementById('ordSvg'), box=document.getElementById('ordBtns'), out=document.getElementById('ordOut'); if(!svg) return;
+  var on=[false,false,false], btns=[];
+  [0,1,2].forEach(function(k){var b=document.createElement('button'); b.className='ctl'; b.type='button'; b.textContent='X on q'+k; b.addEventListener('click',function(){on[k]=!on[k];draw();}); box.appendChild(b); btns.push(b);});
+  var c=document.createElement('button'); c.className='ctl'; c.type='button'; c.textContent='clear'; c.addEventListener('click',function(){on=[false,false,false];draw();}); box.appendChild(c);
+  function draw(){
+    clr(svg); mk('rect',{x:0,y:0,width:600,height:270,rx:8,class:'plot-bg'},svg);
+    var ys=[40,90,140];
+    ys.forEach(function(y,k){
+      mk('text',{x:16,y:y+5,class:'lbltext',style:'fill:var(--sky)'},svg,'q'+k);
+      mk('text',{x:48,y:y+5,class:'lbltext'},svg,'|0>');
+      mk('line',{x1:84,y1:y,x2:230,y2:y,stroke:'var(--ink)','stroke-width':2},svg);
+      if(on[k]){ mk('rect',{x:134,y:y-17,width:38,height:34,rx:4,fill:'var(--surface2)',stroke:'var(--rose)','stroke-width':2},svg);
+        mk('text',{x:153,y:y+6,'text-anchor':'middle',class:'lbltext',style:'fill:var(--rose)'},svg,'X'); }
+      mk('text',{x:240,y:y+5,class:'lbltext',style:'fill:'+(on[k]?'var(--rose)':'var(--ink)')},svg,on[k]?'|1>':'|0>');
+    });
+    var bits=[on[2]?1:0,on[1]?1:0,on[0]?1:0], idx=4*bits[0]+2*bits[1]+bits[2], lab=bits.join('');
+    mk('text',{x:320,y:34,class:'axtext'},svg,'output ket |q2 q1 q0>:');
+    var xs=[356,386,416];
+    mk('text',{x:334,y:84,class:'lbltext','text-anchor':'middle',style:'font-size:20px'},svg,'|');
+    bits.forEach(function(b,j){ var q=2-j;
+      mk('text',{x:xs[j],y:60,class:'axtext','text-anchor':'middle',style:'fill:var(--sky)'},svg,'q'+q);
+      mk('text',{x:xs[j],y:84,class:'lbltext','text-anchor':'middle',style:'font-size:20px;fill:'+(b?'var(--rose)':'var(--ink)')},svg,String(b)); });
+    mk('text',{x:440,y:84,class:'lbltext','text-anchor':'middle',style:'font-size:20px'},svg,'>');
+    mk('text',{x:320,y:118,class:'axtext'},svg,'index = 4*'+bits[0]+' + 2*'+bits[1]+' + '+bits[2]+' = '+idx);
+    mk('text',{x:320,y:142,class:'axtext'},svg,'Qiskit label: "'+lab+'"');
+    /* amplitude bars */
+    var x0=40, w=62, base=236, hmax=44;
+    mk('line',{x1:30,y1:base,x2:570,y2:base,class:'axis'},svg);
+    for(var i=0;i<8;i++){ var s=((i>>2)&1)+''+((i>>1)&1)+''+(i&1), act=i===idx;
+      mk('rect',{x:x0+i*66,y:act?base-hmax:base-2,width:w-8,height:act?hmax:2,fill:act?'var(--amber)':'var(--axis)',rx:2},svg);
+      mk('text',{x:x0+i*66+(w-8)/2,y:base+18,'text-anchor':'middle',class:'axtext',style:act?'fill:var(--amber)':''},svg,s);
+      mk('text',{x:x0+i*66+(w-8)/2,y:act?base-hmax-6:base-8,'text-anchor':'middle',class:'axtext'},svg,act?'1':'0'); }
+    mk('text',{x:30,y:176,class:'axtext'},svg,'state vector amplitudes, in index order 0..7:');
+    btns.forEach(function(b,k){b.classList.toggle('on',on[k]);});
+    var gates=[0,1,2].filter(function(k){return on[k];}).map(function(k){return 'x('+k+')';});
+    out.textContent=(gates.length?gates.join(', '):'no gates')+'  ->  |'+lab+'>, basis vector number '+idx+', Statevector.from_label("'+lab+'")';
+  }
+  draw();
+})();
+
+/* ---------- is it entangled? ---------- */
+(function(){
+  var svg=document.getElementById('entSvg'), pre=document.getElementById('entPre'), out=document.getElementById('entOut'); if(!svg) return;
+  var ids=['e00','e01','e10','e11','eph'], el={}; ids.forEach(function(k){el[k]=document.getElementById(k);});
+  var r2=Math.SQRT1_2, r3=1/Math.sqrt(3), val=[0.5,0.5,0.5,0.5,0], cur=null;
+  var P=[
+    ['|+>|+>',[0.5,0.5,0.5,0.5,0]], ['|+>|->',[0.5,-0.5,0.5,0.5,180]], ['beta',[0.5,0.5,0.5,0.5,180]],
+    ['Phi+',[r2,0,0,r2,0]], ['Psi-',[0,r2,-r2,0,0]], ['gamma',[r3,r3,r3,0,0]],
+    ['almost |00>',[Math.sqrt(0.99),0,0,0.1,0]], ['phase 90',[0.5,0.5,0.5,0.5,90]]
+  ];
+  var pb=[];
+  P.forEach(function(p){var b=document.createElement('button');b.className='ctl';b.type='button';b.textContent=p[0];
+    b.addEventListener('click',function(){val=p[1].slice();cur=p[0];sync();draw();});pre.appendChild(b);pb.push(b);});
+  function sync(){ el.e00.value=Math.round(val[0]*100); el.e01.value=Math.round(val[1]*100); el.e10.value=Math.round(val[2]*100);
+    el.e11.value=Math.round(val[3]*100); el.eph.value=val[4]; }
+  ids.forEach(function(k,j){el[k].addEventListener('input',function(){val[j]=j<4?el[k].value/100:+el[k].value;cur=null;draw();});});
+  function H2(p){return p<=1e-12||p>=1-1e-12?0:-(p*Math.log2(p)+(1-p)*Math.log2(1-p));}
+  function draw(){
+    ['e00','e01','e10','e11'].forEach(function(k,j){document.getElementById(k+'v').textContent=fx(val[j],2);});
+    document.getElementById('ephv').textContent=val[4];
+    pb.forEach(function(b){b.classList.toggle('on',b.textContent===cur);});
+    var t=val[4]*Math.PI/180, c=[[val[0],0],[val[1],0],[val[2],0],[val[3]*Math.cos(t),val[3]*Math.sin(t)]];
+    var N=Math.sqrt(c.reduce(function(s,z){return s+z[0]*z[0]+z[1]*z[1];},0));
+    clr(svg); mk('rect',{x:0,y:0,width:600,height:250,rx:8,class:'plot-bg'},svg);
+    if(N<1e-9){ mk('text',{x:300,y:125,'text-anchor':'middle',class:'lbltext'},svg,'all amplitudes are zero: not a state'); out.textContent='Move a slider away from zero.'; return; }
+    c=c.map(function(z){return [z[0]/N,z[1]/N];});
+    var det=csub(cmul(c[0],c[3]),cmul(c[1],c[2])), ad=cabs(det);
+    var disc=Math.sqrt(Math.max(0,1-4*ad*ad)), p1=(1+disc)/2, p2=(1-disc)/2, s1=Math.sqrt(p1), s2=Math.sqrt(p2), E=H2(p1);
+    /* coefficient matrix */
+    mk('text',{x:20,y:28,class:'axtext'},svg,'coefficient matrix C');
+    mk('text',{x:122,y:56,'text-anchor':'middle',class:'axtext',style:'fill:var(--sky)'},svg,'q0 = 0');
+    mk('text',{x:238,y:56,'text-anchor':'middle',class:'axtext',style:'fill:var(--sky)'},svg,'q0 = 1');
+    mk('text',{x:16,y:96,class:'axtext',style:'fill:var(--sky)'},svg,'q1=0');
+    mk('text',{x:16,y:140,class:'axtext',style:'fill:var(--sky)'},svg,'q1=1');
+    mk('path',{d:'M 68 70 Q 58 70 58 80 L 58 146 Q 58 156 68 156',fill:'none',stroke:'var(--ink)','stroke-width':1.8},svg);
+    mk('path',{d:'M 292 70 Q 302 70 302 80 L 302 146 Q 302 156 292 156',fill:'none',stroke:'var(--ink)','stroke-width':1.8},svg);
+    [[0,122,96],[1,238,96],[2,122,140],[3,238,140]].forEach(function(q){
+      mk('text',{x:q[1],y:q[2],'text-anchor':'middle',class:'lbltext',style:'font-size:13.5px'},svg,cfmt(c[q[0]][0],c[q[0]][1],3)); });
+    mk('text',{x:20,y:192,class:'axtext'},svg,'det C = '+cfmt(det[0],det[1],4));
+    mk('text',{x:20,y:216,class:'axtext'},svg,'|det C| = s1 s2 = '+fx(ad,4)+'   (max 0.5)');
+    /* Schmidt bars */
+    var bx=340, base=200, hh=140;
+    mk('text',{x:bx-6,y:28,class:'axtext'},svg,'Schmidt probs');
+    mk('line',{x1:bx-6,y1:base,x2:bx+110,y2:base,class:'axis'},svg);
+    [[p1,'s1^2','var(--sky)'],[p2,'s2^2','var(--rose)']].forEach(function(q,j){ var x=bx+j*56, h=hh*q[0];
+      mk('rect',{x:x,y:base-h,width:40,height:Math.max(h,1),fill:q[2],'fill-opacity':0.75,rx:2},svg);
+      mk('text',{x:x+20,y:base-h-6,'text-anchor':'middle',class:'axtext'},svg,fx(q[0],3));
+      mk('text',{x:x+20,y:base+18,'text-anchor':'middle',class:'axtext'},svg,q[1]); });
+    /* entropy gauge */
+    var gx=500, gy0=56, gh=144;
+    mk('text',{x:gx-24,y:28,class:'axtext'},svg,'entropy E');
+    mk('rect',{x:gx,y:gy0,width:34,height:gh,fill:'none',stroke:'var(--axis)','stroke-width':1.2,rx:3},svg);
+    mk('rect',{x:gx+2,y:gy0+gh-gh*E,width:30,height:Math.max(gh*E-2,0),fill:'var(--moss)','fill-opacity':0.8,rx:2},svg);
+    mk('text',{x:gx+42,y:gy0+6,class:'axtext'},svg,'1');
+    mk('text',{x:gx+42,y:gy0+gh+4,class:'axtext'},svg,'0');
+    mk('text',{x:gx+17,y:base+18,'text-anchor':'middle',class:'axtext'},svg,fx(E,3)+' bits');
+    var verdict = ad<1e-6 ? 'PRODUCT' : (Math.abs(ad-0.5)<1e-6 ? 'MAXIMALLY ENTANGLED' : 'ENTANGLED');
+    mk('text',{x:590,y:240,'text-anchor':'end',class:'lbltext',style:'fill:'+(ad<1e-6?'var(--moss)':'var(--rose)')},svg,verdict);
+    var msg='Schmidt coefficients s1 = '+fx(s1,4)+', s2 = '+fx(s2,4)+'. ';
+    if(ad<1e-6){ /* factor: row with larger norm gives |b> (qubit 0), then a_i = <b|row_i> */
+      var rows=[[c[0],c[1]],[c[2],c[3]]], nr=rows.map(function(r){return Math.hypot(cabs(r[0]),cabs(r[1]));}), k=nr[0]>=nr[1]?0:1;
+      var b=rows[k].map(function(z){return [z[0]/nr[k],z[1]/nr[k]];});
+      var a=rows.map(function(r){var s=[0,0];[0,1].forEach(function(j){var p=cmul(cconj(b[j]),r[j]);s[0]+=p[0];s[1]+=p[1];});return s;});
+      var fa=cabs(a[0])>1e-9?a[0]:a[1], pa=Math.atan2(fa[1],fa[0]); a=a.map(function(z){return cphase(z,-pa);}); b=b.map(function(z){return cphase(z,pa);});
+      var fb=cabs(b[0])>1e-9?b[0]:b[1], pbh=Math.atan2(fb[1],fb[0]); b=b.map(function(z){return cphase(z,-pbh);});
+      msg+='det C = 0, so the state factors (up to a global phase) as ('+cfmt(a[0][0],a[0][1])+')|0> + ('+cfmt(a[1][0],a[1][1])+')|1>  on q1, times  ('+cfmt(b[0][0],b[0][1])+')|0> + ('+cfmt(b[1][0],b[1][1])+')|1>  on q0.';
+    } else msg+='det C is not 0, so no factorisation exists: the state is entangled, with entanglement entropy '+fx(E,3)+' bits.';
+    out.textContent=msg;
+  }
+  cur='|+>|+>'; sync(); draw();
+})();
+
+/* ---------- SVD explorer ---------- */
+(function(){
+  var svg=document.getElementById('svdSvg'), out=document.getElementById('svdOut'), pre=document.getElementById('svdPre'); if(!svg) return;
+  var ids=['sva','svb','svc','svd'], el=ids.map(function(k){return document.getElementById(k);}), m=[3,0,4,5], cur='Example 5.4';
+  var P=[['Example 5.4',[3,0,4,5]],['rotation 90',[0,-1,1,0]],['shear',[1,1,0,1]],['rank one',[1,-1,1,-1]],['exercise 7',[2,2,1,-1]],['diagonal',[2,0,0,0.5]]], pb=[];
+  P.forEach(function(p){var b=document.createElement('button');b.className='ctl';b.type='button';b.textContent=p[0];
+    b.addEventListener('click',function(){m=p[1].slice();cur=p[0];el.forEach(function(e,i){e.value=m[i];});draw();});pre.appendChild(b);pb.push(b);});
+  el.forEach(function(e,i){e.addEventListener('input',function(){m[i]=+e.value;cur=null;draw();});});
+  function svd(a,b,c,d){ var p=a*a+c*c, q=a*b+c*d, r=b*b+d*d, h=(p+r)/2, g=Math.sqrt(((p-r)/2)*((p-r)/2)+q*q);
+    var l1=h+g, l2=Math.max(h-g,0), ph=0.5*Math.atan2(2*q,p-r), w1=[Math.cos(ph),Math.sin(ph)], w2=[-Math.sin(ph),Math.cos(ph)];
+    var s1=Math.sqrt(l1), s2=Math.sqrt(l2), u1=s1>1e-9?[(a*w1[0]+b*w1[1])/s1,(c*w1[0]+d*w1[1])/s1]:[1,0];
+    var u2=s2>1e-9?[(a*w2[0]+b*w2[1])/s2,(c*w2[0]+d*w2[1])/s2]:[-u1[1],u1[0]]; return {s1:s1,s2:s2,w1:w1,w2:w2,u1:u1,u2:u2}; }
+  function arrow(cx,cy,sc,v,col,lab){ var x=cx+sc*v[0], y=cy-sc*v[1];
+    mk('line',{x1:cx,y1:cy,x2:x,y2:y,stroke:col,'stroke-width':2.6},svg); mk('circle',{cx:x,cy:y,r:3.6,fill:col},svg);
+    var n=Math.hypot(x-cx,y-cy)||1; mk('text',{x:x+14*(x-cx)/n,y:y+14*(y-cy)/n+4,'text-anchor':'middle',class:'axtext',style:'fill:'+col},svg,lab); }
+  function draw(){
+    ids.forEach(function(k,i){document.getElementById(k+'V').textContent=fx(m[i],2);});
+    pb.forEach(function(b){b.classList.toggle('on',b.textContent===cur);});
+    var a=m[0],b=m[1],c=m[2],d=m[3], S=svd(a,b,c,d);
+    clr(svg); mk('rect',{x:0,y:0,width:600,height:280,rx:8,class:'plot-bg'},svg);
+    var L=[150,145], Rc=[450,145], r0=85, sc=S.s1>1e-9?100/S.s1:100;
+    [L,Rc].forEach(function(o){ mk('line',{x1:o[0]-115,y1:o[1],x2:o[0]+115,y2:o[1],class:'gridline'},svg); mk('line',{x1:o[0],y1:o[1]-115,x2:o[0],y2:o[1]+115,class:'gridline'},svg); });
+    mk('text',{x:L[0],y:22,'text-anchor':'middle',class:'axtext'},svg,'unit circle, inputs');
+    mk('text',{x:Rc[0],y:22,'text-anchor':'middle',class:'axtext'},svg,'image under the matrix (scaled to fit)');
+    mk('circle',{cx:L[0],cy:L[1],r:r0,fill:'none',class:'curve'},svg);
+    var pts=[]; for(var k=0;k<=180;k++){var t=2*Math.PI*k/180, x=Math.cos(t), y=Math.sin(t); pts.push((k?'L':'M')+(Rc[0]+sc*(a*x+b*y)).toFixed(1)+','+(Rc[1]-sc*(c*x+d*y)).toFixed(1));}
+    mk('path',{d:pts.join(' '),fill:'none',class:'curve'},svg);
+    arrow(L[0],L[1],r0,S.w1,'var(--sky)','w1'); arrow(L[0],L[1],r0,S.w2,'var(--rose)','w2');
+    arrow(Rc[0],Rc[1],sc,[S.s1*S.u1[0],S.s1*S.u1[1]],'var(--sky)','s1u1'); arrow(Rc[0],Rc[1],sc,[S.s2*S.u2[0],S.s2*S.u2[1]],'var(--rose)','s2u2');
+    mk('circle',{cx:L[0]+r0,cy:L[1],r:5,fill:'var(--amber)'},svg); mk('circle',{cx:Rc[0]+sc*a,cy:Rc[1]-sc*c,r:5,fill:'var(--amber)'},svg);
+    mk('line',{x1:Rc[0]+80,y1:265,x2:Rc[0]+80+sc,y2:265,stroke:'var(--axis)','stroke-width':2},svg); mk('text',{x:Rc[0]+76,y:269,'text-anchor':'end',class:'axtext'},svg,'1 unit');
+    var tr=a+d, de=a*d-b*c, disc=tr*tr-4*de, ev=disc>=0?(fx((tr+Math.sqrt(disc))/2,3)+', '+fx((tr-Math.sqrt(disc))/2,3)):(fx(tr/2,3)+' +- '+fx(Math.sqrt(-disc)/2,3)+'i');
+    out.textContent='s1 = '+fx(S.s1,3)+', s2 = '+fx(S.s2,3)+';  s1 s2 = '+fx(S.s1*S.s2,3)+' = |det| = '+fx(Math.abs(de),3)+';  s1^2 + s2^2 = '+fx(S.s1*S.s1+S.s2*S.s2,3)+
+      '.  w1 = ('+fx(S.w1[0])+', '+fx(S.w1[1])+'), u1 = ('+fx(S.u1[0])+', '+fx(S.u1[1])+').  Eigenvalues, for comparison: '+ev+'.';
+  }
+  draw();
+})();
+</script>
+
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    var lab=b.getAttribute('data-lab')||b.textContent.replace(/^(show|hide) /,''); b.setAttribute('data-lab',lab);
+    b.textContent=(open?'hide ':'show ')+lab;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+
+<script id="spot-js">
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×/g,'*').replace(/π/g,'pi').replace(/,/g,'');
+    var pct=/%$/.test(s); if(pct) s=s.slice(0,-1);
+    s=s.replace(/√\s*\(/g,'sqrt(').replace(/√\s*([0-9.]+)/g,'sqrt($1)');
+    if(!s||!/^[0-9a-z+\-*\/^().\s]*$/.test(s)) return NaN;
+    var ok=s.replace(/sqrt|pi|ln|log|exp|sin|cos|tan|e(?![a-z])/g,'').replace(/[0-9+\-*\/^().\s]/g,'');
+    if(ok.length) return NaN;
+    s=s.replace(/\^/g,'**').replace(/(\d)\s*(pi|sqrt|\()/g,'$1*$2').replace(/\)\s*(\d|pi|sqrt|\()/g,')*$1')
+       .replace(/sqrt/g,'Math.sqrt').replace(/pi/g,'Math.PI').replace(/\blog\b/g,'Math.log10').replace(/\bln\b/g,'Math.log')
+       .replace(/exp/g,'Math.exp').replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos').replace(/tan/g,'Math.tan')
+       .replace(/(^|[^a-z.0-9])e(?![a-z0-9(])/g,'$1Math.E');
+    try{ var v=Function('"use strict";return ('+s+')')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function typeset(el){ if(window.MathJax&&MathJax.typesetPromise){ MathJax.typesetPromise([el]).catch(function(){}); } }
+  function fb(spot,ok,html){
+    var f=spot.querySelector('.fb'); spot.classList.toggle('ok',ok); spot.classList.toggle('bad',!ok);
+    f.innerHTML='<p><span class="tag">'+(ok?'correct.':'not yet.')+'</span>'+(html||'')+'</p>'; typeset(f);
+  }
+  function part(spot,sel){ var e=spot.querySelector(sel); return e? e.innerHTML : ''; }
+  var n=0, lec=(document.title.match(/^Lecture (\d+)/)||[])[1];
+  document.querySelectorAll('.spot').forEach(function(spot){
+    n++; var kind=spot.getAttribute('data-kind')||'num', tries=0;
+    var lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent='spot check '+(lec?lec+'.':'')+n+(spot.getAttribute('data-tag')?' — '+spot.getAttribute('data-tag'):'');
+    spot.insertBefore(lbl,spot.firstChild);
+    var area=document.createElement('div'), btns=document.createElement('div'), f=document.createElement('div');
+    btns.className='btns'; f.className='fb'; f.setAttribute('role','status'); f.setAttribute('aria-live','polite');
+    var check=document.createElement('button'); check.type='button'; check.textContent='check';
+    var reveal=document.createElement('button'); reveal.type='button'; reveal.className='reveal'; reveal.textContent='show answer'; reveal.style.display='none';
+    btns.appendChild(check); btns.appendChild(reveal);
+    var grade, show;
+    if(kind==='num'){
+      var ans=spot.getAttribute('data-ans').split('|').map(evalNum), labs=(spot.getAttribute('data-labels')||'').split('|');
+      var tol=spot.getAttribute('data-tol'), row=document.createElement('div'); row.className='row'; area.appendChild(row);
+      var ins=ans.map(function(a,i){ var lab=document.createElement('label'), inp=document.createElement('input');
+        inp.className='ans'; inp.type='text'; inp.setAttribute('inputmode','text'); inp.setAttribute('autocomplete','off');
+        inp.setAttribute('aria-label',labs[i]||'answer'); if(labs[i]){ lab.appendChild(document.createTextNode(labs[i]+' =')); }
+        lab.appendChild(inp); row.appendChild(lab);
+        inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); check.click(); } }); return inp; });
+      var fmt=document.createElement('div'); fmt.className='fmt'; fmt.textContent='decimals, fractions, sqrt(2)/2, pi/4 or 2^-3 all work';
+      area.appendChild(fmt);
+      grade=function(){ var bad=[]; ins.forEach(function(inp,i){ var v=evalNum(inp.value), a=ans[i];
+          var t= tol!==null? Number(tol) : Math.max(0.005, 0.005*Math.abs(a)); if(!(Math.abs(v-a)<=t)) bad.push(i); });
+        var empty=ins.some(function(inp){return !inp.value.trim();});
+        if(empty) return {ok:false,msg:'Fill in '+(ins.length>1?'every box':'the box')+' first.',soft:true};
+        var unparsed=ins.some(function(inp){return isNaN(evalNum(inp.value));});
+        if(unparsed) return {ok:false,msg:'I could not read that as a number. Try a decimal or a fraction such as 3/8.',soft:true};
+        return {ok:!bad.length, which:bad}; };
+      show=function(){ var s=spot.getAttribute('data-show'); if(!s){ s=spot.getAttribute('data-ans').split('|').map(function(a,i){return (labs[i]?labs[i]+' = ':'')+a;}).join(', '); } return 'The answer is '+s+'.'; };
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=spot.querySelector('ul.opts'), name='spot'+n, lis=[].slice.call(ul.querySelectorAll(':scope > li'));
+      lis.forEach(function(li,i){ var inp=document.createElement('input'); inp.type= kind==='mc'?'radio':'checkbox'; inp.name=name; inp.value=i;
+        inp.setAttribute('aria-label','option '+(i+1)); li.insertBefore(inp,li.firstChild);
+        li.addEventListener('click',function(e){ if(e.target!==inp&&e.target.tagName!=='A'){ if(kind==='mc') inp.checked=true; else inp.checked=!inp.checked; } }); });
+      grade=function(){ var picked=lis.filter(function(li){return li.querySelector('input').checked;});
+        if(!picked.length) return {ok:false,msg:'Pick '+(kind==='mc'?'an answer':'at least one option')+' first.',soft:true};
+        var ok= lis.every(function(li){ return li.hasAttribute('data-ok')===li.querySelector('input').checked; });
+        var oh=''; picked.forEach(function(li){ if(!li.hasAttribute('data-ok')){ var h=li.querySelector('.oh'); if(h) oh+=' '+h.innerHTML; } });
+        if(kind==='multi'&&!ok&&!oh){ var miss=lis.filter(function(li){return li.hasAttribute('data-ok')&&!li.querySelector('input').checked;});
+          if(miss.length&&picked.every(function(li){return li.hasAttribute('data-ok');})) oh=' Everything you ticked is right, but something is missing.'; }
+        return {ok:ok, extra:oh}; };
+      show=function(){ lis.forEach(function(li){ li.classList.toggle('right',li.hasAttribute('data-ok')); }); return 'The right '+(kind==='mc'?'option is':'options are')+' outlined.'; };
+    } else if(kind==='select'){
+      var sels=[].slice.call(spot.querySelectorAll('select'));
+      sels.forEach(function(s){ var o=document.createElement('option'); o.textContent='choose…'; o.value=''; o.selected=true; s.insertBefore(o,s.firstChild);
+        s.setAttribute('aria-label', s.getAttribute('aria-label')||'choose an answer'); });
+      grade=function(){ if(sels.some(function(s){return !s.value;})) return {ok:false,msg:'Make a choice in '+(sels.length>1?'every menu':'the menu')+' first.',soft:true};
+        var oh=''; var ok=sels.every(function(s){ var o=s.options[s.selectedIndex]; if(!o.hasAttribute('data-ok')&&o.getAttribute('data-hint')) oh+=' '+o.getAttribute('data-hint'); return o.hasAttribute('data-ok'); });
+        return {ok:ok, extra:oh}; };
+      show=function(){ sels.forEach(function(s){ [].forEach.call(s.options,function(o,i){ if(o.hasAttribute('data-ok')) s.selectedIndex=i; }); }); return 'The right choices are now selected.'; };
+    }
+    var anchor=null;
+    [].forEach.call(spot.children,function(c){ if(!anchor&&(c.classList.contains('hint')||c.classList.contains('why'))) anchor=c; });
+    if(kind==='select'){ spot.insertBefore(btns,anchor); } else { spot.insertBefore(area,anchor); spot.insertBefore(btns,anchor); }
+    spot.appendChild(f);
+    check.addEventListener('click',function(){ var r=grade();
+      if(r.soft){ spot.classList.remove('ok'); spot.classList.add('bad'); f.innerHTML='<p><span class="tag">hold on.</span>'+r.msg+'</p>'; return; }
+      if(r.ok){ fb(spot,true,part(spot,'.why')); reveal.style.display='none'; }
+      else { tries++; var h=part(spot,'.hint'); var extra=r.extra||'';
+        if(r.which&&r.which.length&&ans.length>1){ extra=' Check '+r.which.map(function(i){return labs[i]||('box '+(i+1));}).join(' and ')+'.'+extra; }
+        fb(spot,false,(extra?extra+' ':'')+h); if(tries>=2) reveal.style.display=''; } });
+    reveal.addEventListener('click',function(){ var msg=show(); spot.classList.remove('ok'); spot.classList.add('bad');
+      f.innerHTML='<p><span class="tag">answer.</span>'+msg+' '+part(spot,'.why')+'</p>'; typeset(f); });
+  });
+})();
+</script>
+</body>
+</html>

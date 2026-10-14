@@ -1,0 +1,826 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Lecture 7 — Quantum Circuits, Reversible Computation and Universality</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+  /* course additions, same family */
+  .crypto{border-left-color:var(--moss);background:var(--surface2)} .crypto .lbl{color:var(--moss)}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  dl.gloss dt{font-family:var(--mono);color:var(--sky);font-size:.95rem;margin-top:.9em}
+  dl.gloss dd{margin:.1em 0 0 1.1em}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<style id="spot-css">
+.spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+  border-radius:6px;padding:12px 16px;margin:1.3em 0;transition:background .25s,border-color .25s}
+.spot .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em;color:var(--sky)}
+.spot > p{margin:.35em 0}
+.spot .hint,.spot .why,.spot .oh{display:none}
+.spot .fb{display:none;margin:.55em 0 0;font-size:.97rem}
+.spot .fb > :first-child{margin-top:0}.spot .fb > :last-child{margin-bottom:0}
+.spot.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 13%,var(--surface))}
+.spot.ok .lbl{color:var(--moss)}
+.spot.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 13%,var(--surface))}
+.spot.bad .lbl{color:var(--amber)}
+.spot.ok .fb{display:block;color:var(--ink)} .spot.bad .fb{display:block;color:var(--ink)}
+.spot .fb .tag{font-family:var(--mono);font-size:.85rem;margin-right:.4em}
+.spot.ok .fb .tag{color:var(--moss)} .spot.bad .fb .tag{color:var(--amber)}
+.spot ul.opts{list-style:none;padding:0;margin:.5em 0}
+.spot ul.opts li{display:block;padding:4px 8px 4px 2.1em;text-indent:-1.5em;margin:3px 0;border-radius:5px;cursor:pointer;
+  border:1px solid transparent;overflow-wrap:anywhere}
+.spot ul.opts li > *{text-indent:0}
+.spot ul.opts li:hover{border-color:var(--rule)}
+.spot ul.opts li input{accent-color:var(--sky);margin:0 .6em 0 0;width:.9em;vertical-align:-1px}
+.spot ul.opts li.right{border-color:var(--moss)}
+.spot .row{display:flex;flex-wrap:wrap;gap:.6em 1em;align-items:center;margin:.55em 0 .2em}
+.spot .row label{font-family:var(--mono);font-size:.88rem;color:var(--muted);display:flex;gap:.45em;align-items:center}
+.spot input.ans{font-family:var(--mono);font-size:.95rem;width:9.5em;max-width:100%;padding:5px 8px;border-radius:5px;
+  border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.spot input.ans:focus,.spot select:focus{outline:2px solid var(--sky);outline-offset:1px}
+.spot select{font-family:var(--mono);font-size:.9rem;padding:3px 6px;border-radius:5px;border:1px solid var(--rule);
+  background:var(--bg);color:var(--ink);max-width:100%}
+.spot .btns{display:flex;gap:.5em;flex-wrap:wrap;margin-top:.5em}
+.spot .btns button{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--sky);border:1px solid var(--sky);
+  padding:5px 12px;border-radius:999px;cursor:pointer}
+.spot .btns button:hover{background:var(--sky);color:var(--bg)}
+.spot .btns button.reveal{color:var(--muted);border-color:var(--rule)}
+.spot .btns button.reveal:hover{background:var(--rule);color:var(--ink)}
+.spot .fmt{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+@media print{.spot .btns,.spot .fmt{display:none}}
+</style>
+<script src="/assets/courses/common/course-nav.js" data-course="quantum-computing" defer></script>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Quantum Computing · Lecture 7</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Lecture 7<br>Quantum Circuits, Reversible Computation and Universality</h1>
+<p class="kicker">Week 4 &nbsp;|&nbsp; every classical function fits inside a quantum computer, if you clean up after yourself &nbsp;|&nbsp; reading: Watrous §3.1 and Ch. 6</p>
+
+<figure class="toon">
+<svg viewBox="0 0 600 210" width="600" height="210" role="img" aria-labelledby="c7t c7d">
+<title id="c7t">Cartoon: a cook who washes up</title><desc id="c7d">A stick figure stands at a counter holding out a finished plate. Behind the figure are a pot and a tall stack of dirty bowls. A speech bubble says: serve the dish, then wash every bowl, or the next recipe will not work.</desc>
+<defs><filter id="rough77" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="77" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough77)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="250" cy="112" r="11"/><path d="M 250 123 L 250 154"/><path d="M 250 130 L 232 150"/><path d="M 250 130 L 296 122"/><path d="M 250 154 L 239 186"/><path d="M 250 154 L 261 186"/>
+<ellipse cx="318" cy="122" rx="24" ry="6" fill="var(--surface2)" stroke="var(--moss)"/><path d="M 306 116 Q 318 104 330 116" stroke="var(--amber)"/>
+<path d="M 60 150 L 200 150"/><path d="M 70 150 L 70 186"/><path d="M 190 150 L 190 186"/>
+<path d="M 86 150 L 86 124 L 128 124 L 128 150" fill="var(--surface2)"/><path d="M 80 124 L 134 124"/>
+<path d="M 146 150 Q 166 160 186 150"/><path d="M 148 142 Q 166 152 184 142"/><path d="M 150 134 Q 166 144 182 134"/><path d="M 152 126 Q 166 136 180 126"/><path d="M 154 118 Q 166 128 178 118"/>
+<rect x="330" y="12" width="252" height="76" rx="9" fill="var(--surface2)"/><path d="M 360 86 L 272 100 L 386 86" fill="var(--surface2)" stroke-width="1.6"/>
+<path d="M 20 196 L 580 196" stroke-width="1.6"/>
+</g>
+<text x="344" y="36" class="ctext">serve the dish, then wash</text><text x="344" y="56" class="ctext">every bowl, or the next</text><text x="344" y="76" class="ctext">recipe will not work.</text>
+<text x="166" y="112" class="ccap" text-anchor="middle">garbage</text>
+</svg>
+<figcaption class="tooncap">compute, copy the answer, uncompute: leftover work qubits spoil later interference</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">The circuit model and its costs</a></li>
+<li><a href="#s2">Classical logic must become reversible</a></li>
+<li><a href="#s3">The standard oracle</a></li>
+<li><a href="#s4">Garbage, and how to uncompute it</a></li>
+<li><a href="#s5">Universal gate sets</a></li>
+<li><a href="#s6">What a Toffoli really costs</a></li>
+<li><a href="#s7">Try it in code</a></li>
+<li><a href="#s8">Summary and exercises</a></li>
+</ol>
+</div>
+
+<p>Lectures 3 to 6 built the vocabulary: states, gates, entanglement, measurement. This lecture turns the vocabulary into a model of computation. By the end you should be able to measure the size and depth of a circuit, explain why classical logic has to be made reversible before a quantum computer can run it, write down the standard oracle \(U_f\) for any function \(f\), explain why leftover "garbage" qubits wreck quantum algorithms and how Bennett's trick removes them, and say precisely what it means for a gate set to be universal and why the \(T\) gate is the expensive one.</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; The circuit model and its costs</h2>
+
+<p>We have been drawing circuits since Lecture 4. Here is the official version.</p>
+
+<div class="box def">
+<span class="lbl">definition 7.1 &mdash; quantum circuit, size, depth</span>
+<p>A <strong>quantum circuit</strong> on \(n\) qubits is a finite sequence of gates, each a unitary acting on one, two or a few named qubits, possibly followed by measurements. Its <strong>width</strong> is \(n\). Its <strong>size</strong> is the number of gates. Its <strong>depth</strong> is the smallest number of <em>layers</em> into which the gates can be grouped, where the gates in a layer act on disjoint qubits (so they can run at the same time) and the layers are applied in order.</p>
+</div>
+<div class="spot" data-kind="num" data-ans="5|4" data-labels="size|depth">
+<p>A four-qubit circuit applies, in this order, <code>h(0)</code>, <code>cx(0, 1)</code>, <code>cx(1, 2)</code>, <code>cx(2, 3)</code>, <code>h(0)</code>. What are its size and depth?</p>
+<div class="hint">Size counts gates. For depth, place each gate in the first layer after the last gate that used any of its qubits.</div>
+<div class="why">Size 5. The CNOTs form a chain of layers 2, 3, 4 (each shares a qubit with the previous one), and the second \(H\) fits into layer 3 beside <code>cx(1, 2)</code>, so the depth is 4.</div>
+</div>
+
+
+<figure>
+<svg viewBox="0 0 720 250" width="720" height="250" role="img" aria-labelledby="lyt lyd"><title id="lyt">Size and depth of a three-qubit circuit</title><desc id="lyd">A circuit on qubits q0, q1, q2 drawn with q0 on top. Layer 1 (shaded) holds three H gates, one on each qubit. Layer 2 holds a CNOT with control q0 and target q1. Layer 3 holds a CNOT with control q1 and target q2 and, in parallel, a T gate on q0. The circuit has size 6 (six gates) and depth 3 (three layers).</desc><rect x="0" y="0" width="720" height="250" rx="8" class="plot-bg"/><rect x="88" y="30" width="84" height="176" rx="6" fill="var(--sky)" fill-opacity="0.10" stroke="var(--sky)" stroke-dasharray="4 4"/><text class="axtext" x="130.0" y="226.0" text-anchor="middle" style="fill:var(--sky)">layer 1</text><rect x="198" y="30" width="84" height="176" rx="6" fill="var(--sky)" fill-opacity="0.10" stroke="var(--sky)" stroke-dasharray="4 4"/><text class="axtext" x="240.0" y="226.0" text-anchor="middle" style="fill:var(--sky)">layer 2</text><rect x="308" y="30" width="84" height="176" rx="6" fill="var(--sky)" fill-opacity="0.10" stroke="var(--sky)" stroke-dasharray="4 4"/><text class="axtext" x="350.0" y="226.0" text-anchor="middle" style="fill:var(--sky)">layer 3</text><text class="lbltext" x="22.0" y="65.0" text-anchor="start" style="fill:var(--sky)">q0</text><line x1="60" y1="60" x2="420" y2="60" stroke="var(--ink)" stroke-width="2"/><rect x="112.0" y="43.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="130.0" y="65.0" text-anchor="middle" style="fill:var(--amber)">H</text><text class="lbltext" x="22.0" y="125.0" text-anchor="start" style="fill:var(--sky)">q1</text><line x1="60" y1="120" x2="420" y2="120" stroke="var(--ink)" stroke-width="2"/><rect x="112.0" y="103.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="130.0" y="125.0" text-anchor="middle" style="fill:var(--amber)">H</text><text class="lbltext" x="22.0" y="185.0" text-anchor="start" style="fill:var(--sky)">q2</text><line x1="60" y1="180" x2="420" y2="180" stroke="var(--ink)" stroke-width="2"/><rect x="112.0" y="163.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="130.0" y="185.0" text-anchor="middle" style="fill:var(--amber)">H</text><line x1="240" y1="60" x2="240" y2="120" stroke="var(--rose)" stroke-width="2"/><circle cx="240" cy="60" r="6" fill="var(--rose)"/><circle cx="240" cy="120" r="13" fill="var(--surface2)" stroke="var(--rose)" stroke-width="2"/><line x1="227" y1="120" x2="253" y2="120" stroke="var(--rose)" stroke-width="2"/><line x1="240" y1="107" x2="240" y2="133" stroke="var(--rose)" stroke-width="2"/><line x1="350" y1="120" x2="350" y2="180" stroke="var(--rose)" stroke-width="2"/><circle cx="350" cy="120" r="6" fill="var(--rose)"/><circle cx="350" cy="180" r="13" fill="var(--surface2)" stroke="var(--rose)" stroke-width="2"/><line x1="337" y1="180" x2="363" y2="180" stroke="var(--rose)" stroke-width="2"/><line x1="350" y1="167" x2="350" y2="193" stroke="var(--rose)" stroke-width="2"/><rect x="332.0" y="43.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--moss)" stroke-width="2"/><text class="lbltext" x="350.0" y="65.0" text-anchor="middle" style="fill:var(--moss)">T</text><text class="lbltext" x="460.0" y="90.0" text-anchor="start">size  = 6 gates</text><text class="lbltext" x="460.0" y="120.0" text-anchor="start">depth = 3 layers</text><text class="lbltext" x="460.0" y="150.0" text-anchor="start">two-qubit gates = 2</text><text class="lbltext" x="460.0" y="180.0" text-anchor="start">T-count = 1</text></svg>
+<figcaption>Example 7.1 as a circuit. The \(T\) gate on qubit 0 does not share a qubit with <code>cx(1, 2)</code>, so the two run in the same layer. Qiskit's <code>size()</code> and <code>depth()</code> methods return 6 and 3.</figcaption>
+</figure>
+
+<div class="box ex">
+<span class="lbl">example 7.1 &mdash; counting</span>
+<p>The circuit in the figure applies \(H\) to qubits 0, 1 and 2, then <code>cx(0, 1)</code>, then <code>cx(1, 2)</code>, then \(T\) on qubit 0. Find its size, depth, number of two-qubit gates, and number of \(T\) gates.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>There are six gates, so the size is 6. The three \(H\) gates act on different qubits and form layer 1. <code>cx(0, 1)</code> needs qubits 0 and 1, which are free after layer 1, so it forms layer 2. <code>cx(1, 2)</code> must wait for <code>cx(0, 1)</code> to release qubit 1, so it goes in layer 3, and the \(T\) on qubit 0 also waits for <code>cx(0, 1)</code>, so it goes in layer 3 as well. Depth 3. Two gates act on two qubits, and there is one \(T\) gate.</p>
+<p>The order of the last two gates in the gate list does not matter: gates on disjoint qubits commute (Lecture 5), so the depth counts only the chains of gates that genuinely wait for each other.</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; four ways to measure cost</span>
+<p><strong>Size</strong> is total work. <strong>Depth</strong> is running time, and on today's hardware it also sets how long qubits must survive before they decohere. The <strong>two-qubit gate count</strong> matters because two-qubit gates are the noisiest operations (Lecture 6). The <strong>\(T\)-count</strong>, the number of \(T\) and \(T^\dagger\) gates, is the currency of fault-tolerant machines (Section 5). A good compiler trades these against each other; no single number captures "cost".</p>
+</div>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; Classical logic must become reversible</h2>
+
+<p>Quantum algorithms constantly need classical subroutines: adding numbers, comparing strings, evaluating a cipher. Can a quantum computer run a classical circuit? Not directly. Every gate is unitary, hence invertible, but the AND gate is not: it sends three different inputs \(00,01,10\) to the same output 0, so the input cannot be recovered from the output. Information is destroyed.</p>
+
+<p>There is also a physical reason to care. Landauer's principle says that erasing one bit of information in an environment at temperature \(\mathcal T\) dissipates at least \(k_B\mathcal T\ln2\) of energy as heat. Reversible computation erases nothing, so in principle it has no such floor. For us the point is simpler: unitaries cannot erase, so we must compute without erasing.</p>
+<div class="spot" data-kind="multi">
+<p>Tick every map on two bits \((a,b)\) that could be the action of a quantum gate on the four basis states \(|a,b\rangle\).</p>
+<ul class="opts">
+<li>\((a,b)\mapsto(a,\ a\wedge b)\)<span class="oh">\((0,0)\) and \((0,1)\) both go to \((0,0)\): two basis states with the same image, so it is not invertible.</span></li>
+<li data-ok>\((a,b)\mapsto(a\oplus b,\ b)\)</li>
+<li>\((a,b)\mapsto(a\vee b,\ a\wedge b)\)<span class="oh">\((0,1)\) and \((1,0)\) both go to \((1,0)\). Keeping two output bits is not enough; the map must be one-to-one.</span></li>
+<li data-ok>\((a,b)\mapsto(b,\ a)\)</li>
+</ul>
+<div class="hint">A gate is unitary, hence invertible, so on basis states it must be a permutation: no two inputs may share an output. Look for a collision.</div>
+<div class="why">\((a\oplus b,b)\) is a CNOT and \((b,a)\) is SWAP, both permutations. The other two send two different inputs to the same output, which no unitary can do.</div>
+</div>
+
+
+<p>The standard fix keeps the inputs and writes the answer into a fresh bit.</p>
+
+<div class="box def">
+<span class="lbl">definition 7.2 &mdash; the Toffoli gate</span>
+<p>The <strong>Toffoli</strong> (controlled-controlled-NOT) gate acts on three qubits, flipping the target exactly when both controls are 1. With controls \(a,b\) and target \(c\),</p>
+$$|a,\,b,\,c\rangle\;\longmapsto\;|a,\,b,\,c\oplus ab\rangle .$$
+<p>In Qiskit it is <code>ccx(c1, c2, t)</code>. With controls on qubits 0 and 1 and the target on qubit 2, it exchanges \(|011\rangle\) and \(|111\rangle\) (written \(|q_2q_1q_0\rangle\), basis vectors 3 and 7) and fixes the other six basis states.</p>
+</div>
+
+<div class="box thm">
+<span class="lbl">proposition 7.1 &mdash; Toffoli is a reversible AND</span>
+<p>The Toffoli gate is a permutation of the eight basis states, it is its own inverse, and with the target initialised to 0 it computes \(a\wedge b\) while keeping \(a\) and \(b\).</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Applying it twice gives \(|a,b,c\oplus ab\oplus ab\rangle=|a,b,c\rangle\), so it is its own inverse; a map that has an inverse is a bijection, so it permutes the basis states, and its matrix is a permutation matrix, which is unitary. With \(c=0\) the target becomes \(0\oplus ab=ab=a\wedge b\).</p>
+</div>
+</div>
+<div class="spot" data-kind="num" data-ans="1/4" data-labels="P(q2 = 1)">
+<p>Qubits 0 and 1 are both in \(|+\rangle\) and qubit 2 is in \(|0\rangle\). After <code>ccx(0, 1, 2)</code>, qubit 2 is measured. What is the probability of outcome 1?</p>
+<div class="hint">Expand \(|+\rangle|+\rangle\) into the four basis states \(|q_1q_0\rangle\), each with amplitude \(\tfrac12\). In which of them does the Toffoli flip the target?</div>
+<div class="why">The target becomes \(q_0\wedge q_1\), which is 1 only on \(|11\rangle\): probability \(\tfrac14\). The Toffoli computes AND on every branch of the superposition at once.</div>
+</div>
+
+
+<figure>
+<svg viewBox="0 0 720 300" width="720" height="300" role="img" aria-labelledby="tft tfd"><title id="tft">The Toffoli gate and an OR gate built from it</title><desc id="tfd">Left: the Toffoli gate ccx(0, 1, 2) with controls on q0 = a and q1 = b and target q2 = c, mapping |c b a> to |c xor ab, b, a>. A truth table below lists the eight inputs; only the rows a = b = 1 change the target. Right: the OR circuit of Example 7.2: X gates on a and b, then a Toffoli into c, then X on c, then X gates on a and b again, which outputs c xor (a or b).</desc><rect x="0" y="0" width="720" height="300" rx="8" class="plot-bg"/><text class="axtext" x="16.0" y="55.0" text-anchor="start" style="fill:var(--sky)">q0 = a</text><line x1="80" y1="50" x2="200" y2="50" stroke="var(--ink)" stroke-width="2"/><text class="axtext" x="16.0" y="105.0" text-anchor="start" style="fill:var(--sky)">q1 = b</text><line x1="80" y1="100" x2="200" y2="100" stroke="var(--ink)" stroke-width="2"/><text class="axtext" x="16.0" y="155.0" text-anchor="start" style="fill:var(--sky)">q2 = c</text><line x1="80" y1="150" x2="200" y2="150" stroke="var(--ink)" stroke-width="2"/><line x1="140" y1="50" x2="140" y2="150" stroke="var(--rose)" stroke-width="2"/><circle cx="140" cy="50" r="6" fill="var(--rose)"/><circle cx="140" cy="100" r="6" fill="var(--rose)"/><circle cx="140" cy="150" r="13" fill="var(--surface2)" stroke="var(--rose)" stroke-width="2"/><line x1="127" y1="150" x2="153" y2="150" stroke="var(--rose)" stroke-width="2"/><line x1="140" y1="137" x2="140" y2="163" stroke="var(--rose)" stroke-width="2"/><text class="lbltext" x="212.0" y="55.0" text-anchor="start">a</text><text class="lbltext" x="212.0" y="105.0" text-anchor="start">b</text><text class="lbltext" x="212.0" y="155.0" text-anchor="start" style="fill:var(--rose)">c xor ab</text><text class="axtext" x="20.0" y="196.0" text-anchor="start">truth table, written abc -&gt; abc'</text><text class="axtext" x="20.0" y="222.0" text-anchor="start">000-&gt;000</text><text class="axtext" x="92.0" y="222.0" text-anchor="start">001-&gt;001</text><text class="axtext" x="164.0" y="222.0" text-anchor="start">010-&gt;010</text><text class="axtext" x="236.0" y="222.0" text-anchor="start">011-&gt;011</text><text class="axtext" x="20.0" y="248.0" text-anchor="start">100-&gt;100</text><text class="axtext" x="92.0" y="248.0" text-anchor="start">101-&gt;101</text><text class="axtext" x="164.0" y="248.0" text-anchor="start" style="fill:var(--rose)">110-&gt;111</text><text class="axtext" x="236.0" y="248.0" text-anchor="start" style="fill:var(--rose)">111-&gt;110</text><text class="axtext" x="312.0" y="22.0" text-anchor="start">Example 7.2: OR from Toffoli</text><text class="lbltext" x="312.0" y="55.0" text-anchor="start">a</text><line x1="346" y1="50" x2="628" y2="50" stroke="var(--ink)" stroke-width="2"/><text class="lbltext" x="312.0" y="105.0" text-anchor="start">b</text><line x1="346" y1="100" x2="628" y2="100" stroke="var(--ink)" stroke-width="2"/><text class="lbltext" x="312.0" y="155.0" text-anchor="start">|0&gt;</text><line x1="346" y1="150" x2="628" y2="150" stroke="var(--ink)" stroke-width="2"/><rect x="367.0" y="35.0" width="30" height="30" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="382.0" y="55.0" text-anchor="middle" style="fill:var(--amber)">X</text><rect x="367.0" y="85.0" width="30" height="30" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="382.0" y="105.0" text-anchor="middle" style="fill:var(--amber)">X</text><line x1="452" y1="50" x2="452" y2="150" stroke="var(--rose)" stroke-width="2"/><circle cx="452" cy="50" r="6" fill="var(--rose)"/><circle cx="452" cy="100" r="6" fill="var(--rose)"/><circle cx="452" cy="150" r="13" fill="var(--surface2)" stroke="var(--rose)" stroke-width="2"/><line x1="439" y1="150" x2="465" y2="150" stroke="var(--rose)" stroke-width="2"/><line x1="452" y1="137" x2="452" y2="163" stroke="var(--rose)" stroke-width="2"/><rect x="507.0" y="135.0" width="30" height="30" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="522.0" y="155.0" text-anchor="middle" style="fill:var(--amber)">X</text><rect x="567.0" y="35.0" width="30" height="30" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="582.0" y="55.0" text-anchor="middle" style="fill:var(--amber)">X</text><rect x="567.0" y="85.0" width="30" height="30" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="582.0" y="105.0" text-anchor="middle" style="fill:var(--amber)">X</text><text class="lbltext" x="636.0" y="55.0" text-anchor="start">a</text><text class="lbltext" x="636.0" y="105.0" text-anchor="start">b</text><text class="lbltext" x="636.0" y="155.0" text-anchor="start" style="fill:var(--rose)">a OR b</text><text class="axtext" x="312.0" y="196.0" text-anchor="start">NOT a AND NOT b is 1 exactly when a = b = 0;</text><text class="axtext" x="312.0" y="218.0" text-anchor="start">negating it gives a OR b (De Morgan).</text><text class="axtext" x="312.0" y="244.0" text-anchor="start">The last two X gates restore a and b.</text></svg>
+<figcaption>Left: the Toffoli gate and its truth table; only the two rows with \(a=b=1\) change. Right: an OR gate built from one Toffoli and five \(X\) gates (Example 7.2).</figcaption>
+</figure>
+
+<div class="box ex">
+<span class="lbl">example 7.2 &mdash; OR from a Toffoli</span>
+<p>Build a reversible circuit that maps \(|a,b,0\rangle\) to \(|a,b,a\vee b\rangle\) using one Toffoli and \(X\) gates.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>De Morgan's law says \(a\vee b=\neg(\neg a\wedge\neg b)\). So: apply \(X\) to \(a\) and \(b\) (now they hold \(\neg a,\neg b\)); apply the Toffoli, which writes \(\neg a\wedge\neg b\) into the target; apply \(X\) to the target, giving \(\neg(\neg a\wedge\neg b)=a\vee b\); finally apply \(X\) to \(a\) and \(b\) again to restore them. Checking all eight inputs \(|a,b,c\rangle\) confirms the circuit maps them to \(|a,b,c\oplus(a\vee b)\rangle\) (verify_L07.py does this). The last two \(X\) gates are a tiny first example of <em>uncomputation</em>: undoing work we no longer need, so the inputs come out as they went in.</p>
+</div>
+</div>
+
+<p>AND, OR and NOT (a single \(X\)) are not quite enough to run every classical circuit: classical circuits also copy bits (FANOUT), and copying an unknown bit must also be done reversibly. HW4 asks you to build NOT and FANOUT from Toffoli gates with constant inputs, which shows that the Toffoli gate by itself is universal for reversible classical computation.</p>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; The standard oracle</h2>
+
+<p>Everything in Unit 2 of the course, from Deutsch–Jozsa to Grover to Shor, accesses a function \(f\) through one standard gate.</p>
+
+<div class="box def">
+<span class="lbl">definition 7.3 &mdash; standard oracle</span>
+<p>For a function \(f:\{0,1\}^n\to\{0,1\}^m\), the <strong>standard oracle</strong> is the gate on \(n+m\) qubits defined on basis states by</p>
+$$U_f\,|x\rangle|y\rangle=|x\rangle\,|y\oplus f(x)\rangle ,$$
+<p>where \(x\) is an \(n\)-bit input register, \(y\) an \(m\)-bit output register, and \(\oplus\) is bitwise XOR. Extended by linearity, it acts on superpositions of inputs.</p>
+</div>
+
+<div class="box thm">
+<span class="lbl">proposition 7.2 &mdash; every standard oracle is unitary</span>
+<p>For every function \(f\), however irreversible, \(U_f\) is a permutation matrix and \(U_f^2=I\). In particular \(U_f\) is unitary.</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Applying \(U_f\) twice gives \(|x\rangle|y\oplus f(x)\oplus f(x)\rangle=|x\rangle|y\rangle\), because \(z\oplus z=0\) bitwise. So \(U_f\) is its own inverse, hence a bijection of the \(2^{n+m}\) basis states, hence a permutation matrix. Permutation matrices have orthonormal columns, so they are unitary.</p>
+</div>
+</div>
+<div class="spot" data-kind="select">
+<p>Let \(f(x_1x_0)=x_1\vee x_0\) (OR) with a one-bit output. The standard oracle sends \(|x\rangle|y\rangle=|10\rangle|1\rangle\) to \(|10\rangle\) followed by
+<select><option data-ok>|0⟩</option><option data-hint="U_f does not overwrite y with f(x); it XORs f(x) into y.">|1⟩</option><option data-hint="On a basis state U_f gives a basis state: it is a permutation matrix.">|+⟩</option></select>.</p>
+<div class="hint">Compute \(f(10)\) first, then \(y\oplus f(x)\), not \(f(x)\) alone.</div>
+<div class="why">\(f(10)=1\) and \(1\oplus1=0\). The output register is XORed, never overwritten; that is what makes \(U_f\) reversible.</div>
+</div>
+
+
+<p>Several gates we already know are standard oracles. CNOT <code>cx(0, 1)</code> is \(U_f\) for the one-bit identity \(f(x)=x\); \(X\) on the output qubit is \(U_f\) for the constant \(f(x)=1\); and the Toffoli is \(U_f\) for \(f(a,b)=a\wedge b\). Notice that \(U_f\) is reversible even though \(f\) need not be: the trick is that it keeps \(x\).</p>
+
+<p>The output register can also be prepared in \(|-\rangle\) instead of a basis state. Then the oracle changes nothing but a sign, which is exactly phase kickback from Lecture 6.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 7.3 &mdash; the phase oracle</span>
+<p>For \(f:\{0,1\}^n\to\{0,1\}\) and every input \(x\),</p>
+$$U_f\,|x\rangle|-\rangle=(-1)^{f(x)}\,|x\rangle|-\rangle .$$
+<p>So on a superposition, \(U_f\big(\sum_x\alpha_x|x\rangle\big)|-\rangle=\big(\sum_x(-1)^{f(x)}\alpha_x|x\rangle\big)|-\rangle\): the function value is written into the phases of the input register.</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>If \(f(x)=0\), \(U_f\) does nothing. If \(f(x)=1\), it applies \(X\) to the output qubit, and \(X|-\rangle=-|-\rangle\). Both cases are \((-1)^{f(x)}|x\rangle|-\rangle\). The superposition statement follows by linearity.</p>
+</div>
+</div>
+
+<p>How big is \(U_f\) as a circuit? If \(f\) has a classical circuit, not much bigger.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 7.4 &mdash; classical circuits become reversible circuits</span>
+<p>If \(f\) is computed by a classical circuit with \(g\) gates (AND, OR, NOT, FANOUT), then there is a circuit of \(O(g)\) Toffoli, CNOT and \(X\) gates, using \(O(g)\) extra qubits initialised to \(|0\rangle\), that maps</p>
+$$|x\rangle\,|0\cdots0\rangle\;\longmapsto\;|x\rangle\,|f(x)\rangle\,|\mathrm{garbage}(x)\rangle ,$$
+<p>where the garbage register holds the intermediate values of the classical computation.</p>
+<button class="sol-btn">show proof sketch</button>
+<div class="sol">
+<p>Replace each classical gate by its reversible version writing into a fresh qubit that starts at 0: AND by a Toffoli, OR as in Example 7.2, NOT by a CNOT into a fresh 0 followed by \(X\) on that qubit, and FANOUT by a CNOT into a fresh 0 (on basis states a CNOT into \(|0\rangle\) copies a bit). Each classical wire becomes a qubit that holds its value at the end, so the intermediate wires are the garbage. Each replacement uses a constant number of gates, which gives the \(O(g)\) bound.</p>
+</div>
+</div>
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; Garbage, and how to uncompute it</h2>
+
+<p>Theorem 7.4 computes \(f\), but it leaves garbage behind. For a classical computer that would be harmless. For a quantum algorithm it is fatal, because the garbage depends on \(x\), so it becomes entangled with the input register, and entanglement with anything that records \(x\) destroys interference between different values of \(x\). Here is the smallest example.</p>
+
+<div class="box ex">
+<span class="lbl">example 7.3 &mdash; garbage destroys interference</span>
+<p>Take \(f(x)=x\) on one bit, with the input \(x\) on qubit 0 and the output on qubit 1 prepared in \(|-\rangle\). Apply \(H\) to \(x\), then the phase oracle (a CNOT), then \(H\) again, and measure \(x\). Compare with a sloppy oracle that also leaves a copy of \(x\) in a garbage qubit \(g\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p><strong>Clean oracle.</strong> After the first \(H\), \(x\) is in \(|+\rangle\). By Proposition 7.3 the oracle turns \(\tfrac{1}{\sqrt2}(|0\rangle+|1\rangle)\) into \(\tfrac{1}{\sqrt2}(|0\rangle-|1\rangle)=|-\rangle\), and the final \(H\) turns that into \(|1\rangle\). The measurement gives \(x=1\) with certainty: the two "paths" \(x=0\) and \(x=1\) interfered completely.</p>
+<p><strong>Sloppy oracle.</strong> Now the oracle also copies \(x\) into \(g\), which starts in \(|0\rangle\). Before the final \(H\) the input and garbage are in</p>
+$$\frac{1}{\sqrt2}\Big(|0\rangle_x|0\rangle_g-|1\rangle_x|1\rangle_g\Big),$$
+<p>an entangled state (the output qubit stays \(|-\rangle\) and plays no further role). Apply \(H\) to \(x\):</p>
+$$\begin{aligned}&\frac12\Big((|0\rangle+|1\rangle)|0\rangle_g-(|0\rangle-|1\rangle)|1\rangle_g\Big)\\[4pt] &\quad=\frac12\Big(|0\rangle|0\rangle_g+|1\rangle|0\rangle_g-|0\rangle|1\rangle_g+|1\rangle|1\rangle_g\Big).\end{aligned}$$
+<p>By Rule 6.2, \(P(x=0)=\big|\tfrac12\big|^2+\big|{-\tfrac12}\big|^2=\tfrac12\). The two terms that should have cancelled carry different garbage values, \(|0\rangle_g\) and \(|1\rangle_g\), so they are orthogonal and cannot cancel. The garbage holds "which-path" information, and a path that has been recorded cannot interfere.</p>
+<p><strong>Repair.</strong> Apply the copying CNOT a second time before the final \(H\). It returns \(g\) to \(|0\rangle\) for both values of \(x\), the garbage factors out, and the answer \(x=1\) is certain again.</p>
+</div>
+</div>
+<div class="spot" data-kind="multi">
+<p>A reversible circuit computes \(f(x)\) cleanly but leaves one extra qubit in the basis state \(|g(x)\rangle\). Tick every choice of \(g\) for which interference between different inputs \(x\) still works as if there were no extra qubit.</p>
+<ul class="opts">
+<li data-ok>\(g(x)=0\) for every \(x\)</li>
+<li data-ok>\(g(x)=1\) for every \(x\)</li>
+<li>\(g(x)=x_0\), the last bit of \(x\)<span class="oh">Inputs that differ in \(x_0\) now carry orthogonal garbage, so their terms can never cancel: that is Example 7.3.</span></li>
+<li>\(g(x)=1-x_0\)<span class="oh">Flipping the record does not erase it: the garbage still tells \(x_0=0\) from \(x_0=1\).</span></li>
+</ul>
+<div class="hint">The extra qubit is harmless exactly when it factors out of the sum over \(x\): when \(|g(x)\rangle\) is the same state for every \(x\).</div>
+<div class="why">Constant garbage, \(|0\rangle\) or \(|1\rangle\), factors out of \(\sum_x\alpha_x|x\rangle|g\rangle\). What destroys interference is garbage that records something about \(x\), whatever its value.</div>
+</div>
+
+
+<p>The repair generalises. Bennett's trick runs the computation, copies out the answer, and then runs the computation backwards.</p>
+
+<figure>
+<svg viewBox="0 0 720 280" width="720" height="280" role="img" aria-labelledby="bnt bnd"><title id="bnt">Compute, copy, uncompute</title><desc id="bnd">Three registers: input x on top, a work register starting in |0> in the middle, and an output register starting in |y> at the bottom. A box labelled C computes f(x) and garbage g(x) into the work register. CNOT gates copy f(x) into the output register. A box labelled C-inverse runs the computation backwards, returning the work register to |0>. State labels between the stages read: |x>|0>|y>, then |x>|f(x) g(x)>|y>, then |x>|f(x) g(x)>|y xor f(x)>, then |x>|0>|y xor f(x)>.</desc><rect x="0" y="0" width="720" height="280" rx="8" class="plot-bg"/><text class="lbltext" x="20.0" y="75.0" text-anchor="start" style="fill:var(--sky)">x</text><text class="lbltext" x="20.0" y="135.0" text-anchor="start" style="fill:var(--sky)">work</text><text class="lbltext" x="20.0" y="205.0" text-anchor="start" style="fill:var(--sky)">out</text><text class="lbltext" x="70.0" y="75.0" text-anchor="start">|x&gt;</text><text class="lbltext" x="70.0" y="135.0" text-anchor="start">|0&gt;</text><text class="lbltext" x="70.0" y="205.0" text-anchor="start">|y&gt;</text><line x1="110" y1="70" x2="600" y2="70" stroke="var(--ink)" stroke-width="5" stroke-opacity="0.9"/><line x1="110" y1="130" x2="600" y2="130" stroke="var(--ink)" stroke-width="5" stroke-opacity="0.9"/><line x1="110" y1="200" x2="600" y2="200" stroke="var(--ink)" stroke-width="5" stroke-opacity="0.9"/><rect x="170" y="46" width="80" height="108" rx="6" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2.2"/><text class="lbltext" x="210.0" y="106.0" text-anchor="middle" style="fill:var(--amber);font-size:20px">C</text><line x1="360" y1="130" x2="360" y2="200" stroke="var(--rose)" stroke-width="2"/><circle cx="360" cy="130" r="6" fill="var(--rose)"/><circle cx="360" cy="200" r="13" fill="var(--surface2)" stroke="var(--rose)" stroke-width="2"/><line x1="347" y1="200" x2="373" y2="200" stroke="var(--rose)" stroke-width="2"/><line x1="360" y1="187" x2="360" y2="213" stroke="var(--rose)" stroke-width="2"/><text class="axtext" x="360.0" y="110.0" text-anchor="middle" style="fill:var(--rose)">copy f(x)</text><rect x="470" y="46" width="80" height="108" rx="6" fill="var(--surface2)" stroke="var(--moss)" stroke-width="2.2"/><text class="lbltext" x="510.0" y="106.0" text-anchor="middle" style="fill:var(--moss);font-size:18px">C^-1</text><text class="lbltext" x="610.0" y="75.0" text-anchor="start">|x&gt;</text><text class="lbltext" x="610.0" y="135.0" text-anchor="start">|0&gt;</text><text class="lbltext" x="610.0" y="205.0" text-anchor="start" style="fill:var(--rose)">|y xor f(x)&gt;</text><line x1="140" y1="36" x2="140" y2="232" stroke="var(--axis)" stroke-dasharray="3 5"/><text class="axtext" x="140.0" y="256.0" text-anchor="middle">|x&gt;|0&gt;|y&gt;</text><line x1="305" y1="36" x2="305" y2="232" stroke="var(--axis)" stroke-dasharray="3 5"/><text class="axtext" x="305.0" y="256.0" text-anchor="middle">|x&gt;|f,g&gt;|y&gt;</text><line x1="415" y1="36" x2="415" y2="232" stroke="var(--axis)" stroke-dasharray="3 5"/><text class="axtext" x="415.0" y="256.0" text-anchor="middle">|x&gt;|f,g&gt;|y+f&gt;</text><line x1="575" y1="36" x2="575" y2="232" stroke="var(--axis)" stroke-dasharray="3 5"/><text class="axtext" x="575.0" y="256.0" text-anchor="middle">|x&gt;|0&gt;|y+f&gt;</text><text class="axtext" x="360.0" y="22.0" text-anchor="middle">f = wanted output, g = garbage;  y+f means y xor f(x)</text></svg>
+<figcaption>Compute, copy, uncompute. \(C\) is the reversible circuit of Theorem 7.4. The CNOTs copy the answer into the output register by XOR, and \(C^{-1}\) (the same gates in reverse order, each replaced by its inverse) returns the work register to \(|0\rangle\).</figcaption>
+</figure>
+
+<div class="box thm">
+<span class="lbl">theorem 7.5 &mdash; compute, copy, uncompute (Bennett)</span>
+<p>Let \(C\) be a reversible circuit with \(C|x\rangle|0\rangle=|x\rangle|f(x),\mathrm{garbage}(x)\rangle\), and let \(\mathrm{COPY}\) be \(m\) CNOTs from the \(f(x)\) part of the work register into an \(m\)-qubit output register. Then \(C^{-1}\,\mathrm{COPY}\,C\) implements the clean oracle:</p>
+$$|x\rangle|0\rangle|y\rangle\;\longmapsto\;|x\rangle|0\rangle|y\oplus f(x)\rangle .$$
+<p>It uses twice the gates of \(C\) plus \(m\) CNOTs, and the work qubits can be reused afterwards.</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Follow a basis state. \(C\) produces \(|x\rangle|f(x),\mathrm{garbage}(x)\rangle|y\rangle\). The copy step changes only the output register, to \(|y\oplus f(x)\rangle\), and leaves the other two registers exactly as \(C\) produced them. So \(C^{-1}\), which acts only on the first two registers, sees exactly the state that \(C\) created and undoes it, returning \(|x\rangle|0\rangle\). The output register is untouched by \(C^{-1}\). By linearity the same holds for every superposition of inputs, with no garbage entangled with \(x\).</p>
+</div>
+</div>
+<div class="spot" data-kind="num" data-ans="83" data-labels="gates">
+<p>A reversible circuit \(C\) of 40 gates computes a 3-bit value \(f(x)\) plus garbage. How many gates does the clean oracle \(C^{-1}\,\mathrm{COPY}\,C\) of Theorem 7.5 use?</p>
+<div class="hint">\(C^{-1}\) has as many gates as \(C\) (each gate is replaced by its inverse), and COPY uses one CNOT per output bit.</div>
+<div class="why">\(40+3+40=83\). Cleaning up roughly doubles the cost, which is the price of interference-safe oracles.</div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 7.4 &mdash; an equality oracle, computed in place</span>
+<p>Build the oracle \(|a\rangle|b\rangle|y\rangle\mapsto|a\rangle|b\rangle|y\oplus[a=b]\rangle\) for single bits \(a\) (qubit 0), \(b\) (qubit 1) and output \(y\) (qubit 2), where \([a=b]\) is 1 if \(a=b\) and 0 otherwise. Use no extra work qubits.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p><strong>Compute in place.</strong> <code>cx(0, 1)</code> replaces \(b\) by \(a\oplus b\), which is 0 exactly when \(a=b\); then <code>x(1)</code> makes qubit 1 hold \(\neg(a\oplus b)=[a=b]\). Qubit 1 has served as its own work register, and \(b\) itself is temporarily lost: that is the garbage.</p>
+<p><strong>Copy.</strong> <code>cx(1, 2)</code> XORs \([a=b]\) into \(y\).</p>
+<p><strong>Uncompute.</strong> Undo the first two gates in reverse order: <code>x(1)</code>, then <code>cx(0, 1)</code>. Qubit 1 returns to \(b\). Five gates in all, and the truth table in Section 7 confirms every row. Without the last two gates, qubit 1 would be left holding \([a=b]\) instead of \(b\), and any later interference between inputs that differ in \(b\) would suffer exactly as in Example 7.3.</p>
+</div>
+</div>
+
+<div class="widget">
+<h4>Reversible circuit lab</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Build a classical reversible circuit on four bits, \(q_0\) to \(q_3\), from \(X\), CNOT and Toffoli gates. The table lists every input, written \(q_3q_2q_1q_0\), with its output; changed bits are highlighted. The presets load Example 7.2, Example 7.4 with and without the uncompute step, and Theorem 7.5 in miniature: OR computed into a work qubit \(q_3\) that starts in 0, copied into \(q_2\), then uncomputed. When a work qubit is chosen, only inputs with that qubit 0 are listed. The check at the bottom reports whether the circuit is a clean oracle, i.e. whether every qubit other than the chosen output ends as it began, and if so prints the truth table of \(f\).</p>
+<svg id="rvCirc" viewBox="0 0 600 170" width="600" height="170" role="img" aria-labelledby="rvCirc-t rvCirc-d"><title id="rvCirc-t">The reversible circuit built so far, on four wires</title><desc id="rvCirc-d">Interactive figure, redrawn as you use the controls next to it; the text readout below it describes what is currently shown.</desc></svg>
+<div class="ctrls" id="rvPre"></div>
+<div class="ctrls">
+<label><span>gate</span><select id="rvType"><option value="x">X</option><option value="cx">CNOT</option><option value="ccx">Toffoli</option></select></label>
+<label><span>control 1</span><select id="rvC1"><option>0</option><option>1</option><option>2</option><option>3</option></select></label>
+<label><span>control 2</span><select id="rvC2"><option>0</option><option selected>1</option><option>2</option><option>3</option></select></label>
+<label><span>target</span><select id="rvT"><option>0</option><option>1</option><option selected>2</option><option>3</option></select></label>
+<button class="ctl" id="rvAdd">add gate</button><button class="ctl" id="rvUndo">undo</button><button class="ctl" id="rvClr">clear</button>
+</div>
+<div class="ctrls"><label><span>output qubit for the check</span><select id="rvOut"><option>0</option><option>1</option><option selected>2</option><option>3</option></select></label><label><span>work qubit (starts in 0)</span><select id="rvWork"><option value="none" selected>none</option><option>0</option><option>1</option><option>2</option><option>3</option></select></label></div>
+<div id="rvTable" style="overflow-x:auto;margin-top:8px"></div>
+<p class="readout" role="status" aria-live="polite" id="rvReadout"></p>
+</div>
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; Universal gate sets</h2>
+
+<p>Real hardware offers a small menu of native gates, and every circuit must be compiled into it. When is a menu big enough?</p>
+
+<div class="box def">
+<span class="lbl">definition 7.4 &mdash; universal gate set</span>
+<p>A finite set \(\mathcal G\) of gates is <strong>universal</strong> if for every \(n\), every unitary \(U\) on \(n\) qubits and every \(\varepsilon>0\), some circuit built from gates in \(\mathcal G\) (acting on any of the qubits) implements a unitary within distance \(\varepsilon\) of \(U\), up to a global phase.</p>
+</div>
+
+<p>"Within \(\varepsilon\)" is unavoidable. A finite gate set generates only countably many circuits, while there are uncountably many unitaries, so exact universality with finitely many gates is impossible. For single-qubit gates we measure distance up to phase by \(d(U,V)=\sqrt{1-|\mathrm{tr}(U^\dagger V)|/2}\), which is 0 exactly when \(V=e^{i\theta}U\).</p>
+<div class="spot" data-kind="num" data-ans="sqrt(1-cos(pi/8))" data-tol="0.002" data-labels="d(I, T)">
+<p>How far is the \(T\) gate from doing nothing? Compute \(d(I,T)\) to three decimal places.</p>
+<div class="hint">\(\mathrm{tr}(I^\dagger T)=1+e^{i\pi/4}\), and \(|1+e^{i\varphi}|=2\cos(\varphi/2)\).</div>
+<div class="why">\(|\mathrm{tr}\,T|/2=\cos(\pi/8)\approx0.924\), so \(d(I,T)=\sqrt{1-\cos(\pi/8)}\approx0.276\), about twice the distance from \(I\) to \(P(\pi/8)\) in the figure below.</div>
+</div>
+
+
+<div class="box thm">
+<span class="lbl">facts 7.6 &mdash; universality results (stated without proof)</span>
+<ol>
+<li><strong>Exact universality with continuous gates.</strong> All single-qubit gates together with CNOT generate every unitary exactly (Barenco et al., 1995). Lecture 4's Z-Y-Z decomposition handles one qubit; the work is in reducing \(n\)-qubit unitaries to two-level pieces.</li>
+<li><strong>Clifford + T.</strong> The finite set \(\{H,T,\mathrm{CNOT}\}\) is universal. The key point is that \(H\) and \(T\) generate a rotation of the Bloch sphere by an angle that is an irrational multiple of \(\pi\), whose powers come arbitrarily close to every rotation about its axis; conjugating by \(H\) gives the same for a second, non-parallel axis, and rotations about two such axes compose to every rotation (Lecture 4's Z-Y-Z idea).</li>
+<li><strong>Solovay–Kitaev.</strong> For any universal set closed under inverses, every single-qubit gate can be approximated within \(\varepsilon\) by \(O\big(\log^{c}(1/\varepsilon)\big)\) gates, with \(c\approx3.97\) in the standard construction (Dawson–Nielsen). For Clifford + T specifically, number-theoretic algorithms (Ross–Selinger) approximate a \(z\)-rotation with about \(3\log_2(1/\varepsilon)\) \(T\) gates.</li>
+<li><strong>Most unitaries are expensive.</strong> A counting argument shows that almost every \(n\)-qubit unitary needs a number of gates exponential in \(n\) to approximate (Nielsen–Chuang §4.5.4). Universality says every computation <em>can</em> be compiled; it says nothing about doing so efficiently. Efficient quantum algorithms are the rare exceptions.</li>
+<li><strong>Gottesman–Knill.</strong> Circuits made only of the Clifford gates \(H\), \(S\), CNOT (plus Pauli gates and standard-basis measurements), started from \(|0\cdots0\rangle\), can be simulated efficiently on a classical computer, even when they create large entangled states. So Clifford circuits alone give no computational speedup over classical computers; a non-Clifford gate such as \(T\) is needed. (Clifford-only protocols can still be useful, for instance BB84 in Lecture 20.)</li>
+</ol>
+</div>
+<div class="spot" data-kind="mc">
+<p>Which of these circuits, started from \(|0\cdots0\rangle\) and measured in the standard basis, is guaranteed to be efficiently simulable on a classical computer?</p>
+<ul class="opts">
+<li data-ok>500 qubits, \(10^4\) gates from \(\{H,S,\mathrm{CNOT}\}\), ending in a highly entangled state</li>
+<li>50 qubits, 200 gates from \(\{H,T,\mathrm{CNOT}\}\)<span class="oh">\(\{H,T,\mathrm{CNOT}\}\) is universal (Fact 2); a few hundred gates on 50 qubits is already out of reach of brute-force simulation.</span></li>
+<li>50 qubits, 200 gates from \(\{H,\mathrm{Toffoli}\}\)<span class="oh">The Toffoli is not a Clifford gate. Together with \(H\) it is universal for quantum computation (up to real amplitudes), so Gottesman–Knill does not apply.</span></li>
+<li>none of them: any circuit that creates a lot of entanglement is hard to simulate<span class="oh">Gottesman–Knill says otherwise: Clifford circuits can create large entangled states and still be simulated efficiently.</span></li>
+</ul>
+<div class="hint">Gottesman–Knill (Fact 5) is about which <em>gates</em> appear, not about how entangled the state gets.</div>
+<div class="why">Clifford-only circuits are classically simulable however many qubits and however much entanglement; a non-Clifford gate such as \(T\) or Toffoli is what breaks this.</div>
+</div>
+
+
+<p>The approximation in Fact 2 can be watched directly. The figure searches <em>every</em> product of \(H\) and \(T\) gates up to a given length for the best approximation of the phase gate \(P(\pi/8)=\mathrm{diag}(1,e^{i\pi/8})\), the "square root of \(T\)" that the quantum Fourier transform needs (Lecture 13).</p>
+
+<figure>
+<svg viewBox="0 0 700 330" width="700" height="330" role="img" aria-labelledby="hst hsd"><title id="hst">Approximating the gate P(pi/8) by words in H and T</title><desc id="hsd">Step plot of the smallest distance, up to global phase, between P(pi/8) and any product of at most L gates H and T, for L from 0 to 42. The distance stays at 0.139 (the identity is the best choice) up to L = 10, drops to 0.112 at L = 11, to 0.040 at L = 19, to 0.026 at L = 37 and to 0.024 at L = 42. Annotations give the number of distinct gates searched: 266 at L = 10, 3,400 at L = 19 and about 1.4 million at L = 42.</desc><rect x="76" y="24" width="600" height="248" class="plot-bg" stroke="var(--rule)"/><line class="gridline" x1="76" y1="272.0" x2="676" y2="272.0"/><text class="axtext" x="68.0" y="276.0" text-anchor="end">0.00</text><line class="gridline" x1="76" y1="189.3" x2="676" y2="189.3"/><text class="axtext" x="68.0" y="193.3" text-anchor="end">0.05</text><line class="gridline" x1="76" y1="106.7" x2="676" y2="106.7"/><text class="axtext" x="68.0" y="110.7" text-anchor="end">0.10</text><line class="gridline" x1="76" y1="24.0" x2="676" y2="24.0"/><text class="axtext" x="68.0" y="28.0" text-anchor="end">0.15</text><text class="axtext" x="76.0" y="292.0" text-anchor="middle">0</text><text class="axtext" x="161.7" y="292.0" text-anchor="middle">6</text><text class="axtext" x="247.4" y="292.0" text-anchor="middle">12</text><text class="axtext" x="333.1" y="292.0" text-anchor="middle">18</text><text class="axtext" x="418.9" y="292.0" text-anchor="middle">24</text><text class="axtext" x="504.6" y="292.0" text-anchor="middle">30</text><text class="axtext" x="590.3" y="292.0" text-anchor="middle">36</text><text class="axtext" x="676.0" y="292.0" text-anchor="middle">42</text><line class="axis" x1="76" y1="272" x2="676" y2="272"/><text class="axtext" x="376.0" y="316.0" text-anchor="middle">maximum number of gates L</text><text class="axtext" transform="translate(18,148.0) rotate(-90)" text-anchor="middle">distance to P(pi/8)</text><path class="curve" d="M76.0,42.8 L90.3,42.8 L90.3,42.8 L104.6,42.8 L104.6,42.8 L118.9,42.8 L118.9,42.8 L133.1,42.8 L133.1,42.8 L147.4,42.8 L147.4,42.8 L161.7,42.8 L161.7,42.8 L176.0,42.8 L176.0,42.8 L190.3,42.8 L190.3,42.8 L204.6,42.8 L204.6,42.8 L218.9,42.8 L218.9,42.8 L233.1,42.8 L233.1,87.1 L247.4,87.1 L247.4,87.1 L261.7,87.1 L261.7,87.1 L276.0,87.1 L276.0,87.1 L290.3,87.1 L290.3,87.1 L304.6,87.1 L304.6,87.1 L318.9,87.1 L318.9,87.1 L333.1,87.1 L333.1,87.1 L347.4,87.1 L347.4,206.3 L361.7,206.3 L361.7,206.3 L376.0,206.3 L376.0,206.3 L390.3,206.3 L390.3,206.3 L404.6,206.3 L404.6,206.3 L418.9,206.3 L418.9,206.3 L433.1,206.3 L433.1,206.3 L447.4,206.3 L447.4,206.3 L461.7,206.3 L461.7,206.3 L476.0,206.3 L476.0,206.3 L490.3,206.3 L490.3,206.3 L504.6,206.3 L504.6,206.3 L518.9,206.3 L518.9,206.3 L533.1,206.3 L533.1,206.3 L547.4,206.3 L547.4,206.3 L561.7,206.3 L561.7,206.3 L576.0,206.3 L576.0,206.3 L590.3,206.3 L590.3,206.3 L604.6,206.3 L604.6,229.2 L618.9,229.2 L618.9,229.2 L633.1,229.2 L633.1,229.2 L647.4,229.2 L647.4,229.2 L661.7,229.2 L661.7,229.2 L676.0,229.2 L676.0,232.6"/><circle cx="218.9" cy="42.8" r="4.5" fill="var(--amber)"/><text class="axtext" x="218.9" y="30.8" text-anchor="middle" style="fill:var(--amber)">266 gates</text><circle cx="347.4" cy="206.3" r="4.5" fill="var(--amber)"/><text class="axtext" x="355.4" y="196.3" text-anchor="start" style="fill:var(--amber)">3,400 gates</text><circle cx="604.6" cy="229.2" r="4.5" fill="var(--amber)"/><text class="axtext" x="596.6" y="251.2" text-anchor="end" style="fill:var(--amber)">377,571 gates</text><circle cx="676.0" cy="232.6" r="4.5" fill="var(--amber)"/><line x1="676.0" y1="226.6" x2="676.0" y2="156.3" stroke="var(--amber)" stroke-width="1.2"/><text class="axtext" x="672.0" y="150.3" text-anchor="end" style="fill:var(--amber)">1.4 million gates</text></svg>
+<figcaption>Exhaustive search for \(P(\pi/8)\) among products of at most \(L\) gates \(H\) and \(T\), counting distinct gates up to global phase (computed in ht_search.py). Up to \(L=10\) nothing beats doing nothing (distance \(0.139\)); the improvements come at \(L=11\) (6 \(T\) gates), \(L=19\) (11), \(L=37\) (23) and \(L=42\) (24). The number of distinct gates roughly doubles every three steps, so brute force is hopeless for high precision, which is why Solovay–Kitaev and Ross–Selinger matter.</figcaption>
+</figure>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; why T is the expensive gate</span>
+<p>Fault-tolerant quantum computers (Lecture 23) can perform Clifford gates on encoded qubits relatively cheaply, but by Gottesman–Knill those alone are classically simulable. The \(T\) gate is the missing ingredient, and on error-corrected hardware it is typically made by a costly procedure called magic-state distillation. That is why resource estimates for Shor's algorithm (Lecture 17) are quoted in \(T\) gates or Toffoli gates, and why compilers work hard to minimise the \(T\)-count.</p>
+</div>
+
+<!-- =================== 6 =================== -->
+<h2 id="s6">6 &mdash; What a Toffoli really costs</h2>
+
+<p>Hardware does not offer a three-qubit Toffoli gate, so the compiler must decompose it. Qiskit's <code>transpile</code> does this for any target gate set. Here are the results for a single <code>ccx(0, 1, 2)</code>, recorded from a run of the code in Section 7 with qiskit 2.5 (optimisation level 1).</p>
+
+<div style="overflow-x:auto"><table>
+<tr><th>target gate set</th><th>gate counts</th><th>size</th><th>depth</th></tr>
+<tr><td>IBM-style: <code>cx, rz, sx, x</code></td><td>10 <code>rz</code>, 6 <code>cx</code>, 2 <code>sx</code></td><td>18</td><td>13</td></tr>
+<tr><td>Clifford + T: <code>h, t, tdg, cx</code></td><td>4 <code>t</code>, 3 <code>tdg</code>, 6 <code>cx</code>, 2 <code>h</code></td><td>15</td><td>11</td></tr>
+</table></div>
+
+<p>The Clifford + T version is the textbook ancilla-free decomposition: six CNOTs and a \(T\)-count of 7. (With an extra qubit and a measurement, cleverer constructions reduce the \(T\)-count to 4.) One Toffoli costs as much as fifteen elementary gates, and a classical circuit with \(g\) AND gates, made reversible by Theorem 7.4 and cleaned by Theorem 7.5, needs about \(2g\) Toffolis, so about \(14g\) \(T\) gates. Arithmetic is expensive on a quantum computer.</p>
+<div class="spot" data-kind="num" data-ans="24" data-labels="T-count">
+<p>A circuit contains 3 Toffoli gates, 2 \(T\) gates, 1 \(T^\dagger\) gate and some Clifford gates. What is its \(T\)-count after each Toffoli is replaced by the ancilla-free Clifford + T decomposition above?</p>
+<div class="hint">Each Toffoli contributes 7 to the \(T\)-count (4 \(T\) and 3 \(T^\dagger\)); \(T^\dagger\) gates count too; Clifford gates count zero.</div>
+<div class="why">\(3\cdot7+2+1=24\). The Toffolis dominate, which is why reversible arithmetic drives the \(T\)-count of algorithms such as Shor's.</div>
+</div>
+
+
+<div class="box crypto">
+<span class="lbl">crypto connection &mdash; a cipher is just another oracle</span>
+<p>A block cipher such as AES is a classical circuit that maps a key \(k\) and a known plaintext \(m\) to a ciphertext \(E_k(m)\). By Theorems 7.4 and 7.5 it becomes a clean quantum oracle, and so does the test "does key \(k\) encrypt \(m\) to the ciphertext we intercepted?". Grover's algorithm (Lectures 11–12) searches over keys with such an oracle. Every call runs the whole cipher reversibly, twice. The first detailed resource estimate (<a href="https://arxiv.org/abs/1512.04965">Grassl, Langenberg, Roetteler and Steinwandt, 2016</a>) built exactly such reversible AES circuits. Their oracle runs AES on \(r=3\) known plaintext–ciphertext pairs at once (one pair does not pin down a 128-bit key uniquely), and Grover needs about \(\tfrac\pi4\cdot2^{64}\approx1.4\times10^{19}\) oracle calls. Their totals for the whole attack:</p>
+<div style="overflow-x:auto"><table>
+<tr><th>key size</th><th>logical qubits</th><th>\(T\) gates</th><th>\(T\)-depth</th></tr>
+<tr><td>AES-128</td><td>2,953</td><td>\(1.19\cdot2^{86}\)</td><td>\(1.06\cdot2^{80}\)</td></tr>
+<tr><td>AES-192</td><td>4,449</td><td>\(1.81\cdot2^{118}\)</td><td>\(1.21\cdot2^{112}\)</td></tr>
+<tr><td>AES-256</td><td>6,681</td><td>\(1.41\cdot2^{151}\)</td><td>\(1.44\cdot2^{144}\)</td></tr>
+</table></div>
+<p>The qubit counts are modest; the depth is not. A \(T\)-depth of \(1.06\cdot2^{80}\) sequential layers would take about 40 million years even at a billion layers per second (and today's error-corrected \(T\) gates are far slower than that), and Grover's iterations cannot be split across many machines without losing most of the quadratic speedup. Later papers have trimmed these numbers considerably, but not enough to change the picture: this is why Grover is a much weaker threat to symmetric cryptography than Shor is to RSA (Lecture 12, Lab 3), and why the standard advice is simply to prefer 256-bit keys.</p>
+</div>
+
+<!-- =================== 7 =================== -->
+<h2 id="s7">7 &mdash; Try it in code</h2>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; transpiling a Toffoli (tested with qiskit 2.5)</span>
+<pre>from qiskit import QuantumCircuit, transpile
+
+tof = QuantumCircuit(3)
+tof.ccx(0, 1, 2)                              <span class="cm"># controls q0, q1; target q2</span>
+
+for basis in (["cx", "rz", "sx", "x"], ["h", "t", "tdg", "cx"]):
+    t = transpile(tof, basis_gates=basis, optimization_level=1, seed_transpiler=1)
+    print(basis, dict(t.count_ops()), "depth", t.depth())</pre>
+<pre class="out">['cx', 'rz', 'sx', 'x'] {'rz': 10, 'cx': 6, 'sx': 2} depth 13
+['h', 't', 'tdg', 'cx'] {'cx': 6, 't': 4, 'tdg': 3, 'h': 2} depth 11</pre>
+<p>Different Qiskit versions, optimisation levels or target devices can give different counts, so record your own rather than trusting a table. Real IBM devices currently use <code>cz</code> or <code>ecr</code> as their two-qubit gate; <code>backend.target</code> lists what a device supports.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; the equality oracle of Example 7.4, checked on every input</span>
+<pre>from qiskit import QuantumCircuit
+from qiskit.quantum_info import Statevector
+
+eq = QuantumCircuit(3)                        <span class="cm"># a = q0, b = q1, output y = q2</span>
+eq.cx(0, 1); eq.x(1)                          <span class="cm"># compute: b &lt;- NOT(a xor b) = [a == b]</span>
+eq.cx(1, 2)                                   <span class="cm"># copy the answer into y</span>
+eq.x(1); eq.cx(0, 1)                          <span class="cm"># uncompute: restore b</span>
+
+for i in range(8):
+    label = format(i, "03b")                  <span class="cm"># the basis state |y b a&gt;</span>
+    p = Statevector.from_label(label).evolve(eq).probabilities_dict()
+    print(label, "-&gt;", max(p, key=p.get), end="   " if i % 4 &lt; 3 else "\n")</pre>
+<pre class="out">000 -&gt; 100   001 -&gt; 001   010 -&gt; 010   011 -&gt; 111
+100 -&gt; 000   101 -&gt; 101   110 -&gt; 110   111 -&gt; 011</pre>
+<p>Labels are \(|y\,b\,a\rangle\). Exactly the inputs with \(a=b\) (\(000,011,100,111\)) have their \(y\) bit flipped, and \(a,b\) always come out unchanged.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; Example 7.3: garbage and interference</span>
+<pre>from qiskit import QuantumCircuit
+from qiskit.quantum_info import Statevector
+
+def run(garbage, uncompute):
+    qc = QuantumCircuit(3)                    <span class="cm"># x = q0, target = q1, garbage = q2</span>
+    qc.x(1); qc.h(1)                          <span class="cm"># target in |-&gt;</span>
+    qc.h(0)                                   <span class="cm"># x in |+&gt;</span>
+    if garbage: qc.cx(0, 2)                   <span class="cm"># a sloppy oracle also copies x into q2</span>
+    qc.cx(0, 1)                               <span class="cm"># the phase oracle for f(x) = x</span>
+    if garbage and uncompute: qc.cx(0, 2)     <span class="cm"># clean up the garbage</span>
+    qc.h(0)
+    p = Statevector.from_instruction(qc).probabilities([0])
+    return p.round(4)
+
+print("clean oracle       P(x=0), P(x=1):", run(False, False))
+print("garbage left       P(x=0), P(x=1):", run(True, False))
+print("garbage uncomputed P(x=0), P(x=1):", run(True, True))</pre>
+<pre class="out">clean oracle       P(x=0), P(x=1): [0. 1.]
+garbage left       P(x=0), P(x=1): [0.5 0.5]
+garbage uncomputed P(x=0), P(x=1): [0. 1.]</pre>
+</div>
+
+<!-- =================== 8 =================== -->
+<h2 id="s8">8 &mdash; Summary and exercises</h2>
+
+<div class="box thm">
+<span class="lbl">summary</span>
+<ul>
+<li>A circuit's size counts gates and its depth counts layers of gates on disjoint qubits. Two-qubit gate count and \(T\)-count are the other costs that matter.</li>
+<li>Unitaries cannot erase information, so classical logic must be made reversible. The Toffoli gate \(|a,b,c\rangle\mapsto|a,b,c\oplus ab\rangle\) computes AND reversibly, and with constant inputs it is universal for reversible computation.</li>
+<li>The standard oracle \(U_f|x\rangle|y\rangle=|x\rangle|y\oplus f(x)\rangle\) is a unitary permutation for every \(f\). With \(|y\rangle=|-\rangle\) it becomes the phase oracle \((-1)^{f(x)}\).</li>
+<li>Reversible simulation leaves garbage, and garbage entangled with the input destroys interference. Compute, copy, uncompute removes it at twice the cost.</li>
+<li>\(\{H,T,\mathrm{CNOT}\}\) is universal; Solovay–Kitaev makes approximation efficient; Clifford circuits alone are classically simulable, so \(T\) gates are the precious resource. In the standard ancilla-free decomposition a Toffoli costs 6 CNOTs and 7 \(T\) gates.</li>
+</ul>
+<p><strong>Next time:</strong> what quantum information cannot do (no-cloning), and what entanglement can do: teleportation and superdense coding. <strong>Lab 2</strong> launches. <strong>HW4</strong> is due at the start of Week 5.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 7</span>
+<ol>
+<li>Find the size, depth, two-qubit gate count and \(T\)-count of the four-qubit circuit <code>h(0)</code>, <code>h(1)</code>, <code>cx(0, 2)</code>, <code>cx(1, 3)</code>, <code>cx(2, 3)</code>, <code>x(0)</code>, and list its layers.</li>
+<li>Let \(f(x)=1-x\) on one bit, with input on qubit 0 and output on qubit 1. Give two different circuits for \(U_f\), one with three gates and one with two.</li>
+<li>Let \(f(x_1x_0)=x_1\oplus x_0\). Show that \(U_f\), with the output on qubit 2, is <code>cx(0, 2)</code> followed by <code>cx(1, 2)</code>. Why is no Toffoli needed?</li>
+<li>Instead of uncomputing the garbage qubit in Example 7.3, why not just measure it and throw away the result? Compute \(P(x=0)\) in that case.</li>
+<li>Show that \(S\), \(Z\), \(S^\dagger\) and \(T^\dagger\) are powers of \(T\), and that \(X=HT^4H\). Conclude that circuits of \(H\) and \(T\) can produce all four Pauli matrices up to phase.</li>
+<li>Use Proposition 7.3 to show that a Toffoli whose target is in \(|-\rangle\) multiplies \(|a\rangle|b\rangle\) by \((-1)^{ab}\). Which familiar two-qubit gate does it then act as on the controls?</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>Size 6. Layer 1: <code>h(0)</code>, <code>h(1)</code>. Layer 2: <code>cx(0, 2)</code>, <code>cx(1, 3)</code> (disjoint qubits). Layer 3: <code>cx(2, 3)</code>, which needs qubits 2 and 3, and <code>x(0)</code>, which waits for <code>cx(0, 2)</code>. Depth 3, three two-qubit gates, \(T\)-count 0.</li>
+<li>\(U_f|x\rangle|y\rangle=|x\rangle|y\oplus1\oplus x\rangle\). Three gates: <code>x(0)</code>, <code>cx(0, 1)</code>, <code>x(0)</code> (flip the control, CNOT, flip it back). Two gates: <code>cx(0, 1)</code> then <code>x(1)</code>, since \(y\oplus x\oplus1\) is the CNOT followed by a NOT on the output.</li>
+<li>The two CNOTs map \(|x_1x_0\rangle|y\rangle\) to \(|x_1x_0\rangle|y\oplus x_0\oplus x_1\rangle=|x_1x_0\rangle|y\oplus f(x)\rangle\). XOR is already reversible (it is what CNOT computes), and XOR-ing into the output register is linear, so no AND, and hence no Toffoli, is involved.</li>
+<li>Measuring \(g\) collapses the state \(\tfrac{1}{\sqrt2}(|0\rangle_x|0\rangle_g-|1\rangle_x|1\rangle_g)\) to \(|0\rangle|0\rangle_g\) or \(|1\rangle|1\rangle_g\) (Rule 6.2), each with probability \(\tfrac12\). Either way \(x\) is now a basis state, and \(H\) turns it into \(|\pm\rangle\), so \(P(x=0)=\tfrac12\), exactly as with the garbage left in place. Measuring the garbage reveals \(x\); it does not un-reveal it. Only uncomputation, which returns \(g\) to the same state for every \(x\), erases the record.</li>
+<li>\(T=\mathrm{diag}(1,e^{i\pi/4})\), so \(T^k=\mathrm{diag}(1,e^{ik\pi/4})\): \(S=T^2\), \(Z=T^4\), \(S^\dagger=T^6\), \(T^\dagger=T^7\), and \(T^8=I\). Then \(HT^4H=HZH=X\). Finally \(Y=iXZ\), so \(Y\) is \(XZ\) up to the phase \(i\), and the identity is the empty circuit.</li>
+<li>With \(f(a,b)=a\wedge b=ab\), the Toffoli is \(U_f\), so Proposition 7.3 gives \(|a\rangle|b\rangle|-\rangle\mapsto(-1)^{ab}|a\rangle|b\rangle|-\rangle\). On the two controls this is \(\mathrm{diag}(1,1,1,-1)\), the CZ gate of Lecture 6.</li>
+</ol>
+</div>
+</div>
+
+<h3>Reading and sources</h3>
+<ul>
+<li>J. Watrous, <em>Understanding Quantum Information and Computation</em>, §3.1 (circuits) and Ch. 6, the part on classical computations on quantum computers (<a href="https://arxiv.org/abs/2507.11536">arXiv:2507.11536</a>; IBM course <a href="https://quantum.cloud.ibm.com/learning/en/courses/fundamentals-of-quantum-algorithms">Fundamentals of Quantum Algorithms</a>).</li>
+<li>M. A. Nielsen and I. L. Chuang, <em>Quantum Computation and Quantum Information</em>, §3.2.5 (reversible computation), §4.5 (universality, including the counting argument in §4.5.4) and Appendix 3 (the Solovay–Kitaev theorem).</li>
+<li>C. H. Bennett, "Logical reversibility of computation", <em>IBM J. Res. Dev.</em> 17 (1973); A. Barenco et al., "Elementary gates for quantum computation", <em>Phys. Rev. A</em> 52 (1995); C. M. Dawson and M. A. Nielsen, "The Solovay–Kitaev algorithm" (2005); N. J. Ross and P. Selinger, "Optimal ancilla-free Clifford+T approximation of z-rotations" (2016); M. Grassl, B. Langenberg, M. Roetteler and R. Steinwandt, "Applying Grover's algorithm to AES: quantum resource estimates", PQCrypto 2016 (<a href="https://arxiv.org/abs/1512.04965">arXiv:1512.04965</a>).</li>
+</ul>
+<p class="kicker" style="margin-top:2.4em">all numbers and figures in these notes are computed in python (verify_L07.py, ht_search.py) and follow the page theme</p>
+</div>
+
+<style>.ctrls select{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);border:1px solid var(--rule);border-radius:6px;padding:4px 6px}</style>
+<script>
+/* ---------- helpers ---------- */
+var NS=['http:','','www.w3.org','2000','svg'].join('/');
+function mk(tag,at,parent,txt){var e=document.createElementNS(NS,tag);for(var k in at)e.setAttribute(k,at[k]);if(txt!==undefined)e.textContent=txt;if(parent)parent.appendChild(e);return e;}
+function clr(s){[].slice.call(s.childNodes).forEach(function(c){if(c.nodeName!=='title'&&c.nodeName!=='desc')s.removeChild(c);});}
+function btn(parent,label,fn){var b=document.createElement('button');b.className='ctl';b.type='button';b.textContent=label;b.addEventListener('click',fn);parent.appendChild(b);return b;}
+
+/* ---------- reversible circuit lab ---------- */
+(function(){
+  var cs=document.getElementById('rvCirc'); if(!cs) return;
+  var tab=document.getElementById('rvTable'), out=document.getElementById('rvReadout'), pre=document.getElementById('rvPre');
+  var wq=document.getElementById('rvWork'), ty=document.getElementById('rvType'), c1=document.getElementById('rvC1'), c2=document.getElementById('rvC2'), tg=document.getElementById('rvT'), oq=document.getElementById('rvOut');
+  var ops=[], cur=null;
+  var P=[
+    ['Example 7.2: OR',[['x',0],['x',1],['ccx',0,1,2],['x',2],['x',0],['x',1]],2,'none'],
+    ['Example 7.4: equality',[['cx',0,1],['x',1],['cx',1,2],['x',1],['cx',0,1]],2,'none'],
+    ['7.4 without uncompute',[['cx',0,1],['x',1],['cx',1,2]],2,'none'],
+    ['Bennett: OR via work q3',[['x',0],['x',1],['ccx',0,1,3],['x',3],['x',0],['x',1],['cx',3,2],['x',0],['x',1],['x',3],['ccx',0,1,3],['x',0],['x',1]],2,'3'],
+    ['Bennett, no uncompute',[['x',0],['x',1],['ccx',0,1,3],['x',3],['x',0],['x',1],['cx',3,2]],2,'3'],
+    ['Toffoli',[['ccx',0,1,2]],2,'none']];
+  var pb=P.map(function(p){return btn(pre,p[0],function(){ops=p[1].map(function(o){return o.slice();});oq.value=p[2];wq.value=p[3];cur=p[0];draw();});});
+  function apply(v){ ops.forEach(function(o){ var t=o[o.length-1];
+      if(o[0]==='x') v^=1<<t; else if(o[0]==='cx'){ if((v>>o[1])&1) v^=1<<t; } else { if(((v>>o[1])&1)&&((v>>o[2])&1)) v^=1<<t; } }); return v; }
+  function b4(v){return ((v>>3)&1)+''+((v>>2)&1)+''+((v>>1)&1)+''+(v&1);}
+  function drawCirc(){
+    clr(cs); mk('rect',{x:0,y:0,width:600,height:170,rx:8,class:'plot-bg'},cs);
+    var Y=[25,65,105,145];
+    Y.forEach(function(y,k){ mk('text',{x:14,y:y+5,class:'axtext',style:'fill:var(--sky)'},cs,'q'+k); mk('line',{x1:44,y1:y,x2:590,y2:y,stroke:'var(--ink)','stroke-width':2},cs); });
+    var n=ops.length, step=Math.min(56,520/Math.max(n,1));
+    ops.forEach(function(o,i){ var x=74+i*step, t=o[o.length-1];
+      if(o[0]==='x'){ mk('rect',{x:x-14,y:Y[t]-14,width:28,height:28,rx:4,fill:'var(--surface2)',stroke:'var(--amber)','stroke-width':2},cs);
+        mk('text',{x:x,y:Y[t]+5,'text-anchor':'middle',class:'axtext',style:'fill:var(--amber)'},cs,'X'); return; }
+      var cl=o.slice(1,-1), ys=cl.map(function(c){return Y[c];}).concat([Y[t]]);
+      mk('line',{x1:x,y1:Math.min.apply(null,ys),x2:x,y2:Math.max.apply(null,ys),stroke:'var(--rose)','stroke-width':2},cs);
+      cl.forEach(function(c){mk('circle',{cx:x,cy:Y[c],r:5,fill:'var(--rose)'},cs);});
+      mk('circle',{cx:x,cy:Y[t],r:11,fill:'var(--surface2)',stroke:'var(--rose)','stroke-width':2},cs);
+      mk('path',{d:'M'+(x-11)+','+Y[t]+' L'+(x+11)+','+Y[t]+' M'+x+','+(Y[t]-11)+' L'+x+','+(Y[t]+11),stroke:'var(--rose)','stroke-width':2},cs); });
+    if(!n) mk('text',{x:320,y:88,'text-anchor':'middle',class:'axtext'},cs,'choose a preset or add gates');
+  }
+  function draw(){
+    pb.forEach(function(b){b.classList.toggle('on',b.textContent===cur);});
+    drawCirc();
+    var wk0=wq.value==='none'?-1:+wq.value;
+    var html='<div style="overflow-x:auto"><table style="font-family:var(--mono);font-size:.86rem"><tr><th>in &rarr; out</th><th>in &rarr; out</th><th>in &rarr; out</th><th>in &rarr; out</th></tr>';
+    var dv=[]; for(var z=0;z<16;z++) if(wk0<0||!((z>>wk0)&1)) dv.push(z); var nr=dv.length/4;
+    for(var r=0;r<nr;r++){ html+='<tr>'; for(var c=0;c<4;c++){ var v=dv[c*nr+r], w=apply(v), a=b4(v), bb=b4(w), s='';
+        for(var k=0;k<4;k++){ s+= a[k]!==bb[k]?'<span style="color:var(--rose);font-weight:700">'+bb[k]+'</span>':bb[k]; }
+        html+='<td>'+a+' &rarr; '+s+'</td>'; } html+='</tr>'; }
+    tab.innerHTML=html+'</table></div>';
+    var o=+oq.value, wk=wq.value==='none'?-1:+wq.value, dom=[];
+    for(var v=0;v<16;v++) if(wk<0||!((v>>wk)&1)) dom.push(v);
+    var bad=[];
+    [0,1,2,3].forEach(function(k){ if(k===o) return; if(dom.some(function(v){return ((v>>k)&1)!==((apply(v)>>k)&1);})) bad.push(k); });
+    var consistent=dom.every(function(v){ if((v>>o)&1) return true; return ((((apply(v)>>o)&1))^1)===((apply(v|(1<<o))>>o)&1); });
+    var used={}; ops.forEach(function(op){op.slice(1).forEach(function(q){used[q]=1;});});
+    var ins=[3,2,1,0].filter(function(k){return used[k]&&k!==o&&k!==wk;});
+    if(!ops.length){ out.textContent='Empty circuit: the identity, which is the clean oracle for f = 0.'; return; }
+    if(!bad.length&&consistent){
+      var rows=[]; for(var m=0;m<(1<<ins.length);m++){ var v=0; ins.forEach(function(k,idx){ if((m>>(ins.length-1-idx))&1) v|=1<<k; });
+        rows.push(ins.map(function(k){return (v>>k)&1;}).join('')+'->'+((apply(v)>>o)&1)); }
+      out.textContent='Clean oracle'+(wk>=0?' (work qubit q'+wk+' returns to 0)':'')+': this is U_f with the answer XORed into q'+o+'. Truth table of f('+ins.map(function(k){return 'q'+k;}).join(' ')+'): '+rows.join(', ')+'.  ('+ops.length+' gate'+(ops.length>1?'s':'')+')';
+    } else out.textContent='Not a clean oracle for output q'+o+(wk>=0?' with work qubit q'+wk:'')+': '+(bad.length?'qubit(s) '+bad.map(function(k){return 'q'+k;}).join(', ')+' can come out changed (garbage left behind).':'the output is not of the form y xor f(x).')+'  ('+ops.length+' gates)';
+  }
+  document.getElementById('rvAdd').addEventListener('click',function(){ var t=+tg.value, a=+c1.value, b=+c2.value;
+    if(ty.value==='x') ops.push(['x',t]); else if(ty.value==='cx'){ if(a===t){out.textContent='control and target must differ';return;} ops.push(['cx',a,t]); }
+    else { if(a===b||a===t||b===t){out.textContent='the three qubits of a Toffoli must be different';return;} ops.push(['ccx',a,b,t]); }
+    cur=null; draw(); });
+  document.getElementById('rvUndo').addEventListener('click',function(){ops.pop();cur=null;draw();});
+  document.getElementById('rvClr').addEventListener('click',function(){ops=[];cur=null;draw();});
+  oq.addEventListener('change',draw); wq.addEventListener('change',draw);
+  ops=P[0][1].map(function(o){return o.slice();}); cur=P[0][0]; draw();
+})();
+</script>
+
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    var lab=b.getAttribute('data-lab')||b.textContent.replace(/^(show|hide) /,''); b.setAttribute('data-lab',lab);
+    b.textContent=(open?'hide ':'show ')+lab;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+
+<script id="spot-js">
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×/g,'*').replace(/π/g,'pi').replace(/,/g,'');
+    var pct=/%$/.test(s); if(pct) s=s.slice(0,-1);
+    s=s.replace(/√\s*\(/g,'sqrt(').replace(/√\s*([0-9.]+)/g,'sqrt($1)');
+    if(!s||!/^[0-9a-z+\-*\/^().\s]*$/.test(s)) return NaN;
+    var ok=s.replace(/sqrt|pi|ln|log|exp|sin|cos|tan|e(?![a-z])/g,'').replace(/[0-9+\-*\/^().\s]/g,'');
+    if(ok.length) return NaN;
+    s=s.replace(/\^/g,'**').replace(/(\d)\s*(pi|sqrt|\()/g,'$1*$2').replace(/\)\s*(\d|pi|sqrt|\()/g,')*$1')
+       .replace(/sqrt/g,'Math.sqrt').replace(/pi/g,'Math.PI').replace(/\blog\b/g,'Math.log10').replace(/\bln\b/g,'Math.log')
+       .replace(/exp/g,'Math.exp').replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos').replace(/tan/g,'Math.tan')
+       .replace(/(^|[^a-z.0-9])e(?![a-z0-9(])/g,'$1Math.E');
+    try{ var v=Function('"use strict";return ('+s+')')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function typeset(el){ if(window.MathJax&&MathJax.typesetPromise){ MathJax.typesetPromise([el]).catch(function(){}); } }
+  function fb(spot,ok,html){
+    var f=spot.querySelector('.fb'); spot.classList.toggle('ok',ok); spot.classList.toggle('bad',!ok);
+    f.innerHTML='<p><span class="tag">'+(ok?'correct.':'not yet.')+'</span>'+(html||'')+'</p>'; typeset(f);
+  }
+  function part(spot,sel){ var e=spot.querySelector(sel); return e? e.innerHTML : ''; }
+  var n=0, lec=(document.title.match(/^Lecture (\d+)/)||[])[1];
+  document.querySelectorAll('.spot').forEach(function(spot){
+    n++; var kind=spot.getAttribute('data-kind')||'num', tries=0;
+    var lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent='spot check '+(lec?lec+'.':'')+n+(spot.getAttribute('data-tag')?' — '+spot.getAttribute('data-tag'):'');
+    spot.insertBefore(lbl,spot.firstChild);
+    var area=document.createElement('div'), btns=document.createElement('div'), f=document.createElement('div');
+    btns.className='btns'; f.className='fb'; f.setAttribute('role','status'); f.setAttribute('aria-live','polite');
+    var check=document.createElement('button'); check.type='button'; check.textContent='check';
+    var reveal=document.createElement('button'); reveal.type='button'; reveal.className='reveal'; reveal.textContent='show answer'; reveal.style.display='none';
+    btns.appendChild(check); btns.appendChild(reveal);
+    var grade, show;
+    if(kind==='num'){
+      var ans=spot.getAttribute('data-ans').split('|').map(evalNum), labs=(spot.getAttribute('data-labels')||'').split('|');
+      var tol=spot.getAttribute('data-tol'), row=document.createElement('div'); row.className='row'; area.appendChild(row);
+      var ins=ans.map(function(a,i){ var lab=document.createElement('label'), inp=document.createElement('input');
+        inp.className='ans'; inp.type='text'; inp.setAttribute('inputmode','text'); inp.setAttribute('autocomplete','off');
+        inp.setAttribute('aria-label',labs[i]||'answer'); if(labs[i]){ lab.appendChild(document.createTextNode(labs[i]+' =')); }
+        lab.appendChild(inp); row.appendChild(lab);
+        inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); check.click(); } }); return inp; });
+      var fmt=document.createElement('div'); fmt.className='fmt'; fmt.textContent='decimals, fractions, sqrt(2)/2, pi/4 or 2^-3 all work';
+      area.appendChild(fmt);
+      grade=function(){ var bad=[]; ins.forEach(function(inp,i){ var v=evalNum(inp.value), a=ans[i];
+          var t= tol!==null? Number(tol) : Math.max(0.005, 0.005*Math.abs(a)); if(!(Math.abs(v-a)<=t)) bad.push(i); });
+        var empty=ins.some(function(inp){return !inp.value.trim();});
+        if(empty) return {ok:false,msg:'Fill in '+(ins.length>1?'every box':'the box')+' first.',soft:true};
+        var unparsed=ins.some(function(inp){return isNaN(evalNum(inp.value));});
+        if(unparsed) return {ok:false,msg:'I could not read that as a number. Try a decimal or a fraction such as 3/8.',soft:true};
+        return {ok:!bad.length, which:bad}; };
+      show=function(){ var s=spot.getAttribute('data-show'); if(!s){ s=spot.getAttribute('data-ans').split('|').map(function(a,i){return (labs[i]?labs[i]+' = ':'')+a;}).join(', '); } return 'The answer is '+s+'.'; };
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=spot.querySelector('ul.opts'), name='spot'+n, lis=[].slice.call(ul.querySelectorAll(':scope > li'));
+      lis.forEach(function(li,i){ var inp=document.createElement('input'); inp.type= kind==='mc'?'radio':'checkbox'; inp.name=name; inp.value=i;
+        inp.setAttribute('aria-label','option '+(i+1)); li.insertBefore(inp,li.firstChild);
+        li.addEventListener('click',function(e){ if(e.target!==inp&&e.target.tagName!=='A'){ if(kind==='mc') inp.checked=true; else inp.checked=!inp.checked; } }); });
+      grade=function(){ var picked=lis.filter(function(li){return li.querySelector('input').checked;});
+        if(!picked.length) return {ok:false,msg:'Pick '+(kind==='mc'?'an answer':'at least one option')+' first.',soft:true};
+        var ok= lis.every(function(li){ return li.hasAttribute('data-ok')===li.querySelector('input').checked; });
+        var oh=''; picked.forEach(function(li){ if(!li.hasAttribute('data-ok')){ var h=li.querySelector('.oh'); if(h) oh+=' '+h.innerHTML; } });
+        if(kind==='multi'&&!ok&&!oh){ var miss=lis.filter(function(li){return li.hasAttribute('data-ok')&&!li.querySelector('input').checked;});
+          if(miss.length&&picked.every(function(li){return li.hasAttribute('data-ok');})) oh=' Everything you ticked is right, but something is missing.'; }
+        return {ok:ok, extra:oh}; };
+      show=function(){ lis.forEach(function(li){ li.classList.toggle('right',li.hasAttribute('data-ok')); }); return 'The right '+(kind==='mc'?'option is':'options are')+' outlined.'; };
+    } else if(kind==='select'){
+      var sels=[].slice.call(spot.querySelectorAll('select'));
+      sels.forEach(function(s){ var o=document.createElement('option'); o.textContent='choose…'; o.value=''; o.selected=true; s.insertBefore(o,s.firstChild);
+        s.setAttribute('aria-label', s.getAttribute('aria-label')||'choose an answer'); });
+      grade=function(){ if(sels.some(function(s){return !s.value;})) return {ok:false,msg:'Make a choice in '+(sels.length>1?'every menu':'the menu')+' first.',soft:true};
+        var oh=''; var ok=sels.every(function(s){ var o=s.options[s.selectedIndex]; if(!o.hasAttribute('data-ok')&&o.getAttribute('data-hint')) oh+=' '+o.getAttribute('data-hint'); return o.hasAttribute('data-ok'); });
+        return {ok:ok, extra:oh}; };
+      show=function(){ sels.forEach(function(s){ [].forEach.call(s.options,function(o,i){ if(o.hasAttribute('data-ok')) s.selectedIndex=i; }); }); return 'The right choices are now selected.'; };
+    }
+    var anchor=null;
+    [].forEach.call(spot.children,function(c){ if(!anchor&&(c.classList.contains('hint')||c.classList.contains('why'))) anchor=c; });
+    if(kind==='select'){ spot.insertBefore(btns,anchor); } else { spot.insertBefore(area,anchor); spot.insertBefore(btns,anchor); }
+    spot.appendChild(f);
+    check.addEventListener('click',function(){ var r=grade();
+      if(r.soft){ spot.classList.remove('ok'); spot.classList.add('bad'); f.innerHTML='<p><span class="tag">hold on.</span>'+r.msg+'</p>'; return; }
+      if(r.ok){ fb(spot,true,part(spot,'.why')); reveal.style.display='none'; }
+      else { tries++; var h=part(spot,'.hint'); var extra=r.extra||'';
+        if(r.which&&r.which.length&&ans.length>1){ extra=' Check '+r.which.map(function(i){return labs[i]||('box '+(i+1));}).join(' and ')+'.'+extra; }
+        fb(spot,false,(extra?extra+' ':'')+h); if(tries>=2) reveal.style.display=''; } });
+    reveal.addEventListener('click',function(){ var msg=show(); spot.classList.remove('ok'); spot.classList.add('bad');
+      f.innerHTML='<p><span class="tag">answer.</span>'+msg+' '+part(spot,'.why')+'</p>'; typeset(f); });
+  });
+})();
+</script>
+</body>
+</html>

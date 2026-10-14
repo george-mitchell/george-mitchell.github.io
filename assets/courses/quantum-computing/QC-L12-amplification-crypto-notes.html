@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Lecture 12 — Amplitude Amplification; Grover vs. Symmetric Cryptography</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+  /* course additions, same family */
+  .crypto{border-left-color:var(--moss);background:var(--surface2)} .crypto .lbl{color:var(--moss)}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  dl.gloss dt{font-family:var(--mono);color:var(--sky);font-size:.95rem;margin-top:.9em}
+  dl.gloss dd{margin:.1em 0 0 1.1em}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<style id="spot-css">
+.spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+  border-radius:6px;padding:12px 16px;margin:1.3em 0;transition:background .25s,border-color .25s}
+.spot .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em;color:var(--sky)}
+.spot > p{margin:.35em 0}
+.spot .hint,.spot .why,.spot .oh{display:none}
+.spot .fb{display:none;margin:.55em 0 0;font-size:.97rem}
+.spot .fb > :first-child{margin-top:0}.spot .fb > :last-child{margin-bottom:0}
+.spot.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 13%,var(--surface))}
+.spot.ok .lbl{color:var(--moss)}
+.spot.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 13%,var(--surface))}
+.spot.bad .lbl{color:var(--amber)}
+.spot.ok .fb{display:block;color:var(--ink)} .spot.bad .fb{display:block;color:var(--ink)}
+.spot .fb .tag{font-family:var(--mono);font-size:.85rem;margin-right:.4em}
+.spot.ok .fb .tag{color:var(--moss)} .spot.bad .fb .tag{color:var(--amber)}
+.spot ul.opts{list-style:none;padding:0;margin:.5em 0}
+.spot ul.opts li{display:block;padding:4px 8px 4px 2.1em;text-indent:-1.5em;margin:3px 0;border-radius:5px;cursor:pointer;
+  border:1px solid transparent;overflow-wrap:anywhere}
+.spot ul.opts li > *{text-indent:0}
+.spot ul.opts li:hover{border-color:var(--rule)}
+.spot ul.opts li input{accent-color:var(--sky);margin:0 .6em 0 0;width:.9em;vertical-align:-1px}
+.spot ul.opts li.right{border-color:var(--moss)}
+.spot .row{display:flex;flex-wrap:wrap;gap:.6em 1em;align-items:center;margin:.55em 0 .2em}
+.spot .row label{font-family:var(--mono);font-size:.88rem;color:var(--muted);display:flex;gap:.45em;align-items:center}
+.spot input.ans{font-family:var(--mono);font-size:.95rem;width:9.5em;max-width:100%;padding:5px 8px;border-radius:5px;
+  border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.spot input.ans:focus,.spot select:focus{outline:2px solid var(--sky);outline-offset:1px}
+.spot select{font-family:var(--mono);font-size:.9rem;padding:3px 6px;border-radius:5px;border:1px solid var(--rule);
+  background:var(--bg);color:var(--ink);max-width:100%}
+.spot .btns{display:flex;gap:.5em;flex-wrap:wrap;margin-top:.5em}
+.spot .btns button{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--sky);border:1px solid var(--sky);
+  padding:5px 12px;border-radius:999px;cursor:pointer}
+.spot .btns button:hover{background:var(--sky);color:var(--bg)}
+.spot .btns button.reveal{color:var(--muted);border-color:var(--rule)}
+.spot .btns button.reveal:hover{background:var(--rule);color:var(--ink)}
+.spot .fmt{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+@media print{.spot .btns,.spot .fmt{display:none}}
+</style>
+<script src="/assets/courses/common/course-nav.js" data-course="quantum-computing" defer></script>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Quantum Computing · Lecture 12</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Lecture 12<br>Amplitude Amplification; Grover vs. Symmetric Cryptography</h1>
+<p class="kicker">Week 6 &nbsp;|&nbsp; the general quadratic speedup, why it is the best possible, and what it really costs an attacker; Lab 3 launches &nbsp;|&nbsp; reading: de Wolf Ch. 7; NIST PQC FAQ</p>
+
+<figure class="toon">
+<svg viewBox="0 0 600 210" width="600" height="210" role="img" aria-labelledby="c12t c12d">
+<title id="c12t">Cartoon: a lock with a longer key</title><desc id="c12d">A stick figure holds a very long key next to a padlock. A short key lies on the ground, cracked. A speech bubble says: the quantum locksmith halved my bits, so I doubled my key.</desc>
+<defs><filter id="rough1212" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="12" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough1212)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="80" cy="118" r="11"/><path d="M 80 129 L 80 160"/><path d="M 80 136 L 66 154"/><path d="M 80 136 L 130 124"/><path d="M 80 160 L 69 186"/><path d="M 80 160 L 91 186"/>
+<circle cx="140" cy="124" r="10" stroke="var(--amber)"/><path d="M 150 124 L 330 124 M 300 124 L 300 134 M 312 124 L 312 132 M 324 124 L 324 136" stroke="var(--amber)"/>
+<rect x="360" y="110" width="50" height="44" rx="6" fill="var(--surface2)"/><path d="M 368 110 L 368 94 Q 385 74 402 94 L 402 110"/><circle cx="385" cy="130" r="4"/>
+<circle cx="200" cy="184" r="7" stroke="var(--rose)"/><path d="M 207 184 L 240 184 M 222 180 L 228 188" stroke="var(--rose)"/>
+<rect x="150" y="12" width="290" height="56" rx="9" fill="var(--surface2)"/><path d="M 170 66 L 90 102 L 196 66" fill="var(--surface2)" stroke-width="1.6"/>
+<path d="M 20 196 L 580 196" stroke-width="1.6"/>
+</g>
+<text x="164" y="36" class="ctext">the quantum locksmith halved</text><text x="164" y="56" class="ctext">my bits, so I doubled my key.</text>
+</svg>
+<figcaption class="tooncap">Grover halves the bits of security of a symmetric key in principle; longer keys restore the margin</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">Amplitude amplification</a></li>
+<li><a href="#s2">When the number of solutions is unknown</a></li>
+<li><a href="#s3">Grover is optimal</a></li>
+<li><a href="#s4">Grover against block ciphers</a></li>
+<li><a href="#s5">Hash functions, and Shor vs. Grover</a></li>
+<li><a href="#s6">Try it in code</a></li>
+<li><a href="#s7">Lab 3 launch</a></li>
+<li><a href="#s8">Summary and exercises</a></li>
+</ol>
+</div>
+
+<p>Lecture 11 analysed Grover's algorithm for one marked item. This lecture widens the lens in two directions. Mathematically, the same two-reflection trick speeds up <em>any</em> algorithm that succeeds with small probability, it copes with an unknown number of solutions, and no quantum algorithm can do better. Cryptographically, the question is what all this means for AES and SHA-256. By the end you should be able to state amplitude amplification, explain the randomised iteration-count trick, state and sketch the optimality bound, and give an honest account of Grover's threat to symmetric cryptography, including the limits on parallelism and the cost of the oracle.</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; Amplitude amplification</h2>
+
+<p>Grover's starting state \(|s\rangle\) is the output of one particular algorithm, \(H^{\otimes n}\), which "guesses" a uniformly random string and so succeeds with probability \(1/N\). Nothing in the rotation argument used that specific algorithm.</p>
+
+<div class="box def">
+<span class="lbl">definition 12.1 &mdash; the amplification setting</span>
+<p>Let \(\mathcal A\) be a quantum circuit (with no measurements) on \(n\) qubits, and let the basis states be split into "good" and "bad" ones, with a phase oracle \(S_\chi\) that multiplies good basis states by \(-1\). Write</p>
+$$\mathcal A|0^n\rangle=\sin\theta\,|\mathrm{good}\rangle+\cos\theta\,|\mathrm{bad}\rangle ,$$
+<p>where \(|\mathrm{good}\rangle\) and \(|\mathrm{bad}\rangle\) are the normalised projections onto good and bad states and \(p=\sin^2\theta\) is the success probability of \(\mathcal A\). Let \(S_0=I-2|0^n\rangle\langle0^n|\) and define the <strong>amplification operator</strong></p>
+$$Q=-\,\mathcal A\,S_0\,\mathcal A^{-1}\,S_\chi .$$
+</div>
+
+<div class="spot" data-kind="select">
+<p>Classically, boosting \(\mathcal A\) means running it again and again and checking each output. To build \(Q\), amplitude amplification instead needs
+<select><option data-hint="Look at Q again: it contains A to the power -1 as well as A.">only forward runs of A</option><option data-ok>runs of both A and its inverse, with no measurement in between</option><option data-hint="A measurement would collapse the state to one basis state and destroy the superposition that Q rotates; Definition 12.1 asks for A without measurements.">a measurement after every run of A</option></select>.</p>
+<div class="hint">Read off the factors of \(Q=-\mathcal AS_0\mathcal A^{-1}S_\chi\). Also ask what a measurement would do to the state being rotated.</div>
+<div class="why">\(Q\) contains \(\mathcal A^{-1}\), and everything stays coherent until the final measurement. That is why \(\mathcal A\) must be a unitary circuit with no measurements of its own.</div>
+</div>
+
+
+<div class="box thm">
+<span class="lbl">theorem 12.1 &mdash; amplitude amplification (Brassard, Høyer, Mosca and Tapp)</span>
+<p>For every \(k\ge0\), measuring \(Q^k\mathcal A|0^n\rangle\) gives a good outcome with probability \(\sin^2\big((2k+1)\theta\big)\). With \(k\approx\tfrac{\pi}{4\theta}\approx\tfrac{\pi}{4\sqrt p}\) the success probability is close to 1, using \(O(1/\sqrt p)\) runs of \(\mathcal A\) and \(\mathcal A^{-1}\), compared with about \(1/p\) independent repetitions of \(\mathcal A\) classically.</p>
+<button class="sol-btn">show proof sketch</button>
+<div class="sol">
+<p>It is Theorem 11.2 again. In the plane spanned by \(|\mathrm{bad}\rangle\) and \(|\mathrm{good}\rangle\), \(S_\chi\) is the reflection in the \(|\mathrm{bad}\rangle\) axis, and \(-\mathcal AS_0\mathcal A^{-1}=2\mathcal A|0^n\rangle\langle0^n|\mathcal A^{-1}-I\) is the reflection in the line through \(\mathcal A|0^n\rangle\), which sits at angle \(\theta\). Two reflections in lines at angles \(0\) and \(\theta\) make a rotation by \(2\theta\). Grover's algorithm is the case \(\mathcal A=H^{\otimes n}\), where \(-H^{\otimes n}S_0H^{\otimes n}\) is exactly the diffuser \(D\).</p>
+</div>
+</div>
+
+<p>HW6 asks you to specialise this to Grover search with \(M\) marked items and find the best iteration count. The general lesson is the important one: <strong>any</strong> quantum procedure that succeeds with probability \(p\) can be boosted to near certainty with about \(1/\sqrt p\) repetitions instead of \(1/p\). That is the "quadratic speedup" you will see quoted for quantum Monte Carlo estimation, optimisation heuristics and many other proposals.</p>
+
+<div class="spot" data-kind="num" data-ans="7.6" data-tol="0.8" data-labels="rounds" data-show="π/(4θ) ≈ 7.84, so 7 or 8 rounds">
+<p>A procedure \(\mathcal A\) succeeds with probability \(p=0.01\), so classical repetition needs about 100 runs. About how many rounds of amplitude amplification does Theorem 12.1 suggest?</p>
+<div class="hint">Use \(k\approx\tfrac{\pi}{4\sqrt p}\), with \(\sqrt p=0.1\).</div>
+<div class="why">\(\tfrac{\pi}{4\theta}\approx7.84\) (with \(\theta=\arcsin0.1\); \(\tfrac{\pi}{4\cdot0.1}\approx7.85\)), so 7 or 8 rounds: 7 gives success \(\sin^2(15\theta)\approx0.995\), 8 gives \(\approx0.983\). Each round uses \(\mathcal A\) and \(\mathcal A^{-1}\) once, against about 100 classical repetitions: the square-root saving.</div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 12.1 &mdash; one round makes a 25% algorithm certain</span>
+<p>Let \(\mathcal A=R_y(\pi/3)\) on one qubit, with \(|1\rangle\) good. Find \(p\), \(\theta\) and the success probability after \(k=0,1,2,3\) rounds of amplification.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(R_y(\pi/3)|0\rangle=\cos\tfrac\pi6|0\rangle+\sin\tfrac\pi6|1\rangle\), so \(\theta=\pi/6=30^\circ\) and \(p=\tfrac14\). The success probability after \(k\) rounds is \(\sin^2((2k+1)30^\circ)\): \(\tfrac14\), \(1\), \(\tfrac14\), \(\tfrac14\) for \(k=0,1,2,3\) (angles \(30^\circ,90^\circ,150^\circ,210^\circ\)). One round turns a one-in-four procedure into a certain one; a second round overshoots. This is the same geometry as Grover with \(N=4\) (Lecture 11, Example 11.1). Section 6 runs it in Qiskit.</p>
+</div>
+</div>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; When the number of solutions is unknown</h2>
+
+<p>The best iteration count depends on \(\theta\), hence on the number of solutions \(M\). If \(M\) is unknown, a fixed count can be badly wrong. With \(N=2^{20}\), the count of 804 designed for \(M=1\) is right for one key, but if there happen to be four solutions it rotates the state about twice too far. The widget shows the effect.</p>
+
+<div class="widget">
+<h4>Fixed counts and unknown M</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Choose \(N\) and the true number of solutions \(M\). The curve is the success probability \(\sin^2((2k+1)\theta)\) with \(\sin^2\theta=M/N\). The red marker is the iteration count you would pick if you assumed \(M=1\); the green marker is the best count for the true \(M\); the amber line is the average success when \(k\) is drawn at random from \(0,\dots,m-1\) with \(m=\lceil1/\sin2\theta\rceil\).</p>
+<svg id="umSvg" viewBox="0 0 600 250" width="600" height="250" role="img" aria-labelledby="umSvg-t umSvg-d"><title id="umSvg-t">Success probability against iteration count, with markers for different strategies</title><desc id="umSvg-d">Interactive figure, redrawn as you use the controls next to it; the text readout below it describes what is currently shown.</desc></svg>
+<div class="ctrls">
+<label><span>log<sub>2</sub> N = <span id="umNv">14</span></span><input type="range" id="umN" min="10" max="20" step="1" value="14"></label>
+<label><span>M = <span id="umMv">4</span></span><input type="range" id="umM" min="1" max="64" step="1" value="4"></label>
+</div>
+<p class="readout" role="status" aria-live="polite" id="umOut"></p>
+</div>
+
+<p>The cure is to randomise. If \(k\) is chosen uniformly from \(\{0,1,\dots,m-1\}\), the average success probability is easy to compute and becomes reliably large once \(m\) is big enough, whatever \(\theta\) is.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 12.2 &mdash; random iteration counts (Boyer, Brassard, Høyer and Tapp)</span>
+<p>If \(k\) is uniform on \(\{0,\dots,m-1\}\), the success probability averaged over \(k\) is</p>
+$$\frac1m\sum_{k=0}^{m-1}\sin^2\big((2k+1)\theta\big)=\frac12-\frac{\sin(4m\theta)}{4m\sin(2\theta)} ,$$
+<p>which is at least \(\tfrac14\) whenever \(m\ge1/\sin(2\theta)\).</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Write \(\sin^2u=\tfrac12(1-\cos2u)\), so the sum is \(\tfrac m2-\tfrac12\sum_{k=0}^{m-1}\cos\big((2k+1)\alpha\big)\) with \(\alpha=2\theta\). The cosine sum telescopes: since \(2\sin\alpha\cos((2k+1)\alpha)=\sin((2k+2)\alpha)-\sin(2k\alpha)\), summing over \(k\) gives \(2\sin\alpha\sum_k\cos((2k+1)\alpha)=\sin(2m\alpha)\). Hence the sum of cosines is \(\sin(4m\theta)/(2\sin2\theta)\), and dividing by \(m\) gives the formula. If \(m\sin2\theta\ge1\), the second term has absolute value at most \(\tfrac{1}{4m\sin2\theta}\le\tfrac14\).</p>
+</div>
+</div>
+
+<div class="spot" data-kind="num" data-ans="128" data-tol="1" data-labels="m">
+<p>Take \(N=2^{16}\) and \(M=1\). About how large must \(m\) be for Proposition 12.2 to guarantee an average success probability of at least \(\tfrac14\)?</p>
+<div class="hint">Compute \(1/\sin2\theta\) with \(\sin\theta=1/\sqrt N=2^{-8}\). For small \(\theta\), \(\sin2\theta\approx2\sin\theta\).</div>
+<div class="why">\(\sin2\theta\approx2\cdot2^{-8}=2^{-7}\), so \(m\ge1/\sin2\theta\approx128=\tfrac12\sqrt N\). The threshold is of order \(\sqrt N\), which is why BBHT's total cost stays \(O(\sqrt{N/M})\).</div>
+</div>
+
+
+<figure>
+<svg viewBox="0 0 720 290" width="720" height="290" role="img" aria-labelledby="rkt rkd"><title id="rkt">Average success probability when the iteration count is chosen at random</title><desc id="rkd">For N = 4096 and one marked item, the curve shows the success probability averaged over a uniformly random iteration count k in 0, ..., m-1, as m runs from 1 to 200. It rises from 1/4096, crosses 1/4 before m = 1/sin(2 theta), about 32, and then oscillates around 1/2 with shrinking swings.</desc><rect x="0" y="0" width="720" height="290" rx="8" class="plot-bg"/><line class="gridline" x1="70" y1="234.0" x2="700" y2="234.0"/><text class="axtext" x="64.0" y="238.0" text-anchor="end">0</text><line class="gridline" x1="70" y1="170.2" x2="700" y2="170.2"/><text class="axtext" x="64.0" y="174.2" text-anchor="end">0.25</text><line class="gridline" x1="70" y1="106.5" x2="700" y2="106.5"/><text class="axtext" x="64.0" y="110.5" text-anchor="end">0.5</text><line class="gridline" x1="70" y1="42.8" x2="700" y2="42.8"/><text class="axtext" x="64.0" y="46.8" text-anchor="end">0.75</text><text class="axtext" x="70.0" y="252.0" text-anchor="middle">0</text><text class="axtext" x="148.8" y="252.0" text-anchor="middle">25</text><text class="axtext" x="227.5" y="252.0" text-anchor="middle">50</text><text class="axtext" x="306.2" y="252.0" text-anchor="middle">75</text><text class="axtext" x="385.0" y="252.0" text-anchor="middle">100</text><text class="axtext" x="463.8" y="252.0" text-anchor="middle">125</text><text class="axtext" x="542.5" y="252.0" text-anchor="middle">150</text><text class="axtext" x="621.2" y="252.0" text-anchor="middle">175</text><text class="axtext" x="700.0" y="252.0" text-anchor="middle">200</text><line class="axis" x1="70" y1="234" x2="700" y2="234"/><path class="curve" d="M73.2,233.9 L76.3,233.7 L79.5,233.3 L82.6,232.7 L85.8,232.0 L88.9,231.1 L92.0,230.0 L95.2,228.8 L98.3,227.4 L101.5,225.9 L104.7,224.2 L107.8,222.4 L111.0,220.4 L114.1,218.4 L117.2,216.1 L120.4,213.8 L123.6,211.3 L126.7,208.8 L129.8,206.1 L133.0,203.3 L136.1,200.4 L139.3,197.5 L142.4,194.4 L145.6,191.3 L148.8,188.1 L151.9,184.9 L155.1,181.6 L158.2,178.2 L161.3,174.8 L164.5,171.4 L167.7,167.9 L170.8,164.5 L173.9,161.0 L177.1,157.5 L180.2,154.1 L183.4,150.6 L186.6,147.2 L189.7,143.7 L192.9,140.4 L196.0,137.0 L199.2,133.7 L202.3,130.5 L205.4,127.3 L208.6,124.2 L211.8,121.1 L214.9,118.2 L218.0,115.3 L221.2,112.5 L224.3,109.8 L227.5,107.2 L230.7,104.7 L233.8,102.2 L237.0,99.9 L240.1,97.8 L243.2,95.7 L246.4,93.7 L249.5,91.9 L252.7,90.1 L255.8,88.5 L259.0,87.1 L262.1,85.7 L265.3,84.5 L268.4,83.4 L271.6,82.4 L274.8,81.5 L277.9,80.8 L281.1,80.1 L284.2,79.6 L287.4,79.3 L290.5,79.0 L293.6,78.8 L296.8,78.8 L299.9,78.9 L303.1,79.0 L306.2,79.3 L309.4,79.7 L312.6,80.1 L315.7,80.7 L318.9,81.3 L322.0,82.0 L325.1,82.8 L328.3,83.7 L331.4,84.6 L334.6,85.6 L337.8,86.7 L340.9,87.8 L344.1,89.0 L347.2,90.1 L350.4,91.4 L353.5,92.6 L356.7,93.9 L359.8,95.2 L362.9,96.6 L366.1,97.9 L369.2,99.2 L372.4,100.6 L375.6,101.9 L378.7,103.2 L381.9,104.5 L385.0,105.8 L388.1,107.1 L391.3,108.3 L394.4,109.5 L397.6,110.7 L400.8,111.9 L403.9,113.0 L407.1,114.0 L410.2,115.0 L413.4,116.0 L416.5,116.9 L419.7,117.7 L422.8,118.5 L425.9,119.2 L429.1,119.9 L432.2,120.4 L435.4,121.0 L438.5,121.4 L441.7,121.8 L444.8,122.2 L448.0,122.4 L451.1,122.7 L454.3,122.8 L457.4,122.9 L460.6,122.9 L463.8,122.8 L466.9,122.7 L470.1,122.5 L473.2,122.3 L476.4,122.0 L479.5,121.6 L482.7,121.2 L485.8,120.8 L489.0,120.3 L492.1,119.7 L495.2,119.1 L498.4,118.5 L501.6,117.8 L504.7,117.1 L507.8,116.4 L511.0,115.6 L514.1,114.8 L517.3,114.0 L520.5,113.2 L523.6,112.3 L526.8,111.5 L529.9,110.6 L533.0,109.8 L536.2,108.9 L539.4,108.0 L542.5,107.2 L545.6,106.3 L548.8,105.5 L552.0,104.7 L555.1,103.9 L558.2,103.1 L561.4,102.3 L564.5,101.6 L567.7,100.9 L570.9,100.2 L574.0,99.6 L577.2,99.0 L580.3,98.4 L583.4,97.8 L586.6,97.4 L589.8,96.9 L592.9,96.5 L596.0,96.1 L599.2,95.8 L602.4,95.5 L605.5,95.3 L608.6,95.1 L611.8,95.0 L615.0,94.9 L618.1,94.9 L621.2,94.9 L624.4,94.9 L627.5,95.0 L630.7,95.1 L633.9,95.3 L637.0,95.5 L640.1,95.8 L643.3,96.1 L646.5,96.4 L649.6,96.8 L652.8,97.2 L655.9,97.6 L659.1,98.1 L662.2,98.6 L665.4,99.1 L668.5,99.7 L671.6,100.2 L674.8,100.8 L677.9,101.4 L681.1,102.0 L684.2,102.6 L687.4,103.3 L690.5,103.9 L693.7,104.5 L696.9,105.2 L700.0,105.8"/><line x1="170.8" y1="30" x2="170.8" y2="234" stroke="var(--amber)" stroke-dasharray="5 4" stroke-width="1.6"/><text class="axtext" x="176.8" y="44.0" text-anchor="start" style="fill:var(--amber)">m = 1/sin(2 theta) = 32.0</text><line x1="70" y1="170.2" x2="700" y2="170.2" stroke="var(--rose)" stroke-dasharray="5 4" stroke-width="1.4"/><text class="axtext" x="696.0" y="186.2" text-anchor="end" style="fill:var(--rose)">1/4</text><text class="axtext" x="385.0" y="278.0" text-anchor="middle">range m (k drawn uniformly from 0, ..., m-1);  N = 4096, M = 1</text></svg>
+<figcaption>Proposition 12.2 for \(N=4096\) and \(M=1\). Once \(m\) passes \(1/\sin2\theta=32\) (amber), a random count from \(\{0,\dots,m-1\}\) succeeds with probability above \(\tfrac14\), and the average settles near \(\tfrac12\).</figcaption>
+</figure>
+
+<p>The <strong>BBHT algorithm</strong> exploits this without knowing \(\theta\): start with \(m=1\); repeatedly choose \(k\) at random below \(m\), run \(k\) Grover iterations, measure, and check the answer with one classical query; if it fails, multiply \(m\) by a constant such as \(\tfrac65\). Once \(m\) passes \(1/\sin2\theta\approx\tfrac12\sqrt{N/M}\), each round succeeds with probability at least \(\tfrac14\), and a geometric-series argument shows the expected total number of iterations is \(O(\sqrt{N/M})\), the same order as if \(M\) were known (Boyer et al., 1998). The simulation in Section 6 gives about \(1.2\sqrt{N/M}\). If there is no solution at all, the algorithm never succeeds, so in practice one stops after about \(\sqrt N\) iterations in total and declares "no solution".</p>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; Grover is optimal</h2>
+
+<p>Could a cleverer quantum algorithm search faster than \(\sqrt N\)? No.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 12.3 &mdash; optimality of search (Bennett, Bernstein, Brassard and Vazirani, 1997)</span>
+<p>Every quantum algorithm that finds the marked item of an unstructured search problem with probability at least \(\tfrac12\), for every possible marked item, makes \(\Omega(\sqrt N)\) queries. Zalka (1999) showed that Grover's \(\tfrac\pi4\sqrt N\) is optimal even in the constant.</p>
+<button class="sol-btn">show proof sketch</button>
+<div class="sol">
+<p>Run the algorithm with an oracle that marks nothing, and let \(a_{x,t}\) be the amplitude with which query \(t\) asks about input \(x\). The total "query weight" \(\sum_x\sum_{t=1}^T|a_{x,t}|^2\) equals \(T\), so some input \(w\) receives weight at most \(T/N\). Now switch to the oracle that marks \(w\). Each query \(t\) changes the state by at most \(2|a_{w,t}|\), and the changes add up, so the final states of the two runs differ by at most \(2\sum_t|a_{w,t}|\le2\sqrt{T\cdot T/N}=2T/\sqrt N\) by Cauchy–Schwarz. To tell the two oracles apart with constant probability the final states must differ by a constant, so \(T\ge c\sqrt N\). (This is the "hybrid argument" of BBBV; Nielsen–Chuang §6.6 gives the details, and de Wolf Ch. 11 proves the same bound by the polynomial and adversary methods.)</p>
+</div>
+</div>
+
+<div class="spot" data-kind="mc">
+<p>Which of these claims, if true, would contradict Theorem 12.3?</p>
+<ul class="opts">
+<li>A quantum computer factors 2048-bit numbers in polynomial time.<span class="oh">Factoring is not unstructured: Shor's algorithm exploits a hidden period, and Theorem 12.3 says nothing about structured problems.</span></li>
+<li data-ok>A quantum algorithm finds the marked item among \(2^{40}\) unstructured items, with probability 0.9, using \(2^{10}\) oracle queries.</li>
+<li>Grover's algorithm needs about \(\tfrac\pi4\,2^{20}\) queries for \(N=2^{40}\).<span class="oh">That is exactly order \(\sqrt N\): it matches the bound rather than beating it.</span></li>
+<li>A classical algorithm needs about \(2^{39}\) queries for \(N=2^{40}\).<span class="oh">The theorem is a lower bound on quantum algorithms; a slow classical algorithm is consistent with it.</span></li>
+</ul>
+<div class="hint">The theorem forbids <em>fewer</em> than order \(\sqrt N\) queries for <em>unstructured</em> search. Compare each claim with \(\sqrt{2^{40}}=2^{20}\).</div>
+<div class="why">\(2^{10}\) queries is far below \(\sqrt{2^{40}}=2^{20}\), so that algorithm cannot exist. Structured problems such as factoring are outside the theorem's reach.</div>
+</div>
+
+
+<p>Theorem 12.3 is strong evidence, relative to an oracle, that quantum computers will not solve NP-complete problems efficiently (Lecture 10): a quantum algorithm that ignores the structure of a problem can do no better than Grover, which only halves the exponent.</p>
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; Grover against block ciphers</h2>
+
+<p>Key recovery for a \(k\)-bit block cipher, given a known plaintext–ciphertext pair (or a few), is a search over \(N=2^k\) keys with the oracle "does this key encrypt \(p\) to \(c\)?". Lecture 7 showed how to build such an oracle reversibly, and the figure shows its shape.</p>
+
+<figure>
+<svg viewBox="0 0 720 250" width="720" height="250" role="img" aria-labelledby="kot kod"><title id="kot">A Grover oracle for key search</title><desc id="kod">Two registers: a key register holding a superposition of all keys k, and a work register starting in |0>. Block 1 computes the cipher E_k(p) for the known plaintext p into the work register. Block 2 compares the result with the known ciphertext c and flips the phase when they are equal. Block 3 runs block 1 backwards to clear the work register. The net effect is |k> to (-1)^[E_k(p) = c] |k>.</desc><rect x="0" y="0" width="720" height="250" rx="8" class="plot-bg"/><text class="axtext" x="14.0" y="85.0" text-anchor="start" style="fill:var(--sky)">key</text><text class="axtext" x="14.0" y="165.0" text-anchor="start" style="fill:var(--sky)">work</text><text class="lbltext" x="64.0" y="85.0" text-anchor="start">sum |k&gt;</text><text class="lbltext" x="64.0" y="165.0" text-anchor="start">|0&gt;</text><line x1="140" y1="80" x2="600" y2="80" stroke="var(--ink)" stroke-width="5" stroke-opacity="0.85"/><line x1="140" y1="160" x2="600" y2="160" stroke="var(--ink)" stroke-width="5" stroke-opacity="0.85"/><rect x="180" y="54" width="130" height="132" rx="6" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2.2"/><text class="axtext" x="245.0" y="125.0" text-anchor="middle" style="fill:var(--amber)">compute E_k(p)</text><rect x="450" y="54" width="130" height="132" rx="6" fill="var(--surface2)" stroke="var(--moss)" stroke-width="2.2"/><text class="axtext" x="515.0" y="125.0" text-anchor="middle" style="fill:var(--moss)">uncompute</text><rect x="335" y="136" width="90" height="48" rx="6" fill="var(--surface2)" stroke="var(--rose)" stroke-width="2.2"/><text class="axtext" x="380.0" y="158.0" text-anchor="middle" style="fill:var(--rose)">phase flip</text><text class="axtext" x="380.0" y="174.0" text-anchor="middle" style="fill:var(--rose)">if = c</text><text class="axtext" x="608.0" y="85.0" text-anchor="start">(-1)^f(k) |k&gt;</text><text class="lbltext" x="608.0" y="165.0" text-anchor="start">|0&gt;</text><text class="axtext" x="360.0" y="22.0" text-anchor="middle" style="fill:var(--muted)">f(k) = 1 exactly when E_k(p) = c</text><line x1="165" y1="36" x2="165" y2="200" stroke="var(--axis)" stroke-dasharray="3 5"/><text class="axtext" x="165.0" y="220.0" text-anchor="middle">1</text><line x1="322" y1="36" x2="322" y2="200" stroke="var(--axis)" stroke-dasharray="3 5"/><text class="axtext" x="322.0" y="220.0" text-anchor="middle">2</text><line x1="437" y1="36" x2="437" y2="200" stroke="var(--axis)" stroke-dasharray="3 5"/><text class="axtext" x="437.0" y="220.0" text-anchor="middle">3</text><line x1="595" y1="36" x2="595" y2="200" stroke="var(--axis)" stroke-dasharray="3 5"/><text class="axtext" x="595.0" y="220.0" text-anchor="middle">4</text><text class="axtext" x="165.0" y="240.0" text-anchor="middle" style="fill:var(--muted)">superposition</text><text class="axtext" x="322.0" y="240.0" text-anchor="middle" style="fill:var(--muted)">computed</text><text class="axtext" x="437.0" y="240.0" text-anchor="middle" style="fill:var(--muted)">marked</text><text class="axtext" x="595.0" y="240.0" text-anchor="middle" style="fill:var(--muted)">cleaned</text></svg>
+<figcaption>A key-search oracle: compute the cipher on the known plaintext for a superposition of keys, flip the phase where the result equals the known ciphertext, and uncompute. Every Grover iteration runs the cipher twice, reversibly. Lab 3 builds this for a toy 4-bit cipher.</figcaption>
+</figure>
+
+<p>Grover then needs about \(\tfrac\pi4\,2^{k/2}\) iterations instead of the classical \(2^{k-1}\) trial encryptions on average. In "bits of security", the base-2 logarithm of the work, an idealised quantum attacker halves the key length. As an example, take an 80-bit key (the size of some legacy lightweight ciphers): Grover needs \(\tfrac\pi4\,2^{40}\approx8.6\times10^{11}\) iterations, against \(2^{79}\) classical trials, which at a billion trials per second is about 19 million years.</p>
+
+<figure>
+<svg viewBox="0 0 720 320" width="720" height="320" role="img" aria-labelledby="sbt sbd"><title id="sbt">Bits of security against classical and idealised quantum attacks</title><desc id="sbd">Grouped bars. AES-128: classical 128, quantum 64. AES-192: 192 and 96. AES-256: 256 and 128. SHA-256 preimage: 256 and 128. SHA-256 collision: classical 128; quantum also about 128 in realistic cost models, with a marker at 85 showing the query count of the Brassard-Hoyer-Tapp algorithm, which needs huge quantum memory. The quantum numbers ignore the cost of each Grover iteration and the limits on parallelism.</desc><rect x="0" y="0" width="720" height="320" rx="8" class="plot-bg"/><line class="gridline" x1="70" y1="250.0" x2="700" y2="250.0"/><text class="axtext" x="64.0" y="254.0" text-anchor="end">0</text><line class="gridline" x1="70" y1="197.5" x2="700" y2="197.5"/><text class="axtext" x="64.0" y="201.5" text-anchor="end">64</text><line class="gridline" x1="70" y1="145.0" x2="700" y2="145.0"/><text class="axtext" x="64.0" y="149.0" text-anchor="end">128</text><line class="gridline" x1="70" y1="92.5" x2="700" y2="92.5"/><text class="axtext" x="64.0" y="96.5" text-anchor="end">192</text><line class="gridline" x1="70" y1="40.0" x2="700" y2="40.0"/><text class="axtext" x="64.0" y="44.0" text-anchor="end">256</text><line class="axis" x1="70" y1="250" x2="700" y2="250"/><rect x="84.0" y="145.0" width="40" height="105.0" fill="var(--sky)" fill-opacity="0.75" rx="2"/><text class="axtext" x="104.0" y="140.0" text-anchor="middle">128</text><rect x="130.0" y="197.5" width="40" height="52.5" fill="var(--rose)" fill-opacity="0.75" rx="2"/><text class="axtext" x="150.0" y="192.5" text-anchor="middle">64</text><text class="axtext" x="127.0" y="268.0" text-anchor="middle">AES-128</text><rect x="210.0" y="92.5" width="40" height="157.5" fill="var(--sky)" fill-opacity="0.75" rx="2"/><text class="axtext" x="230.0" y="87.5" text-anchor="middle">192</text><rect x="256.0" y="171.2" width="40" height="78.8" fill="var(--rose)" fill-opacity="0.75" rx="2"/><text class="axtext" x="276.0" y="166.2" text-anchor="middle">96</text><text class="axtext" x="253.0" y="268.0" text-anchor="middle">AES-192</text><rect x="336.0" y="40.0" width="40" height="210.0" fill="var(--sky)" fill-opacity="0.75" rx="2"/><text class="axtext" x="356.0" y="35.0" text-anchor="middle">256</text><rect x="382.0" y="145.0" width="40" height="105.0" fill="var(--rose)" fill-opacity="0.75" rx="2"/><text class="axtext" x="402.0" y="140.0" text-anchor="middle">128</text><text class="axtext" x="379.0" y="268.0" text-anchor="middle">AES-256</text><rect x="462.0" y="40.0" width="40" height="210.0" fill="var(--sky)" fill-opacity="0.75" rx="2"/><text class="axtext" x="482.0" y="35.0" text-anchor="middle">256</text><rect x="508.0" y="145.0" width="40" height="105.0" fill="var(--rose)" fill-opacity="0.75" rx="2"/><text class="axtext" x="528.0" y="140.0" text-anchor="middle">128</text><text class="axtext" x="505.0" y="268.0" text-anchor="middle">SHA-256</text><text class="axtext" x="505.0" y="284.0" text-anchor="middle">preimage</text><rect x="588.0" y="145.0" width="40" height="105.0" fill="var(--sky)" fill-opacity="0.75" rx="2"/><text class="axtext" x="608.0" y="140.0" text-anchor="middle">128</text><rect x="634.0" y="145.0" width="40" height="105.0" fill="var(--rose)" fill-opacity="0.75" rx="2"/><text class="axtext" x="654.0" y="140.0" text-anchor="middle">128</text><line x1="628.0" y1="180.3" x2="680.0" y2="180.3" stroke="var(--amber)" stroke-width="2.4" stroke-dasharray="4 3"/><text class="axtext" x="684.0" y="184.3" text-anchor="start" style="fill:var(--amber)">85</text><text class="axtext" x="631.0" y="268.0" text-anchor="middle">SHA-256</text><text class="axtext" x="631.0" y="284.0" text-anchor="middle">collision</text><rect x="70" y="12" width="12" height="12" fill="var(--sky)" fill-opacity="0.75"/><text class="axtext" x="88.0" y="22.0" text-anchor="start">classical (bits)</text><rect x="240" y="12" width="12" height="12" fill="var(--rose)" fill-opacity="0.75"/><text class="axtext" x="258.0" y="22.0" text-anchor="start">idealised quantum (bits)</text><text class="axtext" x="470.0" y="22.0" text-anchor="start" style="fill:var(--amber)">- - 85: BHT query count</text><text class="axtext" x="360.0" y="308.0" text-anchor="middle">quantum = log2 of oracle calls, ignoring the cost of each call and limits on parallelism</text></svg>
+<figcaption>Bits of security against classical attack and against an idealised Grover attack that pays one unit per oracle call. Real quantum attacks pay much more per call and parallelise poorly, so the red bars are a lower bound on the attacker's real cost, not an estimate of it.</figcaption>
+</figure>
+
+<p>Three facts make the real threat much smaller than the red bars suggest.</p>
+
+<div class="box thm">
+<span class="lbl">facts 12.4 &mdash; why Grover is a weak attack in practice</span>
+<ol>
+<li><strong>The iterations are sequential.</strong> \(\tfrac\pi4\,2^{k/2}\) iterations must run one after another. Even for an 80-bit key, \(8.6\times10^{11}\) iterations at an (optimistic) one millisecond of error-corrected time per iteration would take about 27 years.</li>
+<li><strong>Parallel machines help only a little.</strong> Splitting the search across \(K\) quantum computers shortens the time by only a factor \(\sqrt K\), not \(K\), and Zalka proved that, asymptotically, no way of parallelising Grover does better. HW6 asks you to explain why. Classical key search, by contrast, parallelises perfectly.</li>
+<li><strong>Each iteration is expensive.</strong> The oracle runs the whole cipher reversibly, twice. For AES-128 the first detailed estimate (Grassl, Langenberg, Roetteler and Steinwandt, 2016) needed 2,953 logical qubits and a \(T\)-depth of about \(1.06\cdot2^{80}\) for the whole attack, using three known plaintext–ciphertext pairs (Lecture 7).</li>
+</ol>
+</div>
+
+<div class="spot" data-kind="multi">
+<p>Tick every reason, given in these notes, why Grover is a much weaker attack in practice than the idealised count of \(\tfrac\pi4\,2^{k/2}\) oracle calls suggests.</p>
+<ul class="opts">
+<li data-ok>The iterations must run one after another, so the count is also a sequential running time.</li>
+<li>Each iteration ends with a measurement, which restarts the search.<span class="oh">There is no measurement between iterations: the state is rotated coherently and measured once at the end.</span></li>
+<li data-ok>Every iteration runs the whole cipher reversibly, twice, on error-corrected qubits.</li>
+<li>Grover's algorithm only works on ciphers with some linear structure.<span class="oh">Grover needs no structure at all, only an oracle that recognises the right key. That is why it applies to every cipher, and also why it gains only a square root.</span></li>
+</ul>
+<div class="hint">Facts 12.4 lists the reasons. Check the other two options against how Grover's algorithm actually runs (Lecture 11).</div>
+<div class="why">Sequential iterations and an expensive reversible oracle are two of the three facts (the third is poor parallelism). Grover is measured only once, and it works on any cipher.</div>
+</div>
+
+
+<p>NIST's post-quantum standardisation process builds the first two facts into its definitions. Its weakest security category is "at least as hard as key search on AES-128", with quantum attacks limited to a maximum circuit depth, MAXDEPTH. NIST suggested three plausible values: \(2^{40}\) (what presently envisioned quantum computers could do serially in a year), \(2^{64}\) (what classical computers can do serially in a decade) and \(2^{96}\) (atomic-scale qubits running for a millennium). Its call for proposals estimates key search on AES-128 at \(2^{170}/\text{MAXDEPTH}\) quantum gates, against \(2^{143}\) classical gates; with MAXDEPTH \(=2^{40}\) that is \(2^{130}\) quantum gates, only \(2^{13}\) times fewer than the classical \(2^{143}\), and each error-corrected quantum gate is vastly more expensive than a classical one. NIST's FAQ concludes that "it is quite likely that Grover's algorithm will provide little or no advantage in attacking AES, and AES 128 will remain secure for decades to come."</p>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; the practical advice</span>
+<p>Symmetric cryptography needs no new algorithms. The standard guidance is that AES-128 remains acceptable, and that new systems wanting a comfortable long-term margin, especially for data that must stay secret for decades, should use 256-bit keys (HW6 asks you to explain what margin they restore). Compare this with Section 5's table: public-key cryptography based on factoring or discrete logarithms must be replaced outright.</p>
+</div>
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; Hash functions, and Shor vs. Grover</h2>
+
+<p>An \(n\)-bit hash function \(H\) must resist two attacks. <strong>Preimage search</strong> (given \(y\), find \(x\) with \(H(x)=y\)) is unstructured search, so Grover reduces it from \(2^n\) to about \(2^{n/2}\) evaluations, with the same caveats as key search. <strong>Collision search</strong> (find \(x\neq x'\) with \(H(x)=H(x')\)) already costs only \(2^{n/2}\) classically, by the birthday bound of Lecture 10. The Brassard–Høyer–Tapp algorithm finds collisions with about \(2^{n/3}\) queries, but it needs about \(2^{n/3}\) qubits of quantum random-access memory; once the hardware is counted, Bernstein (2009) found no advantage over classical parallel collision search. So SHA-256 keeps roughly 128-bit collision resistance and, idealised, 128-bit quantum preimage resistance.</p>
+
+<div class="spot" data-kind="num" data-ans="192|192" data-labels="quantum preimage bits|classical collision bits" data-tol="0.6">
+<p>SHA-384 has 384-bit outputs. In bits of security, what is its idealised quantum preimage resistance, and its (classical) collision resistance?</p>
+<div class="hint">Preimage: Grover turns \(2^n\) into \(2^{n/2}\). Collision: the classical birthday bound is already \(2^{n/2}\), and quantum collision search gives no practical gain.</div>
+<div class="why">Both are \(384/2=192\) bits. For preimages, Grover halves the exponent; for collisions, the birthday bound halved it long before any quantum computer.</div>
+</div>
+
+
+<div style="overflow-x:auto"><table>
+<tr><th>primitive</th><th>best quantum attack</th><th>effect</th><th>response</th></tr>
+<tr><td>RSA, Diffie–Hellman, elliptic curves</td><td>Shor (Lectures 15–16)</td><td>broken in polynomial time</td><td>replace with post-quantum schemes (Lecture 17)</td></tr>
+<tr><td>block ciphers (AES)</td><td>Grover</td><td>at most halves the bits of security</td><td>prefer 256-bit keys for long-term margin</td></tr>
+<tr><td>hash functions (SHA-2, SHA-3)</td><td>Grover (preimage); BHT (collision)</td><td>preimage bits at most halved; collisions barely affected</td><td>256-bit outputs remain adequate</td></tr>
+</table></div>
+
+<div class="box crypto">
+<span class="lbl">crypto connection &mdash; the asymmetry in one sentence</span>
+<p>Shor exploits hidden <em>structure</em> (a period) and gains exponentially; Grover exploits nothing and gains only a square root, and Theorem 12.3 says that is all an unstructured attack can ever gain. That single contrast explains why the post-quantum migration replaces public-key algorithms wholesale while leaving symmetric algorithms in place.</p>
+</div>
+
+<div class="spot" data-kind="select">
+<p>Shor's algorithm runs in time polynomial in the key length \(n\), roughly \(n^3\). Doubling an RSA modulus from 2048 to 4096 bits multiplies the cost of Shor's attack by about
+<select><option data-hint="That would be a linear-time attack. A cubic cost grows faster than that.">2</option><option data-ok>8</option><option data-hint="Squaring the work, or multiplying it by 2^2048, is what doubling does to an exponential brute-force attack, not to a polynomial one.">2^2048</option></select>.</p>
+<div class="hint">If the cost is \(c\,n^3\), compare \(c\,(2n)^3\) with \(c\,n^3\).</div>
+<div class="why">\((2n)^3=8n^3\): a factor of 8, which no defender can rely on. Against a polynomial-time attack, bigger keys do not help; the algorithm itself has to be replaced.</div>
+</div>
+
+
+<!-- =================== 6 =================== -->
+<h2 id="s6">6 &mdash; Try it in code</h2>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; Example 12.1: amplifying a 25% algorithm (tested with qiskit 2.5)</span>
+<pre>import numpy as np
+from qiskit import QuantumCircuit
+from qiskit.quantum_info import Statevector
+
+t = np.pi / 3                                  <span class="cm"># A = R_y(pi/3): A|0&gt; = cos(pi/6)|0&gt; + sin(pi/6)|1&gt;, p = 1/4</span>
+
+def A(qc):     qc.ry(t, 0)
+def A_inv(qc): qc.ry(-t, 0)
+def flip_good(qc): qc.z(0)                     <span class="cm"># S_good = I - 2|1&gt;&lt;1|</span>
+def flip_zero(qc): qc.x(0); qc.z(0); qc.x(0)   <span class="cm"># S_0    = I - 2|0&gt;&lt;0|</span>
+
+for rounds in range(4):
+    qc = QuantumCircuit(1)
+    A(qc)
+    for _ in range(rounds):                    <span class="cm"># Q = -A S_0 A^dagger S_good (the sign is a global phase)</span>
+        flip_good(qc); A_inv(qc); flip_zero(qc); A(qc)
+    p = Statevector.from_instruction(qc).probabilities()[1]
+    print(f"{rounds} rounds: P(good) = {p:.4f}")</pre>
+<pre class="out">0 rounds: P(good) = 0.2500
+1 rounds: P(good) = 1.0000
+2 rounds: P(good) = 0.2500
+3 rounds: P(good) = 0.2500</pre>
+</div>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; searching without knowing M</span>
+<pre>import numpy as np
+
+rng = np.random.default_rng(1)
+N, M = 2 ** 16, 37                            <span class="cm"># M is unknown to the algorithm</span>
+theta = np.arcsin(np.sqrt(M / N))
+
+def search_with_unknown_M():
+    """Boyer-Brassard-Hoyer-Tapp: random iteration counts from a growing range"""
+    m, iterations = 1.0, 0
+    while True:
+        k = rng.integers(0, int(np.ceil(m)))   <span class="cm"># k uniform in {0, ..., ceil(m) - 1}</span>
+        iterations += k
+        if rng.random() &lt; np.sin((2 * k + 1) * theta) ** 2:   <span class="cm"># measure and check the answer</span>
+            return iterations
+        m = min(1.2 * m, np.sqrt(N))           <span class="cm"># grow the range by 6/5</span>
+
+runs = [search_with_unknown_M() for _ in range(5000)]
+print("average Grover iterations:", round(np.mean(runs), 1), "   sqrt(N/M) =", round(np.sqrt(N / M), 1))</pre>
+<pre class="out">average Grover iterations: 51.0    sqrt(N/M) = 42.1</pre>
+<p>This simulates the algorithm's statistics rather than running circuits: each round's success is drawn with the probability \(\sin^2((2k+1)\theta)\) of Theorem 11.2. The average cost is about \(1.2\sqrt{N/M}\) iterations, the same order as an algorithm that knew \(M\) in advance (HW6).</p>
+</div>
+
+<!-- =================== 7 =================== -->
+<h2 id="s7">7 &mdash; Lab 3 launch: Grover key search on a toy cipher</h2>
+
+<div class="box lab">
+<span class="lbl">lab 3 &mdash; build the oracle, run the attack (due in 10 days)</span>
+<p><strong>Goal.</strong> Build a Grover oracle from a classical function, and connect Grover to cryptanalysis.</p>
+<ol>
+<li><strong>The cipher.</strong> Use the 4-bit cipher \(E_k(p)=S(p\oplus k)\oplus k\), where \(S\) is the PRESENT S-box \((\mathtt{C},\mathtt5,\mathtt6,\mathtt B,\mathtt9,\mathtt0,\mathtt A,\mathtt D,\mathtt3,\mathtt E,\mathtt F,\mathtt8,\mathtt4,\mathtt7,\mathtt1,\mathtt2)\) in hexadecimal. Build a reversible circuit for \(S\) (Qiskit's synthesis tools may help), and from it the oracle that marks the keys \(k\) with \(E_k(p)=c\): compute, phase-flip, uncompute.</li>
+<li><strong>Check and run.</strong> Verify the oracle on all 16 basis states, then run Grover with 0 to 4 iterations and plot the success probability against Theorem 11.2.</li>
+<li><strong>Two keys.</strong> For this cipher, a known pair is consistent with either one or two keys. The pair \(p=0\), \(c=4\) has two (\(k=1\) and \(k=2\)). Adapt your iteration count, and compare with what you get if you assume one key.</li>
+<li><strong>Cost.</strong> Transpile one Grover iteration for an IBM backend and report its depth and two-qubit gate count. Would it run usefully on today's hardware? (Discussion only; no hardware run.)</li>
+<li><strong>Analysis.</strong> Extrapolate the oracle cost to AES-128 using Lecture 7's estimates. Why does this suggest Grover is a far smaller threat than Shor?</li>
+</ol>
+</div>
+
+<!-- =================== 8 =================== -->
+<h2 id="s8">8 &mdash; Summary and exercises</h2>
+
+<div class="box thm">
+<span class="lbl">summary</span>
+<ul>
+<li>Amplitude amplification: if \(\mathcal A\) succeeds with probability \(p=\sin^2\theta\), then \(Q=-\mathcal AS_0\mathcal A^{-1}S_\chi\) rotates by \(2\theta\), and about \(\tfrac{\pi}{4\sqrt p}\) rounds make success likely. Grover is the case \(\mathcal A=H^{\otimes n}\).</li>
+<li>With an unknown number of solutions, random iteration counts from a growing range still cost \(O(\sqrt{N/M})\) on average.</li>
+<li>No quantum algorithm searches an unstructured space with fewer than order \(\sqrt N\) queries (BBBV; Zalka: \(\tfrac\pi4\sqrt N\) is exact).</li>
+<li>Against a \(k\)-bit key, an idealised Grover attack costs about \(2^{k/2}\) iterations. In practice the iterations are sequential, parallelism gains only \(\sqrt K\), and each iteration runs the cipher reversibly twice. AES-128 remains acceptable; 256-bit keys give a long-term margin.</li>
+<li>Hash preimages: about \(2^{n/2}\) idealised; collisions: no practical quantum gain over the classical \(2^{n/2}\).</li>
+</ul>
+<p><strong>Next time:</strong> the quantum Fourier transform, the engine of phase estimation and Shor's algorithm. <strong>HW6</strong> is due at the start of Week 7; <strong>Lab 3</strong> in ten days.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 12</span>
+<ol>
+<li>Let \(\mathcal A\) succeed with probability exactly \(p=\tfrac12\). What does one round of amplitude amplification give? Show how adding one extra qubit, prepared by \(R_y(\pi/2)\) and required to be 1 for success, makes a single round succeed with certainty.</li>
+<li>Check Proposition 12.2 for \(m=1\) and \(m=2\) by computing the average directly.</li>
+<li>About how many Grover iterations does an idealised attack need for a 112-bit key?</li>
+<li>Using NIST's estimate of \(2^{170}/\text{MAXDEPTH}\) quantum gates for AES-128 key search, compute the quantum gate count for each of the three suggested MAXDEPTH values, and compare each with the classical \(2^{143}\).</li>
+<li>SHA-1 has 160-bit outputs. What are its classical and idealised quantum preimage costs, in bits? (Its classical collision resistance is in fact broken by cryptanalysis, which no quantum argument is needed for.)</li>
+<li>For the Lab 3 cipher with \(p=0\), check by hand that \(k=1\) and \(k=2\) both give \(c=4\), and find every key consistent with \(p=0\), \(c=\mathtt C\).</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>\(\theta=45^\circ\), and one round gives \(\sin^2135^\circ=\tfrac12\): no improvement, and every number of rounds gives \(\tfrac12\) (\(\sin^2\) of \(45^\circ,135^\circ,225^\circ,\dots\)). With the extra qubit the combined success probability is \(\tfrac12\cdot\tfrac12=\tfrac14\), so \(\theta=30^\circ\), and one round reaches \(90^\circ\): certainty, as in Example 12.1. Lowering \(p\) on purpose to land exactly on \(90^\circ\) is a standard trick.</li>
+<li>For \(m=1\), only \(k=0\): average \(\sin^2\theta\); the formula gives \(\tfrac12-\tfrac{\sin4\theta}{4\sin2\theta}=\tfrac12-\tfrac{\cos2\theta}{2}=\sin^2\theta\). For \(m=2\): \(\tfrac12(\sin^2\theta+\sin^23\theta)\), and the formula gives \(\tfrac12-\tfrac{\sin8\theta}{8\sin2\theta}\); both equal \(\tfrac12-\tfrac14(\cos2\theta+\cos6\theta)\), using \(\sin8\theta=2\sin2\theta\,(\cos2\theta+\cos6\theta)\).</li>
+<li>\(\tfrac\pi4\cdot2^{56}\approx5.7\times10^{16}\) iterations.</li>
+<li>\(2^{130}\), \(2^{106}\) and \(2^{74}\) quantum gates for MAXDEPTH \(2^{40}\), \(2^{64}\) and \(2^{96}\). Only for the most generous depths does the quantum attack beat \(2^{143}\) classical gates by a large margin, and those depths assume quantum hardware running flawlessly for decades to a millennium.</li>
+<li>Classical preimage: 160 bits. Idealised Grover: about 80 bits. SHA-1 collisions were found classically in 2017, so it should not be used at all.</li>
+<li>\(E_1(0)=S(1)\oplus1=\mathtt5\oplus\mathtt1=\mathtt4\) and \(E_2(0)=S(2)\oplus2=\mathtt6\oplus\mathtt2=\mathtt4\). For \(c=\mathtt C\): \(k=0\) gives \(S(0)\oplus0=\mathtt C\), and \(k=6\) gives \(S(6)\oplus6=\mathtt A\oplus\mathtt6=\mathtt C\), so this pair also fits two keys.</li>
+</ol>
+</div>
+</div>
+
+<h3>Reading and sources</h3>
+<ul>
+<li>R. de Wolf, <em>Quantum Computing: Lecture Notes</em>, Ch. 7 (Grover and amplitude amplification) and Ch. 11 (query lower bounds) (<a href="https://arxiv.org/abs/1907.09415">arXiv:1907.09415</a>).</li>
+<li>NIST, <a href="https://csrc.nist.gov/projects/post-quantum-cryptography/faqs">Post-Quantum Cryptography FAQs</a> (on AES and Grover) and the <a href="https://csrc.nist.gov/CSRC/media/Projects/Post-Quantum-Cryptography/documents/call-for-proposals-final-dec-2016.pdf">2016 Call for Proposals</a>, §4.A.5 (security categories and MAXDEPTH).</li>
+<li>IBM Quantum Learning, <a href="https://learning.quantum-computing.ibm.com/course/practical-introduction-to-quantum-safe-cryptography">Practical introduction to quantum-safe cryptography</a>, the lesson on symmetric-key cryptography.</li>
+<li>G. Brassard, P. Høyer, M. Mosca and A. Tapp, "Quantum amplitude amplification and estimation" (2002); M. Boyer, G. Brassard, P. Høyer and A. Tapp, "Tight bounds on quantum searching", <em>Fortschr. Phys.</em> 46 (1998); C. H. Bennett, E. Bernstein, G. Brassard and U. Vazirani, <em>SIAM J. Comput.</em> 26 (1997); C. Zalka, "Grover's quantum searching algorithm is optimal", <em>Phys. Rev. A</em> 60 (1999); G. Brassard, P. Høyer and A. Tapp, "Quantum cryptanalysis of hash and claw-free functions", LATIN 1998; D. J. Bernstein, "Cost analysis of hash collisions: will quantum computers make SHARCS obsolete?", SHARCS 2009. M. Grassl, B. Langenberg, M. Roetteler and R. Steinwandt, "Applying Grover's algorithm to AES: quantum resource estimates", PQCrypto 2016 (<a href="https://arxiv.org/abs/1512.04965">arXiv:1512.04965</a>).</li>
+</ul>
+<p class="kicker" style="margin-top:2.4em">all numbers and figures in these notes are computed in python (verify_L12.py) and follow the page theme</p>
+</div>
+
+<script>
+var NS=['http:','','www.w3.org','2000','svg'].join('/');
+function mk(tag,at,parent,txt){var e=document.createElementNS(NS,tag);for(var k in at)e.setAttribute(k,at[k]);if(txt!==undefined)e.textContent=txt;if(parent)parent.appendChild(e);return e;}
+function clr(s){[].slice.call(s.childNodes).forEach(function(c){if(c.nodeName!=='title'&&c.nodeName!=='desc')s.removeChild(c);});}
+function fx(x,d){d=(d===undefined?3:d);var v=Number(x).toFixed(d);return /^-0\.?0*$/.test(v)?v.slice(1):v;}
+
+/* ---------- fixed counts and unknown M ---------- */
+(function(){
+  var svg=document.getElementById('umSvg'); if(!svg) return;
+  var nEl=document.getElementById('umN'), mEl=document.getElementById('umM'), out=document.getElementById('umOut');
+  function draw(){
+    var n=+nEl.value, M=+mEl.value, N=Math.pow(2,n);
+    document.getElementById('umNv').textContent=n; document.getElementById('umMv').textContent=M;
+    var th=Math.asin(Math.sqrt(M/N)), th1=Math.asin(1/Math.sqrt(N)), k1=Math.floor(Math.PI/(4*th1)), kb=Math.floor(Math.PI/(4*th));
+    var kmax=Math.max(Math.ceil(1.3*k1),10), P=function(k){return Math.pow(Math.sin((2*k+1)*th),2);};
+    var m=Math.ceil(1/Math.sin(2*th)), avg=0.5-Math.sin(4*m*th)/(4*m*Math.sin(2*th));
+    clr(svg); mk('rect',{x:0,y:0,width:600,height:250,rx:8,class:'plot-bg'},svg);
+    var L=50,R=20,T=24,B=40,base=250-B,hmax=base-T, X=function(k){return L+k/kmax*(600-L-R);}, Y=function(p){return base-p*hmax;};
+    [0,0.5,1].forEach(function(p){mk('line',{x1:L,y1:Y(p),x2:600-R,y2:Y(p),class:'gridline'},svg); mk('text',{x:L-6,y:Y(p)+4,'text-anchor':'end',class:'axtext'},svg,String(p));});
+    mk('line',{x1:L,y1:base,x2:600-R,y2:base,class:'axis'},svg);
+    var d=''; for(var i=0;i<=600;i++){var k=i/600*kmax; d+=(i?'L':'M')+X(k).toFixed(1)+','+Y(P(k)).toFixed(1)+' ';}
+    mk('path',{d:d,class:'curve'},svg);
+    mk('line',{x1:L,y1:Y(avg),x2:600-R,y2:Y(avg),stroke:'var(--amber)','stroke-dasharray':'5 4','stroke-width':1.5},svg);
+    [[k1,'var(--rose)','assume M = 1: k = '+k1],[kb,'var(--moss)','best for M = '+M+': k = '+kb]].forEach(function(q,j){
+      mk('line',{x1:X(q[0]),y1:T,x2:X(q[0]),y2:base,stroke:q[1],'stroke-width':1.8},svg);
+      mk('circle',{cx:X(q[0]),cy:Y(P(q[0])),r:5,fill:q[1]},svg);
+      mk('text',{x:L+8,y:T+14+16*j,class:'axtext',style:'fill:'+q[1]},svg,q[2]); });
+    for(var t=0;t<=4;t++){var kk=Math.round(t*kmax/4); mk('text',{x:X(kk),y:base+18,'text-anchor':'middle',class:'axtext'},svg,String(kk));}
+    mk('text',{x:300,y:246,'text-anchor':'middle',class:'axtext'},svg,'Grover iterations k');
+    out.textContent='N = 2^'+n+', M = '+M+'. Assuming M = 1 gives k = '+k1+' and success '+fx(P(k1),3)+'; the best k = '+kb+' gives '+fx(P(kb),3)+
+      '; a random k below m = '+m+' succeeds on average with probability '+fx(avg,3)+'.';
+  }
+  [nEl,mEl].forEach(function(e){e.addEventListener('input',draw);}); draw();
+})();
+</script>
+
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    var lab=b.getAttribute('data-lab')||b.textContent.replace(/^(show|hide) /,''); b.setAttribute('data-lab',lab);
+    b.textContent=(open?'hide ':'show ')+lab;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+
+<script id="spot-js">
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×/g,'*').replace(/π/g,'pi').replace(/,/g,'');
+    var pct=/%$/.test(s); if(pct) s=s.slice(0,-1);
+    s=s.replace(/√\s*\(/g,'sqrt(').replace(/√\s*([0-9.]+)/g,'sqrt($1)');
+    if(!s||!/^[0-9a-z+\-*\/^().\s]*$/.test(s)) return NaN;
+    var ok=s.replace(/sqrt|pi|ln|log|exp|sin|cos|tan|e(?![a-z])/g,'').replace(/[0-9+\-*\/^().\s]/g,'');
+    if(ok.length) return NaN;
+    s=s.replace(/\^/g,'**').replace(/(\d)\s*(pi|sqrt|\()/g,'$1*$2').replace(/\)\s*(\d|pi|sqrt|\()/g,')*$1')
+       .replace(/sqrt/g,'Math.sqrt').replace(/pi/g,'Math.PI').replace(/\blog\b/g,'Math.log10').replace(/\bln\b/g,'Math.log')
+       .replace(/exp/g,'Math.exp').replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos').replace(/tan/g,'Math.tan')
+       .replace(/(^|[^a-z.0-9])e(?![a-z0-9(])/g,'$1Math.E');
+    try{ var v=Function('"use strict";return ('+s+')')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function typeset(el){ if(window.MathJax&&MathJax.typesetPromise){ MathJax.typesetPromise([el]).catch(function(){}); } }
+  function fb(spot,ok,html){
+    var f=spot.querySelector('.fb'); spot.classList.toggle('ok',ok); spot.classList.toggle('bad',!ok);
+    f.innerHTML='<p><span class="tag">'+(ok?'correct.':'not yet.')+'</span>'+(html||'')+'</p>'; typeset(f);
+  }
+  function part(spot,sel){ var e=spot.querySelector(sel); return e? e.innerHTML : ''; }
+  var n=0, lec=(document.title.match(/^Lecture (\d+)/)||[])[1];
+  document.querySelectorAll('.spot').forEach(function(spot){
+    n++; var kind=spot.getAttribute('data-kind')||'num', tries=0;
+    var lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent='spot check '+(lec?lec+'.':'')+n+(spot.getAttribute('data-tag')?' — '+spot.getAttribute('data-tag'):'');
+    spot.insertBefore(lbl,spot.firstChild);
+    var area=document.createElement('div'), btns=document.createElement('div'), f=document.createElement('div');
+    btns.className='btns'; f.className='fb'; f.setAttribute('role','status'); f.setAttribute('aria-live','polite');
+    var check=document.createElement('button'); check.type='button'; check.textContent='check';
+    var reveal=document.createElement('button'); reveal.type='button'; reveal.className='reveal'; reveal.textContent='show answer'; reveal.style.display='none';
+    btns.appendChild(check); btns.appendChild(reveal);
+    var grade, show;
+    if(kind==='num'){
+      var ans=spot.getAttribute('data-ans').split('|').map(evalNum), labs=(spot.getAttribute('data-labels')||'').split('|');
+      var tol=spot.getAttribute('data-tol'), row=document.createElement('div'); row.className='row'; area.appendChild(row);
+      var ins=ans.map(function(a,i){ var lab=document.createElement('label'), inp=document.createElement('input');
+        inp.className='ans'; inp.type='text'; inp.setAttribute('inputmode','text'); inp.setAttribute('autocomplete','off');
+        inp.setAttribute('aria-label',labs[i]||'answer'); if(labs[i]){ lab.appendChild(document.createTextNode(labs[i]+' =')); }
+        lab.appendChild(inp); row.appendChild(lab);
+        inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); check.click(); } }); return inp; });
+      var fmt=document.createElement('div'); fmt.className='fmt'; fmt.textContent='decimals, fractions, sqrt(2)/2, pi/4 or 2^-3 all work';
+      area.appendChild(fmt);
+      grade=function(){ var bad=[]; ins.forEach(function(inp,i){ var v=evalNum(inp.value), a=ans[i];
+          var t= tol!==null? Number(tol) : Math.max(0.005, 0.005*Math.abs(a)); if(!(Math.abs(v-a)<=t)) bad.push(i); });
+        var empty=ins.some(function(inp){return !inp.value.trim();});
+        if(empty) return {ok:false,msg:'Fill in '+(ins.length>1?'every box':'the box')+' first.',soft:true};
+        var unparsed=ins.some(function(inp){return isNaN(evalNum(inp.value));});
+        if(unparsed) return {ok:false,msg:'I could not read that as a number. Try a decimal or a fraction such as 3/8.',soft:true};
+        return {ok:!bad.length, which:bad}; };
+      show=function(){ var s=spot.getAttribute('data-show'); if(!s){ s=spot.getAttribute('data-ans').split('|').map(function(a,i){return (labs[i]?labs[i]+' = ':'')+a;}).join(', '); } return 'The answer is '+s+'.'; };
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=spot.querySelector('ul.opts'), name='spot'+n, lis=[].slice.call(ul.querySelectorAll(':scope > li'));
+      lis.forEach(function(li,i){ var inp=document.createElement('input'); inp.type= kind==='mc'?'radio':'checkbox'; inp.name=name; inp.value=i;
+        inp.setAttribute('aria-label','option '+(i+1)); li.insertBefore(inp,li.firstChild);
+        li.addEventListener('click',function(e){ if(e.target!==inp&&e.target.tagName!=='A'){ if(kind==='mc') inp.checked=true; else inp.checked=!inp.checked; } }); });
+      grade=function(){ var picked=lis.filter(function(li){return li.querySelector('input').checked;});
+        if(!picked.length) return {ok:false,msg:'Pick '+(kind==='mc'?'an answer':'at least one option')+' first.',soft:true};
+        var ok= lis.every(function(li){ return li.hasAttribute('data-ok')===li.querySelector('input').checked; });
+        var oh=''; picked.forEach(function(li){ if(!li.hasAttribute('data-ok')){ var h=li.querySelector('.oh'); if(h) oh+=' '+h.innerHTML; } });
+        if(kind==='multi'&&!ok&&!oh){ var miss=lis.filter(function(li){return li.hasAttribute('data-ok')&&!li.querySelector('input').checked;});
+          if(miss.length&&picked.every(function(li){return li.hasAttribute('data-ok');})) oh=' Everything you ticked is right, but something is missing.'; }
+        return {ok:ok, extra:oh}; };
+      show=function(){ lis.forEach(function(li){ li.classList.toggle('right',li.hasAttribute('data-ok')); }); return 'The right '+(kind==='mc'?'option is':'options are')+' outlined.'; };
+    } else if(kind==='select'){
+      var sels=[].slice.call(spot.querySelectorAll('select'));
+      sels.forEach(function(s){ var o=document.createElement('option'); o.textContent='choose…'; o.value=''; o.selected=true; s.insertBefore(o,s.firstChild);
+        s.setAttribute('aria-label', s.getAttribute('aria-label')||'choose an answer'); });
+      grade=function(){ if(sels.some(function(s){return !s.value;})) return {ok:false,msg:'Make a choice in '+(sels.length>1?'every menu':'the menu')+' first.',soft:true};
+        var oh=''; var ok=sels.every(function(s){ var o=s.options[s.selectedIndex]; if(!o.hasAttribute('data-ok')&&o.getAttribute('data-hint')) oh+=' '+o.getAttribute('data-hint'); return o.hasAttribute('data-ok'); });
+        return {ok:ok, extra:oh}; };
+      show=function(){ sels.forEach(function(s){ [].forEach.call(s.options,function(o,i){ if(o.hasAttribute('data-ok')) s.selectedIndex=i; }); }); return 'The right choices are now selected.'; };
+    }
+    var anchor=null;
+    [].forEach.call(spot.children,function(c){ if(!anchor&&(c.classList.contains('hint')||c.classList.contains('why'))) anchor=c; });
+    if(kind==='select'){ spot.insertBefore(btns,anchor); } else { spot.insertBefore(area,anchor); spot.insertBefore(btns,anchor); }
+    spot.appendChild(f);
+    check.addEventListener('click',function(){ var r=grade();
+      if(r.soft){ spot.classList.remove('ok'); spot.classList.add('bad'); f.innerHTML='<p><span class="tag">hold on.</span>'+r.msg+'</p>'; return; }
+      if(r.ok){ fb(spot,true,part(spot,'.why')); reveal.style.display='none'; }
+      else { tries++; var h=part(spot,'.hint'); var extra=r.extra||'';
+        if(r.which&&r.which.length&&ans.length>1){ extra=' Check '+r.which.map(function(i){return labs[i]||('box '+(i+1));}).join(' and ')+'.'+extra; }
+        fb(spot,false,(extra?extra+' ':'')+h); if(tries>=2) reveal.style.display=''; } });
+    reveal.addEventListener('click',function(){ var msg=show(); spot.classList.remove('ok'); spot.classList.add('bad');
+      f.innerHTML='<p><span class="tag">answer.</span>'+msg+' '+part(spot,'.why')+'</p>'; typeset(f); });
+  });
+})();
+</script>
+</body>
+</html>

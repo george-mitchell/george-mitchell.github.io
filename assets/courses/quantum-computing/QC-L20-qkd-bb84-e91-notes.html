@@ -1,0 +1,746 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Lecture 20 — Quantum Key Distribution: BB84 and E91</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+  /* course additions, same family */
+  .crypto{border-left-color:var(--moss);background:var(--surface2)} .crypto .lbl{color:var(--moss)}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  dl.gloss dt{font-family:var(--mono);color:var(--sky);font-size:.95rem;margin-top:.9em}
+  dl.gloss dd{margin:.1em 0 0 1.1em}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<style id="spot-css">
+.spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+  border-radius:6px;padding:12px 16px;margin:1.3em 0;transition:background .25s,border-color .25s}
+.spot .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em;color:var(--sky)}
+.spot > p{margin:.35em 0}
+.spot .hint,.spot .why,.spot .oh{display:none}
+.spot .fb{display:none;margin:.55em 0 0;font-size:.97rem}
+.spot .fb > :first-child{margin-top:0}.spot .fb > :last-child{margin-bottom:0}
+.spot.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 13%,var(--surface))}
+.spot.ok .lbl{color:var(--moss)}
+.spot.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 13%,var(--surface))}
+.spot.bad .lbl{color:var(--amber)}
+.spot.ok .fb{display:block;color:var(--ink)} .spot.bad .fb{display:block;color:var(--ink)}
+.spot .fb .tag{font-family:var(--mono);font-size:.85rem;margin-right:.4em}
+.spot.ok .fb .tag{color:var(--moss)} .spot.bad .fb .tag{color:var(--amber)}
+.spot ul.opts{list-style:none;padding:0;margin:.5em 0}
+.spot ul.opts li{display:block;padding:4px 8px 4px 2.1em;text-indent:-1.5em;margin:3px 0;border-radius:5px;cursor:pointer;
+  border:1px solid transparent;overflow-wrap:anywhere}
+.spot ul.opts li > *{text-indent:0}
+.spot ul.opts li:hover{border-color:var(--rule)}
+.spot ul.opts li input{accent-color:var(--sky);margin:0 .6em 0 0;width:.9em;vertical-align:-1px}
+.spot ul.opts li.right{border-color:var(--moss)}
+.spot .row{display:flex;flex-wrap:wrap;gap:.6em 1em;align-items:center;margin:.55em 0 .2em}
+.spot .row label{font-family:var(--mono);font-size:.88rem;color:var(--muted);display:flex;gap:.45em;align-items:center}
+.spot input.ans{font-family:var(--mono);font-size:.95rem;width:9.5em;max-width:100%;padding:5px 8px;border-radius:5px;
+  border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.spot input.ans:focus,.spot select:focus{outline:2px solid var(--sky);outline-offset:1px}
+.spot select{font-family:var(--mono);font-size:.9rem;padding:3px 6px;border-radius:5px;border:1px solid var(--rule);
+  background:var(--bg);color:var(--ink);max-width:100%}
+.spot .btns{display:flex;gap:.5em;flex-wrap:wrap;margin-top:.5em}
+.spot .btns button{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--sky);border:1px solid var(--sky);
+  padding:5px 12px;border-radius:999px;cursor:pointer}
+.spot .btns button:hover{background:var(--sky);color:var(--bg)}
+.spot .btns button.reveal{color:var(--muted);border-color:var(--rule)}
+.spot .btns button.reveal:hover{background:var(--rule);color:var(--ink)}
+.spot .fmt{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+@media print{.spot .btns,.spot .fmt{display:none}}
+</style>
+<script src="/assets/courses/common/course-nav.js" data-course="quantum-computing" defer></script>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Quantum Computing · Lecture 20</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Lecture 20<br>Quantum Key Distribution: BB84 and E91</h1>
+<p class="kicker">Week 11 &nbsp;|&nbsp; using the fragility of quantum states as a burglar alarm, and what it does and does not protect &nbsp;|&nbsp; reading: de Wolf, <em>Quantum Computing: Lecture Notes</em>, QKD chapter; Bennett and Brassard (1984)</p>
+
+<figure class="toon">
+<svg viewBox="0 0 600 210" width="600" height="210" role="img" aria-labelledby="c20t c20d">
+<title id="c20t">Cartoon: the eavesdropper's dilemma</title><desc id="c20d">Alice on the left sends photons along a fiber to Bob on the right. Eve crouches in the middle holding a detector, and a thought bubble above her says: if I look, they will see I looked.</desc>
+<defs><filter id="rough2020" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="20" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough2020)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="60" cy="118" r="11"/><path d="M 60 129 L 60 160"/><path d="M 60 138 L 90 146"/><path d="M 60 138 L 46 156"/><path d="M 60 160 L 50 190"/><path d="M 60 160 L 70 190"/>
+<circle cx="540" cy="118" r="11"/><path d="M 540 129 L 540 160"/><path d="M 540 138 L 510 146"/><path d="M 540 138 L 554 156"/><path d="M 540 160 L 530 190"/><path d="M 540 160 L 550 190"/>
+<path d="M 92 150 C 200 150, 220 168, 300 168 S 410 150, 508 150" stroke="var(--sky)" stroke-width="2.4"/>
+<circle cx="300" cy="150" r="9"/><path d="M 300 159 L 296 178"/><path d="M 296 166 L 282 172"/><path d="M 296 166 L 312 174"/><path d="M 296 178 L 286 192"/><path d="M 296 178 L 306 192"/>
+<rect x="310" y="160" width="20" height="16" rx="3" fill="var(--surface2)" stroke="var(--amber)"/>
+<path d="M 250 96 C 230 40, 370 30, 370 80 C 400 90, 380 118, 340 112 C 320 126, 260 120, 250 96 Z" fill="var(--surface2)"/>
+<circle cx="292" cy="130" r="4" fill="var(--surface2)"/><circle cx="296" cy="140" r="2.6" fill="var(--surface2)"/>
+<path d="M 20 196 L 580 196" stroke-width="1.6"/>
+</g>
+<text x="40" y="96" class="ccap">Alice</text><text x="524" y="96" class="ccap">Bob</text><text x="286" y="206" class="ccap">Eve</text>
+<text x="262" y="70" class="ctext">if I look, they</text><text x="268" y="92" class="ctext">see I looked</text>
+<circle cx="150" cy="151" r="4" fill="var(--rose)"/><circle cx="220" cy="160" r="4" fill="var(--rose)"/><circle cx="420" cy="157" r="4" fill="var(--rose)"/>
+</svg>
+<figcaption class="tooncap">measurement disturbs, and copying is impossible: the two facts from Lectures 4 and 8 that QKD turns into security</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">The key-distribution problem</a></li>
+<li><a href="#s2">BB84</a></li>
+<li><a href="#s3">Eavesdropping leaves fingerprints</a></li>
+<li><a href="#s4">Deciding whether to continue: a hypothesis test</a></li>
+<li><a href="#s5">From raw key to secret key</a></li>
+<li><a href="#s6">E91: keys from entanglement</a></li>
+<li><a href="#s7">QKD in the real world, and QKD versus PQC</a></li>
+<li><a href="#s8">Try it in code</a></li>
+<li><a href="#s9">Summary and exercises</a></li>
+</ol>
+</div>
+
+<p>Block II ended with Shor's algorithm breaking the public-key cryptography that distributes keys on the internet (Lecture 17). The standard answer is post-quantum cryptography: new public-key schemes based on problems believed hard even for quantum computers. This lecture is about the other answer, which uses quantum mechanics itself. By the end you should be able to run the BB84 protocol by hand, explain why an eavesdropper must cause errors and compute how many, decide from a sample of errors whether to continue or abort, describe the classical post-processing that turns a noisy shared string into a secret key, explain how E91 uses Bell violations, and say clearly what QKD does and does not provide.</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; The key-distribution problem</h2>
+
+<p>The one-time pad is perfectly secure: to send an \(m\)-bit message \(x\), Alice sends \(x\oplus k\) for a uniformly random key \(k\) of the same length, used once. Anyone without \(k\) sees uniformly random bits. Symmetric ciphers like AES are a practical version: a short shared key encrypts long messages. Either way, Alice and Bob first need a <strong>shared secret key</strong>, and getting one to each other over a public network is exactly what RSA and Diffie&ndash;Hellman do today, and what Shor's algorithm breaks.</p>
+
+<p>Classically, a key sent over a channel can be copied by an eavesdropper without leaving a trace. Quantum mechanics changes that in two ways we already know. An unknown quantum state cannot be copied (the no-cloning theorem, Lecture 8). And measuring a state in the wrong basis changes it (Lecture 4): a \(Z\) measurement of \(|+\rangle\) leaves \(|0\rangle\) or \(|1\rangle\), not \(|+\rangle\). So an eavesdropper who wants to learn something must interact with the qubits, and an interaction that extracts information disturbs them. <strong>Quantum key distribution</strong> (QKD) turns that disturbance into an alarm.</p>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; BB84</h2>
+
+<div class="box def">
+<span class="lbl">definition 20.1 &mdash; the BB84 protocol (Bennett and Brassard, 1984)</span>
+<p>Alice and Bob share a quantum channel (in practice, single photons in an optical fiber) and an <em>authenticated</em> public classical channel: everyone can listen, but nobody can alter messages undetected.</p>
+<ol>
+<li><strong>Send.</strong> For each round, Alice picks a random bit \(a\) and a random basis \(A\in\{Z,X\}\), and sends \(|a\rangle\) if \(A=Z\) (that is \(|0\rangle\) or \(|1\rangle\)) or \(H|a\rangle\) if \(A=X\) (\(|+\rangle\) or \(|-\rangle\)).</li>
+<li><strong>Measure.</strong> Bob picks a random basis \(B\in\{Z,X\}\) and measures, getting a bit \(b\).</li>
+<li><strong>Sift.</strong> Over the public channel, Alice and Bob announce their bases (not their bits) and keep only the rounds with \(A=B\). The kept bits form the <strong>sifted key</strong>.</li>
+<li><strong>Estimate the error rate.</strong> They compare a random sample of sifted bits publicly, estimate the <strong>quantum bit error rate</strong> (QBER) \(Q\), discard the sample, and abort if \(Q\) is too large.</li>
+<li><strong>Reconcile and amplify.</strong> They correct the remaining errors by public discussion (information reconciliation) and shorten the result with a random hash function (privacy amplification), obtaining the final secret key.</li>
+</ol>
+</div>
+
+<p>When \(A=B\) and nobody interferes, Bob's measurement returns Alice's bit with certainty. When \(A\ne B\), he measures \(|0\rangle\) in the \(X\) basis (or \(|+\rangle\) in the \(Z\) basis) and gets a fair coin flip, which is why those rounds are discarded. Since the bases are independent and uniform, <strong>sifting keeps half the rounds on average</strong>.</p>
+
+<div class="spot" data-kind="mc">
+<p>In one round Alice picks bit 1 and basis \(X\), so she sends \(|-\rangle\). Bob measures in \(Z\) and gets 0. Nobody is eavesdropping. What happens to this round?</p>
+<ul class="opts">
+<li>It is kept, and counts as an error in the sifted key<span class="oh">Errors are only counted on rounds that survive sifting, and this one does not: the bases differ.</span></li>
+<li>It shows that someone tampered with the qubit<span class="oh">A \(Z\) measurement of \(|-\rangle\) gives 0 or 1 with probability \(\tfrac12\) each, eavesdropper or not.</span></li>
+<li data-ok>It is discarded at sifting, whatever Bob's result</li>
+<li>It is kept, and Bob flips his bit to 1<span class="oh">Bob's 0 carries no information about Alice's bit: in the wrong basis his result is a fair coin.</span></li>
+</ul>
+<div class="hint">Compare the two bases first. What does a \(Z\) measurement of an \(X\)-basis state return?</div>
+<div class="why">\(A=X\ne B=Z\), so the round is thrown away when the bases are announced. Bob's 0 was a coin flip and says nothing about Alice's bit.</div>
+</div>
+
+<div class="spot" data-kind="num" data-ans="0.82" data-labels="fraction kept">
+<p>Suppose Alice and Bob each choose \(Z\) with probability 0.9 and \(X\) with probability 0.1, independently. What fraction of the rounds survives sifting?</p>
+<div class="hint">A round is kept when both choose \(Z\) or both choose \(X\). The choices are independent, so multiply within each case and add.</div>
+<div class="why">\(0.9^2+0.1^2=0.82\). Biased basis choices waste fewer rounds than the uniform \(\tfrac12\); the test in the rare basis then needs care.</div>
+</div>
+
+
+<figure>
+<svg viewBox="0 0 720 300" width="720" height="300" role="img" aria-labelledby="bbt bbd"><title id="bbt">Twelve rounds of BB84</title><desc id="bbd">A table of twelve BB84 rounds, generated by a seeded simulation without an eavesdropper. Rows: Alice's bit, Alice's basis (Z or X), the state sent, Bob's basis, Bob's result, whether the round is kept after sifting, and the key bit. Bases agree in rounds 4, 6, 8, 9, 10 and 11, which are kept; there Bob's results equal Alice's bits, giving the sifted key 1 1 1 0 0 0. In the other six rounds Bob's result is a coin flip and is discarded.</desc><rect x="0" y="0" width="720" height="300" rx="8" class="plot-bg"/><rect x="267" y="46" width="42" height="236" rx="5" fill="var(--moss)" fill-opacity="0.16"/><rect x="359" y="46" width="42" height="236" rx="5" fill="var(--moss)" fill-opacity="0.16"/><rect x="451" y="46" width="42" height="236" rx="5" fill="var(--moss)" fill-opacity="0.16"/><rect x="497" y="46" width="42" height="236" rx="5" fill="var(--moss)" fill-opacity="0.16"/><rect x="543" y="46" width="42" height="236" rx="5" fill="var(--moss)" fill-opacity="0.16"/><rect x="589" y="46" width="42" height="236" rx="5" fill="var(--moss)" fill-opacity="0.16"/><text class="axtext" x="20.0" y="39.0" text-anchor="start" style="fill:var(--muted)">round</text><text class="axtext" x="150.0" y="39.0" text-anchor="middle">1</text><text class="axtext" x="196.0" y="39.0" text-anchor="middle">2</text><text class="axtext" x="242.0" y="39.0" text-anchor="middle">3</text><text class="axtext" x="288.0" y="39.0" text-anchor="middle">4</text><text class="axtext" x="334.0" y="39.0" text-anchor="middle">5</text><text class="axtext" x="380.0" y="39.0" text-anchor="middle">6</text><text class="axtext" x="426.0" y="39.0" text-anchor="middle">7</text><text class="axtext" x="472.0" y="39.0" text-anchor="middle">8</text><text class="axtext" x="518.0" y="39.0" text-anchor="middle">9</text><text class="axtext" x="564.0" y="39.0" text-anchor="middle">10</text><text class="axtext" x="610.0" y="39.0" text-anchor="middle">11</text><text class="axtext" x="656.0" y="39.0" text-anchor="middle">12</text><line class="gridline" x1="20" y1="48" x2="700" y2="48"/><text class="axtext" x="20.0" y="73.0" text-anchor="start">Alice bit</text><text class="axtext" x="150.0" y="73.0" text-anchor="middle">1</text><text class="axtext" x="196.0" y="73.0" text-anchor="middle">1</text><text class="axtext" x="242.0" y="73.0" text-anchor="middle">0</text><text class="axtext" x="288.0" y="73.0" text-anchor="middle">1</text><text class="axtext" x="334.0" y="73.0" text-anchor="middle">1</text><text class="axtext" x="380.0" y="73.0" text-anchor="middle">1</text><text class="axtext" x="426.0" y="73.0" text-anchor="middle">1</text><text class="axtext" x="472.0" y="73.0" text-anchor="middle">1</text><text class="axtext" x="518.0" y="73.0" text-anchor="middle">0</text><text class="axtext" x="564.0" y="73.0" text-anchor="middle">0</text><text class="axtext" x="610.0" y="73.0" text-anchor="middle">0</text><text class="axtext" x="656.0" y="73.0" text-anchor="middle">1</text><text class="axtext" x="20.0" y="107.0" text-anchor="start">Alice basis</text><text class="axtext" x="150.0" y="107.0" text-anchor="middle">Z</text><text class="axtext" x="196.0" y="107.0" text-anchor="middle">X</text><text class="axtext" x="242.0" y="107.0" text-anchor="middle">X</text><text class="axtext" x="288.0" y="107.0" text-anchor="middle">Z</text><text class="axtext" x="334.0" y="107.0" text-anchor="middle">X</text><text class="axtext" x="380.0" y="107.0" text-anchor="middle">Z</text><text class="axtext" x="426.0" y="107.0" text-anchor="middle">Z</text><text class="axtext" x="472.0" y="107.0" text-anchor="middle">X</text><text class="axtext" x="518.0" y="107.0" text-anchor="middle">Z</text><text class="axtext" x="564.0" y="107.0" text-anchor="middle">Z</text><text class="axtext" x="610.0" y="107.0" text-anchor="middle">Z</text><text class="axtext" x="656.0" y="107.0" text-anchor="middle">Z</text><text class="axtext" x="20.0" y="141.0" text-anchor="start">sent</text><text class="axtext" x="150.0" y="141.0" text-anchor="middle">|1&gt;</text><text class="axtext" x="196.0" y="141.0" text-anchor="middle">|-&gt;</text><text class="axtext" x="242.0" y="141.0" text-anchor="middle">|+&gt;</text><text class="axtext" x="288.0" y="141.0" text-anchor="middle">|1&gt;</text><text class="axtext" x="334.0" y="141.0" text-anchor="middle">|-&gt;</text><text class="axtext" x="380.0" y="141.0" text-anchor="middle">|1&gt;</text><text class="axtext" x="426.0" y="141.0" text-anchor="middle">|1&gt;</text><text class="axtext" x="472.0" y="141.0" text-anchor="middle">|-&gt;</text><text class="axtext" x="518.0" y="141.0" text-anchor="middle">|0&gt;</text><text class="axtext" x="564.0" y="141.0" text-anchor="middle">|0&gt;</text><text class="axtext" x="610.0" y="141.0" text-anchor="middle">|0&gt;</text><text class="axtext" x="656.0" y="141.0" text-anchor="middle">|1&gt;</text><text class="axtext" x="20.0" y="175.0" text-anchor="start">Bob basis</text><text class="axtext" x="150.0" y="175.0" text-anchor="middle">X</text><text class="axtext" x="196.0" y="175.0" text-anchor="middle">Z</text><text class="axtext" x="242.0" y="175.0" text-anchor="middle">Z</text><text class="axtext" x="288.0" y="175.0" text-anchor="middle">Z</text><text class="axtext" x="334.0" y="175.0" text-anchor="middle">Z</text><text class="axtext" x="380.0" y="175.0" text-anchor="middle">Z</text><text class="axtext" x="426.0" y="175.0" text-anchor="middle">X</text><text class="axtext" x="472.0" y="175.0" text-anchor="middle">X</text><text class="axtext" x="518.0" y="175.0" text-anchor="middle">Z</text><text class="axtext" x="564.0" y="175.0" text-anchor="middle">Z</text><text class="axtext" x="610.0" y="175.0" text-anchor="middle">Z</text><text class="axtext" x="656.0" y="175.0" text-anchor="middle">X</text><text class="axtext" x="20.0" y="209.0" text-anchor="start">Bob result</text><text class="axtext" x="150.0" y="209.0" text-anchor="middle" style="fill:var(--muted)">1</text><text class="axtext" x="196.0" y="209.0" text-anchor="middle" style="fill:var(--muted)">0</text><text class="axtext" x="242.0" y="209.0" text-anchor="middle" style="fill:var(--muted)">0</text><text class="axtext" x="288.0" y="209.0" text-anchor="middle">1</text><text class="axtext" x="334.0" y="209.0" text-anchor="middle" style="fill:var(--muted)">0</text><text class="axtext" x="380.0" y="209.0" text-anchor="middle">1</text><text class="axtext" x="426.0" y="209.0" text-anchor="middle" style="fill:var(--muted)">1</text><text class="axtext" x="472.0" y="209.0" text-anchor="middle">1</text><text class="axtext" x="518.0" y="209.0" text-anchor="middle">0</text><text class="axtext" x="564.0" y="209.0" text-anchor="middle">0</text><text class="axtext" x="610.0" y="209.0" text-anchor="middle">0</text><text class="axtext" x="656.0" y="209.0" text-anchor="middle" style="fill:var(--muted)">0</text><text class="axtext" x="20.0" y="243.0" text-anchor="start">kept?</text><text class="axtext" x="150.0" y="243.0" text-anchor="middle">-</text><text class="axtext" x="196.0" y="243.0" text-anchor="middle">-</text><text class="axtext" x="242.0" y="243.0" text-anchor="middle">-</text><text class="axtext" x="288.0" y="243.0" text-anchor="middle">yes</text><text class="axtext" x="334.0" y="243.0" text-anchor="middle">-</text><text class="axtext" x="380.0" y="243.0" text-anchor="middle">yes</text><text class="axtext" x="426.0" y="243.0" text-anchor="middle">-</text><text class="axtext" x="472.0" y="243.0" text-anchor="middle">yes</text><text class="axtext" x="518.0" y="243.0" text-anchor="middle">yes</text><text class="axtext" x="564.0" y="243.0" text-anchor="middle">yes</text><text class="axtext" x="610.0" y="243.0" text-anchor="middle">yes</text><text class="axtext" x="656.0" y="243.0" text-anchor="middle">-</text><text class="axtext" x="20.0" y="277.0" text-anchor="start">key bit</text><text class="lbltext" x="150.0" y="277.0" text-anchor="middle" style="fill:var(--moss)"></text><text class="lbltext" x="196.0" y="277.0" text-anchor="middle" style="fill:var(--moss)"></text><text class="lbltext" x="242.0" y="277.0" text-anchor="middle" style="fill:var(--moss)"></text><text class="lbltext" x="288.0" y="277.0" text-anchor="middle" style="fill:var(--moss)">1</text><text class="lbltext" x="334.0" y="277.0" text-anchor="middle" style="fill:var(--moss)"></text><text class="lbltext" x="380.0" y="277.0" text-anchor="middle" style="fill:var(--moss)">1</text><text class="lbltext" x="426.0" y="277.0" text-anchor="middle" style="fill:var(--moss)"></text><text class="lbltext" x="472.0" y="277.0" text-anchor="middle" style="fill:var(--moss)">1</text><text class="lbltext" x="518.0" y="277.0" text-anchor="middle" style="fill:var(--moss)">0</text><text class="lbltext" x="564.0" y="277.0" text-anchor="middle" style="fill:var(--moss)">0</text><text class="lbltext" x="610.0" y="277.0" text-anchor="middle" style="fill:var(--moss)">0</text><text class="lbltext" x="656.0" y="277.0" text-anchor="middle" style="fill:var(--moss)"></text></svg>
+<figcaption>Twelve rounds of BB84 with no eavesdropper (seeded simulation, verify_L20.py). Six rounds have matching bases (shaded) and are kept; in all six, Bob's result equals Alice's bit. In the other six his results (grey) are coin flips and are thrown away. The sifted key is 111000.</figcaption>
+</figure>
+
+<p>Notice what is announced and what is not. The bases become public, but only after Bob has measured. Why this order matters, and what Eve gains from the announcement, is part of HW10 Problem 3.</p>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; Eavesdropping leaves fingerprints</h2>
+
+<p>The simplest attack is <strong>intercept and resend</strong>: Eve catches a qubit, measures it in a basis of her choice, and sends Bob a fresh qubit in the state she observed. If she guesses Alice's basis, nothing changes; if not, her measurement destroys Alice's state and Bob's result, even in a sifted round, is a coin flip.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 20.1 &mdash; the price of intercept-resend</span>
+<p>If Eve intercepts each qubit with probability \(f\), measures it in a uniformly random basis (\(Z\) or \(X\)) and resends the result in her basis, then each intercepted sifted round has an error with probability \(\tfrac14\), and the QBER is \(Q=f/4\).</p>
+<p><em>Proof:</em> HW10 Problem 3.</p>
+</div>
+
+<p>A quick check before reading on.</p>
+
+<div class="spot" data-kind="num" data-ans="0.24" data-labels="f">
+<p>On a noiseless channel, Alice and Bob measure a QBER of 6% and attribute all of it to a random-basis intercept-resend attack. According to Proposition 20.1, what fraction \(f\) of the qubits did Eve intercept?</p>
+<div class="hint">Invert Proposition 20.1: solve \(Q=f/4\) for \(f\). (An answer of 0.06 forgets the factor \(\tfrac14\).)</div>
+<div class="why">\(f=4Q=4\cdot0.06=0.24\): Eve touched about a quarter of the qubits. Since only a quarter of her intercepted sifted rounds show an error, the QBER understates how much she looked by a factor of 4.</div>
+</div>
+
+<p>Is a random basis Eve's best choice? She cannot do better at hiding than leaving qubits alone, but among attacks that measure every qubit she can trade disturbance for information. The next example shows that the disturbance of intercept-resend is stubborn: changing her basis changes what she learns, not how much she disturbs.</p>
+
+<div class="box ex">
+<span class="lbl">example 20.1 &mdash; measuring halfway between the bases</span>
+<p>Eve measures every qubit in the <strong>Breidbart basis</strong> \(|e_0\rangle=\cos\tfrac\pi8|0\rangle+\sin\tfrac\pi8|1\rangle\), \(|e_1\rangle=-\sin\tfrac\pi8|0\rangle+\cos\tfrac\pi8|1\rangle\), whose Bloch vectors lie halfway between \(\pm\hat z\) and \(\pm\hat x\). She resends \(|e_k\rangle\) when she sees \(k\), and guesses that Alice's bit was \(k\). Find the QBER and the probability that Eve's guess is right, on sifted rounds.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Take a sifted round in the \(Z\) basis with \(a=0\) (the other three cases are the same by symmetry: the Breidbart basis sits at \(\pi/4\) on the Bloch sphere from both \(\hat z\) and \(\hat x\)). Eve sees \(k=0\) with probability \(\cos^2\tfrac\pi8\) and \(k=1\) with probability \(\sin^2\tfrac\pi8\). Bob, measuring \(|e_0\rangle\) in \(Z\), errs with probability \(\sin^2\tfrac\pi8\), and measuring \(|e_1\rangle\), with probability \(\cos^2\tfrac\pi8\). So</p>
+$$Q=\cos^2\tfrac\pi8\sin^2\tfrac\pi8+\sin^2\tfrac\pi8\cos^2\tfrac\pi8=\tfrac12\sin^2\tfrac\pi4=\tfrac14 ,$$
+<p>the same disturbance as the random-basis attack. But Eve's guess is right with probability \(\cos^2\tfrac\pi8\approx0.854\), better than the random-basis attack achieves (HW10 Problem 3 asks you to compute that). Her information about each bit went up; Alice and Bob's alarm rang just as loudly.</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; information versus disturbance</span>
+<p>The general principle, which security proofs make quantitative, is that any information Eve gains about the key bits is paid for by errors that Alice and Bob can measure. In the limit of no errors Eve has no information. Alice and Bob therefore treat the measured error rate as an upper limit on what Eve may know, and the post-processing of Section 5 removes as much information as she could possibly have.</p>
+</div>
+
+<div class="widget">
+<h4>BB84 simulator</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Each column of the panel is one round: Alice's bit and basis, what Eve does (if anything), Bob's basis and result. Shaded columns survive sifting; rose marks are errors. The readout summarizes a run of many rounds: the QBER, how often Eve's guess of the sifted bits is right (for the Breidbart attack), and the secret fraction \(1-2h(Q)\) of Section 5.</p>
+<svg id="bbSvg" viewBox="0 0 600 220" width="600" height="220" role="img" aria-labelledby="bbSvg-t bbSvg-d"><title id="bbSvg-t">BB84 rounds with an optional eavesdropper</title><desc id="bbSvg-d">Interactive figure, redrawn as you use the controls next to it; the text readout below it describes what is currently shown.</desc></svg>
+<div class="ctrls" id="bbEve"></div>
+<div class="ctrls">
+<label><span>fraction intercepted f = <b id="bbFv">1.00</b></span><input type="range" id="bbF" min="0" max="1" step="0.01" value="1"></label>
+<label><span>channel noise = <b id="bbNv">0.000</b></span><input type="range" id="bbN" min="0" max="0.1" step="0.001" value="0"></label>
+<label><span>rounds = <b id="bbRv">10000</b></span><input type="range" id="bbR" min="2" max="5" step="0.01" value="4"></label>
+</div>
+<div class="ctrls" id="bbRun"></div>
+<p class="readout" role="status" aria-live="polite" id="bbOut"></p>
+</div>
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; Deciding whether to continue: a hypothesis test</h2>
+
+<p>Alice and Bob never know \(Q\); they estimate it from a random sample of \(n\) sifted bits, which they then throw away. The decision "continue only if \(Q\) is below a threshold \(Q_{\max}\)" is a one-sided hypothesis test of the kind met in introductory statistics: errors in the sample are \(\mathrm{Bin}(n,Q)\), and Alice and Bob continue only if the data make \(Q\ge Q_{\max}\) implausible. Equivalently, they continue if a one-sided upper confidence bound for \(Q\) is below \(Q_{\max}\). Section 5 explains why \(Q_{\max}\approx11\%\) for BB84.</p>
+
+<div class="spot" data-kind="num" data-ans="0.0532" data-tol="0.0006" data-labels="upper bound">
+<p>A sample of \(n=600\) sifted bits contains 24 errors. Find the one-sided 95% upper confidence bound for \(Q\) with the normal approximation.</p>
+<div class="hint">\(\hat Q=24/600\), standard error \(\sqrt{\hat Q(1-\hat Q)/n}\), and the one-sided 95% multiplier is 1.645.</div>
+<div class="why">\(\hat Q=0.04\), standard error \(\sqrt{0.04\cdot0.96/600}=0.008\), bound \(0.04+1.645\cdot0.008\approx0.0532\): comfortably below 11%, so they continue.</div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 20.2 &mdash; 30 errors in 400</span>
+<p>Alice and Bob compare \(n=400\) sifted bits and find 30 disagreements. Compute a one-sided 95% upper confidence bound for \(Q\) with the normal approximation and exactly (Clopper&ndash;Pearson). Do they continue, with \(Q_{\max}=11\%\)?</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(\hat Q=30/400=0.075\), standard error \(\sqrt{0.075\cdot0.925/400}\approx0.0132\). Normal bound: \(0.075+1.645\cdot0.0132\approx0.0967\). The exact Clopper&ndash;Pearson bound, the \(Q\) with \(P(\mathrm{Bin}(400,Q)\le30)=0.05\), is about \(0.1004\) (<code>scipy.stats.beta.ppf(0.95, 31, 370)</code>). Both are below 0.11, so they continue; but the exact bound is noticeably closer to the threshold.</p>
+</div>
+</div>
+
+<p>The test bits cost key: every compared bit is discarded. Real systems sample a small fraction of a very long sifted key, so that \(n\) is in the tens of thousands and the bound is tight. The finite-size statistics of QKD (bounding \(Q\) on the <em>unsampled</em> bits, which is a sampling-without-replacement problem) are an active part of security proofs.</p>
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; From raw key to secret key</h2>
+
+<p>After sifting and estimation, Alice and Bob hold strings that (i) differ in a fraction \(Q\) of positions and (ii) are partly known to Eve. Two classical steps fix each problem.</p>
+
+<p><strong>Information reconciliation.</strong> Alice and Bob correct their differences by exchanging parities over the public channel. In the simplest scheme (the idea behind the <em>Cascade</em> protocol), they split the key into blocks and compare each block's parity; when a block's parities differ, it contains an odd number of errors, and a binary search on parities of halves finds one error. For an 8-bit block with one error this reveals 4 parities: the block's and three halvings (see the code in Section 8). Every revealed parity is information Eve also hears, at least \(h(Q)\) bits per key bit in the best case (Shannon's bound), where</p>
+$$h(Q)=-Q\log_2Q-(1-Q)\log_2(1-Q)$$
+<p>is the binary entropy. Modern systems use LDPC error-correcting codes for this, the same kind of code that appears in Lecture 23.</p>
+
+<div class="spot" data-kind="num" data-ans="5" data-labels="parities">
+<p>A 16-bit block contains exactly one error. How many parities does the block-parity-plus-binary-search scheme reveal before the error is located?</p>
+<div class="hint">One parity for the whole block shows that it has an odd number of errors; then each comparison of a half's parity halves the search interval.</div>
+<div class="why">\(1+\log_2 16=1+4=5\) parities, each heard by Eve. That leakage is what privacy amplification must later remove.</div>
+</div>
+
+
+<p><strong>Privacy amplification.</strong> Eve may know some bits of the corrected key, or some parities of it. Alice and Bob apply a random hash function that compresses the key to a shorter string; if the output is short enough, Eve's partial information about the input says almost nothing about the output.</p>
+
+<div class="box def">
+<span class="lbl">definition 20.2 &mdash; universal hashing; Toeplitz matrices</span>
+<p>A family of functions \(\{0,1\}^n\to\{0,1\}^m\) is <strong>universal</strong> if for any two different inputs \(x\ne x'\), a randomly chosen member maps them to the same output with probability at most \(2^{-m}\). A random \(m\times n\) binary <strong>Toeplitz matrix</strong> \(T\) (constant along each diagonal, so determined by \(n+m-1\) random bits), applied as \(x\mapsto Tx\bmod2\), is a universal family. The <em>leftover hash lemma</em> says that if Eve's uncertainty about \(x\) is at least \(m+2\log_2(1/\varepsilon)\) bits (in the sense of min-entropy), then \(Tx\) is within \(\varepsilon\) of uniform even given Eve's information and \(T\).</p>
+</div>
+
+<div class="spot" data-kind="num" data-ans="12|1/8" data-labels="seed bits|collision bound" data-show="12 seed bits; collision probability at most 2^(−3) = 1/8">
+<p>Alice and Bob hash 10 bits down to 3 with a random \(3\times10\) Toeplitz matrix. How many random seed bits must Alice announce, and what is the largest possible probability that two given different inputs hash to the same output?</p>
+<div class="hint">A Toeplitz matrix is fixed by its first row and first column, which share one entry. Universality bounds the collision probability by \(2^{-m}\).</div>
+<div class="why">\(n+m-1=10+3-1=12\) seed bits, and collisions happen with probability at most \(2^{-3}=\tfrac18\), as for a truly random function.</div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 20.3 &mdash; hashing 8 bits down to 4</span>
+<p>Alice and Bob agree on the 8-bit key \(x=10110010\), and Alice announces 11 random seed bits defining the \(4\times8\) Toeplitz matrix below. Compute the final key \(Tx\bmod2\).</p>
+$$T=\begin{pmatrix}1&0&0&1&0&0&0&1\\0&1&0&0&1&0&0&0\\0&0&1&0&0&1&0&0\\0&0&0&1&0&0&1&0\end{pmatrix}$$
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Each output bit is the parity of the key bits where its row has a 1. Row 1 picks positions 1, 4, 8: \(1+1+0=0\). Row 2 picks 2, 5: \(0+0=0\). Row 3 picks 3, 6: \(1+0=1\). Row 4 picks 4, 7: \(1+1=0\). The final key is \(0010\). The matrix is public, yet This 8-bit example only shows the mechanics; at this size there is no security guarantee (if Eve knew bits 2 and 5, she would know output bit 2 exactly). The leftover hash lemma promises that the \(m\) output bits are within \(\varepsilon\) of uniform and independent of Eve only when Eve's uncertainty about the input (its min-entropy) is at least \(m+2\log_2(1/\varepsilon)\). In practice \(n\) is millions of bits and \(\varepsilon\) around \(10^{-10}\), so the margin \(2\log_2(1/\varepsilon)\approx67\) bits is negligible.</p>
+</div>
+</div>
+
+<p>How much secret key survives? For BB84 with one-way post-processing, the Shor&ndash;Preskill security proof (2000) gives, for long keys, a secret fraction of</p>
+$$r(Q)=1-2h(Q)$$
+<p>of the sifted key: one \(h(Q)\) is paid for reconciliation and one for privacy amplification. It vanishes at \(h(Q)=\tfrac12\), that is \(Q\approx11.0\%\). That is where the 11% threshold comes from. In Example 20.2, using the exact upper bound \(Q\le0.1004\), the secret fraction is \(1-2h(0.1004)\approx0.059\): about 6 secret bits per 100 sifted bits (8 with the normal bound), against 23 per 100 if \(Q=7.5\%\) were known exactly: statistical uncertainty is expensive near the threshold.</p>
+
+<div class="spot" data-kind="num" data-ans="0.611" data-tol="0.003" data-labels="r(0.03)">
+<p>Find the asymptotic secret fraction \(r(Q)=1-2h(Q)\) at a QBER of 3%.</p>
+<div class="hint">\(h(0.03)=-0.03\log_2 0.03-0.97\log_2 0.97\). Note \(\log_2 0.03\approx-5.06\) and \(\log_2 0.97\approx-0.044\).</div>
+<div class="why">\(h(0.03)\approx0.194\), so \(r\approx1-0.389=0.611\): even a 3% error rate costs almost 40% of the sifted key.</div>
+</div>
+
+
+<figure>
+<svg viewBox="0 0 720 330" width="720" height="330" role="img" aria-labelledby="krt krd"><title id="krt">How much error each protocol tolerates</title><desc id="krd">Two panels against the QBER Q from 0 to 0.2. Left: the asymptotic secret-key fraction of BB84 with one-way post-processing, 1 - 2 h(Q), where h is the binary entropy; it starts at 1, is 0.43 at Q = 5%, and reaches 0 at Q = 11.0%, beyond which no key can be extracted this way. Right: the CHSH value S = 2 sqrt 2 (1 - 2Q) of a Bell pair mixed with white noise; it falls from 2.83 and crosses the classical bound 2 at Q = 14.6%.</desc><rect x="0" y="0" width="720" height="330" rx="8" class="plot-bg"/><text class="lbltext" x="200.0" y="20.0" text-anchor="middle">BB84: 1 - 2h(Q)</text><line class="gridline" x1="70" y1="280.0" x2="330" y2="280.0"/><text class="axtext" x="63.0" y="284.0" text-anchor="end">0</text><line class="gridline" x1="70" y1="223.5" x2="330" y2="223.5"/><text class="axtext" x="63.0" y="227.5" text-anchor="end">0.25</text><line class="gridline" x1="70" y1="167.0" x2="330" y2="167.0"/><text class="axtext" x="63.0" y="171.0" text-anchor="end">0.5</text><line class="gridline" x1="70" y1="110.5" x2="330" y2="110.5"/><text class="axtext" x="63.0" y="114.5" text-anchor="end">0.75</text><line class="gridline" x1="70" y1="54.0" x2="330" y2="54.0"/><text class="axtext" x="63.0" y="58.0" text-anchor="end">1</text><text class="axtext" x="70.0" y="298.0" text-anchor="middle">0.00</text><text class="axtext" x="135.0" y="298.0" text-anchor="middle">0.05</text><text class="axtext" x="200.0" y="298.0" text-anchor="middle">0.10</text><text class="axtext" x="265.0" y="298.0" text-anchor="middle">0.15</text><text class="axtext" x="330.0" y="298.0" text-anchor="middle">0.20</text><line class="axis" x1="70" y1="280" x2="330" y2="280"/><text class="axtext" x="200.0" y="320.0" text-anchor="middle">QBER Q</text><path d="M70.0,54.0 L71.3,59.2 L72.6,63.4 L73.9,67.3 L75.2,71.0 L76.5,74.5 L77.8,77.9 L79.1,81.2 L80.4,84.4 L81.7,87.5 L83.0,90.5 L84.3,93.5 L85.6,96.4 L86.9,99.2 L88.2,102.0 L89.5,104.8 L90.8,107.5 L92.1,110.2 L93.4,112.8 L94.7,115.4 L96.0,117.9 L97.3,120.5 L98.6,122.9 L99.9,125.4 L101.2,127.8 L102.5,130.2 L103.8,132.6 L105.1,135.0 L106.4,137.3 L107.7,139.6 L109.0,141.9 L110.3,144.1 L111.6,146.4 L112.9,148.6 L114.2,150.8 L115.5,152.9 L116.8,155.1 L118.1,157.2 L119.4,159.3 L120.7,161.4 L122.0,163.5 L123.3,165.6 L124.6,167.6 L125.9,169.7 L127.2,171.7 L128.5,173.7 L129.8,175.7 L131.1,177.6 L132.4,179.6 L133.7,181.5 L135.0,183.5 L136.3,185.4 L137.6,187.3 L138.9,189.2 L140.2,191.0 L141.5,192.9 L142.8,194.7 L144.1,196.6 L145.4,198.4 L146.7,200.2 L148.0,202.0 L149.3,203.8 L150.6,205.6 L151.9,207.3 L153.2,209.1 L154.5,210.8 L155.8,212.6 L157.1,214.3 L158.4,216.0 L159.7,217.7 L161.0,219.4 L162.3,221.1 L163.6,222.8 L164.9,224.4 L166.2,226.1 L167.5,227.7 L168.8,229.3 L170.1,231.0 L171.4,232.6 L172.7,234.2 L174.0,235.8 L175.3,237.4 L176.6,239.0 L177.9,240.5 L179.2,242.1 L180.5,243.6 L181.8,245.2 L183.1,246.7 L184.4,248.3 L185.7,249.8 L187.0,251.3 L188.3,252.8 L189.6,254.3 L190.9,255.8 L192.2,257.3 L193.5,258.7 L194.8,260.2 L196.1,261.7 L197.4,263.1 L198.7,264.5 L200.0,266.0 L201.3,267.4 L202.6,268.8 L203.9,270.3 L205.2,271.7 L206.5,273.1 L207.8,274.5 L209.1,275.8 L210.4,277.2 L211.7,278.6 L213.0,280.0" fill="none" stroke="var(--sky)" stroke-width="2.6"/><line x1="213.0" y1="54" x2="213.0" y2="280" stroke="var(--amber)" stroke-dasharray="2 4" stroke-width="1.6"/><text class="axtext" x="219.0" y="70.0" text-anchor="start" style="fill:var(--amber)">11.0%</text><text class="axtext" x="30.0" y="42.0" text-anchor="start">secret fraction</text><text class="lbltext" x="560.0" y="20.0" text-anchor="middle">E91: S = 2 sqrt2 (1 - 2Q)</text><line class="gridline" x1="430" y1="280.0" x2="690" y2="280.0"/><text class="axtext" x="423.0" y="284.0" text-anchor="end">1.5</text><line class="gridline" x1="430" y1="204.7" x2="690" y2="204.7"/><text class="axtext" x="423.0" y="208.7" text-anchor="end">2</text><line class="gridline" x1="430" y1="129.3" x2="690" y2="129.3"/><text class="axtext" x="423.0" y="133.3" text-anchor="end">2.5</text><line class="gridline" x1="430" y1="54.0" x2="690" y2="54.0"/><text class="axtext" x="423.0" y="58.0" text-anchor="end">3</text><text class="axtext" x="430.0" y="298.0" text-anchor="middle">0.00</text><text class="axtext" x="495.0" y="298.0" text-anchor="middle">0.05</text><text class="axtext" x="560.0" y="298.0" text-anchor="middle">0.10</text><text class="axtext" x="625.0" y="298.0" text-anchor="middle">0.15</text><text class="axtext" x="690.0" y="298.0" text-anchor="middle">0.20</text><line class="axis" x1="430" y1="280" x2="690" y2="280"/><text class="axtext" x="560.0" y="320.0" text-anchor="middle">QBER Q</text><line x1="430" y1="204.7" x2="690" y2="204.7" stroke="var(--rose)" stroke-dasharray="6 4" stroke-width="1.6"/><path d="M430.0,79.9 L431.3,80.7 L432.6,81.6 L433.9,82.4 L435.2,83.3 L436.5,84.1 L437.8,85.0 L439.1,85.8 L440.4,86.7 L441.7,87.5 L443.0,88.4 L444.3,89.2 L445.6,90.1 L446.9,90.9 L448.2,91.8 L449.5,92.6 L450.8,93.5 L452.1,94.3 L453.4,95.2 L454.7,96.0 L456.0,96.9 L457.3,97.7 L458.6,98.6 L459.9,99.5 L461.2,100.3 L462.5,101.2 L463.8,102.0 L465.1,102.9 L466.4,103.7 L467.7,104.6 L469.0,105.4 L470.3,106.3 L471.6,107.1 L472.9,108.0 L474.2,108.8 L475.5,109.7 L476.8,110.5 L478.1,111.4 L479.4,112.2 L480.7,113.1 L482.0,113.9 L483.3,114.8 L484.6,115.6 L485.9,116.5 L487.2,117.4 L488.5,118.2 L489.8,119.1 L491.1,119.9 L492.4,120.8 L493.7,121.6 L495.0,122.5 L496.3,123.3 L497.6,124.2 L498.9,125.0 L500.2,125.9 L501.5,126.7 L502.8,127.6 L504.1,128.4 L505.4,129.3 L506.7,130.1 L508.0,131.0 L509.3,131.8 L510.6,132.7 L511.9,133.5 L513.2,134.4 L514.5,135.2 L515.8,136.1 L517.1,137.0 L518.4,137.8 L519.7,138.7 L521.0,139.5 L522.3,140.4 L523.6,141.2 L524.9,142.1 L526.2,142.9 L527.5,143.8 L528.8,144.6 L530.1,145.5 L531.4,146.3 L532.7,147.2 L534.0,148.0 L535.3,148.9 L536.6,149.7 L537.9,150.6 L539.2,151.4 L540.5,152.3 L541.8,153.1 L543.1,154.0 L544.4,154.9 L545.7,155.7 L547.0,156.6 L548.3,157.4 L549.6,158.3 L550.9,159.1 L552.2,160.0 L553.5,160.8 L554.8,161.7 L556.1,162.5 L557.4,163.4 L558.7,164.2 L560.0,165.1 L561.3,165.9 L562.6,166.8 L563.9,167.6 L565.2,168.5 L566.5,169.3 L567.8,170.2 L569.1,171.0 L570.4,171.9 L571.7,172.8 L573.0,173.6 L574.3,174.5 L575.6,175.3 L576.9,176.2 L578.2,177.0 L579.5,177.9 L580.8,178.7 L582.1,179.6 L583.4,180.4 L584.7,181.3 L586.0,182.1 L587.3,183.0 L588.6,183.8 L589.9,184.7 L591.2,185.5 L592.5,186.4 L593.8,187.2 L595.1,188.1 L596.4,188.9 L597.7,189.8 L599.0,190.6 L600.3,191.5 L601.6,192.4 L602.9,193.2 L604.2,194.1 L605.5,194.9 L606.8,195.8 L608.1,196.6 L609.4,197.5 L610.7,198.3 L612.0,199.2 L613.3,200.0 L614.6,200.9 L615.9,201.7 L617.2,202.6 L618.5,203.4 L619.8,204.3 L621.1,205.1 L622.4,206.0 L623.7,206.8 L625.0,207.7 L626.3,208.5 L627.6,209.4 L628.9,210.3 L630.2,211.1 L631.5,212.0 L632.8,212.8 L634.1,213.7 L635.4,214.5 L636.7,215.4 L638.0,216.2 L639.3,217.1 L640.6,217.9 L641.9,218.8 L643.2,219.6 L644.5,220.5 L645.8,221.3 L647.1,222.2 L648.4,223.0 L649.7,223.9 L651.0,224.7 L652.3,225.6 L653.6,226.4 L654.9,227.3 L656.2,228.2 L657.5,229.0 L658.8,229.9 L660.1,230.7 L661.4,231.6 L662.7,232.4 L664.0,233.3 L665.3,234.1 L666.6,235.0 L667.9,235.8 L669.2,236.7 L670.5,237.5 L671.8,238.4 L673.1,239.2 L674.4,240.1 L675.7,240.9 L677.0,241.8 L678.3,242.6 L679.6,243.5 L680.9,244.3 L682.2,245.2 L683.5,246.0 L684.8,246.9 L686.1,247.8 L687.4,248.6 L688.7,249.5 L690.0,250.3" fill="none" stroke="var(--moss)" stroke-width="2.6"/><line x1="620.3" y1="54" x2="620.3" y2="280" stroke="var(--amber)" stroke-dasharray="2 4" stroke-width="1.6"/><text class="axtext" x="626.3" y="70.0" text-anchor="start" style="fill:var(--amber)">14.6%</text><text class="axtext" x="390.0" y="42.0" text-anchor="start">CHSH S</text><text class="axtext" x="438.0" y="222.7" text-anchor="start" style="fill:var(--rose)">classical bound 2</text></svg>
+<figcaption>Left: the secret-key fraction of BB84 against the QBER; it falls fast and reaches zero at 11.0%. Right: the CHSH value of a Bell pair degraded by white noise (Section 6) crosses the classical bound 2 at a QBER of 14.6%.</figcaption>
+</figure>
+
+<!-- =================== 6 =================== -->
+<h2 id="s6">6 &mdash; E91: keys from entanglement</h2>
+
+<p>In 1991 Artur Ekert proposed a protocol in which a source, which might even be controlled by Eve, sends one qubit of each Bell pair \(|\Phi^+\rangle\) to Alice and the other to Bob. Each measures in a randomly chosen basis. On rounds where their bases agree, their outcomes are perfectly correlated (Lecture 6) and form the key. On the other rounds they use bases at the CHSH angles of Lecture 8 and compute the CHSH value \(S\).</p>
+
+<p>The CHSH value certifies security. Quantum mechanics allows \(S\) up to \(2\sqrt2\approx2.83\), reached only by a maximally entangled pair, which can have no correlation with anything else (entanglement is monogamous). Any attack that gives Eve classical information about the outcomes lowers \(S\); a local hidden-variable model, which is what Eve's full knowledge would amount to, gives \(S\le2\). For a Bell pair mixed with white noise, \(\rho=v|\Phi^+\rangle\langle\Phi^+|+(1-v)I/4\), the QBER is \(Q=(1-v)/2\) and</p>
+$$S=2\sqrt2\,v=2\sqrt2\,(1-2Q),$$
+<p>which drops below 2 at \(Q=\tfrac12\big(1-\tfrac1{\sqrt2}\big)\approx14.6\%\) (verify_L20.py checks both formulas on the density matrix). Lab 2 measured \(S\) for real.</p>
+
+<div class="spot" data-kind="num" data-ans="0.1|2*sqrt(2)*0.8" data-labels="Q|S" data-show="Q = 0.10, S = 2√2·0.8 ≈ 2.263">
+<p>An E91 source produces \(\rho=v|\Phi^+\rangle\langle\Phi^+|+(1-v)I/4\) with \(v=0.8\). Find the QBER and the expected CHSH value.</p>
+<div class="hint">Use \(Q=(1-v)/2\) and \(S=2\sqrt2\,v\).</div>
+<div class="why">\(Q=0.1\) and \(S\approx2.263\gt2\): the Bell test still certifies entanglement, and the QBER is just under BB84's 11% threshold.</div>
+</div>
+
+
+<div class="box idea">
+<span class="lbl">idea &mdash; device-independent QKD</span>
+<p>The CHSH test does not depend on how the devices work, only on the observed statistics. So E91-style protocols can, in principle, be proved secure even if Alice's and Bob's measurement devices were built by Eve: this is <strong>device-independent QKD</strong>, first demonstrated in 2022 over short distances, at very low key rates. It answers the main practical objection to QKD (Section 7), at a large cost in rate.</p>
+</div>
+
+<!-- =================== 7 =================== -->
+<h2 id="s7">7 &mdash; QKD in the real world, and QKD versus PQC</h2>
+
+<p><strong>What QKD needs that the theory assumes.</strong></p>
+<ul>
+<li><strong>Authentication.</strong> The public channel must be authenticated, or Eve simply pretends to be Bob to Alice and Alice to Bob. Authentication needs either a pre-shared secret key or public-key signatures, so QKD extends a key; it does not create trust from nothing.</li>
+<li><strong>Honest hardware.</strong> Real sources sometimes emit two photons instead of one (countered by "decoy states"); real detectors can be blinded by bright light and then controlled by Eve (demonstrated against commercial systems in 2010). Security proofs cover a model of the devices; attacks go after the gap between model and device.</li>
+<li><strong>Distance.</strong> Photon loss in fiber grows exponentially with length (about 0.2 dB per km), and amplifiers cannot be used, since they would have to copy the quantum signal. Deployed point-to-point links reach a few hundred kilometres at low rates; the record, twin-field QKD over about 1,000 km of spooled fiber (2023), produced well under one secret bit per second. Longer links use <em>trusted nodes</em>, relay stations that hold the key in the clear and must be physically secured, or satellites; quantum repeaters, which would remove the trusted nodes, need quantum memories and error correction and are not yet practical.</li>
+</ul>
+
+<div class="spot" data-kind="multi">
+<p>Tick every assumption that QKD's security actually rests on.</p>
+<ul class="opts">
+<li data-ok>The public classical channel is authenticated</li>
+<li data-ok>The devices behave like the model in the security proof (for example, single photons and honest detectors)</li>
+<li>Factoring large integers is hard<span class="oh">That is RSA's assumption. QKD needs no computational hardness assumption for the key exchange itself (though authentication by public-key signatures would bring one back).</span></li>
+<li>Eve cannot store qubits<span class="oh">The proofs allow Eve unlimited quantum memory and computing power; what limits her is the disturbance her measurements cause.</span></li>
+<li>Amplifiers can boost the signal along long fibers<span class="oh">Amplifying an unknown quantum signal would mean copying it, which no-cloning forbids: that is why distance is a problem.</span></li>
+</ul>
+<div class="hint">Re-read the three bullet points above: which of the listed items appear there as requirements, and which as things QKD cannot do?</div>
+<div class="why">Authentication and honest hardware are the two assumptions; hardness of factoring and limits on Eve's memory are not needed, and amplifiers are not available.</div>
+</div>
+
+
+<p><strong>Where it is used.</strong> China operates a QKD backbone of about 2,000 km between Beijing and Shanghai with trusted nodes, connected to the Micius satellite; there are metropolitan networks in Europe, Korea and Japan. In New York, a 34 km deployed-fiber loop between Brooklyn and Manhattan distributed polarization-entangled photon pairs continuously for 15 days with about 99% fidelity and 99.84% uptime (Craddock et al., <em>PRX Quantum</em>, 2024): the kind of infrastructure that entanglement-based QKD and future quantum networks need.</p>
+
+<div class="box crypto">
+<span class="lbl">crypto connection &mdash; QKD versus PQC</span>
+<p>The U.S. National Security Agency states that it does not recommend QKD for national security systems unless its limitations are overcome: it is only a partial solution (no authentication), needs special-purpose equipment rather than software, depends on trusted relays, is hard to validate because its security is "highly implementation-dependent rather than assured by laws of physics", and raises denial-of-service risk. The U.K.'s NCSC and several European agencies have published similar positions. All of them recommend post-quantum cryptography (Lecture 17) as the primary migration path. QKD's supporters answer that its security does not rest on unproven hardness assumptions, which matters for secrets that must stay secret for decades. A fair summary: PQC is the near-term migration for the internet; QKD is a niche technology for specific high-value links, where the hardware can be controlled, and a research program toward device-independent and network-scale security.</p>
+</div>
+
+<!-- =================== 8 =================== -->
+<h2 id="s8">8 &mdash; Try it in code</h2>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; BB84 with qiskit circuits (stabilizer simulator)</span>
+<pre>import numpy as np
+from qiskit import QuantumCircuit
+from qiskit_aer import AerSimulator
+
+sim = AerSimulator(method="stabilizer", seed_simulator=20)<span class="cm">      # X, H and measurements are Clifford: 64 qubits is easy</span>
+rng = np.random.default_rng(2020); n = 64
+
+def send_and_measure(bits, send_bases, meas_bases):
+    """Prepare |bit&gt; in each send basis (0 = Z, 1 = X) on n qubits, measure each in meas_bases; return the bits read."""
+    qc = QuantumCircuit(n, n)
+    for q in range(n):
+        if bits[q]: qc.x(q)
+        if send_bases[q]: qc.h(q)
+        if meas_bases[q]: qc.h(q)
+        qc.measure(q, q)
+    key = next(iter(sim.run(qc, shots=1).result().get_counts()))
+    return np.array([int(c) for c in key[::-1]])<span class="cm">                # Qiskit lists qubit 0 last</span>
+
+a, A, B = rng.integers(0, 2, n), rng.integers(0, 2, n), rng.integers(0, 2, n)
+b = send_and_measure(a, A, B)<span class="cm">                                   # no Eve</span>
+keep = A == B
+print(f"no Eve:   sifted {keep.sum()} of {n}, errors {np.sum(a[keep] != b[keep])}")
+E = rng.integers(0, 2, n)
+e = send_and_measure(a, A, E)<span class="cm">                                   # Eve measures every qubit in a random basis...</span>
+b = send_and_measure(e, E, B)<span class="cm">                                   # ...and resends what she saw, in her basis</span>
+print(f"with Eve: sifted {keep.sum()} of {n}, errors {np.sum(a[keep] != b[keep])}, QBER {np.mean(a[keep] != b[keep]):.3f}")
+print("first 8 sifted rounds  Alice:", a[keep][:8], " Bob:", b[keep][:8])</pre>
+<pre class="out">no Eve:   sifted 27 of 64, errors 0
+with Eve: sifted 27 of 64, errors 4, QBER 0.148
+first 8 sifted rounds  Alice: [1 1 1 0 1 1 1 1]  Bob: [1 1 1 0 0 1 1 0]</pre>
+<p>All the operations are Clifford (\(X\), \(H\), measurement), so Aer's stabilizer simulator handles 64 qubits at once. With only 27 sifted bits the error count is very noisy: 4 errors where \(27/4\approx7\) are expected. HW10 Problem 5 simulates BB84 statistically, without circuits, to get QBER curves.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; reconciliation, privacy amplification and the key rate</span>
+<pre>import numpy as np
+
+def h(q): return 0.0 if q in (0, 1) else -q * np.log2(q) - (1 - q) * np.log2(1 - q)
+
+<span class="cm"># information reconciliation: find one error in an 8-bit block by comparing parities of halves</span>
+alice = [1, 0, 1, 1, 0, 0, 1, 0]; bob = [1, 0, 1, 0, 0, 0, 1, 0]
+lo, hi, revealed = 0, 8, 1<span class="cm">                                      # the whole-block parity was compared first</span>
+while hi - lo &gt; 1:
+    mid = (lo + hi) // 2; revealed += 1
+    if sum(alice[lo:mid]) % 2 != sum(bob[lo:mid]) % 2: hi = mid
+    else: lo = mid
+bob[lo] ^= 1
+print("error at position", lo, " parities revealed:", revealed, " keys agree:", alice == bob)
+
+<span class="cm"># privacy amplification: hash the 8 agreed bits to 4 with a random Toeplitz matrix (11 public seed bits)</span>
+rng = np.random.default_rng(20)
+seed = rng.integers(0, 2, 11)
+T = np.array([[seed[i - j + 7] for j in range(8)] for i in range(4)])
+print("Toeplitz matrix:\n", T)
+print("final key:", T @ np.array(alice) % 2)
+
+<span class="cm"># asymptotic secret fraction of the sifted key, r = 1 - 2 h(Q)</span>
+for Q in (0.01, 0.05, 0.075, 0.0967, 0.11):
+    print(f"QBER {Q:.4f}: secret fraction {1 - 2 * h(Q):+.4f}")</pre>
+<pre class="out">error at position 3  parities revealed: 4  keys agree: True
+Toeplitz matrix:
+ [[1 0 0 1 0 0 0 1]
+ [0 1 0 0 1 0 0 0]
+ [0 0 1 0 0 1 0 0]
+ [0 0 0 1 0 0 1 0]]
+final key: [0 0 1 0]
+QBER 0.0100: secret fraction +0.8384
+QBER 0.0500: secret fraction +0.4272
+QBER 0.0750: secret fraction +0.2314
+QBER 0.0967: secret fraction +0.0831
+QBER 0.1100: secret fraction +0.0002</pre>
+<p>Example 20.3 and the key-rate formula of Section 5. At the 11% threshold the secret fraction is essentially zero.</p>
+</div>
+
+<!-- =================== 9 =================== -->
+<h2 id="s9">9 &mdash; Summary and exercises</h2>
+
+<div class="box thm">
+<span class="lbl">summary</span>
+<ul>
+<li>BB84: random bits in random bases (\(Z\) or \(X\)); Bob measures in random bases; sifting keeps the matching half. Bases are announced only after the qubits have been measured.</li>
+<li>Intercept-resend causes a QBER proportional to the fraction intercepted (HW10); measuring in the Breidbart basis gives Eve more information for the same disturbance. Information always costs disturbance.</li>
+<li>Continue only if a one-sided upper confidence bound for the QBER is below the threshold; near the threshold, use the exact binomial bound.</li>
+<li>Reconciliation (public parities) fixes errors; privacy amplification (universal hashing, e.g. Toeplitz matrices) removes Eve's information. The asymptotic secret fraction is \(1-2h(Q)\), zero at \(Q\approx11\%\).</li>
+<li>E91 uses Bell pairs; the CHSH value certifies that no one else holds the outcomes, and is the basis of device-independent QKD.</li>
+<li>QKD needs authenticated classical channels and honest hardware, and is distance-limited; agencies recommend PQC for general use.</li>
+</ul>
+<p><strong>Next time:</strong> protecting quantum information itself from noise, with quantum error-correcting codes. <strong>HW10</strong> (Lectures 18&ndash;20) is due at the start of Week 12; <strong>project proposals</strong> are due this week.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 20</span>
+<ol>
+<li>Eve intercepts 20% of the qubits with the random-basis attack. What QBER do Alice and Bob expect?</li>
+<li>In a sample of 1,000 sifted bits there are 30 errors. Give the normal-approximation one-sided 95% upper bound for \(Q\).</li>
+<li>Compute the asymptotic secret fraction \(1-2h(Q)\) at \(Q=5\%\). Out of \(10^6\) rounds sent, about how many secret bits is that?</li>
+<li>Compute \(Tx\bmod2\) for the matrix of Example 20.3 and \(x=11110000\). Which input bits does output bit 3 depend on?</li>
+<li>In E91 with a QBER of 5% from white noise, what CHSH value do Alice and Bob expect?</li>
+<li>Eve measures every qubit in the \(Z\) basis (always) and resends. Find the QBER on sifted rounds where Alice used \(Z\), on those where she used \(X\), and overall. How could Alice and Bob detect this attack more quickly than by the overall QBER?</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>\(0.2/4=5\%\).</li>
+<li>\(0.03+1.645\sqrt{0.03\cdot0.97/1000}\approx0.0389\).</li>
+<li>\(h(0.05)\approx0.2864\), so \(1-2h\approx0.427\). Sifting keeps about \(5\times10^5\) of the \(10^6\) rounds, so about \(2.1\times10^5\) secret bits (fewer in practice: test bits, finite-size corrections, and photon loss, which in a real fiber removes most rounds before sifting).</li>
+<li>Rows pick positions \(\{1,4,8\}\), \(\{2,5\}\), \(\{3,6\}\), \(\{4,7\}\): parities \(1+1+0=0\), \(1+0=1\), \(1+0=1\), \(1+0=1\), so \(0111\). Output bit 3 depends on input bits 3 and 6.</li>
+<li>\(S=2\sqrt2\,(1-0.1)\approx2.55\), comfortably above 2.</li>
+<li>Rounds where Alice used \(Z\): Eve measures in the right basis and resends Alice's state, so no errors. Rounds where Alice used \(X\): Eve's \(Z\) measurement randomizes the \(X\) value, so Bob errs half the time. Overall \(\tfrac12\cdot0+\tfrac12\cdot\tfrac12=\tfrac14\). Alice and Bob should estimate the QBER separately in each basis: a QBER of 50% in one basis and 0 in the other is a glaring signature that a combined figure of 25% would hide among other causes.</li>
+</ol>
+</div>
+</div>
+
+<h3>Reading and sources</h3>
+<ul>
+<li>R. de Wolf, <em>Quantum Computing: Lecture Notes</em>, chapter on quantum key distribution (<a href="https://arxiv.org/abs/1907.09415">arXiv:1907.09415</a>).</li>
+<li>C. H. Bennett and G. Brassard, "Quantum cryptography: Public key distribution and coin tossing" (1984), reprinted in <em>Theoretical Computer Science</em> 560 (2014) 7&ndash;11 (<a href="https://arxiv.org/abs/2003.06557">arXiv:2003.06557</a>). A. K. Ekert, "Quantum cryptography based on Bell's theorem", <em>Phys. Rev. Lett.</em> 67, 661 (1991).</li>
+<li>P. W. Shor and J. Preskill, "Simple proof of security of the BB84 quantum key distribution protocol", <em>Phys. Rev. Lett.</em> 85, 441 (2000) (<a href="https://arxiv.org/abs/quant-ph/0003004">arXiv:quant-ph/0003004</a>).</li>
+<li>NSA, <a href="https://www.nsa.gov/Cybersecurity/Post-Quantum-Cybersecurity-Resources/">Post-Quantum Cybersecurity Resources</a> (section on quantum key distribution and quantum cryptography).</li>
+<li>A. N. Craddock et al., "Automated distribution of polarization-entangled photons using deployed New York City fibers", <em>PRX Quantum</em> 5, 030330 (2024) (<a href="https://arxiv.org/abs/2404.08626">arXiv:2404.08626</a>).</li>
+</ul>
+<p class="kicker" style="margin-top:2.4em">all numbers and figures in these notes are computed in python (verify_L20.py) and follow the page theme</p>
+</div>
+
+<script>
+var NS=['http:','','www.w3.org','2000','svg'].join('/');
+function mk(tag,at,parent,txt){var e=document.createElementNS(NS,tag);for(var k in at)e.setAttribute(k,at[k]);if(txt!==undefined)e.textContent=txt;if(parent)parent.appendChild(e);return e;}
+function clr(s){[].slice.call(s.childNodes).forEach(function(c){if(c.nodeName!=='title'&&c.nodeName!=='desc')s.removeChild(c);});}
+function fx(x,d){d=(d===undefined?3:d);var v=Number(x).toFixed(d);return /^-0\.?0*$/.test(v)?v.slice(1):v;}
+function btn(parent,label,fn){var b=document.createElement('button');b.className='ctl';b.type='button';b.textContent=label;b.addEventListener('click',fn);parent.appendChild(b);return b;}
+
+/* ---------- BB84 simulator ---------- */
+(function(){
+  var svg=document.getElementById('bbSvg'); if(!svg) return;
+  var fE=document.getElementById('bbF'), nE=document.getElementById('bbN'), rE=document.getElementById('bbR'), out=document.getElementById('bbOut');
+  var eve='none', eb=[], seed=1;
+  var names={none:'no Eve',random:'Eve: random basis',breid:'Eve: Breidbart basis'};
+  Object.keys(names).forEach(function(k){ eb.push(btn(document.getElementById('bbEve'),names[k],function(){eve=k;draw();})); });
+  btn(document.getElementById('bbRun'),'new run',function(){seed++;draw();});
+  function rng(s){return function(){s|=0;s=s+0x6D2B79F5|0;var t=Math.imul(s^s>>>15,1|s);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296;};}
+  var c8=Math.cos(Math.PI/8), s8=Math.sin(Math.PI/8);
+  // states as real 2-vectors; basis 0 = Z, 1 = X
+  function vec(bit,b){ var r=Math.SQRT1_2; return b===0?(bit?[0,1]:[1,0]):(bit?[r,-r]:[r,r]); }
+  function meas(v,b,r){ var p0=Math.pow(b===0?v[0]:(v[0]+v[1])*Math.SQRT1_2,2); return r()<p0?0:1; }
+  function h2(q){ return (q<=0||q>=1)?0:-q*Math.log2(q)-(1-q)*Math.log2(1-q); }
+  function round(r,f,noise){
+    var a=r()<.5?1:0, A=r()<.5?1:0, B=r()<.5?1:0, v=vec(a,A), ev=null, guess=null;
+    if(eve!=='none' && r()<f){
+      if(eve==='random'){ var E=r()<.5?1:0, e=meas(v,E,r); v=vec(e,E); ev={basis:E?'X':'Z',bit:e}; guess=e; }
+      else { var p0=Math.pow(c8*v[0]+s8*v[1],2), k=r()<p0?0:1; v=k?[-s8,c8]:[c8,s8]; ev={basis:'B',bit:k}; guess=k; } }
+    var b=meas(v,B,r); if(r()<noise) b^=1;
+    return {a:a,A:A,B:B,b:b,ev:ev,guess:guess};
+  }
+  function draw(){
+    var f=+fE.value, noise=+nE.value, N=Math.round(Math.pow(10,+rE.value));
+    document.getElementById('bbFv').textContent=fx(f,2); document.getElementById('bbNv').textContent=fx(noise,3); document.getElementById('bbRv').textContent=String(N);
+    eb.forEach(function(x){x.classList.toggle('on',x.textContent===names[eve]);});
+    var r=rng(seed*7907+13), R=[], kept=0, err=0, g=0, gi=0;
+    for(var i=0;i<N;i++){ var q=round(r,f,noise); if(i<16) R.push(q);
+      if(q.A===q.B){ kept++; if(q.b!==q.a) err++; if(q.guess!==null){ gi++; if(q.guess===q.a) g++; } } }
+    clr(svg); mk('rect',{x:0,y:0,width:600,height:220,rx:8,class:'plot-bg'},svg);
+    var labs=['Alice','Eve','Bob basis','Bob bit','kept'], x0=96, dx=31;
+    labs.forEach(function(l,j){ mk('text',{x:10,y:44+j*34,class:'axtext'},svg,l); });
+    R.forEach(function(q,i){ var x=x0+i*dx, keep=q.A===q.B;
+      if(keep) mk('rect',{x:x-13,y:20,width:26,height:188,rx:4,fill:'var(--moss)','fill-opacity':0.16},svg);
+      mk('text',{x:x,y:14,'text-anchor':'middle',class:'axtext',fill:'var(--muted)','font-size':'11px'},svg,String(i+1));
+      mk('text',{x:x,y:44,'text-anchor':'middle',class:'axtext'},svg,['0','1','+','-'][q.a+2*q.A]);
+      mk('text',{x:x,y:78,'text-anchor':'middle',class:'axtext',fill:q.ev?'var(--amber)':'var(--muted)'},svg,q.ev?q.ev.basis:'.');
+      mk('text',{x:x,y:112,'text-anchor':'middle',class:'axtext'},svg,q.B?'X':'Z');
+      var bad=keep&&q.b!==q.a;
+      mk('text',{x:x,y:146,'text-anchor':'middle',class:'axtext',fill:bad?'var(--rose)':(keep?'var(--ink)':'var(--muted)')},svg,String(q.b));
+      mk('text',{x:x,y:180,'text-anchor':'middle',class:'axtext',fill:bad?'var(--rose)':'var(--moss)'},svg,keep?(bad?'err':'ok'):'');
+    });
+    var Q=kept?err/kept:0, se=kept?Math.sqrt(Math.max(Q*(1-Q),1e-12)/kept):0, ub=Q+1.645*se, rate=1-2*h2(Math.min(ub,0.5));
+    out.textContent='Alice row: 0/1 in the Z basis, +/- in the X basis; Eve row: her basis (B = Breidbart). Over '+N+' rounds: '+kept+' sifted ('+fx(100*kept/N,1)+'%), QBER '+fx(Q,4)+' +/- '+fx(se,4)+
+      '. '+(gi&&eve==='breid'?'Eve intercepted '+gi+' sifted rounds and guessed the bit right in '+fx(100*g/gi,1)+'% of them. ':'')+
+      (ub<0.11?'Upper bound '+fx(ub,4)+' < 0.11: continue; secret fraction at the bound about '+fx(Math.max(rate,0),3)+'.':'Upper bound '+fx(ub,4)+' >= 0.11: abort.');
+  }
+  [fE,nE,rE].forEach(function(e){e.addEventListener('input',draw);}); draw();
+})();
+</script>
+
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    var lab=b.getAttribute('data-lab')||b.textContent.replace(/^(show|hide) /,''); b.setAttribute('data-lab',lab);
+    b.textContent=(open?'hide ':'show ')+lab;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+
+<script id="spot-js">
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×/g,'*').replace(/π/g,'pi').replace(/,/g,'');
+    var pct=/%$/.test(s); if(pct) s=s.slice(0,-1);
+    s=s.replace(/√\s*\(/g,'sqrt(').replace(/√\s*([0-9.]+)/g,'sqrt($1)');
+    if(!s||!/^[0-9a-z+\-*\/^().\s]*$/.test(s)) return NaN;
+    var ok=s.replace(/sqrt|pi|ln|log|exp|sin|cos|tan|e(?![a-z])/g,'').replace(/[0-9+\-*\/^().\s]/g,'');
+    if(ok.length) return NaN;
+    s=s.replace(/\^/g,'**').replace(/(\d)\s*(pi|sqrt|\()/g,'$1*$2').replace(/\)\s*(\d|pi|sqrt|\()/g,')*$1')
+       .replace(/sqrt/g,'Math.sqrt').replace(/pi/g,'Math.PI').replace(/\blog\b/g,'Math.log10').replace(/\bln\b/g,'Math.log')
+       .replace(/exp/g,'Math.exp').replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos').replace(/tan/g,'Math.tan')
+       .replace(/(^|[^a-z.0-9])e(?![a-z0-9(])/g,'$1Math.E');
+    try{ var v=Function('"use strict";return ('+s+')')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function typeset(el){ if(window.MathJax&&MathJax.typesetPromise){ MathJax.typesetPromise([el]).catch(function(){}); } }
+  function fb(spot,ok,html){
+    var f=spot.querySelector('.fb'); spot.classList.toggle('ok',ok); spot.classList.toggle('bad',!ok);
+    f.innerHTML='<p><span class="tag">'+(ok?'correct.':'not yet.')+'</span>'+(html||'')+'</p>'; typeset(f);
+  }
+  function part(spot,sel){ var e=spot.querySelector(sel); return e? e.innerHTML : ''; }
+  var n=0, lec=(document.title.match(/^Lecture (\d+)/)||[])[1];
+  document.querySelectorAll('.spot').forEach(function(spot){
+    n++; var kind=spot.getAttribute('data-kind')||'num', tries=0;
+    var lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent='spot check '+(lec?lec+'.':'')+n+(spot.getAttribute('data-tag')?' — '+spot.getAttribute('data-tag'):'');
+    spot.insertBefore(lbl,spot.firstChild);
+    var area=document.createElement('div'), btns=document.createElement('div'), f=document.createElement('div');
+    btns.className='btns'; f.className='fb'; f.setAttribute('role','status'); f.setAttribute('aria-live','polite');
+    var check=document.createElement('button'); check.type='button'; check.textContent='check';
+    var reveal=document.createElement('button'); reveal.type='button'; reveal.className='reveal'; reveal.textContent='show answer'; reveal.style.display='none';
+    btns.appendChild(check); btns.appendChild(reveal);
+    var grade, show;
+    if(kind==='num'){
+      var ans=spot.getAttribute('data-ans').split('|').map(evalNum), labs=(spot.getAttribute('data-labels')||'').split('|');
+      var tol=spot.getAttribute('data-tol'), row=document.createElement('div'); row.className='row'; area.appendChild(row);
+      var ins=ans.map(function(a,i){ var lab=document.createElement('label'), inp=document.createElement('input');
+        inp.className='ans'; inp.type='text'; inp.setAttribute('inputmode','text'); inp.setAttribute('autocomplete','off');
+        inp.setAttribute('aria-label',labs[i]||'answer'); if(labs[i]){ lab.appendChild(document.createTextNode(labs[i]+' =')); }
+        lab.appendChild(inp); row.appendChild(lab);
+        inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); check.click(); } }); return inp; });
+      var fmt=document.createElement('div'); fmt.className='fmt'; fmt.textContent='decimals, fractions, sqrt(2)/2, pi/4 or 2^-3 all work';
+      area.appendChild(fmt);
+      grade=function(){ var bad=[]; ins.forEach(function(inp,i){ var v=evalNum(inp.value), a=ans[i];
+          var t= tol!==null? Number(tol) : Math.max(0.005, 0.005*Math.abs(a)); if(!(Math.abs(v-a)<=t)) bad.push(i); });
+        var empty=ins.some(function(inp){return !inp.value.trim();});
+        if(empty) return {ok:false,msg:'Fill in '+(ins.length>1?'every box':'the box')+' first.',soft:true};
+        var unparsed=ins.some(function(inp){return isNaN(evalNum(inp.value));});
+        if(unparsed) return {ok:false,msg:'I could not read that as a number. Try a decimal or a fraction such as 3/8.',soft:true};
+        return {ok:!bad.length, which:bad}; };
+      show=function(){ var s=spot.getAttribute('data-show'); if(!s){ s=spot.getAttribute('data-ans').split('|').map(function(a,i){return (labs[i]?labs[i]+' = ':'')+a;}).join(', '); } return 'The answer is '+s+'.'; };
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=spot.querySelector('ul.opts'), name='spot'+n, lis=[].slice.call(ul.querySelectorAll(':scope > li'));
+      lis.forEach(function(li,i){ var inp=document.createElement('input'); inp.type= kind==='mc'?'radio':'checkbox'; inp.name=name; inp.value=i;
+        inp.setAttribute('aria-label','option '+(i+1)); li.insertBefore(inp,li.firstChild);
+        li.addEventListener('click',function(e){ if(e.target!==inp&&e.target.tagName!=='A'){ if(kind==='mc') inp.checked=true; else inp.checked=!inp.checked; } }); });
+      grade=function(){ var picked=lis.filter(function(li){return li.querySelector('input').checked;});
+        if(!picked.length) return {ok:false,msg:'Pick '+(kind==='mc'?'an answer':'at least one option')+' first.',soft:true};
+        var ok= lis.every(function(li){ return li.hasAttribute('data-ok')===li.querySelector('input').checked; });
+        var oh=''; picked.forEach(function(li){ if(!li.hasAttribute('data-ok')){ var h=li.querySelector('.oh'); if(h) oh+=' '+h.innerHTML; } });
+        if(kind==='multi'&&!ok&&!oh){ var miss=lis.filter(function(li){return li.hasAttribute('data-ok')&&!li.querySelector('input').checked;});
+          if(miss.length&&picked.every(function(li){return li.hasAttribute('data-ok');})) oh=' Everything you ticked is right, but something is missing.'; }
+        return {ok:ok, extra:oh}; };
+      show=function(){ lis.forEach(function(li){ li.classList.toggle('right',li.hasAttribute('data-ok')); }); return 'The right '+(kind==='mc'?'option is':'options are')+' outlined.'; };
+    } else if(kind==='select'){
+      var sels=[].slice.call(spot.querySelectorAll('select'));
+      sels.forEach(function(s){ var o=document.createElement('option'); o.textContent='choose…'; o.value=''; o.selected=true; s.insertBefore(o,s.firstChild);
+        s.setAttribute('aria-label', s.getAttribute('aria-label')||'choose an answer'); });
+      grade=function(){ if(sels.some(function(s){return !s.value;})) return {ok:false,msg:'Make a choice in '+(sels.length>1?'every menu':'the menu')+' first.',soft:true};
+        var oh=''; var ok=sels.every(function(s){ var o=s.options[s.selectedIndex]; if(!o.hasAttribute('data-ok')&&o.getAttribute('data-hint')) oh+=' '+o.getAttribute('data-hint'); return o.hasAttribute('data-ok'); });
+        return {ok:ok, extra:oh}; };
+      show=function(){ sels.forEach(function(s){ [].forEach.call(s.options,function(o,i){ if(o.hasAttribute('data-ok')) s.selectedIndex=i; }); }); return 'The right choices are now selected.'; };
+    }
+    var anchor=null;
+    [].forEach.call(spot.children,function(c){ if(!anchor&&(c.classList.contains('hint')||c.classList.contains('why'))) anchor=c; });
+    if(kind==='select'){ spot.insertBefore(btns,anchor); } else { spot.insertBefore(area,anchor); spot.insertBefore(btns,anchor); }
+    spot.appendChild(f);
+    check.addEventListener('click',function(){ var r=grade();
+      if(r.soft){ spot.classList.remove('ok'); spot.classList.add('bad'); f.innerHTML='<p><span class="tag">hold on.</span>'+r.msg+'</p>'; return; }
+      if(r.ok){ fb(spot,true,part(spot,'.why')); reveal.style.display='none'; }
+      else { tries++; var h=part(spot,'.hint'); var extra=r.extra||'';
+        if(r.which&&r.which.length&&ans.length>1){ extra=' Check '+r.which.map(function(i){return labs[i]||('box '+(i+1));}).join(' and ')+'.'+extra; }
+        fb(spot,false,(extra?extra+' ':'')+h); if(tries>=2) reveal.style.display=''; } });
+    reveal.addEventListener('click',function(){ var msg=show(); spot.classList.remove('ok'); spot.classList.add('bad');
+      f.innerHTML='<p><span class="tag">answer.</span>'+msg+' '+part(spot,'.why')+'</p>'; typeset(f); });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Lecture 15 — Order Finding and Shor's Algorithm I</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+  /* course additions, same family */
+  .crypto{border-left-color:var(--moss);background:var(--surface2)} .crypto .lbl{color:var(--moss)}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  dl.gloss dt{font-family:var(--mono);color:var(--sky);font-size:.95rem;margin-top:.9em}
+  dl.gloss dd{margin:.1em 0 0 1.1em}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<style id="spot-css">
+.spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+  border-radius:6px;padding:12px 16px;margin:1.3em 0;transition:background .25s,border-color .25s}
+.spot .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em;color:var(--sky)}
+.spot > p{margin:.35em 0}
+.spot .hint,.spot .why,.spot .oh{display:none}
+.spot .fb{display:none;margin:.55em 0 0;font-size:.97rem}
+.spot .fb > :first-child{margin-top:0}.spot .fb > :last-child{margin-bottom:0}
+.spot.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 13%,var(--surface))}
+.spot.ok .lbl{color:var(--moss)}
+.spot.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 13%,var(--surface))}
+.spot.bad .lbl{color:var(--amber)}
+.spot.ok .fb{display:block;color:var(--ink)} .spot.bad .fb{display:block;color:var(--ink)}
+.spot .fb .tag{font-family:var(--mono);font-size:.85rem;margin-right:.4em}
+.spot.ok .fb .tag{color:var(--moss)} .spot.bad .fb .tag{color:var(--amber)}
+.spot ul.opts{list-style:none;padding:0;margin:.5em 0}
+.spot ul.opts li{display:block;padding:4px 8px 4px 2.1em;text-indent:-1.5em;margin:3px 0;border-radius:5px;cursor:pointer;
+  border:1px solid transparent;overflow-wrap:anywhere}
+.spot ul.opts li > *{text-indent:0}
+.spot ul.opts li:hover{border-color:var(--rule)}
+.spot ul.opts li input{accent-color:var(--sky);margin:0 .6em 0 0;width:.9em;vertical-align:-1px}
+.spot ul.opts li.right{border-color:var(--moss)}
+.spot .row{display:flex;flex-wrap:wrap;gap:.6em 1em;align-items:center;margin:.55em 0 .2em}
+.spot .row label{font-family:var(--mono);font-size:.88rem;color:var(--muted);display:flex;gap:.45em;align-items:center}
+.spot input.ans{font-family:var(--mono);font-size:.95rem;width:9.5em;max-width:100%;padding:5px 8px;border-radius:5px;
+  border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.spot input.ans:focus,.spot select:focus{outline:2px solid var(--sky);outline-offset:1px}
+.spot select{font-family:var(--mono);font-size:.9rem;padding:3px 6px;border-radius:5px;border:1px solid var(--rule);
+  background:var(--bg);color:var(--ink);max-width:100%}
+.spot .btns{display:flex;gap:.5em;flex-wrap:wrap;margin-top:.5em}
+.spot .btns button{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--sky);border:1px solid var(--sky);
+  padding:5px 12px;border-radius:999px;cursor:pointer}
+.spot .btns button:hover{background:var(--sky);color:var(--bg)}
+.spot .btns button.reveal{color:var(--muted);border-color:var(--rule)}
+.spot .btns button.reveal:hover{background:var(--rule);color:var(--ink)}
+.spot .fmt{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+@media print{.spot .btns,.spot .fmt{display:none}}
+</style>
+<script src="/assets/courses/common/course-nav.js" data-course="quantum-computing" defer></script>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Quantum Computing · Lecture 15</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Lecture 15<br>Order Finding and Shor's Algorithm I</h1>
+<p class="kicker">Week 8 &nbsp;|&nbsp; factoring reduces to finding the order of a number mod N, and order finding is phase estimation; Lab 4 launches &nbsp;|&nbsp; reading: Watrous Ch. 7 (order finding and factoring); de Wolf Ch. 5</p>
+
+<figure class="toon">
+<svg viewBox="0 0 600 210" width="600" height="210" role="img" aria-labelledby="c15t c15d">
+<title id="c15t">Cartoon: a lock opened by a rhythm</title><desc id="c15d">A stick figure stands by a large safe labelled RSA. The safe's dial shows the numbers 1, 7, 4, 13 arranged in a loop with arrows, which come back to 1. A speech bubble says: I don't need the key, only how long the loop is.</desc>
+<defs><filter id="rough1515" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="15" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough1515)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="70" cy="118" r="11"/><path d="M 70 129 L 70 160"/><path d="M 70 138 L 98 132"/><path d="M 70 138 L 58 156"/><path d="M 70 160 L 60 188"/><path d="M 70 160 L 80 188"/>
+<rect x="250" y="80" width="150" height="110" rx="8" fill="var(--surface2)"/><path d="M 262 190 L 262 196 M 388 190 L 388 196"/>
+<circle cx="325" cy="135" r="38"/>
+<path d="M 325 103 C 345 105, 355 115, 357 130" stroke="var(--rose)"/><path d="M 357 140 C 355 155, 345 165, 330 167" stroke="var(--rose)"/><path d="M 320 167 C 305 165, 295 155, 293 140" stroke="var(--rose)"/><path d="M 293 130 C 295 115, 305 105, 318 103" stroke="var(--rose)"/>
+<rect x="120" y="12" width="320" height="56" rx="9" fill="var(--surface2)"/><path d="M 140 66 L 84 104 L 166 66" fill="var(--surface2)" stroke-width="1.6"/>
+<path d="M 20 196 L 580 196" stroke-width="1.6"/>
+</g>
+<text x="134" y="36" class="ctext">I don't need the key, only</text><text x="134" y="56" class="ctext">how long the loop is.</text>
+<text x="319" y="100" class="ccap">1</text><text x="362" y="140" class="ccap">7</text><text x="319" y="182" class="ccap">4</text><text x="272" y="140" class="ccap">13</text>
+<text x="408" y="96" class="ccap">RSA</text>
+</svg>
+<figcaption class="tooncap">the powers of 7 mod 15 cycle 1, 7, 4, 13, 1, ...: the length of that cycle is enough to factor 15</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">Why factoring matters</a></li>
+<li><a href="#s2">The number theory we need</a></li>
+<li><a href="#s3">From the order to the factors</a></li>
+<li><a href="#s4">Order finding is phase estimation</a></li>
+<li><a href="#s5">Reading s/r: continued fractions</a></li>
+<li><a href="#s6">Shor's algorithm, end to end</a></li>
+<li><a href="#s7">Lab 4 launch</a></li>
+<li><a href="#s8">Try it in code</a></li>
+<li><a href="#s9">Summary and exercises</a></li>
+</ol>
+</div>
+
+<p>Lecture 14 ended with a promise: phase estimation applied to multiplication mod \(N\) finds the <em>order</em> of a number, and the order factors \(N\). This lecture keeps it. By the end you should be able to explain why factoring breaks RSA, compute orders and use them to factor by hand, prove the reduction from factoring to order finding, explain why phase estimation on the easy state \(|1\rangle\) returns a random fraction \(s/r\), recover \(r\) from a measured \(y\) with continued fractions, and carry out Shor's algorithm end to end for \(N=15\) and \(N=35\). Lecture 16 builds the modular-arithmetic circuits and extends the method to discrete logarithms.</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; Why factoring matters</h2>
+
+<div class="box crypto">
+<span class="lbl">crypto connection &mdash; RSA in one paragraph</span>
+<p>Choose two large primes \(p,q\) and publish \(N=pq\) and an exponent \(e\) coprime to \((p-1)(q-1)\). The private key is \(d\) with \(ed\equiv1\pmod{(p-1)(q-1)}\). Encryption is \(m\mapsto m^e\bmod N\) and decryption \(c\mapsto c^d\bmod N\); signatures run the same maps the other way. Anyone who factors \(N\) knows \((p-1)(q-1)\), computes \(d\) with Euclid's algorithm, and can read every message and forge every signature. The best classical algorithm, the general number field sieve, takes time \(\exp\big((1.92+o(1))(\ln N)^{1/3}(\ln\ln N)^{2/3}\big)\): subexponential, but still far out of reach for 2048-bit \(N\). The largest RSA challenge number factored so far, RSA-250 (829 bits, in 2020), took about 2,700 CPU-core-years. Shor's algorithm factors in time polynomial in \(\log N\).</p>
+</div>
+
+<p>Shor's algorithm is mostly classical. The quantum computer does one job, finding the order of a number mod \(N\), and everything before and after it is number theory that runs on a laptop.</p>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; The number theory we need</h2>
+
+<p><strong>Greatest common divisors.</strong> Euclid's algorithm computes \(\gcd(x,N)\) by repeated division with remainder: \(\gcd(x,N)=\gcd(N\bmod x,\,x)\). It needs \(O(\log N)\) steps, so it is fast even for 2048-bit numbers. A random \(x\) shares a factor with \(N=pq\) only with probability about \(1/p+1/q\), which is negligible; finding such an \(x\) is exactly as hard as factoring.</p>
+
+<p><strong>Units.</strong> The numbers \(a\in\{1,\dots,N-1\}\) with \(\gcd(a,N)=1\) form the group \(\mathbb Z_N^*\) under multiplication mod \(N\): products of units are units, and every unit has an inverse (from Euclid's algorithm). For \(N=15\), \(\mathbb Z_{15}^*=\{1,2,4,7,8,11,13,14\}\), eight elements.</p>
+
+<div class="box def">
+<span class="lbl">definition 15.1 &mdash; order</span>
+<p>The <strong>order</strong> of \(a\in\mathbb Z_N^*\) is the least \(r\ge1\) with \(a^r\equiv1\pmod N\). The powers \(1,a,a^2,\dots\) then repeat with period exactly \(r\): \(a^x\equiv a^{x'}\) if and only if \(x\equiv x'\pmod r\).</p>
+</div>
+
+<div class="spot" data-kind="num" data-ans="4" data-labels="r">
+<p>What is the order of 4 modulo 51?</p>
+<div class="hint">List the powers \(4,4^2,4^3,\dots\) reducing mod 51 each time, and stop at the first one that is 1.</div>
+<div class="why">\(4,\ 16,\ 64\equiv13,\ 13\cdot4=52\equiv1\). So \(r=4\).</div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 15.1 &mdash; the order of 7 mod 15</span>
+<p>Find the order of 7 modulo 15.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(7^1=7\), \(7^2=49\equiv4\), \(7^3\equiv4\cdot7=28\equiv13\), \(7^4\equiv13\cdot7=91\equiv1\). So \(r=4\): the powers cycle \(1,7,4,13,1,7,\dots\), the loop in the cartoon.</p>
+</div>
+</div>
+
+<p>The order always divides \(|\mathbb Z_N^*|\) (Lagrange's theorem), which is \((p-1)(q-1)\) for \(N=pq\). But for a 2048-bit \(N\) the order is typically a number of about 2048 bits too, and no known classical method finds it much faster than factoring \(N\). Computing a single power \(a^x\bmod N\) is easy, though: <strong>repeated squaring</strong> computes \(a,a^2,a^4,a^8,\dots\) by squaring mod \(N\) and multiplies together the ones selected by the bits of \(x\), using \(O(\log x)\) multiplications of \(n\)-bit numbers. That is \(O(n^3)\) bit operations for an \(n\)-bit exponent with schoolbook multiplication, and the quantum circuit in Lecture 16 does the same thing reversibly.</p>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; From the order to the factors</h2>
+
+<div class="box thm">
+<span class="lbl">theorem 15.1 &mdash; an even order gives a factor</span>
+<p>Let \(a\in\mathbb Z_N^*\) have even order \(r\), and suppose \(a^{r/2}\not\equiv-1\pmod N\). Then \(\gcd(a^{r/2}-1,\,N)\) and \(\gcd(a^{r/2}+1,\,N)\) are nontrivial factors of \(N\).</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Let \(h=a^{r/2}\bmod N\). Then \(h^2=a^r\equiv1\), so \(N\) divides \(h^2-1=(h-1)(h+1)\). Now \(N\nmid h-1\), because \(h\equiv1\) would mean \(a^{r/2}\equiv1\) with \(r/2\lt r\), contradicting minimality of \(r\); and \(N\nmid h+1\) by assumption. So \(N\) divides the product \((h-1)(h+1)\) but neither factor. If \(\gcd(h-1,N)\) were 1, then \(N\mid(h-1)(h+1)\) would force \(N\mid h+1\), which is false; and it is not \(N\), since \(N\nmid h-1\). So \(\gcd(h-1,N)\) is a proper factor, and likewise \(\gcd(h+1,N)\).</p>
+</div>
+</div>
+
+<div class="spot" data-kind="mc">
+<p>\(a\in\mathbb Z_N^*\), \(N\) odd, has <em>even</em> order \(r\), and \(h=a^{r/2}\bmod N\). Which of these can <em>never</em> happen?</p>
+<ul class="opts">
+<li>\(h\equiv-1\pmod N\)<span class="oh">This does happen: \(a=14\) mod 15 has \(r=2\) and \(h=14\equiv-1\) (Example 15.2). It is one of the two ways the method fails.</span></li>
+<li data-ok>\(h\equiv1\pmod N\)</li>
+<li>\(\gcd(h-1,N)=1\)<span class="oh">This happens exactly when \(h\equiv-1\): then \(h-1\equiv-2\), and \(\gcd(N-2,N)=1\) for odd \(N\).</span></li>
+<li>\(h\) is neither \(1\) nor \(-1\) mod \(N\)<span class="oh">That is the good case of Theorem 15.1, for example \(h=4\) for \(a=7\), \(N=15\).</span></li>
+</ul>
+<div class="hint">Look at the first line of the proof: what does \(r\) being the <em>least</em> exponent with \(a^r\equiv1\) say about \(a^{r/2}\)?</div>
+<div class="why">\(h\equiv1\) would mean \(a^{r/2}\equiv1\) with \(r/2\lt r\), contradicting the minimality of \(r\). The only real failure for even \(r\) is \(h\equiv-1\).</div>
+</div>
+
+
+<p>In words: \(h\) is a square root of 1 mod \(N\) other than \(\pm1\). For a prime modulus only \(\pm1\) exist, but for \(N=pq\) there are four square roots of 1, and the "extra" ones split \(N\).</p>
+
+<div class="spot" data-kind="num" data-ans="7|13" data-labels="gcd(h−1, N)|gcd(h+1, N)" data-show="gcd(63, 91) = 7 and gcd(65, 91) = 13">
+<p>For \(N=91\), some unit \(a\) gives \(h=a^{r/2}\equiv64\). Check that \(64^2\equiv1\pmod{91}\), then compute the two gcds of Theorem 15.1.</p>
+<div class="hint">\(64^2=4096=45\cdot91+1\). Now factor \(h-1=63\) and \(h+1=65\) and see what each shares with \(91\).</div>
+<div class="why">\(\gcd(63,91)=7\) and \(\gcd(65,91)=13\), and indeed \(91=7\times13\). The square root 64 of 1 is neither \(1\) nor \(-1\equiv90\), so it splits \(N\).</div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 15.2 &mdash; every unit mod 15</span>
+<p>For each \(a\in\mathbb Z_{15}^*\), find its order and decide whether Theorem 15.1 factors 15.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<div style="overflow-x:auto"><table>
+<tr><th>\(a\)</th><th>1</th><th>2</th><th>4</th><th>7</th><th>8</th><th>11</th><th>13</th><th>14</th></tr>
+<tr><td>order \(r\)</td><td>1</td><td>4</td><td>2</td><td>4</td><td>4</td><td>2</td><td>4</td><td>2</td></tr>
+<tr><td>\(a^{r/2}\bmod15\)</td><td>&mdash;</td><td>4</td><td>4</td><td>4</td><td>4</td><td>11</td><td>4</td><td>14</td></tr>
+<tr><td>result</td><td>\(r\) odd</td><td>3, 5</td><td>3, 5</td><td>3, 5</td><td>3, 5</td><td>5, 3</td><td>3, 5</td><td>\(-1\): fails</td></tr>
+</table></div>
+<p>For example \(a=7\): \(r=4\), \(h=7^2\bmod15=4\), and \(\gcd(3,15)=3\), \(\gcd(5,15)=5\). For \(a=11\): \(h=11\), \(\gcd(10,15)=5\), \(\gcd(12,15)=3\). Six of the eight units work; \(a=1\) has odd order and \(a=14\equiv-1\) gives \(h\equiv-1\).</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 15.3 &mdash; N = 35, a = 2</span>
+<p>Use the order of 2 modulo 35 to factor 35.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The powers of 2 mod 35 are \(2,4,8,16,32,29,23,11,22,9,18,1\), so \(r=12\). Then \(h=2^6=64\equiv29\not\equiv-1\), and \(\gcd(28,35)=7\), \(\gcd(30,35)=5\). Notice that we needed twelve powers to find \(r\) by brute force; for an \(n\)-bit \(N\) the order can be exponentially large in \(n\), and that is the step the quantum computer replaces.</p>
+</div>
+</div>
+
+<div class="box thm">
+<span class="lbl">theorem 15.2 &mdash; a random a works at least half the time</span>
+<p>Let \(N\) be odd with at least two distinct prime factors. If \(a\) is chosen uniformly from \(\mathbb Z_N^*\), then \(r\) is even and \(a^{r/2}\not\equiv-1\) with probability at least \(\tfrac12\). (More precisely, at least \(1-2^{1-k}\) when \(N\) has \(k\) distinct prime factors.)</p>
+<p><em>Proof sketch.</em> By the Chinese remainder theorem, choosing \(a\) mod \(N=p^\alpha q^\beta\cdots\) is the same as choosing independent random units mod each prime power. Let \(2^{d_i}\) be the largest power of 2 dividing the order of \(a\) mod the \(i\)-th prime power. The method fails exactly when all the \(d_i\) are equal (which includes "\(r\) odd", all \(d_i=0\)), and each \(d_i\) takes any particular value with probability at most \(\tfrac12\), because the group mod an odd prime power is cyclic of even order. See Nielsen&ndash;Chuang, Appendix 4, for the details.</p>
+</div>
+
+<p>The bound is tight: for \(N=33\) and \(N=77\) exactly half of the units work. For other small \(N\) it is better (computed in verify_L15.py; the code box in Section 8 checks \(N=35\)):</p>
+<div style="overflow-x:auto"><table>
+<tr><th>\(N\)</th><td>15</td><td>33</td><td>35</td><td>39</td><td>51</td><td>55</td><td>77</td><td>91</td></tr>
+<tr><th>units that work</th><td>6 / 8</td><td>10 / 20</td><td>18 / 24</td><td>18 / 24</td><td>30 / 32</td><td>30 / 40</td><td>30 / 60</td><td>54 / 72</td></tr>
+</table></div>
+<p>So a factoring algorithm needs only an <strong>order-finding</strong> subroutine: check that \(N\) is odd and not a prime power (both easy classically), pick random \(a\), take \(\gcd(a,N)\) in case we are lucky, find the order, and apply Theorem 15.1; expect to repeat about twice.</p>
+
+<div class="spot" data-kind="num" data-ans="3/4" data-labels="P(works)">
+<p>\(N\) is odd and has exactly three distinct prime factors. What lower bound does Theorem 15.2 give for the probability that a random unit \(a\) leads to a factor?</p>
+<div class="hint">Use the precise form of the bound, \(1-2^{1-k}\), with \(k\) the number of distinct primes.</div>
+<div class="why">\(1-2^{1-3}=1-\tfrac14=\tfrac34\). More prime factors make the bad event (all the \(d_i\) equal) less likely.</div>
+</div>
+
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; Order finding is phase estimation</h2>
+
+<p>Let \(n=\lceil\log_2N\rceil\), so the numbers \(0,\dots,N-1\) fit in an \(n\)-qubit register.</p>
+
+<div class="box def">
+<span class="lbl">definition 15.2 &mdash; modular multiplication</span>
+<p>For \(a\in\mathbb Z_N^*\), \(U_a\) is the linear map on \(n\) qubits with</p>
+$$U_a|y\rangle=\begin{cases}|ay\bmod N\rangle,&0\le y\lt N,\\[2pt] |y\rangle,&N\le y\lt2^n.\end{cases}$$
+</div>
+
+<div class="box thm">
+<span class="lbl">proposition 15.3 &mdash; U<sub>a</sub> is unitary, and its powers are cheap</span>
+<p>\(U_a\) permutes the basis states, so it is unitary. Moreover \(U_a^k=U_{a^k\bmod N}\); in particular \(U_a^{2^j}=U_c\) with \(c=a^{2^j}\bmod N\), a single multiplication by a number computed classically.</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Multiplication by a unit is a bijection of \(\{0,\dots,N-1\}\): its inverse is multiplication by \(a^{-1}\bmod N\). Extended by the identity on \(y\ge N\), it permutes all \(2^n\) basis states, and a permutation matrix is unitary. Applying \(U_a\) \(k\) times multiplies by \(a\) \(k\) times, which is multiplying once by \(a^k\bmod N\).</p>
+</div>
+</div>
+
+<p>The orbit of 1 under \(U_a\) is the cycle \(1,a,a^2,\dots,a^{r-1}\) of length \(r\): \(U_a\) acts on it as a cyclic shift. Lecture 13 showed that shifts are diagonalised by Fourier vectors, and that is where the eigenvectors come from.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 15.4 &mdash; the spectrum of U<sub>a</sub> on the orbit of 1</span>
+<p>Let \(a\) have order \(r\). For \(s=0,1,\dots,r-1\) the states</p>
+$$|u_s\rangle=\frac{1}{\sqrt r}\sum_{k=0}^{r-1}e^{-2\pi i\,sk/r}\,|a^k\bmod N\rangle$$
+<p>are orthonormal eigenvectors of \(U_a\) with \(U_a|u_s\rangle=e^{2\pi i\,s/r}|u_s\rangle\), and</p>
+$$|1\rangle=\frac{1}{\sqrt r}\sum_{s=0}^{r-1}|u_s\rangle .$$
+<p><em>Proof.</em> HW8. (verify_L15.py checks both statements numerically for \(N=15\), \(a=7\) and \(N=35\), \(a=2\).)</p>
+</div>
+
+<div class="spot" data-kind="num" data-ans="4|3/4" data-labels="# eigenvectors|phase of u₃" data-show="4 eigenvectors; |u₃⟩ has eigenphase 3/4 (eigenvalue −i)">
+<p>Take \(N=51\), \(a=4\), whose order you found above. How many eigenvectors \(|u_s\rangle\) does Theorem 15.4 give, and what is the eigenphase \(\theta\in[0,1)\) of \(|u_3\rangle\)?</p>
+<div class="hint">There is one \(|u_s\rangle\) for each \(s=0,\dots,r-1\), and \(U_a|u_s\rangle=e^{2\pi i\,s/r}|u_s\rangle\).</div>
+<div class="why">\(r=4\), so there are four, \(|u_0\rangle,\dots,|u_3\rangle\), and \(|u_3\rangle\) has eigenphase \(s/r=\tfrac34\), eigenvalue \(e^{3\pi i/2}=-i\).</div>
+</div>
+
+
+<div class="box idea">
+<span class="lbl">idea &mdash; we never prepare an eigenvector</span>
+<p>Preparing \(|u_s\rangle\) would require knowing \(r\). But the state \(|1\rangle\), the number one in binary, is an equal superposition of all \(r\) eigenvectors, and Proposition 14.6 says phase estimation on a superposition simply samples one of the eigenphases. Each eigenphase is a fraction \(s/r\) with the unknown \(r\) as denominator.</p>
+</div>
+
+<div class="box thm">
+<span class="lbl">corollary 15.5 &mdash; what phase estimation returns</span>
+<p>Run phase estimation of \(U_a\) with \(m\) control qubits on the work register \(|1\rangle\). The outcome \(y\) is distributed as follows: \(s\) is uniform on \(\{0,\dots,r-1\}\), and given \(s\), \(y\) has the distribution of Theorem 14.3 for \(\theta=s/r\). In particular \(y/2^m\) is the nearest \(m\)-bit fraction to \(s/r\) with probability at least \(4/\pi^2\).</p>
+</div>
+
+<div class="spot" data-kind="select">
+<p>Each run of phase estimation of \(U_a\) on \(|1\rangle\) returns \(y\) with \(y/2^m\approx s/r\), where \(s\) is
+<select><option data-hint="Then every run would give 1/r directly. But |1⟩ is an equal superposition of all r eigenvectors, so every s is possible.">always 1</option><option data-hint="Nothing carries over from one run to the next: each run collapses onto a fresh, random eigenvector.">the same in every run</option><option data-ok>uniformly random in {0, …, r−1}, fresh each run</option><option data-hint="The output is a phase s/r, not the order r itself; r appears only as a denominator.">equal to r</option></select>.</p>
+<div class="hint">Theorem 15.4 writes \(|1\rangle\) as \(\tfrac1{\sqrt r}\sum_s|u_s\rangle\). What does Proposition 14.6 do with a superposition of eigenvectors?</div>
+<div class="why">Every \(|u_s\rangle\) has weight \(|1/\sqrt r|^2=1/r\), so phase estimation samples \(s\) uniformly. That is why we only learn \(r\) as the denominator of a random fraction.</div>
+</div>
+
+<figure>
+<svg viewBox="0 0 800 320" width="800" height="320" role="img" aria-labelledby="oct ocd"><title id="oct">The order-finding circuit</title><desc id="ocd">Top: m control qubits, drawn as three wires q0, q1 and a dotted gap up to q(m-1), each starting in |0> with a Hadamard. Bottom: a work register of n qubits starting in |1>, the number one. Control qubit j controls multiplication by a^(2^j) mod N on the work register; the numbers a^(2^j) mod N are computed classically by repeated squaring. Then an inverse QFT on the controls and a measurement give y. A classical box takes y/2^m, finds its continued-fraction convergents, and outputs a candidate order r, which is checked by computing a^r mod N.</desc><rect x="0" y="0" width="800" height="320" rx="8" class="plot-bg"/><text class="axtext" x="10.0" y="45.0" text-anchor="start" style="fill:var(--sky)">q0</text><text class="lbltext" x="64.0" y="45.0" text-anchor="start">|0&gt;</text><line x1="100" y1="40" x2="560" y2="40" stroke="var(--ink)" stroke-width="2"/><rect x="104.0" y="23.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="122.0" y="45.0" text-anchor="middle" style="fill:var(--amber)">H</text><text class="axtext" x="10.0" y="97.0" text-anchor="start" style="fill:var(--sky)">q1</text><text class="lbltext" x="64.0" y="97.0" text-anchor="start">|0&gt;</text><line x1="100" y1="92" x2="560" y2="92" stroke="var(--ink)" stroke-width="2"/><rect x="104.0" y="75.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="122.0" y="97.0" text-anchor="middle" style="fill:var(--amber)">H</text><text class="axtext" x="10.0" y="175.0" text-anchor="start" style="fill:var(--sky)">q(m-1)</text><text class="lbltext" x="64.0" y="175.0" text-anchor="start">|0&gt;</text><line x1="100" y1="170" x2="560" y2="170" stroke="var(--ink)" stroke-width="2"/><rect x="104.0" y="153.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="122.0" y="175.0" text-anchor="middle" style="fill:var(--amber)">H</text><text class="lbltext" x="60.0" y="136.0" text-anchor="start">:</text><text class="lbltext" x="300.0" y="136.0" text-anchor="middle">. . .</text><text class="axtext" x="10.0" y="241.0" text-anchor="start" style="fill:var(--sky)">work</text><text class="lbltext" x="64.0" y="241.0" text-anchor="start">|1&gt;</text><line x1="100" y1="236" x2="560" y2="236" stroke="var(--ink)" stroke-width="5" stroke-opacity="0.85"/><line x1="190" y1="40" x2="190" y2="216" stroke="var(--rose)" stroke-width="2"/><circle cx="190" cy="40" r="6" fill="var(--rose)"/><rect x="161.0" y="216" width="58" height="40" rx="5" fill="var(--surface2)" stroke="var(--rose)" stroke-width="2"/><text class="axtext" x="190.0" y="241.0" text-anchor="middle" style="fill:var(--rose)">x a</text><line x1="270" y1="92" x2="270" y2="216" stroke="var(--rose)" stroke-width="2"/><circle cx="270" cy="92" r="6" fill="var(--rose)"/><rect x="241.0" y="216" width="58" height="40" rx="5" fill="var(--surface2)" stroke="var(--rose)" stroke-width="2"/><text class="axtext" x="270.0" y="241.0" text-anchor="middle" style="fill:var(--rose)">x a^2</text><line x1="400" y1="170" x2="400" y2="216" stroke="var(--rose)" stroke-width="2"/><circle cx="400" cy="170" r="6" fill="var(--rose)"/><rect x="340.0" y="216" width="120" height="40" rx="5" fill="var(--surface2)" stroke="var(--rose)" stroke-width="2"/><text class="axtext" x="400.0" y="241.0" text-anchor="middle" style="fill:var(--rose)">x a^(2^(m-1))</text><text class="axtext" x="305.0" y="278.0" text-anchor="middle" style="fill:var(--muted)">all products mod N; a^(2^j) mod N by repeated squaring</text><rect x="470" y="18" width="62" height="174" rx="6" fill="var(--surface2)" stroke="var(--moss)" stroke-width="2.2"/><text class="lbltext" x="501.0" y="105.0" text-anchor="middle" style="fill:var(--moss)">QFT</text><text class="axtext" x="501.0" y="125.0" text-anchor="middle" style="fill:var(--moss)">inverse</text><rect x="567" y="23" width="34" height="34" rx="4" fill="var(--surface2)" stroke="var(--sky)" stroke-width="2"/><path d="M574,47 Q584,31 594,47" fill="none" stroke="var(--sky)" stroke-width="1.8"/><line x1="584" y1="47" x2="592" y2="32" stroke="var(--sky)" stroke-width="1.8"/><line x1="601" y1="37.5" x2="630" y2="37.5" stroke="var(--axis)" stroke-width="1.6"/><line x1="601" y1="42.5" x2="630" y2="42.5" stroke="var(--axis)" stroke-width="1.6"/><rect x="567" y="75" width="34" height="34" rx="4" fill="var(--surface2)" stroke="var(--sky)" stroke-width="2"/><path d="M574,99 Q584,83 594,99" fill="none" stroke="var(--sky)" stroke-width="1.8"/><line x1="584" y1="99" x2="592" y2="84" stroke="var(--sky)" stroke-width="1.8"/><line x1="601" y1="89.5" x2="630" y2="89.5" stroke="var(--axis)" stroke-width="1.6"/><line x1="601" y1="94.5" x2="630" y2="94.5" stroke="var(--axis)" stroke-width="1.6"/><rect x="567" y="153" width="34" height="34" rx="4" fill="var(--surface2)" stroke="var(--sky)" stroke-width="2"/><path d="M574,177 Q584,161 594,177" fill="none" stroke="var(--sky)" stroke-width="1.8"/><line x1="584" y1="177" x2="592" y2="162" stroke="var(--sky)" stroke-width="1.8"/><line x1="601" y1="167.5" x2="630" y2="167.5" stroke="var(--axis)" stroke-width="1.6"/><line x1="601" y1="172.5" x2="630" y2="172.5" stroke="var(--axis)" stroke-width="1.6"/><line x1="627.5" y1="40" x2="627.5" y2="170" stroke="var(--axis)" stroke-width="1.6"/><line x1="632.5" y1="40" x2="632.5" y2="170" stroke="var(--axis)" stroke-width="1.6"/><rect x="640" y="60" width="150" height="150" rx="8" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="axtext" x="650.0" y="82.0" text-anchor="start" style="fill:var(--amber)">classical:</text><text class="axtext" x="650.0" y="101.0" text-anchor="start">y / 2^m</text><text class="axtext" x="650.0" y="120.0" text-anchor="start">continued</text><text class="axtext" x="650.0" y="139.0" text-anchor="start">fractions</text><text class="axtext" x="650.0" y="158.0" text-anchor="start">-> candidate r</text><text class="axtext" x="650.0" y="177.0" text-anchor="start">check a^r = 1</text><text class="axtext" x="650.0" y="196.0" text-anchor="start">-> gcd, factors</text><text class="axtext" x="400.0" y="306.0" text-anchor="middle">phase estimation of U_a on |1>: y / 2^m is close to s / r for a random s</text></svg>
+<figcaption>Order finding. The controlled powers are controlled multiplications by the classically precomputed numbers \(a^{2^j}\bmod N\) (Proposition 15.3). The quantum part ends at the measurement; everything to the right is classical post-processing (Section 5).</figcaption>
+</figure>
+
+<p>There is an equivalent picture that connects to Lecture 13. The controlled multiplications compute \(\sum_x|x\rangle|a^x\bmod N\rangle\). If we measured the work register and saw \(a^{x_0}\), the control register would collapse to the periodic state \(\sum_j|x_0+jr\rangle\) (Definition 15.1), and the inverse QFT of a periodic state peaks near multiples of \(2^m/r\) (Proposition 13.5). Measuring the work register is unnecessary, but it explains why the output reveals the period.</p>
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; Reading s/r: continued fractions</h2>
+
+<p>We observe \(y\), and \(y/2^m\) is very close to \(s/r\) with \(r\lt N\). Many fractions are close to \(y/2^m\); we want the one with a small denominator. Continued fractions find it.</p>
+
+<div class="box def">
+<span class="lbl">definition 15.3 &mdash; continued fractions and convergents</span>
+<p>Every rational \(x\ge0\) can be written as</p>
+$$x=c_0+\cfrac{1}{c_1+\cfrac{1}{c_2+\cfrac{1}{\ddots+\cfrac{1}{c_k}}}}=[c_0;c_1,\dots,c_k]$$
+<p>with integers \(c_0\ge0\) and \(c_1,\dots,c_k\ge1\), found by Euclid's algorithm: \(c_0=\lfloor x\rfloor\), then repeat on \(1/(x-c_0)\). Truncating after \(c_j\) gives the <strong>convergent</strong> \(p_j/q_j=[c_0;c_1,\dots,c_j]\), computed by \(p_j=c_jp_{j-1}+p_{j-2}\), \(q_j=c_jq_{j-1}+q_{j-2}\), starting from \(p_{-1}=1,q_{-1}=0,p_{-2}=0,q_{-2}=1\).</p>
+</div>
+
+<div class="spot" data-kind="num" data-ans="2|3|2" data-labels="c₁|c₂|c₃" data-show="7/16 = [0; 2, 3, 2], with convergents 1/2, 3/7, 7/16">
+<p>Expand \(\tfrac{7}{16}=[0;c_1,c_2,c_3]\) as a continued fraction.</p>
+<div class="hint">Run Euclid's algorithm: \(16=c_1\cdot7+\text{remainder}\), then divide 7 by that remainder, and so on.</div>
+<div class="why">\(16=2\cdot7+2\), \(7=3\cdot2+1\), \(2=2\cdot1\). So \(\tfrac7{16}=[0;2,3,2]\), with convergents \(\tfrac12,\ \tfrac37,\ \tfrac7{16}\).</div>
+</div>
+
+<div class="box thm">
+<span class="lbl">theorem 15.6 &mdash; good approximations are convergents (Legendre)</span>
+<p>If \(s/r\) is in lowest terms and \(\big|x-\tfrac sr\big|\lt\tfrac{1}{2r^2}\), then \(s/r\) is one of the convergents of \(x\).</p>
+<p><em>Proof.</em> See Hardy and Wright, <em>An Introduction to the Theory of Numbers</em>, Theorem 184.</p>
+</div>
+
+<p>This dictates the number of control qubits. If \(2^m\ge N^2\) and \(y\) is the nearest \(m\)-bit fraction to \(s/r\), then \(\big|\tfrac{y}{2^m}-\tfrac sr\big|\le\tfrac{1}{2^{m+1}}\le\tfrac{1}{2N^2}\lt\tfrac{1}{2r^2}\), so \(s/r\), in lowest terms, is a convergent of \(y/2^m\). So the standard choice is \(m\approx2n\) control qubits: \(m=8\) for \(N=15\) (\(256\ge225\)) and \(m=11\) for \(N=35\) (\(2048\ge1225\)). Among the convergents, take the last one whose denominator is below \(N\), and check the candidate \(q\) by computing \(a^q\bmod N\) classically. (No later convergent can also have a denominator below \(N\): two different fractions with denominators below \(N\) differ by more than \(1/N^2\), but both would lie within \(1/(2N^2)\) of \(y/2^m\).)</p>
+
+<div class="spot" data-kind="num" data-ans="14" data-labels="m">
+<p>What is the smallest number of control qubits \(m\) with \(2^m\ge N^2\) for \(N=91\)?</p>
+<div class="hint">\(91^2=8281\). Compare with nearby powers of 2: \(2^{13}=8192\).</div>
+<div class="why">\(2^{13}=8192\) falls just short of 8281, so \(m=14\) (\(2^{14}=16384\)). Here \(n=7\), and \(m=2n\) exactly.</div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 15.4 &mdash; N = 15, a = 7, m = 8</span>
+<p>Find the output distribution, and say what each outcome tells us.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Here \(r=4\) divides \(2^8=256\), so each \(s/r=s/4\) is an exact 8-bit fraction, and by Theorem 14.2 and Corollary 15.5 the outcome is \(y=64s\) for \(s=0,1,2,3\), each with probability \(\tfrac14\). Reading them: \(64/256=1/4\) gives the candidate 4, and \(7^4\equiv1\): correct. \(192/256=3/4\) also gives 4. \(128/256=1/2\) gives the candidate 2, but \(7^2\equiv4\not\equiv1\), so it is rejected: \(s=2\) shares a factor with \(r=4\), and the fraction reduced. \(y=0\) says nothing. So each run succeeds with probability exactly \(\tfrac12\).</p>
+</div>
+</div>
+
+<figure>
+<svg viewBox="0 0 720 280" width="720" height="280" role="img" aria-labelledby="h15t h15d"><title id="h15t">Order finding for N = 15, a = 7 with m = 8</title><desc id="h15d">Bar chart over outcomes y = 0 to 255. Exactly four bars, each of height 1/4, at y = 0, 64, 128 and 192. Labels: y = 0 gives 0, no information; y = 64 gives 1/4, so r = 4, correct; y = 128 gives 1/2, candidate 2, rejected because 7^2 mod 15 = 4; y = 192 gives 3/4, so r = 4, correct.</desc><rect x="0" y="0" width="720" height="280" rx="8" class="plot-bg"/><line class="gridline" x1="60" y1="200.0" x2="690" y2="200.0"/><text class="axtext" x="54.0" y="204.0" text-anchor="end">0</text><line class="gridline" x1="60" y1="146.7" x2="690" y2="146.7"/><text class="axtext" x="54.0" y="150.7" text-anchor="end">0.1</text><line class="gridline" x1="60" y1="93.3" x2="690" y2="93.3"/><text class="axtext" x="54.0" y="97.3" text-anchor="end">0.2</text><line class="gridline" x1="60" y1="40.0" x2="690" y2="40.0"/><text class="axtext" x="54.0" y="44.0" text-anchor="end">0.3</text><line class="axis" x1="60" y1="200" x2="690" y2="200"/><rect x="54.2" y="66.7" width="14" height="133.3" fill="var(--muted)" fill-opacity="0.85" rx="2"/><rect x="211.7" y="66.7" width="14" height="133.3" fill="var(--moss)" fill-opacity="0.85" rx="2"/><rect x="369.2" y="66.7" width="14" height="133.3" fill="var(--rose)" fill-opacity="0.85" rx="2"/><rect x="526.7" y="66.7" width="14" height="133.3" fill="var(--moss)" fill-opacity="0.85" rx="2"/><text class="axtext" x="73.2" y="136.0" text-anchor="start" style="fill:var(--muted)">0/256 = 0</text><text class="axtext" x="73.2" y="152.0" text-anchor="start" style="fill:var(--muted)">no information</text><text class="axtext" x="218.7" y="44.7" text-anchor="middle" style="fill:var(--moss)">64/256 = 1/4</text><text class="axtext" x="218.7" y="60.7" text-anchor="middle" style="fill:var(--moss)">r = 4  correct</text><text class="axtext" x="376.2" y="44.7" text-anchor="middle" style="fill:var(--rose)">128/256 = 1/2</text><text class="axtext" x="376.2" y="60.7" text-anchor="middle" style="fill:var(--rose)">r = 2?  7^2 = 4: no</text><text class="axtext" x="533.7" y="44.7" text-anchor="middle" style="fill:var(--moss)">192/256 = 3/4</text><text class="axtext" x="533.7" y="60.7" text-anchor="middle" style="fill:var(--moss)">r = 4  correct</text><text class="axtext" x="61.2" y="218.0" text-anchor="middle">0</text><text class="axtext" x="218.7" y="218.0" text-anchor="middle">64</text><text class="axtext" x="376.2" y="218.0" text-anchor="middle">128</text><text class="axtext" x="533.7" y="218.0" text-anchor="middle">192</text><text class="axtext" x="688.8" y="218.0" text-anchor="middle">255</text><text class="axtext" x="360.0" y="266.0" text-anchor="middle">outcome y of the 8 control qubits; each of the four peaks has probability 1/4</text></svg>
+<figcaption>Example 15.4, computed exactly. Four equally likely outcomes; two of them reveal \(r=4\).</figcaption>
+</figure>
+
+<div class="box ex">
+<span class="lbl">example 15.5 &mdash; N = 35, a = 2, m = 11, outcome y = 853</span>
+<p>A run of order finding for \(N=35\), \(a=2\) returns \(y=853\). Recover the order.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Run Euclid's algorithm on \(853/2048\):</p>
+$$\begin{aligned}2048&=2\cdot853+342, &853&=2\cdot342+169,\\[4pt] 342&=2\cdot169+4, &169&=42\cdot4+1,\\[4pt] 4&=4\cdot1. &&\end{aligned}$$
+<p>so \(853/2048=[0;2,2,2,42,4]\), with convergents</p>
+$$\frac01,\ \frac12,\ \frac25,\ \frac5{12},\ \frac{212}{509},\ \frac{853}{2048}.$$
+<p>The last denominator below 35 is 12, and \(2^{12}\bmod35=1\), so \(r=12\), as in Example 15.3. The outcome came from \(s=5\): \(5/12\cdot2048=853.33\).</p>
+</div>
+</div>
+
+<figure>
+<svg viewBox="0 0 720 300" width="720" height="300" role="img" aria-labelledby="h35t h35d"><title id="h35t">Order finding for N = 35, a = 2 with m = 11</title><desc id="h35d">Probability of each outcome y from 0 to 2047, drawn as thin bars. Twelve peaks sit at or near the multiples of 2048/12, about 170.7. The peaks at 0, 512, 1024 and 1536 are exact, with probability 1/12 each; the others are split between two neighbouring outcomes, the larger part about 0.057. Peaks from s = 1, 5, 7 and 11, the s coprime to 12, are coloured green: their continued fractions give r = 12. The rest give a proper divisor of 12.</desc><rect x="0" y="0" width="720" height="300" rx="8" class="plot-bg"/><line class="gridline" x1="60" y1="220.0" x2="690" y2="220.0"/><text class="axtext" x="54.0" y="224.0" text-anchor="end">0</text><line class="gridline" x1="60" y1="168.6" x2="690" y2="168.6"/><text class="axtext" x="54.0" y="172.6" text-anchor="end">0.03</text><line class="gridline" x1="60" y1="117.1" x2="690" y2="117.1"/><text class="axtext" x="54.0" y="121.1" text-anchor="end">0.06</text><line class="gridline" x1="60" y1="65.7" x2="690" y2="65.7"/><text class="axtext" x="54.0" y="69.7" text-anchor="end">0.09</text><line class="axis" x1="60" y1="220" x2="690" y2="220"/><rect x="58.4" y="77.1" width="3.2" height="142.9" fill="var(--sky)"/><rect x="109.5" y="219.5" width="3.2" height="0.5" fill="var(--sky)"/><rect x="109.8" y="219.2" width="3.2" height="0.8" fill="var(--moss)"/><rect x="110.1" y="218.5" width="3.2" height="1.5" fill="var(--moss)"/><rect x="110.4" y="216.1" width="3.2" height="3.9" fill="var(--moss)"/><rect x="110.7" y="195.6" width="3.2" height="24.4" fill="var(--moss)"/><rect x="111.0" y="122.3" width="3.2" height="97.7" fill="var(--moss)"/><rect x="111.3" y="213.9" width="3.2" height="6.1" fill="var(--moss)"/><rect x="111.6" y="218.0" width="3.2" height="2.0" fill="var(--moss)"/><rect x="111.9" y="219.0" width="3.2" height="1.0" fill="var(--moss)"/><rect x="112.2" y="219.4" width="3.2" height="0.6" fill="var(--moss)"/><rect x="112.5" y="219.6" width="3.2" height="0.4" fill="var(--sky)"/><rect x="161.8" y="219.6" width="3.2" height="0.4" fill="var(--sky)"/><rect x="162.1" y="219.4" width="3.2" height="0.6" fill="var(--sky)"/><rect x="162.4" y="219.0" width="3.2" height="1.0" fill="var(--sky)"/><rect x="162.7" y="218.0" width="3.2" height="2.0" fill="var(--sky)"/><rect x="163.0" y="213.9" width="3.2" height="6.1" fill="var(--sky)"/><rect x="163.3" y="122.3" width="3.2" height="97.7" fill="var(--sky)"/><rect x="163.6" y="195.6" width="3.2" height="24.4" fill="var(--sky)"/><rect x="163.9" y="216.1" width="3.2" height="3.9" fill="var(--sky)"/><rect x="164.2" y="218.5" width="3.2" height="1.5" fill="var(--sky)"/><rect x="164.5" y="219.2" width="3.2" height="0.8" fill="var(--sky)"/><rect x="164.8" y="219.5" width="3.2" height="0.5" fill="var(--sky)"/><rect x="215.9" y="77.1" width="3.2" height="142.9" fill="var(--sky)"/><rect x="267.0" y="219.5" width="3.2" height="0.5" fill="var(--sky)"/><rect x="267.3" y="219.2" width="3.2" height="0.8" fill="var(--sky)"/><rect x="267.6" y="218.5" width="3.2" height="1.5" fill="var(--sky)"/><rect x="267.9" y="216.1" width="3.2" height="3.9" fill="var(--sky)"/><rect x="268.2" y="195.6" width="3.2" height="24.4" fill="var(--sky)"/><rect x="268.5" y="122.3" width="3.2" height="97.7" fill="var(--sky)"/><rect x="268.8" y="213.9" width="3.2" height="6.1" fill="var(--sky)"/><rect x="269.1" y="218.0" width="3.2" height="2.0" fill="var(--sky)"/><rect x="269.4" y="219.0" width="3.2" height="1.0" fill="var(--sky)"/><rect x="269.7" y="219.4" width="3.2" height="0.6" fill="var(--sky)"/><rect x="270.0" y="219.6" width="3.2" height="0.4" fill="var(--sky)"/><rect x="319.3" y="219.6" width="3.2" height="0.4" fill="var(--sky)"/><rect x="319.6" y="219.4" width="3.2" height="0.6" fill="var(--sky)"/><rect x="319.9" y="219.0" width="3.2" height="1.0" fill="var(--moss)"/><rect x="320.2" y="218.0" width="3.2" height="2.0" fill="var(--moss)"/><rect x="320.5" y="213.9" width="3.2" height="6.1" fill="var(--moss)"/><rect x="320.8" y="122.3" width="3.2" height="97.7" fill="var(--moss)"/><rect x="321.1" y="195.6" width="3.2" height="24.4" fill="var(--moss)"/><rect x="321.4" y="216.1" width="3.2" height="3.9" fill="var(--moss)"/><rect x="321.7" y="218.5" width="3.2" height="1.5" fill="var(--moss)"/><rect x="322.0" y="219.2" width="3.2" height="0.8" fill="var(--moss)"/><rect x="322.3" y="219.5" width="3.2" height="0.5" fill="var(--sky)"/><rect x="373.4" y="77.1" width="3.2" height="142.9" fill="var(--sky)"/><rect x="424.5" y="219.5" width="3.2" height="0.5" fill="var(--sky)"/><rect x="424.8" y="219.2" width="3.2" height="0.8" fill="var(--moss)"/><rect x="425.1" y="218.5" width="3.2" height="1.5" fill="var(--moss)"/><rect x="425.4" y="216.1" width="3.2" height="3.9" fill="var(--moss)"/><rect x="425.7" y="195.6" width="3.2" height="24.4" fill="var(--moss)"/><rect x="426.0" y="122.3" width="3.2" height="97.7" fill="var(--moss)"/><rect x="426.3" y="213.9" width="3.2" height="6.1" fill="var(--moss)"/><rect x="426.6" y="218.0" width="3.2" height="2.0" fill="var(--moss)"/><rect x="426.9" y="219.0" width="3.2" height="1.0" fill="var(--moss)"/><rect x="427.2" y="219.4" width="3.2" height="0.6" fill="var(--sky)"/><rect x="427.5" y="219.6" width="3.2" height="0.4" fill="var(--sky)"/><rect x="476.8" y="219.6" width="3.2" height="0.4" fill="var(--sky)"/><rect x="477.1" y="219.4" width="3.2" height="0.6" fill="var(--sky)"/><rect x="477.4" y="219.0" width="3.2" height="1.0" fill="var(--sky)"/><rect x="477.7" y="218.0" width="3.2" height="2.0" fill="var(--sky)"/><rect x="478.0" y="213.9" width="3.2" height="6.1" fill="var(--sky)"/><rect x="478.3" y="122.3" width="3.2" height="97.7" fill="var(--sky)"/><rect x="478.6" y="195.6" width="3.2" height="24.4" fill="var(--sky)"/><rect x="478.9" y="216.1" width="3.2" height="3.9" fill="var(--sky)"/><rect x="479.2" y="218.5" width="3.2" height="1.5" fill="var(--sky)"/><rect x="479.5" y="219.2" width="3.2" height="0.8" fill="var(--sky)"/><rect x="479.8" y="219.5" width="3.2" height="0.5" fill="var(--sky)"/><rect x="530.9" y="77.1" width="3.2" height="142.9" fill="var(--sky)"/><rect x="582.0" y="219.5" width="3.2" height="0.5" fill="var(--sky)"/><rect x="582.3" y="219.2" width="3.2" height="0.8" fill="var(--sky)"/><rect x="582.6" y="218.5" width="3.2" height="1.5" fill="var(--sky)"/><rect x="582.9" y="216.1" width="3.2" height="3.9" fill="var(--sky)"/><rect x="583.2" y="195.6" width="3.2" height="24.4" fill="var(--sky)"/><rect x="583.5" y="122.3" width="3.2" height="97.7" fill="var(--sky)"/><rect x="583.8" y="213.9" width="3.2" height="6.1" fill="var(--sky)"/><rect x="584.1" y="218.0" width="3.2" height="2.0" fill="var(--sky)"/><rect x="584.4" y="219.0" width="3.2" height="1.0" fill="var(--sky)"/><rect x="584.7" y="219.4" width="3.2" height="0.6" fill="var(--sky)"/><rect x="585.0" y="219.6" width="3.2" height="0.4" fill="var(--sky)"/><rect x="634.3" y="219.6" width="3.2" height="0.4" fill="var(--sky)"/><rect x="634.6" y="219.4" width="3.2" height="0.6" fill="var(--moss)"/><rect x="634.9" y="219.0" width="3.2" height="1.0" fill="var(--moss)"/><rect x="635.2" y="218.0" width="3.2" height="2.0" fill="var(--moss)"/><rect x="635.5" y="213.9" width="3.2" height="6.1" fill="var(--moss)"/><rect x="635.8" y="122.3" width="3.2" height="97.7" fill="var(--moss)"/><rect x="636.1" y="195.6" width="3.2" height="24.4" fill="var(--moss)"/><rect x="636.4" y="216.1" width="3.2" height="3.9" fill="var(--moss)"/><rect x="636.7" y="218.5" width="3.2" height="1.5" fill="var(--moss)"/><rect x="637.0" y="219.2" width="3.2" height="0.8" fill="var(--moss)"/><rect x="637.3" y="219.5" width="3.2" height="0.5" fill="var(--sky)"/><text class="axtext" x="74.0" y="67.2" text-anchor="middle" style="font-size:11px">s=0</text><text class="axtext" x="112.5" y="67.2" text-anchor="middle" style="fill:var(--moss);font-size:11px">s=1</text><text class="axtext" x="165.0" y="67.2" text-anchor="middle" style="font-size:11px">s=2</text><text class="axtext" x="217.5" y="67.2" text-anchor="middle" style="font-size:11px">s=3</text><text class="axtext" x="270.0" y="67.2" text-anchor="middle" style="font-size:11px">s=4</text><text class="axtext" x="322.5" y="67.2" text-anchor="middle" style="fill:var(--moss);font-size:11px">s=5</text><text class="axtext" x="375.0" y="67.2" text-anchor="middle" style="font-size:11px">s=6</text><text class="axtext" x="427.5" y="67.2" text-anchor="middle" style="fill:var(--moss);font-size:11px">s=7</text><text class="axtext" x="480.0" y="67.2" text-anchor="middle" style="font-size:11px">s=8</text><text class="axtext" x="532.5" y="67.2" text-anchor="middle" style="font-size:11px">s=9</text><text class="axtext" x="585.0" y="67.2" text-anchor="middle" style="font-size:11px">s=10</text><text class="axtext" x="637.5" y="67.2" text-anchor="middle" style="fill:var(--moss);font-size:11px">s=11</text><text class="axtext" x="60.0" y="238.0" text-anchor="middle">0</text><text class="axtext" x="217.5" y="238.0" text-anchor="middle">512</text><text class="axtext" x="375.0" y="238.0" text-anchor="middle">1024</text><text class="axtext" x="532.5" y="238.0" text-anchor="middle">1536</text><text class="axtext" x="689.7" y="238.0" text-anchor="middle">2047</text><text class="axtext" x="360.0" y="266.0" text-anchor="middle">green: continued fractions give r = 12;  blue: a divisor of 12 (nothing at y = 0)</text><text class="axtext" x="360.0" y="286.0" text-anchor="middle">outcome y of the 11 control qubits</text></svg>
+<figcaption>Order finding for \(N=35\), \(a=2\), \(r=12\), \(m=11\), computed from Corollary 15.5. Since 12 does not divide 2048, most peaks are split between two neighbouring outcomes. The four green peaks (\(s=1,5,7,11\)) give \(r=12\) directly; the others give a proper divisor of 12, such as 6 from \(s=2\) or 4 from \(s=3\).</figcaption>
+</figure>
+
+<p><strong>What can go wrong.</strong> Three things, all detectable classically by checking \(a^q\equiv1\):</p>
+<ul>
+<li>\(s=0\) gives no information.</li>
+<li>\(\gcd(s,r)\gt1\): the convergent is \(s/r\) in lowest terms, whose denominator is a proper divisor of \(r\). This happens with probability \(1-\varphi(r)/r\), where \(\varphi(r)\) counts the \(s\lt r\) coprime to \(r\). Remedy: two runs giving denominators \(q_1,q_2\) usually have \(\operatorname{lcm}(q_1,q_2)=r\).</li>
+<li>The outcome is not the nearest one (probability at most about \(1-4/\pi^2\) for each \(s\), usually much less).</li>
+</ul>
+
+<div class="spot" data-kind="select">
+<p>Suppose \(r=8\) and the run happened to sample \(s=6\), with the nearest outcome observed. Continued fractions return the candidate order
+<select><option data-hint="That would need s coprime to r. Here 6/8 reduces.">8</option><option data-hint="6 is the numerator s, not a denominator.">6</option><option data-ok>4</option><option data-hint="Reduce 6/8 fully: the gcd of 6 and 8 is 2.">3</option></select>.</p>
+<div class="hint">Continued fractions find \(s/r\) <em>in lowest terms</em>. Reduce \(6/8\).</div>
+<div class="why">\(6/8=3/4\), so the method sees the denominator 4, a proper divisor of 8. The check \(a^4\equiv1\) fails and we run again (or take an lcm with another candidate).</div>
+</div>
+
+<div class="box thm">
+<span class="lbl">proposition 15.7 &mdash; one run succeeds with reasonable probability</span>
+<p>With \(2^m\ge N^2\), one run of order finding followed by continued fractions returns \(r\) itself with probability at least \(\tfrac{4}{\pi^2}\cdot\tfrac{\varphi(r)}{r}\). Since \(\varphi(r)/r\) is at least of order \(1/\log\log r\), \(O(\log\log N)\) runs suffice on average; in practice a handful.</p>
+<p><em>Proof sketch.</em> \(s\) is uniform, so \(\gcd(s,r)=1\) with probability \(\varphi(r)/r\). Given such an \(s\), the nearest outcome has probability at least \(4/\pi^2\) (Theorem 14.4), and then Theorem 15.6 makes \(s/r\) a convergent with denominator exactly \(r\lt N\). For the bound on \(\varphi(r)/r\), see Hardy&ndash;Wright, Theorem 328.</p>
+</div>
+
+<p>For \(N=35\), \(a=2\) the exact probability that one run returns \(r=12\) is 0.321 (verify_L15.py), slightly below \(\varphi(12)/12=\tfrac13\) because a little probability leaks to outcomes beyond the two nearest.</p>
+
+<!-- =================== 6 =================== -->
+<h2 id="s6">6 &mdash; Shor's algorithm, end to end</h2>
+
+<div class="box def">
+<span class="lbl">algorithm &mdash; Shor's factoring algorithm (Shor, 1994)</span>
+<p>Input: an odd \(N\) with at least two distinct prime factors (check classically that \(N\) is not a prime power).</p>
+<ol>
+<li>Pick \(a\) uniformly from \(\{2,\dots,N-1\}\). If \(g=\gcd(a,N)\gt1\), output \(g\) (lucky).</li>
+<li><strong>Quantum:</strong> run order finding for \(a\) with \(m\approx2\log_2N\) control qubits on the work register \(|1\rangle\); measure \(y\).</li>
+<li>Find the last convergent \(p/q\) of \(y/2^m\) with \(q\lt N\). If \(a^q\not\equiv1\pmod N\), go to step 2 (or combine with an earlier candidate by an lcm).</li>
+<li>Set \(r=q\). If \(r\) is odd or \(a^{r/2}\equiv-1\pmod N\), go to step 1.</li>
+<li>Output \(\gcd(a^{r/2}-1,\,N)\).</li>
+</ol>
+</div>
+
+<p>The expected number of repetitions is a small constant times \(\log\log N\) (Theorem 15.2 and Proposition 15.7). The cost of each quantum run is dominated by the controlled modular multiplications: \(m\approx2n\) of them, each costing \(O(n^2)\) gates with schoolbook arithmetic, for \(O(n^3)\) gates overall. Lecture 16 builds those circuits, and Lecture 17 turns gate counts into physical resource estimates for RSA-2048.</p>
+
+<div class="widget">
+<h4>Shor explorer: sample, post-process, factor</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Choose \(N\) and a unit \(a\). The bars show the exact distribution of the outcome \(y\) (Corollary 15.5). "Run once" samples \(y\), expands \(y/2^m\) as a continued fraction, tests the candidate order, and, when it can, factors \(N\) with Theorem 15.1. "Run 50 times" estimates the overall success rate per run, including choices of \(a\) that fail. Compare \(a=7\) and \(a=14\) for \(N=15\).</p>
+<svg id="shSvg" viewBox="0 0 600 200" width="600" height="200" role="img" aria-labelledby="shSvg-t shSvg-d"><title id="shSvg-t">Order-finding output distribution and the post-processing of a sampled outcome</title><desc id="shSvg-d">Interactive figure, redrawn as you use the controls next to it; the text readout below it describes what is currently shown.</desc></svg>
+<div class="ctrls" id="shN"></div>
+<div class="ctrls"><label><span>a = <span id="shAv">7</span></span><input type="range" id="shA" min="0" max="6" step="1" value="4"></label></div>
+<div class="ctrls" id="shRun"></div>
+<p class="readout" role="status" aria-live="polite" id="shOut"></p>
+<p class="readout" id="shTally"></p>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; where the quantum speedup really is</span>
+<p>Everything in this section except step 2 is classical and efficient. The quantum computer does not try all factors, and it does not "try all exponents in parallel" in any useful sense: it prepares an interference pattern whose peaks sit at multiples of \(1/r\), and a single sample of that pattern carries enough information to recover \(r\). The structure that makes this possible, a hidden period in a group, is exactly what Lecture 16 generalises to the hidden subgroup problem, which also breaks discrete logarithms and hence elliptic-curve cryptography.</p>
+</div>
+
+<!-- =================== 7 =================== -->
+<h2 id="s7">7 &mdash; Lab 4 launch: QFT, phase estimation and Shor for N = 15</h2>
+
+<div class="box lab">
+<span class="lbl">lab 4 &mdash; QFT, phase estimation, and Shor for N = 15 (due in 10 days)</span>
+<p><strong>Goal.</strong> Implement the Fourier machinery and complete Shor's algorithm end to end on a simulator.</p>
+<ol>
+<li><strong>QFT.</strong> Build the QFT from Hadamards and controlled phases and verify it against the DFT matrix in NumPy.</li>
+<li><strong>Phase estimation.</strong> Estimate \(\theta=1/3\) for \(U=P(2\pi\theta)\) with \(t=3,\dots,8\) control qubits. Plot the distributions and the probability of the best estimate against \(t\).</li>
+<li><strong>Order finding.</strong> Using the provided modular-multiplication gates for \(N=15\) and \(a\in\{2,7,8,11,13\}\), run order finding, apply continued fractions, and factor 15.</li>
+<li><strong>Statistics.</strong> Record the success rate over 50 runs and compare it with the theoretical probability that a random \(s/r\) reveals \(r\).</li>
+<li><strong>Discussion.</strong> Why do published "hardware Shor" demonstrations for 15 and 21 usually compile the modular exponentiation away, and what would an honest demonstration need?</li>
+</ol>
+<p><strong>Hardware budget:</strong> none; this lab runs on simulators. (Section 8's first code box shows why \(N=15\) is a misleading test case: most of its controlled multiplications are the identity.)</p>
+</div>
+
+<!-- =================== 8 =================== -->
+<h2 id="s8">8 &mdash; Try it in code</h2>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; order finding for N = 15, a = 7 (tested with qiskit 2.5)</span>
+<pre>import numpy as np
+from qiskit import QuantumCircuit
+from qiskit.circuit.library import QFTGate, UnitaryGate
+from qiskit.quantum_info import Statevector
+
+def mult_gate(c, N, n):
+    """|y&gt; -&gt; |c*y mod N&gt; for y &lt; N (identity for y &gt;= N), on n qubits: a permutation matrix"""
+    P = np.zeros((2 ** n, 2 ** n))
+    for y in range(2 ** n):
+        P[(c * y) % N if y &lt; N else y, y] = 1
+    return UnitaryGate(P, label=f"x{c}")
+
+N, a, n, m = 15, 7, 4, 8                          <span class="cm"># work register: n = 4 qubits; m = 8 control qubits</span>
+qc = QuantumCircuit(m + n)
+work = list(range(m, m + n))
+qc.x(work[0])                                     <span class="cm"># work register = |1&gt;</span>
+qc.h(range(m))
+for j in range(m):
+    c = pow(a, 2 ** j, N)                         <span class="cm"># a^(2^j) mod N, by repeated squaring (classical)</span>
+    qc.append(mult_gate(c, N, n).control(1), [j] + work)
+qc.append(QFTGate(m).inverse(), range(m))
+p = Statevector.from_instruction(qc).probabilities(qargs=list(range(m)))
+print({y: round(float(p[y]), 4) for y in range(2 ** m) if p[y] &gt; 1e-6})
+print("multipliers a^(2^j) mod 15:", [pow(a, 2 ** j, N) for j in range(m)])</pre>
+<pre class="out">{0: 0.25, 64: 0.25, 128: 0.25, 192: 0.25}
+multipliers a^(2^j) mod 15: [7, 4, 1, 1, 1, 1, 1, 1]</pre>
+<p>The simulation reproduces Example 15.4. The second line exposes a weakness of \(N=15\) as a test case: since \(7^4\equiv1\), every multiplier from \(j=2\) on is 1, so six of the eight controlled multiplications are the identity and can be deleted. Here the permutation matrices are handed to Qiskit as <code>UnitaryGate</code>s, which hides their cost; Lecture 16 builds them from Toffoli gates.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; the classical half: which a factor 35?</span>
+<pre>from math import gcd
+
+def order(a, N):                                  <span class="cm"># brute force: fine classically only for tiny N</span>
+    r, x = 1, a % N
+    while x != 1:
+        x, r = x * a % N, r + 1
+    return r
+
+N = 35
+good = []
+for a in range(1, N):
+    if gcd(a, N) != 1:
+        continue                                  <span class="cm"># (a lucky a would already share a factor with N)</span>
+    r = order(a, N)
+    if r % 2 == 0 and pow(a, r // 2, N) != N - 1:
+        h = pow(a, r // 2, N)
+        good.append((a, r, gcd(h - 1, N), gcd(h + 1, N)))
+units = sum(1 for a in range(1, N) if gcd(a, N) == 1)
+print(f"{len(good)} of {units} units a mod {N} lead to a factorisation")
+print("first few (a, r, gcd(a^(r/2)-1, N), gcd(a^(r/2)+1, N)):", good[:5])</pre>
+<pre class="out">18 of 24 units a mod 35 lead to a factorisation
+first few (a, r, gcd(a^(r/2)-1, N), gcd(a^(r/2)+1, N)): [(2, 12, 7, 5), (3, 12, 7, 5), (4, 6, 7, 5), (6, 2, 5, 7), (8, 4, 7, 5)]</pre>
+<p>Theorem 15.2 for \(N=35\): three quarters of the units work. Python's built-in <code>pow(a, e, N)</code> uses repeated squaring, and <code>math.gcd</code> uses Euclid's algorithm, so both are fast for 2048-bit numbers; only <code>order</code> is hopeless at that size.</p>
+</div>
+
+<!-- =================== 9 =================== -->
+<h2 id="s9">9 &mdash; Summary and exercises</h2>
+
+<div class="box thm">
+<span class="lbl">summary</span>
+<ul>
+<li>RSA's security rests on factoring \(N=pq\); the best classical algorithm is subexponential, Shor's is polynomial.</li>
+<li>If \(a\) has even order \(r\) and \(a^{r/2}\not\equiv-1\), then \(\gcd(a^{r/2}\pm1,N)\) are factors. A random unit works with probability at least \(\tfrac12\).</li>
+<li>\(U_a|y\rangle=|ay\bmod N\rangle\) has eigenphases \(s/r\), its powers are single multiplications by \(a^{2^j}\bmod N\), and \(|1\rangle\) is an equal superposition of its eigenvectors on the orbit of 1.</li>
+<li>Phase estimation on \(|1\rangle\) with \(2^m\ge N^2\) returns \(y\) with \(y/2^m\approx s/r\) for a random \(s\); continued fractions recover \(s/r\) in lowest terms, and \(a^q\equiv1\) checks the candidate.</li>
+<li>Each run succeeds with probability about \(\varphi(r)/r\); a few runs suffice. The quantum cost is dominated by modular exponentiation, \(O(n^3)\) gates.</li>
+</ul>
+<p><strong>Next time:</strong> Shor II: the modular-arithmetic circuits, discrete logarithms and the hidden subgroup problem. <strong>Lab 4</strong> is due in ten days; <strong>HW8</strong> covers Lectures 15&ndash;16.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 15</span>
+<ol>
+<li>Find the order of 4 modulo 15 and use it to factor 15.</li>
+<li>Find the order of 5 modulo 33, and use Theorem 15.1 to factor 33.</li>
+<li>Expand \(1365/2048\) as a continued fraction and list its convergents. If this outcome came from order finding for \(N=35\), \(a=2\), which candidate order does it give, and why is it not 12?</li>
+<li>Why must \(\gcd(a,N)=1\) for \(U_a\) to be unitary? What does \(y\mapsto ay\bmod N\) do when \(a=5\), \(N=15\)?</li>
+<li>For \(N=35\), \(a=2\), what is the probability that a uniformly random \(s\in\{0,\dots,11\}\) is coprime to 12? Why does the widget's success rate for this \(a\) come out a little lower?</li>
+<li>Suppose order finding for \(N=35\), \(a=2\) were run with only \(m=6\) control qubits. The outcome nearest to \(64\cdot5/12\) is \(y=27\). Expand \(27/64\) as a continued fraction. Is \(5/12\) a convergent? Which condition of Section 5 fails?</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>\(4^2=16\equiv1\), so \(r=2\) and \(h=4\not\equiv-1\). \(\gcd(3,15)=3\) and \(\gcd(5,15)=5\).</li>
+<li>Powers of 5 mod 33: \(5,25,26,31,23,16,14,4,20,1\), so \(r=10\). Then \(h=5^5\equiv23\not\equiv-1\equiv32\), and \(\gcd(22,33)=11\), \(\gcd(24,33)=3\).</li>
+<li>\(2048=1\cdot1365+683\), \(1365=1\cdot683+682\), \(683=1\cdot682+1\), \(682=682\cdot1\). So \(1365/2048=[0;1,1,1,682]\), with convergents \(0/1,\,1/1,\,1/2,\,2/3,\,1365/2048\). The last denominator below 35 is 3, so the candidate is 3, and \(2^3=8\not\equiv1\): rejected. The outcome came from \(s=8\), and \(8/12=2/3\) reduces, so continued fractions can only see the denominator 3.</li>
+<li>If \(g=\gcd(a,N)\gt1\), multiplication by \(a\) maps every \(y\) to a multiple of \(g\), so it is not onto and not invertible. For \(a=5\), \(N=15\), the images of \(0,\dots,14\) are only \(0,5,10\): many basis states collide, and the matrix is not unitary. (Such an \(a\) factors \(N\) by a gcd anyway.)</li>
+<li>\(\varphi(12)/12=4/12=\tfrac13\) (\(s=1,5,7,11\)). The exact per-run success probability is 0.321, a little lower, because for these \(s\) a small amount of probability falls on outcomes other than the two nearest to \(2048s/12\), and those can give wrong convergents. Over 50 runs the widget's rate scatters around 0.32 by several percentage points.</li>
+<li>\(64=2\cdot27+10\), \(27=2\cdot10+7\), \(10=1\cdot7+3\), \(7=2\cdot3+1\), \(3=3\cdot1\), so \(27/64=[0;2,2,1,2,3]\) with convergents \(0/1,\,1/2,\,2/5,\,3/7,\,8/19,\,27/64\). \(5/12\) is not among them, and the method returns the candidate 19, which fails the check. Legendre's condition fails: \(|27/64-5/12|=1/192\), which is larger than \(1/(2\cdot12^2)=1/288\), because \(2^6=64\) is far below \(N^2=1225\).</li>
+</ol>
+</div>
+</div>
+
+<h3>Reading and sources</h3>
+<ul>
+<li>J. Watrous, <em>Understanding Quantum Information and Computation</em>, Ch. 7, the parts on order finding and factoring (<a href="https://arxiv.org/abs/2507.11536">arXiv:2507.11536</a>; IBM course <a href="https://quantum.cloud.ibm.com/learning/en/courses/fundamentals-of-quantum-algorithms">Fundamentals of Quantum Algorithms</a>, Lesson 3).</li>
+<li>R. de Wolf, <em>Quantum Computing: Lecture Notes</em>, Ch. 5, "Shor's factoring algorithm" (<a href="https://arxiv.org/abs/1907.09415">arXiv:1907.09415</a>).</li>
+<li>P. W. Shor, "Polynomial-time algorithms for prime factorization and discrete logarithms on a quantum computer", <em>SIAM J. Comput.</em> 26 (1997), 1484&ndash;1509 (<a href="https://arxiv.org/abs/quant-ph/9508027">arXiv:quant-ph/9508027</a>); conference version, FOCS 1994.</li>
+<li>M. A. Nielsen and I. L. Chuang, <em>Quantum Computation and Quantum Information</em>, §5.3 and Appendix 4 (number theory).</li>
+<li>G. H. Hardy and E. M. Wright, <em>An Introduction to the Theory of Numbers</em>, Ch. X (continued fractions).</li>
+<li>F. Boudot, P. Gaudry, A. Guillevic, N. Heninger, E. Thom&eacute; and P. Zimmermann, "Comparing the difficulty of factorization and discrete logarithm: a 240-digit experiment", CRYPTO 2020, and the RSA-250 announcement (February 2020).</li>
+</ul>
+<p class="kicker" style="margin-top:2.4em">all numbers and figures in these notes are computed in python (verify_L15.py) and follow the page theme</p>
+</div>
+
+<script>
+var NS=['http:','','www.w3.org','2000','svg'].join('/');
+function mk(tag,at,parent,txt){var e=document.createElementNS(NS,tag);for(var k in at)e.setAttribute(k,at[k]);if(txt!==undefined)e.textContent=txt;if(parent)parent.appendChild(e);return e;}
+function clr(s){[].slice.call(s.childNodes).forEach(function(c){if(c.nodeName!=='title'&&c.nodeName!=='desc')s.removeChild(c);});}
+function fx(x,d){d=(d===undefined?3:d);var v=Number(x).toFixed(d);return /^-0\.?0*$/.test(v)?v.slice(1):v;}
+function btn(parent,label,fn){var b=document.createElement('button');b.className='ctl';b.type='button';b.textContent=label;b.addEventListener('click',fn);parent.appendChild(b);return b;}
+
+/* ---------- Shor explorer: order finding + continued fractions + gcd ---------- */
+(function(){
+  var svg=document.getElementById('shSvg'); if(!svg) return;
+  var nEl=document.getElementById('shN'), aEl=document.getElementById('shA'), out=document.getElementById('shOut'), tally=document.getElementById('shTally'), rEl=document.getElementById('shRun');
+  var Ms={15:8,33:11,35:11,39:11}, N=15, units=[], dist=[], r=1, m=8, last=null, runs=0, wins=0, nb=[];
+  function gcd(x,y){x=Math.abs(x);y=Math.abs(y);while(y){var t=x%y;x=y;y=t;}return x;}
+  function pw(b,e,M){var res=1;b%=M;while(e>0){if(e&1)res=res*b%M;b=b*b%M;e>>=1;}return res;}
+  function order(a){var x=a%N,k=1;while(x!==1){x=x*a%N;k++;}return k;}
+  function qpe(th,y,T){var d=th-y/T,s=Math.sin(Math.PI*d);if(Math.abs(s)<1e-12)return 1;var q=Math.sin(Math.PI*T*d)/(T*s);return q*q;}
+  function cfrac(p,q){var c=[];while(q){var t=Math.floor(p/q);c.push(t);var r2=p-t*q;p=q;q=r2;}return c;}
+  function convs(c){var h0=0,h1=1,k0=1,k1=0,res=[];c.forEach(function(t){var h=t*h1+h0,k=t*k1+k0;h0=h1;h1=h;k0=k1;k1=k;res.push([h,k]);});return res;}
+  [15,33,35,39].forEach(function(v){nb.push(btn(nEl,'N = '+v,function(){N=v;setup(true);}));});
+  function setup(resetA){
+    units=[]; for(var a=2;a<N;a++) if(gcd(a,N)===1) units.push(a);
+    aEl.max=units.length-1; if(resetA) aEl.value=(N===15?units.indexOf(7):0);
+    m=Ms[N]; runs=0; wins=0; last=null; compute(); draw();
+  }
+  function compute(){
+    var a=units[+aEl.value], T=Math.pow(2,m); r=order(a); dist=[];
+    for(var y=0;y<T;y++){var p=0;for(var s=0;s<r;s++)p+=qpe(s/r,y,T);dist.push(p/r);}
+  }
+  function analyse(y){
+    var a=units[+aEl.value], T=Math.pow(2,m), g=gcd(y,T), c=cfrac(y,T), cv=convs(c), q=1;
+    cv.forEach(function(pq){ if(pq[1]<N) q=pq[1]; });
+    var lines=['y = '+y+':  y/2^'+m+' = '+(y/g)+'/'+(T/g)+',  continued fraction ['+c[0]+(c.length>1?'; '+c.slice(1).join(', '):'')+'],  convergents '+cv.map(function(pq){return pq[0]+'/'+pq[1];}).join(', ')+'.'];
+    var ok=false;
+    if(y===0) lines.push('y = 0 carries no information (s = 0). Run again.');
+    else if(pw(a,q,N)!==1) lines.push('Candidate r = '+q+' (last denominator below '+N+'), but '+a+'^'+q+' mod '+N+' = '+pw(a,q,N)+', not 1: rejected. Run again (or combine candidates with an lcm).');
+    else { var q0=q; for(var dv=1;dv<=q0;dv++) if(q0%dv===0 && pw(a,dv,N)===1){ q=dv; break; }
+      lines.push('Candidate r = '+q0+' and '+a+'^'+q0+' mod '+N+' = 1'+(q!==q0?'; the smallest divisor of '+q0+' that works is '+q:'')+': the order is r = '+q+'.');
+      if(q%2===1) lines.push('But r is odd, so this a cannot factor '+N+': choose another a.');
+      else { var h=pw(a,q/2,N); if(h===N-1) lines.push('But '+a+'^'+(q/2)+' = -1 mod '+N+', so this a fails: choose another a.');
+        else { ok=true; var f1=gcd(h-1,N), f2=gcd(h+1,N); lines.push(a+'^'+(q/2)+' mod '+N+' = '+h+';  gcd('+(h-1)+', '+N+') = '+f1+',  gcd('+(h+1)+', '+N+') = '+f2+'.  So '+N+' = '+Math.min(f1,f2)+' x '+Math.max(f1,f2)+'.'); } } }
+    return {text:lines.join('  '),ok:ok};
+  }
+  function sample(){ var u=Math.random(),acc=0; for(var y=0;y<dist.length;y++){acc+=dist[y]; if(u<acc) return y;} return dist.length-1; }
+  function run(k){ for(var i=0;i<k;i++){ var y=sample(), res=analyse(y); runs++; if(res.ok) wins++; last=y; } draw(); }
+  function draw(){
+    var a=units[+aEl.value], T=Math.pow(2,m);
+    document.getElementById('shAv').textContent=a;
+    nb.forEach(function(b){b.classList.toggle('on',b.textContent==='N = '+N);});
+    clr(svg); mk('rect',{x:0,y:0,width:600,height:200,rx:8,class:'plot-bg'},svg);
+    var L=40,W=545,base=165,top=18,mx=Math.max.apply(null,dist);
+    mk('line',{x1:L,y1:base,x2:L+W,y2:base,class:'axis'},svg);
+    for(var y=0;y<T;y++){ if(dist[y]<1e-4) continue; var hh=dist[y]/mx*(base-top), x=L+(y+0.5)*W/T;
+      mk('rect',{x:x-1.4,y:base-hh,width:2.8,height:hh,fill:(y===last?'var(--rose)':'var(--sky)')},svg); }
+    [0,T/4,T/2,3*T/4,T-1].forEach(function(y){mk('text',{x:L+(y+0.5)*W/T,y:base+16,'text-anchor':'middle',class:'axtext',style:'font-size:11px'},svg,String(y));});
+    mk('text',{x:L,y:12,class:'axtext',style:'font-size:11px'},svg,'P(y) for a = '+a+' mod '+N+' (order r = '+r+'),  m = '+m+' control qubits;  rose = last sampled y');
+    out.textContent = last===null ? 'Press "run once" to sample an outcome and post-process it.' : analyse(last).text;
+    tally.textContent = runs ? ('Runs so far: '+runs+', factored on '+wins+' ('+fx(100*wins/runs,1)+'%).') : '';
+  }
+  aEl.addEventListener('input',function(){ runs=0; wins=0; last=null; compute(); draw(); });
+  btn(rEl,'run once',function(){run(1);}); btn(rEl,'run 50 times',function(){run(50);});
+  setup(true);
+})();
+</script>
+
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    var lab=b.getAttribute('data-lab')||b.textContent.replace(/^(show|hide) /,''); b.setAttribute('data-lab',lab);
+    b.textContent=(open?'hide ':'show ')+lab;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+
+<script id="spot-js">
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×/g,'*').replace(/π/g,'pi').replace(/,/g,'');
+    var pct=/%$/.test(s); if(pct) s=s.slice(0,-1);
+    s=s.replace(/√\s*\(/g,'sqrt(').replace(/√\s*([0-9.]+)/g,'sqrt($1)');
+    if(!s||!/^[0-9a-z+\-*\/^().\s]*$/.test(s)) return NaN;
+    var ok=s.replace(/sqrt|pi|ln|log|exp|sin|cos|tan|e(?![a-z])/g,'').replace(/[0-9+\-*\/^().\s]/g,'');
+    if(ok.length) return NaN;
+    s=s.replace(/\^/g,'**').replace(/(\d)\s*(pi|sqrt|\()/g,'$1*$2').replace(/\)\s*(\d|pi|sqrt|\()/g,')*$1')
+       .replace(/sqrt/g,'Math.sqrt').replace(/pi/g,'Math.PI').replace(/\blog\b/g,'Math.log10').replace(/\bln\b/g,'Math.log')
+       .replace(/exp/g,'Math.exp').replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos').replace(/tan/g,'Math.tan')
+       .replace(/(^|[^a-z.0-9])e(?![a-z0-9(])/g,'$1Math.E');
+    try{ var v=Function('"use strict";return ('+s+')')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function typeset(el){ if(window.MathJax&&MathJax.typesetPromise){ MathJax.typesetPromise([el]).catch(function(){}); } }
+  function fb(spot,ok,html){
+    var f=spot.querySelector('.fb'); spot.classList.toggle('ok',ok); spot.classList.toggle('bad',!ok);
+    f.innerHTML='<p><span class="tag">'+(ok?'correct.':'not yet.')+'</span>'+(html||'')+'</p>'; typeset(f);
+  }
+  function part(spot,sel){ var e=spot.querySelector(sel); return e? e.innerHTML : ''; }
+  var n=0, lec=(document.title.match(/^Lecture (\d+)/)||[])[1];
+  document.querySelectorAll('.spot').forEach(function(spot){
+    n++; var kind=spot.getAttribute('data-kind')||'num', tries=0;
+    var lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent='spot check '+(lec?lec+'.':'')+n+(spot.getAttribute('data-tag')?' — '+spot.getAttribute('data-tag'):'');
+    spot.insertBefore(lbl,spot.firstChild);
+    var area=document.createElement('div'), btns=document.createElement('div'), f=document.createElement('div');
+    btns.className='btns'; f.className='fb'; f.setAttribute('role','status'); f.setAttribute('aria-live','polite');
+    var check=document.createElement('button'); check.type='button'; check.textContent='check';
+    var reveal=document.createElement('button'); reveal.type='button'; reveal.className='reveal'; reveal.textContent='show answer'; reveal.style.display='none';
+    btns.appendChild(check); btns.appendChild(reveal);
+    var grade, show;
+    if(kind==='num'){
+      var ans=spot.getAttribute('data-ans').split('|').map(evalNum), labs=(spot.getAttribute('data-labels')||'').split('|');
+      var tol=spot.getAttribute('data-tol'), row=document.createElement('div'); row.className='row'; area.appendChild(row);
+      var ins=ans.map(function(a,i){ var lab=document.createElement('label'), inp=document.createElement('input');
+        inp.className='ans'; inp.type='text'; inp.setAttribute('inputmode','text'); inp.setAttribute('autocomplete','off');
+        inp.setAttribute('aria-label',labs[i]||'answer'); if(labs[i]){ lab.appendChild(document.createTextNode(labs[i]+' =')); }
+        lab.appendChild(inp); row.appendChild(lab);
+        inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); check.click(); } }); return inp; });
+      var fmt=document.createElement('div'); fmt.className='fmt'; fmt.textContent='decimals, fractions, sqrt(2)/2, pi/4 or 2^-3 all work';
+      area.appendChild(fmt);
+      grade=function(){ var bad=[]; ins.forEach(function(inp,i){ var v=evalNum(inp.value), a=ans[i];
+          var t= tol!==null? Number(tol) : Math.max(0.005, 0.005*Math.abs(a)); if(!(Math.abs(v-a)<=t)) bad.push(i); });
+        var empty=ins.some(function(inp){return !inp.value.trim();});
+        if(empty) return {ok:false,msg:'Fill in '+(ins.length>1?'every box':'the box')+' first.',soft:true};
+        var unparsed=ins.some(function(inp){return isNaN(evalNum(inp.value));});
+        if(unparsed) return {ok:false,msg:'I could not read that as a number. Try a decimal or a fraction such as 3/8.',soft:true};
+        return {ok:!bad.length, which:bad}; };
+      show=function(){ var s=spot.getAttribute('data-show'); if(!s){ s=spot.getAttribute('data-ans').split('|').map(function(a,i){return (labs[i]?labs[i]+' = ':'')+a;}).join(', '); } return 'The answer is '+s+'.'; };
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=spot.querySelector('ul.opts'), name='spot'+n, lis=[].slice.call(ul.querySelectorAll(':scope > li'));
+      lis.forEach(function(li,i){ var inp=document.createElement('input'); inp.type= kind==='mc'?'radio':'checkbox'; inp.name=name; inp.value=i;
+        inp.setAttribute('aria-label','option '+(i+1)); li.insertBefore(inp,li.firstChild);
+        li.addEventListener('click',function(e){ if(e.target!==inp&&e.target.tagName!=='A'){ if(kind==='mc') inp.checked=true; else inp.checked=!inp.checked; } }); });
+      grade=function(){ var picked=lis.filter(function(li){return li.querySelector('input').checked;});
+        if(!picked.length) return {ok:false,msg:'Pick '+(kind==='mc'?'an answer':'at least one option')+' first.',soft:true};
+        var ok= lis.every(function(li){ return li.hasAttribute('data-ok')===li.querySelector('input').checked; });
+        var oh=''; picked.forEach(function(li){ if(!li.hasAttribute('data-ok')){ var h=li.querySelector('.oh'); if(h) oh+=' '+h.innerHTML; } });
+        if(kind==='multi'&&!ok&&!oh){ var miss=lis.filter(function(li){return li.hasAttribute('data-ok')&&!li.querySelector('input').checked;});
+          if(miss.length&&picked.every(function(li){return li.hasAttribute('data-ok');})) oh=' Everything you ticked is right, but something is missing.'; }
+        return {ok:ok, extra:oh}; };
+      show=function(){ lis.forEach(function(li){ li.classList.toggle('right',li.hasAttribute('data-ok')); }); return 'The right '+(kind==='mc'?'option is':'options are')+' outlined.'; };
+    } else if(kind==='select'){
+      var sels=[].slice.call(spot.querySelectorAll('select'));
+      sels.forEach(function(s){ var o=document.createElement('option'); o.textContent='choose…'; o.value=''; o.selected=true; s.insertBefore(o,s.firstChild);
+        s.setAttribute('aria-label', s.getAttribute('aria-label')||'choose an answer'); });
+      grade=function(){ if(sels.some(function(s){return !s.value;})) return {ok:false,msg:'Make a choice in '+(sels.length>1?'every menu':'the menu')+' first.',soft:true};
+        var oh=''; var ok=sels.every(function(s){ var o=s.options[s.selectedIndex]; if(!o.hasAttribute('data-ok')&&o.getAttribute('data-hint')) oh+=' '+o.getAttribute('data-hint'); return o.hasAttribute('data-ok'); });
+        return {ok:ok, extra:oh}; };
+      show=function(){ sels.forEach(function(s){ [].forEach.call(s.options,function(o,i){ if(o.hasAttribute('data-ok')) s.selectedIndex=i; }); }); return 'The right choices are now selected.'; };
+    }
+    var anchor=null;
+    [].forEach.call(spot.children,function(c){ if(!anchor&&(c.classList.contains('hint')||c.classList.contains('why'))) anchor=c; });
+    if(kind==='select'){ spot.insertBefore(btns,anchor); } else { spot.insertBefore(area,anchor); spot.insertBefore(btns,anchor); }
+    spot.appendChild(f);
+    check.addEventListener('click',function(){ var r=grade();
+      if(r.soft){ spot.classList.remove('ok'); spot.classList.add('bad'); f.innerHTML='<p><span class="tag">hold on.</span>'+r.msg+'</p>'; return; }
+      if(r.ok){ fb(spot,true,part(spot,'.why')); reveal.style.display='none'; }
+      else { tries++; var h=part(spot,'.hint'); var extra=r.extra||'';
+        if(r.which&&r.which.length&&ans.length>1){ extra=' Check '+r.which.map(function(i){return labs[i]||('box '+(i+1));}).join(' and ')+'.'+extra; }
+        fb(spot,false,(extra?extra+' ':'')+h); if(tries>=2) reveal.style.display=''; } });
+    reveal.addEventListener('click',function(){ var msg=show(); spot.classList.remove('ok'); spot.classList.add('bad');
+      f.innerHTML='<p><span class="tag">answer.</span>'+msg+' '+part(spot,'.why')+'</p>'; typeset(f); });
+  });
+})();
+</script>
+</body>
+</html>
