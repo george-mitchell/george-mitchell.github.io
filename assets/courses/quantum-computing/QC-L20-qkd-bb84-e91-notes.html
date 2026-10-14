@@ -312,7 +312,7 @@ $$Q=\cos^2\tfrac\pi8\sin^2\tfrac\pi8+\sin^2\tfrac\pi8\cos^2\tfrac\pi8=\tfrac12\s
 <!-- =================== 4 =================== -->
 <h2 id="s4">4 &mdash; Deciding whether to continue: a hypothesis test</h2>
 
-<p>Alice and Bob never know \(Q\); they estimate it from a random sample of \(n\) sifted bits, which they then throw away. The decision "continue only if \(Q\) is below a threshold \(Q_{\max}\)" is a one-sided hypothesis test, the MAT301 kind: errors in the sample are \(\mathrm{Bin}(n,Q)\), and Alice and Bob continue only if the data make \(Q\ge Q_{\max}\) implausible. Equivalently, they continue if a one-sided upper confidence bound for \(Q\) is below \(Q_{\max}\). Section 5 explains why \(Q_{\max}\approx11\%\) for BB84.</p>
+<p>Alice and Bob never know \(Q\); they estimate it from a random sample of \(n\) sifted bits, which they then throw away. The decision "continue only if \(Q\) is below a threshold \(Q_{\max}\)" is a one-sided hypothesis test of the kind met in introductory statistics: errors in the sample are \(\mathrm{Bin}(n,Q)\), and Alice and Bob continue only if the data make \(Q\ge Q_{\max}\) implausible. Equivalently, they continue if a one-sided upper confidence bound for \(Q\) is below \(Q_{\max}\). Section 5 explains why \(Q_{\max}\approx11\%\) for BB84.</p>
 
 <div class="spot" data-kind="num" data-ans="0.0532" data-tol="0.0006" data-labels="upper bound">
 <p>A sample of \(n=600\) sifted bits contains 24 errors. Find the one-sided 95% upper confidence bound for \(Q\) with the normal approximation.</p>

@@ -18,8 +18,6 @@ below; all of them are free to read, link to, and use in your own teaching.
 - [**Probability and Statistics**](/probability-statistics/) 
 - [**Quantum Computing**](/quantum-computing/) 
 
-### Notes on using these
-
 The notes are self-contained web pages. They work on a phone, they have a
 light and a dark mode, and the interactive figures need no plugin. If you
 would like the source, or spot an error, please [get in touch](/about/).

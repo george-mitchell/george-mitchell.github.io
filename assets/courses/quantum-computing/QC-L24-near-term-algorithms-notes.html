@@ -348,7 +348,7 @@ $$\frac{dE}{d\theta}=\frac{E(\theta+\tfrac\pi2)-E(\theta-\tfrac\pi2)}{2}.$$</p>
 <span class="lbl">proposition 24.4 &mdash; shot cost of an energy estimate</span>
 <p>If the groups \(G_1,\dots,G_m\) are measured with \(N_1,\dots,N_m\) shots, the estimate \(\hat E=\sum_i\overline{G_i}\) is unbiased with standard error \(\sqrt{\sum_i\operatorname{Var}(G_i)/N_i}\), where \(\operatorname{Var}(G_i)=\langle G_i^2\rangle-\langle G_i\rangle^2\). For a total budget \(N\), the error is smallest when \(N_i\propto\sqrt{\operatorname{Var}(G_i)}\), and then a standard error \(\epsilon\) needs
 $$N=\frac{\big(\sum_i\sqrt{\operatorname{Var}(G_i)}\big)^2}{\epsilon^2}\ \text{shots.}$$</p>
-<p><em>Proof.</em> Independent sample means have variances \(\operatorname{Var}(G_i)/N_i\), which add (MAT301). Minimizing \(\sum_i v_i/N_i\) subject to \(\sum N_i=N\) with a Lagrange multiplier gives \(v_i/N_i^2=\lambda\), so \(N_i\propto\sqrt{v_i}\), and the minimum is \((\sum\sqrt{v_i})^2/N\).</p>
+<p><em>Proof.</em> Independent sample means have variances \(\operatorname{Var}(G_i)/N_i\), which add. Minimizing \(\sum_i v_i/N_i\) subject to \(\sum N_i=N\) with a Lagrange multiplier gives \(v_i/N_i^2=\lambda\), so \(N_i\propto\sqrt{v_i}\), and the minimum is \((\sum\sqrt{v_i})^2/N\).</p>
 </div>
 
 <div class="spot" data-kind="num" data-ans="1600" data-tol="1" data-labels="N">
@@ -446,7 +446,7 @@ estimates \(F(\gamma,\beta)=\langle\gamma,\beta|C|\gamma,\beta\rangle\), and max
 <li><strong>Variational classifiers and quantum kernels</strong> inherit the barren-plateau problem; for many embeddings the kernel values concentrate exponentially close to a constant, and classical models trained on the same data perform as well.</li>
 <li><strong>Where advantage is plausible</strong>: learning from <em>quantum</em> data, produced by quantum sensors or quantum experiments, where provable separations exist; and problems with special algebraic structure (as in Shor). Loading large classical data sets is the bottleneck for everything else.</li>
 </ul>
-<p>The statistical-learning half of this story (generalization, sample complexity, inference) is the subject of the Applied Mathematics major's data science courses.</p>
+<p>The statistical-learning half of this story (generalization, sample complexity, inference) is the subject of courses in statistical learning and data science.</p>
 
 <!-- =================== 8 =================== -->
 <h2 id="s8">8 &mdash; Utility, advantage, and how to read a claim</h2>
