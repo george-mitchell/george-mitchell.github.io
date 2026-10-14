@@ -16,6 +16,7 @@
    straight from a computer), the page is left exactly as it was.
 
    Optional attributes on the script tag:
+     data-home="…"          the site's home page (default /)
      data-manifest="…"      a different location for the course list
      data-theme-attr="…"    the attribute the notes use for light/dark (default data-theme)
      data-theme-button="…"  id of the notes' own light/dark button (default theme)
@@ -32,6 +33,7 @@
     ? new URL(me.dataset.manifest, document.baseURI)
     : new URL('../manifest.json', here);
   var root = document.documentElement;
+  var HOME = me.dataset.home || '/';
   var STORE = 'cn:' + COURSE;
 
   function store(key, val) { try { localStorage.setItem(key, val); } catch (e) { /* storage off */ } }
@@ -81,6 +83,16 @@
     (kids || []).forEach(function (c) { if (c) e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); });
     return e;
   }
+  function homeIcon() {
+    var ns = 'http://www.w3.org/2000/svg';
+    var svg = document.createElementNS(ns, 'svg');
+    svg.setAttribute('viewBox', '0 0 24 24'); svg.setAttribute('aria-hidden', 'true');
+    svg.setAttribute('focusable', 'false'); svg.setAttribute('class', 'cn-home-ico');
+    var path = document.createElementNS(ns, 'path');
+    path.setAttribute('d', 'M3 11.2 12 4l9 7.2M5.5 9.5V20h5v-5.5h3V20h5V9.5');
+    svg.appendChild(path);
+    return svg;
+  }
   function fileOf(path) { return decodeURIComponent(path.split('?')[0].split('#')[0].split('/').pop() || ''); }
   function stopName(s) { return (s.label ? s.label + ' · ' : '') + s.title; }
 
@@ -116,8 +128,10 @@
     var where = el('span', { class: 'cn-where' });
     var prevA = el('a', { class: 'cn-step cn-prev' }, [el('span', { 'aria-hidden': 'true', text: '‹' })]);
     var nextA = el('a', { class: 'cn-step cn-next' }, [el('span', { 'aria-hidden': 'true', text: '›' })]);
+    var homeA = el('a', { class: 'cn-site', href: HOME, 'aria-label': 'Website home', title: 'Website home' }, [homeIcon()]);
     var bar = el('nav', { class: 'cn-bar', 'aria-label': 'Course' }, [
       el('div', { class: 'cn-bar-in' }, [
+        homeA,
         menuBtn,
         el('a', { class: 'cn-course', href: course.page || '/' , text: course.title }),
         where,
@@ -171,6 +185,7 @@
           el('a', { id: 'cn-dtitle', class: 'cn-dtitle', href: course.page || '/', text: course.title }),
           closeBtn
         ]),
+        el('a', { class: 'cn-dhome', href: HOME, text: '← Website home' }),
         el('label', { class: 'cn-vh', for: 'cn-q', text: 'Search this course' }),
         search, count
       ]),
@@ -254,7 +269,10 @@
     }
     var foot = el('nav', { class: 'cn-foot', 'aria-label': 'Previous and next' }, [
       el('div', { class: 'cn-cards' }, [card(prevUnit(), 'prev'), card(nextUnit(), 'next')]),
-      el('a', { class: 'cn-home', href: course.page || '/', text: '↑ ' + course.title + ' contents' })
+      el('p', { class: 'cn-links' }, [
+        el('a', { class: 'cn-home', href: course.page || '/', text: '↑ ' + course.title + ' contents' }),
+        el('a', { class: 'cn-home', href: HOME, text: '⌂ Website home' })
+      ])
     ]);
     var wrap = document.querySelector('.wrap') || document.querySelector('main') || document.body;
     wrap.appendChild(foot);

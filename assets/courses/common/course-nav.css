@@ -48,6 +48,13 @@ html.cn-locked, html.cn-locked body { overflow: hidden; }
   display: flex; align-items: center; gap: 6px; min-height: 52px;
 }
 .cn-bar a, .cn-bar button { font: inherit; }
+.cn-site {
+  display: inline-grid; place-items: center; flex: none; width: 44px; height: 44px; border-radius: 50%;
+  color: var(--cn-ink); background: var(--cn-surface); border: 1px solid var(--cn-rule);
+}
+.cn-site:hover { border-color: var(--cn-sky); color: var(--cn-sky); }
+.cn-home-ico { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.8;
+               stroke-linecap: round; stroke-linejoin: round; }
 .cn-menu {
   display: inline-flex; align-items: center; gap: 9px; flex: none;
   min-height: 44px; padding: 0 14px; border-radius: 999px; cursor: pointer;
@@ -109,6 +116,7 @@ html.cn-locked, html.cn-locked body { overflow: hidden; }
   background: var(--cn-bg); border-bottom: 1px solid var(--cn-rule);
 }
 .cn-drow { display: flex; align-items: center; gap: 10px; min-height: 48px; }
+.cn-dhome { display: inline-block; padding: 8px 0 2px; font: .82rem var(--cn-mono); color: var(--cn-moss); }
 .cn-dtitle { flex: 1; font-family: var(--cn-mono); font-weight: 700; font-size: .95rem;
              color: var(--cn-rose); text-decoration: none; padding: 10px 0; }
 .cn-dtitle:hover { text-decoration: underline; text-underline-offset: 3px; }
@@ -148,7 +156,7 @@ a.cn-utitle:hover { background: var(--cn-surface); }
 .is-draft { color: var(--cn-muted) !important; }
 .cn-soon { font: italic .78rem var(--cn-mono); color: var(--cn-muted); }
 .cn-drawer a:focus-visible, .cn-drawer button:focus-visible, .cn-drawer input:focus-visible,
-.cn-bar a:focus-visible, .cn-bar button:focus-visible, .cn-foot a:focus-visible {
+.cn-bar a:focus-visible, .cn-bar button:focus-visible, .cn-foot a:focus-visible, .cn-dhome:focus-visible {
   outline: 2px solid var(--cn-sky); outline-offset: 2px;
 }
 
@@ -166,8 +174,8 @@ a.cn-card:hover { border-color: var(--cn-sky); }
 .cn-card-dir { font: .78rem var(--cn-mono); color: var(--cn-sky); }
 .cn-card-label { font: .74rem var(--cn-mono); letter-spacing: .06em; text-transform: uppercase; color: var(--cn-muted); }
 .cn-card-title { font-family: var(--cn-serif); font-size: 1.02rem; line-height: 1.35; }
-.cn-home { display: inline-block; margin-top: 16px; padding: 10px 0; font: .86rem var(--cn-mono);
-           color: var(--cn-moss); }
+.cn-links { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 4px 20px; margin: 16px 0 0; }
+.cn-home { display: inline-block; padding: 10px 0; font: .86rem var(--cn-mono); color: var(--cn-moss); }
 @media (max-width: 520px) {
   .cn-cards { grid-template-columns: 1fr; }
   .cn-card-next { text-align: left; }
