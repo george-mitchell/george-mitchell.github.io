@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Lecture 22 — The Stabilizer Formalism and CSS Codes</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+  /* course additions, same family */
+  .crypto{border-left-color:var(--moss);background:var(--surface2)} .crypto .lbl{color:var(--moss)}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  dl.gloss dt{font-family:var(--mono);color:var(--sky);font-size:.95rem;margin-top:.9em}
+  dl.gloss dd{margin:.1em 0 0 1.1em}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<style id="spot-css">
+.spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+  border-radius:6px;padding:12px 16px;margin:1.3em 0;transition:background .25s,border-color .25s}
+.spot .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em;color:var(--sky)}
+.spot > p{margin:.35em 0}
+.spot .hint,.spot .why,.spot .oh{display:none}
+.spot .fb{display:none;margin:.55em 0 0;font-size:.97rem}
+.spot .fb > :first-child{margin-top:0}.spot .fb > :last-child{margin-bottom:0}
+.spot.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 13%,var(--surface))}
+.spot.ok .lbl{color:var(--moss)}
+.spot.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 13%,var(--surface))}
+.spot.bad .lbl{color:var(--amber)}
+.spot.ok .fb{display:block;color:var(--ink)} .spot.bad .fb{display:block;color:var(--ink)}
+.spot .fb .tag{font-family:var(--mono);font-size:.85rem;margin-right:.4em}
+.spot.ok .fb .tag{color:var(--moss)} .spot.bad .fb .tag{color:var(--amber)}
+.spot ul.opts{list-style:none;padding:0;margin:.5em 0}
+.spot ul.opts li{display:flex;gap:.6em;align-items:baseline;padding:4px 8px;margin:3px 0;border-radius:5px;cursor:pointer;
+  border:1px solid transparent}
+.spot ul.opts li:hover{border-color:var(--rule)}
+.spot ul.opts li input{accent-color:var(--sky);flex:none;margin:0;transform:translateY(1px)}
+.spot ul.opts li.right{border-color:var(--moss)}
+.spot .row{display:flex;flex-wrap:wrap;gap:.6em 1em;align-items:center;margin:.55em 0 .2em}
+.spot .row label{font-family:var(--mono);font-size:.88rem;color:var(--muted);display:flex;gap:.45em;align-items:center}
+.spot input.ans{font-family:var(--mono);font-size:.95rem;width:9.5em;max-width:100%;padding:5px 8px;border-radius:5px;
+  border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.spot input.ans:focus,.spot select:focus{outline:2px solid var(--sky);outline-offset:1px}
+.spot select{font-family:var(--mono);font-size:.9rem;padding:3px 6px;border-radius:5px;border:1px solid var(--rule);
+  background:var(--bg);color:var(--ink);max-width:100%}
+.spot .btns{display:flex;gap:.5em;flex-wrap:wrap;margin-top:.5em}
+.spot .btns button{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--sky);border:1px solid var(--sky);
+  padding:5px 12px;border-radius:999px;cursor:pointer}
+.spot .btns button:hover{background:var(--sky);color:var(--bg)}
+.spot .btns button.reveal{color:var(--muted);border-color:var(--rule)}
+.spot .btns button.reveal:hover{background:var(--rule);color:var(--ink)}
+.spot .fmt{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+@media print{.spot .btns,.spot .fmt{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Quantum Computation &amp; Cryptography · Lecture 22</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Lecture 22<br>The Stabilizer Formalism and CSS Codes</h1>
+<p class="kicker">Week 12 &nbsp;|&nbsp; describing a code by the operators that leave it alone, and building quantum codes from pairs of classical ones &nbsp;|&nbsp; reading: Watrous Ch. 14&ndash;15.1; Roffe §4&ndash;5</p>
+
+<figure class="toon">
+<svg viewBox="0 0 600 210" width="600" height="210" role="img" aria-labelledby="c22t c22d">
+<title id="c22t">Cartoon: the guest list</title><desc id="c22d">A stick figure stands at a door labelled code space, holding a short list with four lines on it. A long queue of states waits outside. A speech bubble says: I don't list who gets in. I list what they all ignore.</desc>
+<defs><filter id="rough2222" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="22" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough2222)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<rect x="250" y="60" width="70" height="130" rx="4" fill="var(--surface2)"/><circle cx="308" cy="128" r="3" fill="var(--ink)"/>
+<circle cx="210" cy="118" r="11"/><path d="M 210 129 L 210 160"/><path d="M 210 138 L 236 128"/><path d="M 210 138 L 196 156"/><path d="M 210 160 L 200 190"/><path d="M 210 160 L 220 190"/>
+<rect x="232" y="112" width="20" height="28" rx="2" fill="var(--surface2)"/><path d="M 236 120 L 248 120 M 236 126 L 248 126 M 236 132 L 248 132"/>
+<circle cx="60" cy="150" r="9"/><circle cx="90" cy="152" r="9"/><circle cx="120" cy="150" r="9"/><circle cx="150" cy="152" r="9"/>
+<rect x="340" y="10" width="244" height="78" rx="9" fill="var(--surface2)"/><path d="M 360 86 L 222 104 L 384 86" fill="var(--surface2)" stroke-width="1.6"/>
+<path d="M 20 196 L 580 196" stroke-width="1.6"/>
+</g>
+<text x="256" y="78" class="ccap">code</text><text x="256" y="94" class="ccap">space</text>
+<text x="352" y="34" class="ctext">I don't list who gets in.</text><text x="352" y="56" class="ctext">I list what they all</text><text x="352" y="78" class="ctext">ignore.</text>
+</svg>
+<figcaption class="tooncap">a stabilizer code is defined by a few commuting Pauli operators that fix every code state: \(n-k\) operators instead of \(2^k\) amplitudes</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">The Pauli group</a></li>
+<li><a href="#s2">Stabilizer codes</a></li>
+<li><a href="#s3">Syndromes</a></li>
+<li><a href="#s4">Logical operators and distance</a></li>
+<li><a href="#s5">CSS codes</a></li>
+<li><a href="#s6">The Steane code</a></li>
+<li><a href="#s7">Why stabilizer circuits are easy to simulate</a></li>
+<li><a href="#s8">Try it in code</a></li>
+<li><a href="#s9">Summary and exercises</a></li>
+</ol>
+</div>
+
+<p>Lecture 21 described codes by their code words. That stops working quickly: a code on 50 qubits has code words with \(2^{50}\) amplitudes. This lecture describes codes by the operators that leave every code word unchanged. By the end you should be able to decide whether two Pauli strings commute at a glance, read the parameters \([[n,k,d]]\) of a stabilizer code from its generators, compute the syndrome of any Pauli error, find logical operators, build a quantum code from two classical codes (the CSS construction), and decode single errors in the Steane code.</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; The Pauli group</h2>
+
+<div class="box def">
+<span class="lbl">definition 22.1 &mdash; the n-qubit Pauli group</span>
+<p>The <strong>\(n\)-qubit Pauli group</strong> \(\mathcal P_n\) consists of all tensor products \(P_1\otimes\cdots\otimes P_n\) with \(P_j\in\{I,X,Y,Z\}\), times a phase \(\pm1,\pm i\). We write these as strings, \(XZZXI\) or \(X_1Z_2Z_3X_4\), with qubits numbered from 1 on the left. The <strong>weight</strong> of a Pauli is the number of non-identity positions.</p>
+</div>
+
+<div class="box thm">
+<span class="lbl">proposition 22.1 &mdash; two Paulis commute or anticommute</span>
+<p>Any two elements of \(\mathcal P_n\) either commute or anticommute. They anticommute exactly when the number of positions where both are non-identity and <em>different</em> is odd.</p>
+<p><em>Proof.</em> Single-qubit Paulis commute when equal or when one is \(I\), and anticommute otherwise (\(XZ=-ZX\), etc.). Moving one string past the other position by position collects a factor \(-1\) for each anticommuting position, so \(PQ=(-1)^mQP\) with \(m\) that number.</p>
+</div>
+
+<div class="spot" data-kind="select">
+<p>\(X_1X_2\) and \(Z_2Z_3\) <select><option data-hint="Count the positions where both act and differ: there is one, at qubit 2.">commute</option><option data-ok>anticommute</option></select>, while \(X_1X_2\) and \(Z_1Z_2\) <select><option data-ok>commute</option><option data-hint="X meets Z at two positions here, and (-1)^2 = +1.">anticommute</option></select>.</p>
+<div class="hint">Use Proposition 22.1: count the positions where both strings are non-identity and different, then look at the parity of that count.</div>
+<div class="why">\(X_1X_2\) and \(Z_2Z_3\) clash only at qubit 2 (one position: anticommute); \(X_1X_2\) and \(Z_1Z_2\) clash at qubits 1 and 2 (two positions: commute). The rule is: count, then check the parity.</div>
+</div>
+
+<p>For computation, write a Pauli (ignoring phase) as two bit vectors \((x\,|\,z)\): \(x_j=1\) if position \(j\) is \(X\) or \(Y\), \(z_j=1\) if it is \(Z\) or \(Y\). Then \(P\) and \(Q\) commute iff \(x_P\cdot z_Q+z_P\cdot x_Q\equiv0\pmod2\) (the <em>symplectic inner product</em>), and multiplying Paulis adds their vectors mod 2. Stabilizer codes become linear algebra over \(\mathbb F_2\), like the classical codes of Lecture 21.</p>
+
+<div class="spot" data-kind="mc">
+<p>In the \((x\,|\,z)\) notation, the three-qubit Pauli \(XYZ\) is</p>
+<ul class="opts">
+<li>\((100\,|\,001)\)<span class="oh">This treats \(Y\) as the identity. \(Y\) has both an \(X\) part and a \(Z\) part, so it sets \(x_2=z_2=1\).</span></li>
+<li>\((110\,|\,001)\)<span class="oh">The \(x\) part is right, but \(Y\) also contributes to the \(z\) part.</span></li>
+<li data-ok>\((110\,|\,011)\)</li>
+<li>\((011\,|\,110)\)<span class="oh">This reads the positions in the wrong order: position 1 is the leftmost letter, \(X\).</span></li>
+</ul>
+<div class="hint">\(x_j=1\) where the string has \(X\) or \(Y\); \(z_j=1\) where it has \(Z\) or \(Y\).</div>
+<div class="why">\(X\) and \(Y\) sit at positions 1 and 2, so \(x=110\); \(Y\) and \(Z\) sit at positions 2 and 3, so \(z=011\).</div>
+</div>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; Stabilizer codes</h2>
+
+<div class="box def">
+<span class="lbl">definition 22.2 &mdash; stabilizer group and stabilizer code</span>
+<p>A <strong>stabilizer group</strong> \(S\) is an abelian subgroup of \(\mathcal P_n\) that does not contain \(-I\). Its <strong>code space</strong> is</p>
+$$\mathcal C(S)=\{|\psi\rangle:\ g|\psi\rangle=|\psi\rangle\ \text{for all }g\in S\}.$$
+<p>\(S\) is described by a list of independent <strong>generators</strong> \(g_1,\dots,g_{n-k}\) (no generator is a product of the others); every element of \(S\) is a product of generators.</p>
+</div>
+
+<p>Why abelian and why not \(-I\)? If \(g,h\in S\) anticommuted, a common \(+1\) eigenvector would satisfy \(|\psi\rangle=gh|\psi\rangle=-hg|\psi\rangle=-|\psi\rangle\), so \(|\psi\rangle=0\). If \(-I\in S\), then \(|\psi\rangle=-|\psi\rangle\) directly. Either way the code space would be empty.</p>
+
+<div class="spot" data-kind="multi">
+<p>Tick every list of generators that defines a valid stabilizer group (abelian, without \(-I\)).</p>
+<ul class="opts">
+<li data-ok>\(\langle XX,\ ZZ\rangle\)</li>
+<li>\(\langle XI,\ ZI\rangle\)<span class="oh">\(X\) and \(Z\) clash at qubit 1, one position: these anticommute, so the group is not abelian.</span></li>
+<li data-ok>\(\langle XX,\ YY\rangle\)</li>
+<li>\(\langle ZZ,\ -ZZ\rangle\)<span class="oh">The two generators commute, but their product is \(-II\). A group containing \(-I\) has an empty code space.</span></li>
+</ul>
+<div class="hint">For each pair, check commutation by counting clashing positions, and multiply the generators to see whether \(-I\) appears.</div>
+<div class="why">\(XX,ZZ\) and \(XX,YY\) each clash at two positions, so they commute; \(XX\cdot YY=-ZZ\), not \(-I\). \(XI,ZI\) anticommute, and \(ZZ\cdot(-ZZ)=-I\).</div>
+</div>
+
+<div class="box thm">
+<span class="lbl">proposition 22.2 &mdash; counting logical qubits</span>
+<p>If \(S\) has \(n-k\) independent generators, then \(\mathcal C(S)\) has dimension \(2^k\): the code encodes \(k\) logical qubits in \(n\) physical ones. We call it an \([[n,k]]\) code.</p>
+<p><em>Proof sketch.</em> The projector onto \(\mathcal C(S)\) is \(\Pi=\prod_{i}\tfrac12(I+g_i)=\frac1{2^{n-k}}\sum_{g\in S}g\). Every \(g\ne I\) in \(S\) is a Pauli string with zero trace, so \(\dim\mathcal C(S)=\operatorname{tr}\Pi=2^n/2^{n-k}=2^k\). (verify_L22.py computes \(\operatorname{tr}\Pi\) for every code in this lecture.) Each independent generator cuts the space in half.</p>
+</div>
+
+<div class="spot" data-kind="num" data-ans="3|8" data-labels="k|dim" data-show="k = 3, and the code space has dimension 2^3 = 8">
+<p>A stabilizer group on \(n=10\) qubits has 7 independent generators. How many logical qubits \(k\) does the code encode, and what is the dimension of its code space?</p>
+<div class="hint">Proposition 22.2: \(n-k\) is the number of independent generators, and the dimension is \(2^k\).</div>
+<div class="why">\(k=10-7=3\), and the code space has dimension \(2^{10}/2^7=2^3=8\): each generator halves the space.</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 22.1 &mdash; two codes in stabilizer language</span>
+<p>(a) Show that the bit-flip code of Lecture 21 is the stabilizer code of \(S=\langle Z_1Z_2,Z_2Z_3\rangle\). (b) Find \(n\) and \(k\) for \(S=\langle XXXX,ZZZZ\rangle\), and check that it is a valid stabilizer group.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>(a) \(n=3\) and two generators, so \(k=1\). The \(+1\) eigenspace of \(Z_1Z_2\) is spanned by basis states with \(q_1=q_2\), and of \(Z_2Z_3\) by those with \(q_2=q_3\); together, \(|000\rangle\) and \(|111\rangle\). The group is \(S=\{III,ZZI,IZZ,ZIZ\}\).</p>
+<p>(b) \(XXXX\) and \(ZZZZ\) differ at all four positions: an even number, so they commute. Their product is \((XZ)^{\otimes4}=(-iY)^{\otimes4}=(-i)^4\,YYYY=YYYY\), so \(S=\{IIII,XXXX,ZZZZ,YYYY\}\) and \(-I\notin S\). \(n=4\), two generators, \(k=2\): this is the \([[4,2]]\) code, which encodes two qubits in four.</p>
+</div>
+</div>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; Syndromes</h2>
+
+<div class="box thm">
+<span class="lbl">proposition 22.3 &mdash; the syndrome of a Pauli error</span>
+<p>Let \(|\psi\rangle\in\mathcal C(S)\) and let \(E\) be a Pauli error. For each generator \(g_i\), \(E|\psi\rangle\) is an eigenvector of \(g_i\) with eigenvalue \(+1\) if \(E\) commutes with \(g_i\) and \(-1\) if it anticommutes. The <strong>syndrome</strong> of \(E\) is the bit string \(s_i=1\) iff \(E\) anticommutes with \(g_i\); it does not depend on \(|\psi\rangle\).</p>
+<p><em>Proof:</em> two Paulis either commute or anticommute (Proposition 22.1); HW11 Problem 4 works out what this means for a measurement of \(g_i\).</p>
+</div>
+
+<div class="spot" data-kind="num" data-ans="1|0|0|1" data-labels="s1|s2|s3|s4" data-show="1001: the error anticommutes with XZZXI and ZXIXZ only">
+<p>The \([[5,1,3]]\) code of Example 22.3 below has generators \(XZZXI\), \(IXZZX\), \(XIXZZ\), \(ZXIXZ\). Find the syndrome bits of the error \(Z_4\) (1 means "anticommutes").</p>
+<div class="hint">Only position 4 matters. \(Z\) anticommutes with \(X\) and \(Y\) and commutes with \(I\) and \(Z\): read off the fourth letter of each generator.</div>
+<div class="why">The fourth letters are \(X,Z,Z,X\), so \(Z_4\) anticommutes with the first and last generators: syndrome 1001.</div>
+</div>
+
+<div class="box thm">
+<span class="lbl">proposition 22.4 &mdash; measuring stabilizers is harmless</span>
+<p>Measuring any \(g\in S\) on a code state returns \(+1\) with certainty and leaves the state unchanged; on \(E|\psi\rangle\) it returns the syndrome bit with certainty, again leaving the state unchanged. (Proof: HW11 Problem 4.)</p>
+</div>
+
+<p>So stabilizer measurements reveal the error and nothing about the encoded data (HW11 Problem 4 explains why this does not contradict "measurement disturbs"). Syndromes are linear: the syndrome of \(E_1E_2\) is the sum mod 2 of the syndromes of \(E_1\) and \(E_2\). In the \((x|z)\) picture, the syndrome is a matrix&ndash;vector product over \(\mathbb F_2\), just like the classical \(Hr\).</p>
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; Logical operators and distance</h2>
+
+<div class="box def">
+<span class="lbl">definition 22.3 &mdash; logical operators; distance; [[n,k,d]]</span>
+<p>A <strong>logical operator</strong> is a Pauli that commutes with every element of \(S\) but is not itself in \(S\) (up to phase). It maps the code space to itself and acts non-trivially on it. The <strong>distance</strong> \(d\) is the smallest weight of a logical operator, and the code is an \([[n,k,d]]\) code.</p>
+</div>
+
+<p>An error that is itself a logical operator has trivial syndrome and silently changes the encoded data: that is a logical error. Since the smallest such error has weight \(d\), a distance-\(d\) code <strong>detects</strong> any error of weight up to \(d-1\) and <strong>corrects</strong> any error of weight up to \(\lfloor(d-1)/2\rfloor\) (two errors of that weight have different syndromes, or else their product, of weight \(\le d-1\), would be a logical operator or a stabilizer, and in the second case they act identically).</p>
+
+<div class="spot" data-kind="select">
+<p>A code has distance \(d=4\). It detects every error of weight up to <select><option data-hint="Detection only needs a nontrivial syndrome; that fails first at weight d.">1</option><option data-hint="Weight d - 1 is still below the smallest logical operator.">2</option><option data-ok>3</option><option data-hint="A logical operator of weight 4 has trivial syndrome and is not detected.">4</option></select> and corrects every error of weight up to <select><option data-ok>1</option><option data-hint="Correcting needs floor((d - 1)/2); with d = 4 that rounds down.">2</option><option data-hint="Weight 3 can be detected but not corrected.">3</option></select>.</p>
+<div class="hint">Detect up to \(d-1\); correct up to \(\lfloor(d-1)/2\rfloor\).</div>
+<div class="why">It detects up to weight 3 and corrects up to weight \(\lfloor3/2\rfloor=1\). An even distance buys extra detection but no extra correction.</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 22.2 &mdash; the [[4,2,2]] code detects but cannot correct</span>
+<p>For \(S=\langle XXXX,ZZZZ\rangle\): find logical operators for the two encoded qubits, the distance, and the syndromes of \(X_1\) and \(X_2\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>A Pauli commutes with \(ZZZZ\) iff it has an even number of \(X\)/\(Y\) positions, and with \(XXXX\) iff it has an even number of \(Z\)/\(Y\) positions. So weight-1 errors are all detected, and weight-2 operators like \(X_1X_2\) commute with \(S\) without being in it. One choice of logical operators: \(\bar X_1=X_1X_2\), \(\bar Z_1=Z_1Z_3\), \(\bar X_2=X_1X_3\), \(\bar Z_2=Z_1Z_2\) (each \(\bar X_i\) anticommutes with its \(\bar Z_i\), one overlapping \(X\)/\(Z\) position, and commutes with the other pair, two positions). Distance 2: \([[4,2,2]]\). \(X_1\) and \(X_2\) both anticommute with \(ZZZZ\) only: the same syndrome \((0,1)\). The code detects a single error but cannot tell where it is, which is why "correct up to \(\lfloor(d-1)/2\rfloor=0\)".</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 22.3 &mdash; the perfect [[5,1,3]] code</span>
+<p>The generators are \(XZZXI\) and its cyclic shifts, \(IXZZX\), \(XIXZZ\), \(ZXIXZ\). Check that the first two commute, and count syndromes against single-qubit errors.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(XZZXI\) and \(IXZZX\) are both non-identity at positions 2, 3, 4, and differ at positions 2 (\(Z\) vs \(X\)) and 4 (\(X\) vs \(Z\)); at position 3 both are \(Z\). Two anticommuting positions: they commute. (All six pairs commute; the code in Section 8 checks them.) There are \(5\times3=15\) single-qubit Paulis and \(2^4=16\) syndromes. All 15 errors have distinct nonzero syndromes, so the code corrects any single-qubit error, with no syndrome left over: it is <em>perfect</em>, the smallest code that protects one qubit against an arbitrary single-qubit error. \(XXXXX\) and \(ZZZZZ\) serve as \(\bar X\) and \(\bar Z\).</p>
+</div>
+</div>
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; CSS codes</h2>
+
+<p>The cleanest way to get a stabilizer code is to take one classical code for the \(X\) errors and one for the \(Z\) errors. The construction is due to Calderbank, Shor and Steane (1996).</p>
+
+<div class="box thm">
+<span class="lbl">theorem 22.5 &mdash; the CSS construction</span>
+<p>Let \(H_X\) and \(H_Z\) be binary matrices with \(n\) columns and with \(H_XH_Z^{\mathsf T}\equiv0\pmod2\). Take one \(X\)-type generator \(X(r)\) for each row \(r\) of \(H_X\) (\(X\) on the positions where \(r\) has a 1) and one \(Z\)-type generator \(Z(r)\) for each row of \(H_Z\). These generators commute and define a stabilizer code, with \(k=n-\operatorname{rank}H_X-\operatorname{rank}H_Z\). The \(Z\)-type checks detect \(X\) errors exactly as the classical code with parity-check matrix \(H_Z\) detects bit flips, and the \(X\)-type checks detect \(Z\) errors as the code with parity-check matrix \(H_X\) does.</p>
+<p><em>Proof sketch.</em> That the generators commute follows from Proposition 22.1 (HW11 Problem 3 carries it out for the Steane code). An \(X\) error \(X(e)\) anticommutes with \(Z(r)\) iff \(r\cdot e=1\), so the \(Z\)-syndrome is \(H_Ze\), the classical syndrome. Same for \(Z\) errors. The count of \(k\) is Proposition 22.2.</p>
+</div>
+
+<div class="spot" data-kind="num" data-ans="1" data-tol="0.01" data-labels="k">
+<p>A CSS code on \(n=15\) qubits has \(\operatorname{rank}H_X=4\) and \(\operatorname{rank}H_Z=10\) (it satisfies \(H_XH_Z^{\mathsf T}\equiv0\)). How many logical qubits does it encode?</p>
+<div class="hint">Each independent row gives one independent generator: \(k=n-\operatorname{rank}H_X-\operatorname{rank}H_Z\).</div>
+<div class="why">\(k=15-4-10=1\). (This is the 15-qubit quantum Reed&ndash;Muller code, which reappears with magic states.)</div>
+</div>
+
+<p>In the language of codes: if \(C_X=\ker H_X\) and \(C_Z=\ker H_Z\), the condition says that the row space of \(H_X\) lies inside \(C_Z\). The most common case uses one classical code \(C\) with parity-check matrix \(H\) that <em>contains its own dual</em> (\(C^\perp\subseteq C\)), and sets \(H_X=H_Z=H\); HW11 Problem 3 shows why this satisfies the condition of Theorem 22.5.</p>
+
+<!-- =================== 6 =================== -->
+<h2 id="s6">6 &mdash; The Steane code</h2>
+
+<p>Take \(H_X=H_Z=H\), the Hamming parity-check matrix of Lecture 21. Each of the three rows of \(H\) gives one \(X\)-type and one \(Z\)-type generator, drawn as the plaquettes of the figure below. HW11 Problem 3 writes the six out, checks that they commute, and checks that \(\bar X=X^{\otimes7}\) and \(\bar Z=Z^{\otimes7}\) are logical operators. With \(n=7\) and \(\operatorname{rank}H=3\), \(k=7-3-3=1\).</p>
+
+<figure>
+<svg viewBox="0 0 720 340" width="720" height="340" role="img" aria-labelledby="stt std"><title id="stt">The Steane code drawn on a triangle</title><desc id="std">Seven qubits on a triangle: qubits 1, 2 and 4 at the corners, 3, 5 and 6 at the midpoints of the sides (3 between 1 and 2, 5 between 1 and 4, 6 between 2 and 4), and 7 at the centre. The triangle is divided into three four-sided plaquettes, one per row of the Hamming parity-check matrix: {4,5,6,7} (h1), {2,3,6,7} (h2) and {1,3,5,7} (h3). Each plaquette carries one X-type and one Z-type stabilizer on its four qubits. A single error on qubit j is detected by exactly the plaquettes that contain j, and reading them as a binary number gives j.</desc><rect x="0" y="0" width="720" height="340" rx="8" class="plot-bg"/><path d="M230.0,45.0 L169.4,150.0 L230.0,185.0 L290.6,150.0 Z" fill="var(--rose)" fill-opacity="0.22" stroke="var(--rose)" stroke-width="2"/><path d="M351.2,255.0 L230.0,255.0 L230.0,185.0 L290.6,150.0 Z" fill="var(--sky)" fill-opacity="0.22" stroke="var(--sky)" stroke-width="2"/><path d="M108.8,255.0 L230.0,255.0 L230.0,185.0 L169.4,150.0 Z" fill="var(--moss)" fill-opacity="0.22" stroke="var(--moss)" stroke-width="2"/><circle cx="108.8" cy="255.0" r="16" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.8"/><text class="lbltext" x="108.8" y="260.0" text-anchor="middle">1</text><circle cx="351.2" cy="255.0" r="16" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.8"/><text class="lbltext" x="351.2" y="260.0" text-anchor="middle">2</text><circle cx="230.0" cy="45.0" r="16" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.8"/><text class="lbltext" x="230.0" y="50.0" text-anchor="middle">4</text><circle cx="230.0" cy="255.0" r="16" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.8"/><text class="lbltext" x="230.0" y="260.0" text-anchor="middle">3</text><circle cx="169.4" cy="150.0" r="16" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.8"/><text class="lbltext" x="169.4" y="155.0" text-anchor="middle">5</text><circle cx="290.6" cy="150.0" r="16" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.8"/><text class="lbltext" x="290.6" y="155.0" text-anchor="middle">6</text><circle cx="230.0" cy="185.0" r="16" fill="var(--surface)" stroke="var(--ink)" stroke-width="1.8"/><text class="lbltext" x="230.0" y="190.0" text-anchor="middle">7</text><rect x="440" y="54" width="22" height="22" rx="4" fill="var(--rose)" fill-opacity="0.35" stroke="var(--rose)" stroke-width="2"/><text class="axtext" x="472.0" y="70.0" text-anchor="start">h1 = 0001111</text><text class="axtext" x="472.0" y="90.0" text-anchor="start" style="fill:var(--muted)">qubits {4,5,6,7}</text><rect x="440" y="116" width="22" height="22" rx="4" fill="var(--sky)" fill-opacity="0.35" stroke="var(--sky)" stroke-width="2"/><text class="axtext" x="472.0" y="132.0" text-anchor="start">h2 = 0110011</text><text class="axtext" x="472.0" y="152.0" text-anchor="start" style="fill:var(--muted)">qubits {2,3,6,7}</text><rect x="440" y="178" width="22" height="22" rx="4" fill="var(--moss)" fill-opacity="0.35" stroke="var(--moss)" stroke-width="2"/><text class="axtext" x="472.0" y="194.0" text-anchor="start">h3 = 1010101</text><text class="axtext" x="472.0" y="214.0" text-anchor="start" style="fill:var(--muted)">qubits {1,3,5,7}</text><text class="axtext" x="440.0" y="254.0" text-anchor="start">each plaquette: X on its 4 qubits</text><text class="axtext" x="440.0" y="274.0" text-anchor="start">and Z on its 4 qubits</text><text class="axtext" x="440.0" y="306.0" text-anchor="start" style="fill:var(--muted)">an error on qubit j lights</text><text class="axtext" x="440.0" y="324.0" text-anchor="start" style="fill:var(--muted)">the plaquettes holding j</text></svg>
+<figcaption>The Steane code on a triangle: each of the three plaquettes is one row of the Hamming matrix and carries an \(X\)-type and a \(Z\)-type stabilizer on its four qubits. Qubit \(j\) belongs to the plaquettes given by the binary digits of \(j\): qubit 5 = 101 belongs to \(h_1\) and \(h_3\).</figcaption>
+</figure>
+
+<p>Decoding is the Hamming decoder, run twice. An \(X\) error on qubit \(j\) anticommutes with the \(Z\)-type checks whose plaquettes contain \(j\); read as a binary number \((s_{h_1}s_{h_2}s_{h_3})\), the \(Z\)-syndrome is \(j\). A \(Z\) error gives the same pattern on the \(X\)-type checks. A \(Y\) error gives \(j\) on both. So the Steane code corrects any single-qubit error: it is a \([[7,1,3]]\) code (its smallest logical operators, such as \(X_1X_2X_3\), have weight 3; verify_L22.py finds them by search).</p>
+
+<div class="spot" data-kind="select">
+<p>A \(Y\) error hits qubit 6 of the Steane code. The \(Z\)-checks \((h_1h_2h_3)\) read <select><option data-hint="Y has an X part, and Z-checks see X parts.">000</option><option data-hint="Read 6 in binary with h1 as the leading digit.">011</option><option data-ok>110</option><option data-hint="101 is qubit 5.">101</option></select> and the \(X\)-checks read <select><option data-hint="Y also has a Z part, and X-checks see Z parts.">000</option><option data-hint="Read 6 in binary with h1 as the leading digit.">011</option><option data-ok>110</option><option data-hint="101 is qubit 5.">101</option></select>.</p>
+<div class="hint">\(Y\) acts like \(X\) and \(Z\) together (up to phase), so both halves of the syndrome see it, and each half spells the qubit number in binary.</div>
+<div class="why">\(6=110\): qubit 6 lies in plaquettes \(h_1\) and \(h_2\). Both the \(Z\)-checks and the \(X\)-checks read 110, and the decoder applies \(Y_6\).</div>
+</div>
+
+<table style="width:auto">
+<tr><th>error</th><th>\(Z\)-checks \((h_1h_2h_3)\)</th><th>\(X\)-checks \((h_1h_2h_3)\)</th><th>decoder</th></tr>
+<tr><td>none</td><td>000</td><td>000</td><td>nothing</td></tr>
+<tr><td>\(X_j\)</td><td>\(j\) in binary</td><td>000</td><td>apply \(X_j\)</td></tr>
+<tr><td>\(Z_j\)</td><td>000</td><td>\(j\) in binary</td><td>apply \(Z_j\)</td></tr>
+<tr><td>\(Y_j\)</td><td>\(j\) in binary</td><td>\(j\) in binary</td><td>apply \(Y_j\)</td></tr>
+</table>
+
+<div class="widget">
+<h4>Steane syndrome decoder</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Pick an error type, then click qubits to place errors (click again to remove). Each plaquette shows its \(Z\)-check (left half, sees \(X\) and \(Y\)) and \(X\)-check (right half, sees \(Z\) and \(Y\)). The decoder applies the Hamming correction to each half separately. Find two errors that make the decoder create a logical error.</p>
+<svg id="stSvg" viewBox="0 0 600 260" width="600" height="260" role="img" aria-label="Steane code errors and syndromes"></svg>
+<div class="ctrls" id="stType"></div>
+<div class="ctrls" id="stRun"></div>
+<p class="readout" role="status" aria-live="polite" id="stOut"></p>
+</div>
+
+<!-- =================== 7 =================== -->
+<h2 id="s7">7 &mdash; Why stabilizer circuits are easy to simulate</h2>
+
+<p>The Clifford gates (\(H\), \(S\), CNOT, and everything built from them) map Paulis to Paulis under conjugation: \(HXH=Z\), \(\mathrm{CNOT}\,(X\otimes I)\,\mathrm{CNOT}=X\otimes X\), and so on (Lecture 4). So a stabilizer state, described by \(n\) generators, stays a stabilizer state under Clifford gates, and updating the description costs \(O(n)\) per gate. Measurements of Paulis can be handled the same way. This is the <strong>Gottesman&ndash;Knill theorem</strong> (Lecture 7): circuits of Clifford gates, Pauli measurements and Pauli noise can be simulated efficiently on a classical computer, using \(O(n^2)\) bits instead of \(2^n\) amplitudes.</p>
+
+<div class="spot" data-kind="multi">
+<p>Tick every 100-qubit circuit that the Gottesman&ndash;Knill theorem lets a laptop simulate efficiently.</p>
+<ul class="opts">
+<li data-ok>\(H\), \(S\) and CNOT gates, then measurement of every qubit</li>
+<li data-ok>the same circuit with a random \(X\), \(Y\) or \(Z\) error after each gate, and mid-circuit Pauli measurements</li>
+<li>\(H\) and CNOT gates with a \(T\) gate after every \(H\)<span class="oh">\(T\) is not a Clifford gate: \(TXT^\dagger\) is not a Pauli, so the stabilizer description breaks down.</span></li>
+<li>any circuit at all, provided the noise is Pauli noise<span class="oh">Pauli noise is fine, but the gates must be Clifford too. The theorem is about the whole circuit.</span></li>
+</ul>
+<div class="hint">The theorem needs every ingredient to map Paulis to Paulis: Clifford gates, Pauli measurements and Pauli noise.</div>
+<div class="why">The first two use only Clifford gates, Pauli measurements and Pauli noise, which is exactly what Stim handles. A supply of \(T\) gates is what lifts a circuit beyond classical simulation.</div>
+</div>
+
+<p>Two consequences. First, quantum advantage needs non-Clifford gates, such as \(T\) (which is why Lecture 23's "magic states" matter). Second, error-correction experiments, whose circuits are almost entirely Clifford, can be simulated at scale. <strong>Stim</strong> (Gidney, 2021) handles circuits with thousands of qubits, and samples small circuits at millions of shots per second, and is the tool of Lab 6.</p>
+
+<!-- =================== 8 =================== -->
+<h2 id="s8">8 &mdash; Try it in code</h2>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; Pauli strings in Stim (stim 1.16)</span>
+<pre>import stim
+
+gens = [stim.PauliString(s) for s in ("XZZX_", "_XZZX", "X_XZZ", "ZX_XZ")]<span class="cm">     # the [[5,1,3]] code</span>
+print("generators commute pairwise:", all(g.commutes(h) for g in gens for h in gens))
+table = {}
+for q in range(5):
+    for p in "XYZ":
+        e = stim.PauliString(5); e[q] = p
+        table[f"{p}{q+1}"] = "".join(str(int(not e.commutes(g))) for g in gens)
+print(table)
+print("15 errors, distinct nonzero syndromes:", len(set(table.values())) == 15 and "0000" not in table.values())
+XL, ZL = stim.PauliString("XXXXX"), stim.PauliString("ZZZZZ")
+print("XXXXX and ZZZZZ commute with S:", all(XL.commutes(g) and ZL.commutes(g) for g in gens), "; anticommute with each other:", not XL.commutes(ZL))</pre>
+<pre class="out">generators commute pairwise: True
+{'X1': '0001', 'Y1': '1011', 'Z1': '1010', 'X2': '1000', 'Y2': '1101', 'Z2': '0101', 'X3': '1100', 'Y3': '1110', 'Z3': '0010', 'X4': '0110', 'Y4': '1111', 'Z4': '1001', 'X5': '0011', 'Y5': '0111', 'Z5': '0100'}
+15 errors, distinct nonzero syndromes: True
+XXXXX and ZZZZZ commute with S: True ; anticommute with each other: True</pre>
+<p>Example 22.3: the syndrome table of the \([[5,1,3]]\) code. <code>stim.PauliString</code> supports products (<code>*</code>), <code>commutes</code>, and indexing by qubit (from 0 on the left).</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; measuring stabilizers a million times</span>
+<pre>import time, numpy as np, stim
+
+<span class="cm"># measure the four stabilizers of the [[5,1,3]] code twice, with noise in between; compare the rounds</span>
+gens = "X0*Z1*Z2*X3 X1*Z2*Z3*X4 X0*X2*Z3*Z4 Z0*X1*X3*Z4"
+c = stim.Circuit(f"""
+    MPP {gens}
+    DEPOLARIZE1(0.01) 0 1 2 3 4
+    MPP {gens}
+    DETECTOR rec[-4] rec[-8]
+    DETECTOR rec[-3] rec[-7]
+    DETECTOR rec[-2] rec[-6]
+    DETECTOR rec[-1] rec[-5]
+""")
+t = time.time()
+det = c.compile_detector_sampler(seed=22).sample(1_000_000)
+print(f"1,000,000 shots in {time.time() - t:.2f} s;  fraction with a nonzero syndrome: {det.any(axis=1).mean():.4f}")
+<span class="cm"># stim's DEPOLARIZE1(p) applies X, Y or Z with probability p/3 each: p is the total error probability</span>
+<span class="cm"># (in Lecture 18's parametrization this is lambda = 4p/3, whose error probability is 3*lambda/4). Every single error has</span>
+<span class="cm"># a nonzero syndrome, so expect:</span>
+print(f"P(at least one qubit hit) = 1 - 0.99^5 = {1 - 0.99**5:.4f}")</pre>
+<pre class="out">1,000,000 shots in 0.06 s;  fraction with a nonzero syndrome: 0.0490
+P(at least one qubit hit) = 1 - 0.99^5 = 0.0490</pre>
+<p><code>MPP</code> measures a Pauli product directly; a <code>DETECTOR</code> declares a parity of measurement results that should be deterministic without noise (here: the same stabilizer measured twice). A million shots take a fraction of a second. Note Stim's convention: <code>DEPOLARIZE1(p)</code> applies \(X\), \(Y\) or \(Z\) with probability \(p/3\) each, so \(p\) is the total error probability.</p>
+</div>
+
+<!-- =================== 9 =================== -->
+<h2 id="s9">9 &mdash; Summary and exercises</h2>
+
+<div class="box thm">
+<span class="lbl">summary</span>
+<ul>
+<li>Pauli strings commute or anticommute; count the positions where both are non-identity and different, and check the parity. In \((x|z)\) form this is a symplectic inner product over \(\mathbb F_2\).</li>
+<li>A stabilizer group is abelian with \(-I\notin S\); with \(n-k\) independent generators its code space has dimension \(2^k\).</li>
+<li>The syndrome of a Pauli error records which generators it anticommutes with; it does not depend on the encoded state, and measuring stabilizers does not disturb it.</li>
+<li>Logical operators commute with \(S\) but are not in it; the distance is their minimum weight. An \([[n,k,d]]\) code corrects \(\lfloor(d-1)/2\rfloor\) errors. Examples: \([[4,2,2]]\) (detects), \([[5,1,3]]\) (perfect), Shor's \([[9,1,3]]\).</li>
+<li>CSS: \(X\)-checks from \(H_X\), \(Z\)-checks from \(H_Z\), valid when \(H_XH_Z^{\mathsf T}\equiv0\). The Steane \([[7,1,3]]\) code uses the Hamming matrix for both, and decodes each error type by the Hamming syndrome.</li>
+<li>Clifford circuits with Pauli noise are classically simulable (Gottesman&ndash;Knill); Stim exploits this.</li>
+</ul>
+<p><strong>Next time:</strong> surface codes, thresholds and decoders, the codes running on today's hardware, and the launch of <strong>Lab 6</strong>. <strong>HW11</strong> (Lectures 21&ndash;22) is due at the start of Week 13.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 22</span>
+<ol>
+<li>Do \(XYZ\) and \(ZZZ\) commute? Do \(XXY\) and \(YZX\)?</li>
+<li>For the \([[4,2,2]]\) code, find the syndromes of \(Z_3\) and \(Y_2\). Which errors of weight 2 have a trivial syndrome but are not in \(S\)?</li>
+<li>Shor's code has 8 generators on 9 qubits. Confirm \(k=1\). Its distance is 3; give a logical operator of weight 3.</li>
+<li>Using the table of Section 8, decode the \([[5,1,3]]\) syndrome 1100.</li>
+<li>In the Steane code, a \(Z\) error occurs on qubit 5. Which checks fire? What if a \(Z\) occurs on qubit 5 <em>and</em> an \(X\) on qubit 2?</li>
+<li>Two different sets of generators can define the same stabilizer group. Show that \(\langle Z_1Z_2,Z_2Z_3\rangle=\langle Z_1Z_2,Z_1Z_3\rangle\).</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>\(XYZ\) vs \(ZZZ\): positions 1 (\(X\)/\(Z\)) and 2 (\(Y\)/\(Z\)) anticommute, position 3 does not: two, so they commute. \(XXY\) vs \(YZX\): all three positions anticommute: odd, so they anticommute.</li>
+<li>\(Z_3\) anticommutes with \(XXXX\) only: syndrome \((1,0)\) in the order \((XXXX,ZZZZ)\). \(Y_2\) anticommutes with both: \((1,1)\). Any weight-2 operator of the same type, such as \(X_iX_j\) or \(Z_iZ_j\) (and also e.g. \(Y_iY_j\)), has trivial syndrome and is a logical operator.</li>
+<li>\(k=9-8=1\). \(Z_1Z_4Z_7\) (one \(Z\) in each block) changes the sign inside every block, \(|000\rangle\pm|111\rangle\mapsto|000\rangle\mp|111\rangle\), so it swaps \(|0_L\rangle\) and \(|1_L\rangle\): a logical \(\bar X\) of weight 3. \(X_1X_2X_3\) fixes a "+" block and negates a "&minus;" block, so it acts as \(\bar Z\), also of weight 3.</li>
+<li>1100 is the syndrome of \(X_3\): apply \(X_3\).</li>
+<li>\(Z_5\): \(X\)-checks of \(h_1\) and \(h_3\) (101 = 5); no \(Z\)-check fires. Adding \(X_2\): \(Z\)-checks of \(h_2\) only (010 = 2). The two halves are decoded independently, so both errors are corrected: CSS codes correct one \(X\) and one \(Z\) error at the same time, even on different qubits.</li>
+<li>\(Z_1Z_3=(Z_1Z_2)(Z_2Z_3)\), so the second group is inside the first; and \(Z_2Z_3=(Z_1Z_2)(Z_1Z_3)\), so the first is inside the second.</li>
+</ol>
+</div>
+</div>
+
+<h3>Reading and sources</h3>
+<ul>
+<li>J. Watrous, <em>Understanding Quantum Information and Computation</em>, Ch. 14&ndash;15.1 (<a href="https://arxiv.org/abs/2507.11536">arXiv:2507.11536</a>).</li>
+<li>J. Roffe, "Quantum error correction: an introductory guide" (<a href="https://arxiv.org/abs/1907.11157">arXiv:1907.11157</a>), §4&ndash;5.</li>
+<li>D. Gottesman, "Stabilizer codes and quantum error correction", PhD thesis, Caltech (1997) (<a href="https://arxiv.org/abs/quant-ph/9705052">arXiv:quant-ph/9705052</a>).</li>
+<li>A. M. Steane, "Error correcting codes in quantum theory", <em>Phys. Rev. Lett.</em> 77, 793 (1996); A. R. Calderbank and P. W. Shor, "Good quantum error-correcting codes exist", <em>Phys. Rev. A</em> 54, 1098 (1996).</li>
+<li>C. Gidney, "Stim: a fast stabilizer circuit simulator", <em>Quantum</em> 5, 497 (2021) (<a href="https://arxiv.org/abs/2103.02202">arXiv:2103.02202</a>).</li>
+</ul>
+<p class="kicker" style="margin-top:2.4em">all numbers and figures in these notes are computed in python (verify_L22.py) and follow the page theme</p>
+</div>
+
+<script>
+var NS='http://www.w3.org/2000/svg';
+function mk(tag,at,parent,txt){var e=document.createElementNS(NS,tag);for(var k in at)e.setAttribute(k,at[k]);if(txt!==undefined)e.textContent=txt;if(parent)parent.appendChild(e);return e;}
+function clr(s){while(s.firstChild)s.removeChild(s.firstChild);}
+function fx(x,d){d=(d===undefined?3:d);var v=Number(x).toFixed(d);return /^-0\.?0*$/.test(v)?v.slice(1):v;}
+function btn(parent,label,fn){var b=document.createElement('button');b.className='ctl';b.type='button';b.textContent=label;b.addEventListener('click',fn);parent.appendChild(b);return b;}
+
+/* ---------- Steane syndrome decoder ---------- */
+(function(){
+  var svg=document.getElementById('stSvg'); if(!svg) return;
+  var H=[[0,0,0,1,1,1,1],[0,1,1,0,0,1,1],[1,0,1,0,1,0,1]], cols=['var(--rose)','var(--sky)','var(--moss)'];
+  var ex=[0,0,0,0,0,0,0], ez=[0,0,0,0,0,0,0], type='X', tb=[], out=document.getElementById('stOut');
+  ['X','Y','Z'].forEach(function(t){ tb.push(btn(document.getElementById('stType'),t+' error',function(){type=t;draw();})); });
+  btn(document.getElementById('stRun'),'clear',function(){ex=[0,0,0,0,0,0,0];ez=[0,0,0,0,0,0,0];draw();});
+  var cx=200,cy=150,R=110, P={};
+  P[1]=[cx-R*Math.cos(Math.PI/6),cy+R/2]; P[2]=[cx+R*Math.cos(Math.PI/6),cy+R/2]; P[4]=[cx,cy-R];
+  function mid(a,b){return [(P[a][0]+P[b][0])/2,(P[a][1]+P[b][1])/2];} P[3]=mid(1,2); P[5]=mid(1,4); P[6]=mid(2,4); P[7]=[cx,cy];
+  var quads=[[4,5,7,6],[2,3,7,6],[1,3,7,5]];
+  // span of H rows (the dual code): 8 words
+  var span=[]; for(var m=0;m<8;m++){ var v=[0,0,0,0,0,0,0]; for(var r=0;r<3;r++) if(m>>r&1) for(var j=0;j<7;j++) v[j]^=H[r][j]; span.push(v.join('')); }
+  function syn(e){ return H.map(function(row){ var s=0; for(var j=0;j<7;j++) s^=row[j]&e[j]; return s; }); }
+  function fix(e){ var s=syn(e), pos=s[0]*4+s[1]*2+s[2], c=[0,0,0,0,0,0,0]; if(pos) c[pos-1]=1; return {s:s,pos:pos,c:c}; }
+  function draw(){
+    tb.forEach(function(b){b.classList.toggle('on',b.textContent===type+' error');});
+    var fx_=fix(ex), fz_=fix(ez);   // Z-checks see ex; X-checks see ez
+    clr(svg); mk('rect',{x:0,y:0,width:600,height:260,rx:8,class:'plot-bg'},svg);
+    quads.forEach(function(q,k){ var d='M'+q.map(function(i){return P[i][0].toFixed(1)+','+P[i][1].toFixed(1);}).join(' L')+' Z';
+      mk('path',{d:d,fill:cols[k],'fill-opacity':(fx_.s[k]||fz_.s[k])?0.45:0.12,stroke:cols[k],'stroke-width':2},svg);
+      var c=[0,0]; q.forEach(function(i){c[0]+=P[i][0]/4;c[1]+=P[i][1]/4;});
+      var cxk=(c[0]*2+P[7][0])/3+(k===0?0:(k===1?14:-14)), cyk=(c[1]*2+P[7][1])/3+(k===0?-14:8);
+      mk('text',{x:cxk-8,y:cyk,'text-anchor':'end',class:'axtext',fill:fx_.s[k]?'var(--ink)':'var(--muted)'},svg,'Z'+(fx_.s[k]?'!':''));
+      mk('text',{x:cxk+8,y:cyk,'text-anchor':'start',class:'axtext',fill:fz_.s[k]?'var(--ink)':'var(--muted)'},svg,'X'+(fz_.s[k]?'!':'')); });
+    for(var j=1;j<=7;j++){ (function(j){ var g=mk('g',{style:'cursor:pointer',tabindex:0,role:'button','aria-label':'toggle '+type+' error on qubit '+j},svg);
+      var lab=ex[j-1]&&ez[j-1]?'Y':(ex[j-1]?'X':(ez[j-1]?'Z':String(j)));
+      mk('circle',{cx:P[j][0],cy:P[j][1],r:16,fill:'var(--surface)',stroke:'var(--ink)','stroke-width':1.8},g);
+      if(lab!==String(j)) mk('circle',{cx:P[j][0],cy:P[j][1],r:16,fill:'var(--amber)','fill-opacity':0.8},g);
+      mk('text',{x:P[j][0],y:P[j][1]+5,'text-anchor':'middle',class:'lbltext'},g,lab);
+      function tog(){ if(type!=='Z') ex[j-1]^=1; if(type!=='X') ez[j-1]^=1; draw(); }
+      g.addEventListener('click',tog); g.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' '){e.preventDefault();tog();}}); })(j); }
+    var rx=ex.map(function(v,i){return v^fx_.c[i];}), rz=ez.map(function(v,i){return v^fz_.c[i];});
+    function status(r){ var w=r.join(''); if(w==='0000000') return 'clean'; return span.indexOf(w)>=0?'a stabilizer (harmless)':'a LOGICAL error'; }
+    var x0=400; mk('text',{x:x0,y:40,class:'axtext'},svg,'Z-checks (h1 h2 h3): '+fx_.s.join(''));
+    mk('text',{x:x0,y:62,class:'axtext'},svg,'  -> '+(fx_.pos?'apply X on '+fx_.pos:'no X fix'));
+    mk('text',{x:x0,y:96,class:'axtext'},svg,'X-checks (h1 h2 h3): '+fz_.s.join(''));
+    mk('text',{x:x0,y:118,class:'axtext'},svg,'  -> '+(fz_.pos?'apply Z on '+fz_.pos:'no Z fix'));
+    var sx=status(rx), sz=status(rz), bad=sx.indexOf('LOGICAL')>=0||sz.indexOf('LOGICAL')>=0;
+    var nx=ex.reduce(function(a,b){return a+b;},0), nz=ez.reduce(function(a,b){return a+b;},0);
+    mk('text',{x:x0,y:160,class:'axtext',fill:bad?'var(--rose)':'var(--moss)'},svg,bad?'logical error!':(nx+nz?'state restored':'no error'));
+    out.textContent='X-type part of the error on '+nx+' qubit'+(nx===1?'':'s')+', Z-type part on '+nz+'. After correction the remaining X part is '+sx+' and the remaining Z part is '+sz+'.'+(bad?' Two errors of the same type fool the Hamming decoder: it adds a third, completing a weight-3 logical operator.':'');
+  }
+  draw();
+})();
+</script>
+
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    var lab=b.getAttribute('data-lab')||b.textContent.replace(/^(show|hide) /,''); b.setAttribute('data-lab',lab);
+    b.textContent=(open?'hide ':'show ')+lab;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+
+<script id="spot-js">
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×/g,'*').replace(/π/g,'pi').replace(/,/g,'');
+    var pct=/%$/.test(s); if(pct) s=s.slice(0,-1);
+    s=s.replace(/√\s*\(/g,'sqrt(').replace(/√\s*([0-9.]+)/g,'sqrt($1)');
+    if(!s||!/^[0-9a-z+\-*\/^().\s]*$/.test(s)) return NaN;
+    var ok=s.replace(/sqrt|pi|ln|log|exp|sin|cos|tan|e(?![a-z])/g,'').replace(/[0-9+\-*\/^().\s]/g,'');
+    if(ok.length) return NaN;
+    s=s.replace(/\^/g,'**').replace(/(\d)\s*(pi|sqrt|\()/g,'$1*$2').replace(/\)\s*(\d|pi|sqrt|\()/g,')*$1')
+       .replace(/sqrt/g,'Math.sqrt').replace(/pi/g,'Math.PI').replace(/\blog\b/g,'Math.log10').replace(/\bln\b/g,'Math.log')
+       .replace(/exp/g,'Math.exp').replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos').replace(/tan/g,'Math.tan')
+       .replace(/(^|[^a-z.0-9])e(?![a-z0-9(])/g,'$1Math.E');
+    try{ var v=Function('"use strict";return ('+s+')')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function typeset(el){ if(window.MathJax&&MathJax.typesetPromise){ MathJax.typesetPromise([el]).catch(function(){}); } }
+  function fb(spot,ok,html){
+    var f=spot.querySelector('.fb'); spot.classList.toggle('ok',ok); spot.classList.toggle('bad',!ok);
+    f.innerHTML='<p><span class="tag">'+(ok?'correct.':'not yet.')+'</span>'+(html||'')+'</p>'; typeset(f);
+  }
+  function part(spot,sel){ var e=spot.querySelector(sel); return e? e.innerHTML : ''; }
+  var n=0, lec=(document.title.match(/^Lecture (\d+)/)||[])[1];
+  document.querySelectorAll('.spot').forEach(function(spot){
+    n++; var kind=spot.getAttribute('data-kind')||'num', tries=0;
+    var lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent='spot check '+(lec?lec+'.':'')+n+(spot.getAttribute('data-tag')?' — '+spot.getAttribute('data-tag'):'');
+    spot.insertBefore(lbl,spot.firstChild);
+    var area=document.createElement('div'), btns=document.createElement('div'), f=document.createElement('div');
+    btns.className='btns'; f.className='fb'; f.setAttribute('role','status'); f.setAttribute('aria-live','polite');
+    var check=document.createElement('button'); check.type='button'; check.textContent='check';
+    var reveal=document.createElement('button'); reveal.type='button'; reveal.className='reveal'; reveal.textContent='show answer'; reveal.style.display='none';
+    btns.appendChild(check); btns.appendChild(reveal);
+    var grade, show;
+    if(kind==='num'){
+      var ans=spot.getAttribute('data-ans').split('|').map(evalNum), labs=(spot.getAttribute('data-labels')||'').split('|');
+      var tol=spot.getAttribute('data-tol'), row=document.createElement('div'); row.className='row'; area.appendChild(row);
+      var ins=ans.map(function(a,i){ var lab=document.createElement('label'), inp=document.createElement('input');
+        inp.className='ans'; inp.type='text'; inp.setAttribute('inputmode','text'); inp.setAttribute('autocomplete','off');
+        inp.setAttribute('aria-label',labs[i]||'answer'); if(labs[i]){ lab.appendChild(document.createTextNode(labs[i]+' =')); }
+        lab.appendChild(inp); row.appendChild(lab);
+        inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); check.click(); } }); return inp; });
+      var fmt=document.createElement('div'); fmt.className='fmt'; fmt.textContent='decimals, fractions, sqrt(2)/2, pi/4 or 2^-3 all work';
+      area.appendChild(fmt);
+      grade=function(){ var bad=[]; ins.forEach(function(inp,i){ var v=evalNum(inp.value), a=ans[i];
+          var t= tol!==null? Number(tol) : Math.max(0.005, 0.005*Math.abs(a)); if(!(Math.abs(v-a)<=t)) bad.push(i); });
+        var empty=ins.some(function(inp){return !inp.value.trim();});
+        if(empty) return {ok:false,msg:'Fill in '+(ins.length>1?'every box':'the box')+' first.',soft:true};
+        var unparsed=ins.some(function(inp){return isNaN(evalNum(inp.value));});
+        if(unparsed) return {ok:false,msg:'I could not read that as a number. Try a decimal or a fraction such as 3/8.',soft:true};
+        return {ok:!bad.length, which:bad}; };
+      show=function(){ var s=spot.getAttribute('data-show'); if(!s){ s=spot.getAttribute('data-ans').split('|').map(function(a,i){return (labs[i]?labs[i]+' = ':'')+a;}).join(', '); } return 'The answer is '+s+'.'; };
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=spot.querySelector('ul.opts'), name='spot'+n, lis=[].slice.call(ul.querySelectorAll(':scope > li'));
+      lis.forEach(function(li,i){ var inp=document.createElement('input'); inp.type= kind==='mc'?'radio':'checkbox'; inp.name=name; inp.value=i;
+        inp.setAttribute('aria-label','option '+(i+1)); li.insertBefore(inp,li.firstChild);
+        li.addEventListener('click',function(e){ if(e.target!==inp&&e.target.tagName!=='A'){ if(kind==='mc') inp.checked=true; else inp.checked=!inp.checked; } }); });
+      grade=function(){ var picked=lis.filter(function(li){return li.querySelector('input').checked;});
+        if(!picked.length) return {ok:false,msg:'Pick '+(kind==='mc'?'an answer':'at least one option')+' first.',soft:true};
+        var ok= lis.every(function(li){ return li.hasAttribute('data-ok')===li.querySelector('input').checked; });
+        var oh=''; picked.forEach(function(li){ if(!li.hasAttribute('data-ok')){ var h=li.querySelector('.oh'); if(h) oh+=' '+h.innerHTML; } });
+        if(kind==='multi'&&!ok&&!oh){ var miss=lis.filter(function(li){return li.hasAttribute('data-ok')&&!li.querySelector('input').checked;});
+          if(miss.length&&picked.every(function(li){return li.hasAttribute('data-ok');})) oh=' Everything you ticked is right, but something is missing.'; }
+        return {ok:ok, extra:oh}; };
+      show=function(){ lis.forEach(function(li){ li.classList.toggle('right',li.hasAttribute('data-ok')); }); return 'The right '+(kind==='mc'?'option is':'options are')+' outlined.'; };
+    } else if(kind==='select'){
+      var sels=[].slice.call(spot.querySelectorAll('select'));
+      sels.forEach(function(s){ var o=document.createElement('option'); o.textContent='choose…'; o.value=''; o.selected=true; s.insertBefore(o,s.firstChild);
+        s.setAttribute('aria-label', s.getAttribute('aria-label')||'choose an answer'); });
+      grade=function(){ if(sels.some(function(s){return !s.value;})) return {ok:false,msg:'Make a choice in '+(sels.length>1?'every menu':'the menu')+' first.',soft:true};
+        var oh=''; var ok=sels.every(function(s){ var o=s.options[s.selectedIndex]; if(!o.hasAttribute('data-ok')&&o.getAttribute('data-hint')) oh+=' '+o.getAttribute('data-hint'); return o.hasAttribute('data-ok'); });
+        return {ok:ok, extra:oh}; };
+      show=function(){ sels.forEach(function(s){ [].forEach.call(s.options,function(o,i){ if(o.hasAttribute('data-ok')) s.selectedIndex=i; }); }); return 'The right choices are now selected.'; };
+    }
+    var anchor=null;
+    [].forEach.call(spot.children,function(c){ if(!anchor&&(c.classList.contains('hint')||c.classList.contains('why'))) anchor=c; });
+    if(kind==='select'){ spot.insertBefore(btns,anchor); } else { spot.insertBefore(area,anchor); spot.insertBefore(btns,anchor); }
+    spot.appendChild(f);
+    check.addEventListener('click',function(){ var r=grade();
+      if(r.soft){ spot.classList.remove('ok'); spot.classList.add('bad'); f.innerHTML='<p><span class="tag">hold on.</span>'+r.msg+'</p>'; return; }
+      if(r.ok){ fb(spot,true,part(spot,'.why')); reveal.style.display='none'; }
+      else { tries++; var h=part(spot,'.hint'); var extra=r.extra||'';
+        if(r.which&&r.which.length&&ans.length>1){ extra=' Check '+r.which.map(function(i){return labs[i]||('box '+(i+1));}).join(' and ')+'.'+extra; }
+        fb(spot,false,(extra?extra+' ':'')+h); if(tries>=2) reveal.style.display=''; } });
+    reveal.addEventListener('click',function(){ var msg=show(); spot.classList.remove('ok'); spot.classList.add('bad');
+      f.innerHTML='<p><span class="tag">answer.</span>'+msg+' '+part(spot,'.why')+'</p>'; typeset(f); });
+  });
+})();
+</script>
+</body>
+</html>

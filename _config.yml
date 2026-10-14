@@ -173,6 +173,9 @@ collections:
   projects:
     output: true
     permalink: /projects/:name/
+  pages:
+    output: true
+    permalink: /:name/
 
 defaults:
   - scope:

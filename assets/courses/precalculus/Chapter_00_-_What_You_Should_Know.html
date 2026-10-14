@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Chapter 0 — What You Should Know</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  /* ---- spot checks ---- */
+  .spot{border:1px dashed var(--sky);border-left:3px solid var(--sky);background:var(--surface)}
+  .spot .lbl{color:var(--sky)}
+  .spot.is-ok{border-color:var(--moss)} .spot.is-ok .lbl{color:var(--moss)}
+  .spot.is-bad{border-color:var(--amber)} .spot.is-bad .lbl{color:var(--amber)}
+  .spot-q,.spot legend{margin:.15em 0 .75em;padding:0;color:var(--ink);font-size:1rem;line-height:1.7}
+  .spot fieldset{border:0;margin:0;padding:0;min-width:0}
+  .spot-opts{display:grid;gap:8px;margin:0 0 .8em}
+  .spot-opt{display:flex;gap:12px;align-items:flex-start;padding:9px 13px;min-height:44px;
+    border:1px solid var(--rule);border-radius:8px;background:var(--surface2);cursor:pointer;line-height:1.6}
+  .spot-opt:hover{border-color:var(--sky)}
+  .spot-opt input{margin:.42em 0 0;accent-color:var(--sky);flex:none;width:18px;height:18px}
+  .spot-opt.chosen{border-color:var(--sky);border-width:2px;padding:8px 12px}
+  .spot-opt.chosen.right{border-color:var(--moss)}
+  .spot-opt.chosen.wrong{border-color:var(--amber)}
+  .spot-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .spot-row label{font-family:var(--mono);font-size:.86rem;color:var(--cap)}
+  .spot-in,.spot select{font-family:var(--mono);font-size:1rem;color:var(--ink);background:var(--surface2);
+    border:1px solid var(--rule);border-radius:6px;padding:8px 10px;min-height:44px}
+  .spot-in{width:13em;max-width:100%}
+  .spot select{max-width:100%;margin:.15em .2em}
+  .spot-in[aria-invalid="true"],.spot select[aria-invalid="true"]{border:2px solid var(--amber)}
+  .spot-in[aria-invalid="false"],.spot select[aria-invalid="false"]{border:2px solid var(--moss)}
+  .spot-go,.spot-show{font-family:var(--mono);font-size:.88rem;background:transparent;border-radius:999px;
+    padding:8px 18px;min-height:44px;cursor:pointer}
+  .spot-go{color:var(--sky);border:1px solid var(--sky)}
+  .spot-go:hover{background:var(--sky);color:var(--bg)}
+  .spot-show{color:var(--cap);border:1px dashed var(--rule);margin-top:.7em}
+  .spot-show:hover{border-color:var(--sky);color:var(--ink)}
+  .spot-msg{margin-top:.85em;padding:10px 14px;border-left:3px solid var(--rule);border-radius:0 6px 6px 0;
+    background:var(--surface2);color:var(--ink);line-height:1.65}
+  .spot-msg.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 11%,var(--surface))}
+  .spot-msg.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 11%,var(--surface))}
+  .spot-msg.ans{border-left-color:var(--sky)}
+  .spot-msg > :last-child{margin-bottom:0}
+  .spot-tag{font-family:var(--mono);font-size:.86rem;font-weight:700;margin-right:.35em}
+  .spot-msg.ok .spot-tag{color:var(--moss)} .spot-msg.bad .spot-tag{color:var(--amber)}
+  .spot-msg.ans .spot-tag{color:var(--sky)}
+  .spot-help{font-family:var(--mono);font-size:.8rem;color:var(--cap);margin:.55em 0 0}
+  .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  /* narrow screens: wide tables and long equations scroll sideways ---- */
+  .tscroll{overflow-x:auto;max-width:100%;margin:1.2em 0;-webkit-overflow-scrolling:touch}
+  .tscroll:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+  .tscroll>table{margin:0}
+  mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;max-width:100%;padding:2px 0}
+  mjx-container[jax] > mjx-assistive-mml{width:1px !important;max-width:1px !important;height:1px !important;overflow:hidden !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Precalculus · Chapter 0</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Chapter 0<br>What you should know</h1>
+<p class="kicker">Not lectured &mdash; kept here for when the algebra bites</p>
+
+<figure class="toon">
+<svg viewBox="0 0 560 200" width="560" height="200" role="img" aria-labelledby="ch0t ch0d">
+<title id="ch0t">Cartoon: a confident claim about algebra</title><desc id="ch0d">One stick figure points confidently while a second throws up their arms at the equation (x + y) squared equals x squared plus y squared, which is crossed out.</desc>
+<defs><filter id="rough68" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="68" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough68)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="120.0" cy="124.0" r="11.0" /><path d="M 120.0 135.0 L 120.0 160.0" /><path d="M 120.0 140.0 L 107.0 158.0" /><path d="M 120.0 140.0 L 140.0 140.0" /><path d="M 120.0 160.0 L 109.0 184.0" /><path d="M 120.0 160.0 L 131.0 184.0" /><circle cx="470.0" cy="124.0" r="11.0" /><path d="M 470.0 135.0 L 470.0 160.0" /><path d="M 470.0 140.0 L 486.0 134.0" /><path d="M 470.0 140.0 L 454.0 134.0" /><path d="M 470.0 160.0 L 481.0 184.0" /><path d="M 470.0 160.0 L 459.0 184.0" /><rect x="210.0" y="16.0" width="186.6" height="34.0" rx="9" fill="var(--surface2)"/><path d="M 258.5 47.0 L 200.0 86.0 L 299.6 47.0" fill="var(--surface2)" stroke-width="1.6"/><path d="M 30 170 L 540 170" stroke-width="1.6"/><path d="M 300 100 L 340 130 M 340 100 L 300 130" stroke-width="3"/>
+</g>
+<text x="225.0" y="43.0" class="ctext">(x + y)² = x² + y²</text>
+</svg>
+<figcaption class="tooncap">the single most popular wrong equation in the world</figcaption></figure>
+
+<p>This chapter is the ground the rest of the course stands on. We will not spend class time on it. But every time a problem later in the semester goes wrong, there is a good chance the mistake happened here, in a step someone learned years ago and has not looked at since. Come back to this page when that happens. It is short on purpose.</p>
+
+<div class="box idea">
+<span class="lbl">idea</span>
+<p>Arithmetic asks <em>what is the answer?</em> Algebra asks <em>what is the rule?</em> Once you write \(x\) instead of a particular number, you stop solving one problem and start solving all problems of that shape at once. That move &mdash; from the instance to the pattern &mdash; is the single most powerful thing humans have ever done with symbols, and everything in this course is a consequence of it.</p>
+</div>
+
+<div class="toc">
+<strong class="mono">On this page</strong>
+<ol>
+<li><a href="#s1">Numbers and the structure they carry</a></li>
+<li><a href="#s2">Exponents and radicals</a></li>
+<li><a href="#s3">Polynomials: stacking tasks</a></li>
+<li><a href="#s4">Factoring, and the rectangle behind it</a></li>
+<li><a href="#s5">Rational expressions</a></li>
+<li><a href="#s6">Solving equations</a></li>
+<li><a href="#s7">Inequalities and absolute value</a></li>
+<li><a href="#s8">Where all this came from</a></li>
+<li><a href="#s9">Self-test</a></li>
+</ol>
+</div>
+
+<h2 id="s1">1. Numbers and the structure they carry</h2>
+
+<p>We count with the <strong>natural numbers</strong> \(1,2,3,\dots\). Allowing subtraction to always work gives the <strong>integers</strong>; allowing division to always work (except by zero) gives the <strong>rational numbers</strong>, the ratios \(a/b\). The rationals are not enough &mdash; \(\sqrt2\) and \(\pi\) are not ratios of whole numbers &mdash; and filling in every remaining gap gives the <strong>real numbers</strong> \(\mathbb{R}\). Chapter 1 takes that filling-in seriously; for now, a real number is anything with a decimal expansion.</p>
+
+<p>What makes algebra possible is not the numbers themselves but the rules they obey. There are only three that matter.</p>
+
+<div class="box def">
+<span class="lbl">definition</span>
+<p>For all real numbers \(a,b,c\):</p>
+<ul>
+<li><strong>Commutative:</strong> \(a+b=b+a\) and \(ab=ba\). Order does not matter.</li>
+<li><strong>Associative:</strong> \((a+b)+c=a+(b+c)\) and \((ab)c=a(bc)\). Grouping does not matter.</li>
+<li><strong>Distributive:</strong> \(a(b+c)=ab+ac\). This is the one that connects addition to multiplication, and it is the only interesting one.</li>
+</ul>
+</div>
+
+<p>Almost every algebraic manipulation you will ever do is the distributive law, used forwards or backwards. Used forwards it is called <em>expanding</em>. Used backwards it is called <em>factoring</em>. Nothing else is going on.</p>
+
+<div class="box ex">
+<span class="lbl">example 0.1</span>
+<p>Why is \(3\times 47\) easy to do in your head?</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Because \(47=40+7\), and the distributive law lets you split the job:
+$$3(40+7)=3\cdot 40+3\cdot 7=120+21=141.$$
+You already use the distributive law constantly. Algebra just gives it a name and lets you apply it to symbols you do not know the value of.</p>
+</div>
+</div>
+
+<h3>Fractions</h3>
+<p>The rules that get forgotten most often:</p>
+$$\frac{a}{b}+\frac{c}{d}=\frac{ad+bc}{bd},\qquad
+\frac{a}{b}\cdot\frac{c}{d}=\frac{ac}{bd},\qquad
+\frac{a/b}{c/d}=\frac{a}{b}\cdot\frac{d}{c}.$$
+
+<div class="box ex">
+<span class="lbl">example 0.2 &mdash; dividing by a fraction</span>
+<p>A recipe uses \(\tfrac34\) of a cup per batch, and there are \(5\) cups of flour in the bag. How many batches? Do it two ways: by reasoning, and by the rule.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>By reasoning: each cup holds one and a third three-quarter-cups, since \(\tfrac34+\tfrac14\) fills a cup and the leftover quarter is a third of another three-quarters. Five cups therefore hold \(5\times\tfrac43=\tfrac{20}{3}=6\tfrac23\) batches.</p>
+<p>By the rule: \(\dfrac{5}{3/4}=5\cdot\dfrac43=\dfrac{20}{3}\).</p>
+<p>The rule "invert and multiply" is not arbitrary. Dividing by \(\tfrac34\) asks <em>how many three-quarters fit</em>, and three-quarters is small, so the answer must be bigger than 5. If a division ever makes a number grow, check whether you were dividing by something less than 1 &mdash; usually you were.</p>
+</div>
+</div>
+
+<div class="box hist">
+<span class="lbl">a warning older than you</span>
+<p>\(\dfrac{a}{b+c}\) is <strong>not</strong> \(\dfrac{a}{b}+\dfrac{a}{c}\). Test it with \(a=1,b=c=1\): the left side is \(\tfrac12\), the right side is \(2\). Denominators do not distribute. If you take one thing from this page, take that.</p>
+</div>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp0_1q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp0_1q">Which of these equals \(\dfrac{6}{2+4}\)?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp0_1r" value="0" data-right> <span>\(1\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp0_1r" value="1"> <span>\(\dfrac62+\dfrac64=4.5\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp0_1r" value="2"> <span>\(3+\dfrac32\)</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\tfrac66=1\). Denominators never split.</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> That splits the denominator &mdash; exactly the move the warning box rules out. Do the bottom first: \(2+4=6\).</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> Still splitting the denominator in disguise. A fraction bar groups everything below it: work out \(2+4\) before dividing.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<h2 id="s2">2. Exponents and radicals</h2>
+
+<p>An exponent is a count of repeated multiplication, and every rule below is just bookkeeping on that count.</p>
+
+<div class="box def">
+<span class="lbl">definition</span>
+<p>For \(a\neq 0\) and integers \(m,n\):</p>
+$$a^ma^n=a^{m+n},\qquad \frac{a^m}{a^n}=a^{m-n},\qquad (a^m)^n=a^{mn},$$
+$$(ab)^n=a^nb^n,\qquad a^0=1,\qquad a^{-n}=\frac{1}{a^n}.$$
+</div>
+<div class="box spot" data-type="num" data-ans="4.0" role="group" aria-labelledby="sp0_2q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp0_2q">Write \(2^{5}\cdot2^{-3}\) as a single ordinary number.</p>
+<div class="spot-row"><label for="sp0_2i">your answer</label><input id="sp0_2i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp0_2q sp0_2h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp0_2h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(2^{5}\cdot2^{-3}=2^{2}=4\). The negative exponent did the dividing for you.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Same base, so add the exponents: \(5+(-3)=2\). Then \(2^{2}\) is&hellip;</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<p>Why should \(a^0=1\)? Because \(a^3/a^3=1\) and the subtraction rule says it is \(a^{0}\). The definition is not a decision made for fun; it is forced, if we want the rules to keep working. The same argument forces \(a^{-n}=1/a^n\). This is how mathematics grows: a rule is discovered in one setting, and then the setting is stretched to keep the rule true.</p>
+
+<p>Rational exponents extend the same idea: \(a^{1/n}=\sqrt[n]{a}\), so that \((a^{1/n})^n=a^{1}=a\), and \(a^{m/n}=\sqrt[n]{a^m}\).</p>
+<div class="box spot" data-type="num" data-ans="4.0" role="group" aria-labelledby="sp0_3q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp0_3q">Evaluate \(8^{2/3}\).</p>
+<div class="spot-row"><label for="sp0_3i">your answer</label><input id="sp0_3i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp0_3q sp0_3h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp0_3h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\sqrt[3]{8}=2\), and \(2^{2}=4\). Root first keeps the numbers small.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> The denominator is the root and the numerator is the power. Take the cube root of 8 first (it is a whole number), then square it.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 0.3</span>
+<p>Simplify \(\displaystyle \frac{(2x^{3}y^{-2})^{2}}{4x^{-1}y^{3}}\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Square the top first: \((2x^3y^{-2})^2 = 4x^{6}y^{-4}\). Now divide:
+$$\frac{4x^{6}y^{-4}}{4x^{-1}y^{3}} = x^{6-(-1)}y^{-4-3}=x^{7}y^{-7}=\frac{x^{7}}{y^{7}}.$$</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 0.4 &mdash; fractional exponents</span>
+<p>Evaluate \(16^{3/4}\) and \(125^{-2/3}\), and simplify \((8x^{6}y^{3})^{2/3}\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Read \(a^{m/n}\) as "take the \(n\)th root, then raise to the \(m\)th power" &mdash; always root first, because the numbers stay small.</p>
+<p>\(16^{3/4}=(\sqrt[4]{16})^{3}=2^{3}=8\).</p>
+<p>\(125^{-2/3}=\dfrac{1}{(\sqrt[3]{125})^{2}}=\dfrac{1}{25}\).</p>
+<p>\((8x^{6}y^{3})^{2/3}=8^{2/3}x^{4}y^{2}=4x^{4}y^{2}\).</p>
+<p>Fractional exponents are not a new idea bolted on; they are the only way to keep \(a^{m}a^{n}=a^{m+n}\) true once you allow roots. Chapter 3 takes the last step and asks what \(2^{\pi}\) could possibly mean.</p>
+</div>
+</div>
+
+<div class="box hist">
+<span class="lbl">two more traps</span>
+<p>\(\sqrt{a+b}\neq\sqrt a+\sqrt b\) (try \(a=b=9\): \(\sqrt{18}\approx 4.24\), not \(6\)), and \((a+b)^2\neq a^2+b^2\). Powers and roots do not distribute over sums. Only multiplication does.</p>
+</div>
+
+<h2 id="s3">3. Polynomials: stacking tasks</h2>
+
+<p>A <strong>polynomial</strong> is what you can build from a variable using only addition and multiplication:
+$$p(x)=a_nx^n+a_{n-1}x^{n-1}+\cdots+a_1x+a_0.$$
+That sounds restrictive. It is not. Think of \(x\) as a task you perform, and the polynomial as a schedule.</p>
+
+<div class="box idea">
+<span class="lbl">idea</span>
+<p>\(x^2\) is <em>do it, then do it again</em> &mdash; repetition, composition, one thing feeding into the next. \(3x\) is <em>do it three times side by side</em> &mdash; addition, parallel copies. A polynomial is any schedule of nested repetitions and parallel copies, with a fixed cost \(a_0\) you pay whatever happens. A delivery fee plus a per-mile rate plus a term that grows with the square of the distance because traffic gets worse: that is a polynomial, and so is almost every cost, area, volume, and trajectory you will meet.</p>
+</div>
+
+<p>Adding polynomials means combining like terms. Multiplying them means the distributive law applied until nothing is left in brackets. Three products are worth memorizing, because they will appear hundreds of times:</p>
+
+<div class="box thm">
+<span class="lbl">special products</span>
+$$(a+b)^2=a^2+2ab+b^2$$
+$$(a-b)^2=a^2-2ab+b^2$$
+$$(a+b)(a-b)=a^2-b^2$$
+</div>
+<div class="box spot" data-type="num" data-ans="10.0" role="group" aria-labelledby="sp0_4q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp0_4q">Expand \((x+5)^{2}\). What is the coefficient of \(x\)?</p>
+<div class="spot-row"><label for="sp0_4i">your answer</label><input id="sp0_4i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp0_4q sp0_4h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp0_4h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \((x+5)^{2}=x^{2}+10x+25\). Two rectangles of \(5x\) make \(10x\).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> This is the middle term \(2ab\) with \(a=x\) and \(b=5\) &mdash; the one everyone drops. In the square picture it is the two rectangles of area \(5x\).</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<p>The middle term \(2ab\) in the first one is the term everyone drops. The picture below is there so you never drop it again: the square of side \(a+b\) genuinely contains two rectangles of area \(ab\), and you can see them.</p>
+
+<figure>
+<svg viewBox="0 0 300 300" width="300" height="300" role="img" aria-labelledby="sqttl sqdsc">
+<title id="sqttl">Area proof that (a+b) squared equals a squared plus 2ab plus b squared</title>
+<desc id="sqdsc">A large square of side a plus b is cut into four pieces: a square of area a squared, two rectangles each of area a times b, and a small square of area b squared.</desc>
+<rect x="30" y="30" width="180" height="180" fill="#7fb0c4" fill-opacity="0.30" stroke="var(--axis)"/>
+<rect x="210" y="30" width="60" height="180" fill="#d7a54a" fill-opacity="0.30" stroke="var(--axis)"/>
+<rect x="30" y="210" width="180" height="60" fill="#d7a54a" fill-opacity="0.30" stroke="var(--axis)"/>
+<rect x="210" y="210" width="60" height="60" fill="#cd8ea6" fill-opacity="0.35" stroke="var(--axis)"/>
+<text class="lbltext" x="105" y="125">a&#178;</text>
+<text class="lbltext" x="230" y="125">ab</text>
+<text class="lbltext" x="110" y="245">ab</text>
+<text class="lbltext" x="232" y="245">b&#178;</text>
+<text class="axtext" x="112" y="22">a</text>
+<text class="axtext" x="236" y="22">b</text>
+<text class="axtext" x="16" y="125">a</text>
+<text class="axtext" x="16" y="245">b</text>
+</svg>
+<figcaption>The square on \(a+b\) splits into four pieces. Two of them are the same rectangle, which is where the \(2ab\) comes from.</figcaption>
+</figure>
+
+<div class="box ex">
+<span class="lbl">example 0.5 &mdash; arithmetic in your head</span>
+<p>Compute \(47\times 53\) and \(98^{2}\) without writing anything down.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(47\times53=(50-3)(50+3)=50^{2}-3^{2}=2500-9=2491\).</p>
+<p>\(98^{2}=(100-2)^{2}=10000-400+4=9604\).</p>
+<p>These are not party tricks. They are the special products read right to left, and the habit of looking for that structure &mdash; "is this a difference of squares in disguise?" &mdash; is exactly the habit that makes factoring feel like recognition rather than search.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 0.6 &mdash; multiplying polynomials</span>
+<p>Expand \((x+2)(x^{2}-3x+4)\) and \((2x-1)^{3}\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Distribute each term of the first over the whole second:
+$$x(x^{2}-3x+4)+2(x^{2}-3x+4)=x^{3}-3x^{2}+4x+2x^{2}-6x+8=x^{3}-x^{2}-2x+8.$$</p>
+<p>For the cube, square first and then multiply again:
+$$(2x-1)^{2}=4x^{2}-4x+1,\qquad (4x^{2}-4x+1)(2x-1)=8x^{3}-12x^{2}+6x-1.$$</p>
+<p>The degree of a product is the sum of the degrees, every time. That is worth knowing before you start: if the answer to the first part had not been a cubic, something went wrong.</p>
+</div>
+</div>
+
+<h2 id="s4">4. Factoring, and the rectangle behind it</h2>
+
+<p>Factoring is running multiplication backwards: given the expanded form, recover the pieces. It matters because a product tells you something a sum never can &mdash; if \(AB=0\), then \(A=0\) or \(B=0\). That is the only reliable way to solve an equation.</p>
+
+<p>The standard moves, in the order you should try them:</p>
+<ol>
+<li><strong>Common factor first, always.</strong> \(6x^3-9x^2=3x^2(2x-3)\).</li>
+<li><strong>Difference of squares.</strong> \(x^2-16=(x-4)(x+4)\).</li>
+<li><strong>Trinomials.</strong> For \(x^2+bx+c\), find two numbers multiplying to \(c\) and adding to \(b\).</li>
+<li><strong>Grouping</strong>, for four terms: \(x^3+2x^2+3x+6=x^2(x+2)+3(x+2)=(x^2+3)(x+2)\).</li>
+</ol>
+
+<p>Step 3 looks like guesswork. It is not. It is a rectangle.</p>
+
+<div class="widget">
+<h4>The rectangle behind a trinomial</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Move the two sliders. The rectangle has sides \(x+a\) and \(x+b\); its four pieces are the four terms of the expansion. Factoring \(x^2+bx+c\) means being handed the four areas and asked for the two side lengths.</p>
+<svg id="rectsvg" viewBox="0 0 320 280" width="320" height="280" role="img" aria-label="Interactive area model of a factored trinomial">
+  <rect id="rA" class="plot-bg" x="40" y="30" width="150" height="150" fill="#7fb0c4" fill-opacity="0.28" stroke="var(--axis)"/>
+  <rect id="rB" x="190" y="30" width="60" height="150" fill="#d7a54a" fill-opacity="0.28" stroke="var(--axis)"/>
+  <rect id="rC" x="40" y="180" width="150" height="60" fill="#d7a54a" fill-opacity="0.28" stroke="var(--axis)"/>
+  <rect id="rD" x="190" y="180" width="60" height="60" fill="#cd8ea6" fill-opacity="0.35" stroke="var(--axis)"/>
+  <text id="tA" class="lbltext" x="100" y="110">x&#178;</text>
+  <text id="tB" class="lbltext" x="205" y="110">ax</text>
+  <text id="tC" class="lbltext" x="100" y="215">bx</text>
+  <text id="tD" class="lbltext" x="205" y="215">ab</text>
+  <text id="topLbl" class="axtext" x="40" y="20">x + a</text>
+  <text id="sideLbl" class="axtext" x="4" y="120">x + b</text>
+  <text id="prodLbl" class="lbltext" x="40" y="268">(x+1)(x+1) = x&#178; + 2x + 1</text>
+</svg>
+<div class="ctrls">
+  <label for="sa">a = <span id="va" class="mono">1</span>
+    <input type="range" id="sa" min="1" max="6" step="1" value="1"></label>
+  <label for="sb">b = <span id="vb" class="mono">1</span>
+    <input type="range" id="sb" min="1" max="6" step="1" value="1"></label>
+</div>
+<p class="readout" role="status" aria-live="polite" id="rectOut">Sum of the two middle pieces: 1x + 1x = 2x. Corner piece: 1.</p>
+</div>
+<div class="box spot" data-type="list" data-ans="4.0|5.0" role="group" aria-labelledby="sp0_5q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp0_5q">Two numbers multiply to \(20\) and add to \(9\). What are they?</p>
+<div class="spot-row"><label for="sp0_5i">your answer</label><input id="sp0_5i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp0_5q sp0_5h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp0_5h">2 numbers, separated by a comma, in any order</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(4\) and \(5\), so \(x^{2}+9x+20=(x+4)(x+5)\).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> List the factor pairs of 20 &mdash; \(1\cdot20\), \(2\cdot10\), \(4\cdot5\) &mdash; and find the pair whose sum is 9.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div><div class="spot-msg bad" data-kind="count" hidden><span class="spot-tag">Count again.</span> This one wants exactly 2 numbers, separated by commas.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 0.7</span>
+<p>Factor \(x^2+7x+12\) and \(2x^2-5x-3\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>For the first: two numbers with product \(12\) and sum \(7\) are \(3\) and \(4\), so \(x^2+7x+12=(x+3)(x+4)\).</p>
+<p>For the second the leading coefficient is not 1, so look for two numbers with product \(2\cdot(-3)=-6\) and sum \(-5\): these are \(-6\) and \(1\). Split the middle term and group:
+$$2x^2-6x+x-3=2x(x-3)+1(x-3)=(2x+1)(x-3).$$</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 0.8 &mdash; when there are four terms</span>
+<p>Factor \(x^{3}+2x^{2}-9x-18\) completely.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Four terms with no common factor: group them in pairs and hope the leftovers match.
+$$x^{2}(x+2)-9(x+2)=(x^{2}-9)(x+2)=(x-3)(x+3)(x+2).$$</p>
+<p>The middle step is where people stop too early. \(x^{2}-9\) is a difference of squares, so it factors again. <em>Completely</em> means keep going until nothing left can be broken.</p>
+<p>Note what you have gained: the roots of this cubic are \(3,-3,-2\), read straight off. Finding roots is the reason factoring exists, and in Chapter 2 you will meet the far more common situation in which no factoring is possible at all &mdash; and a method for finding the roots anyway.</p>
+</div>
+</div>
+
+<h2 id="s5">5. Rational expressions</h2>
+
+<p>A rational expression is one polynomial over another. They behave exactly like fractions, with one extra hazard: the denominator may not be zero, and that restriction survives even after cancelling.</p>
+
+<div class="box ex">
+<span class="lbl">example 0.9</span>
+<p>Simplify \(\displaystyle \frac{x^2-9}{x^2+x-6}\) and state what \(x\) cannot be.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Factor both: \(\dfrac{(x-3)(x+3)}{(x+3)(x-2)}\). Cancel the common factor \(x+3\) to get \(\dfrac{x-3}{x-2}\).</p>
+<p>The original expression was undefined at \(x=-3\) and \(x=2\), and it still is. Cancelling changed the formula, not the domain &mdash; a distinction Chapter 1 will make into a habit.</p>
+</div>
+</div>
+
+<p>To add rational expressions, find a common denominator by factoring first &mdash; never by blindly multiplying the two denominators together.</p>
+
+<div class="box ex">
+<span class="lbl">example 0.10 &mdash; a common denominator worth finding</span>
+<p>Combine \(\dfrac{3}{x^{2}-1}+\dfrac{2}{x+1}\) into a single fraction.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Factor first: \(x^{2}-1=(x-1)(x+1)\). The common denominator is therefore \((x-1)(x+1)\) &mdash; not \((x^{2}-1)(x+1)\), which would be doing twice the work and then cancelling it back.
+$$\frac{3}{(x-1)(x+1)}+\frac{2(x-1)}{(x-1)(x+1)}=\frac{3+2x-2}{(x-1)(x+1)}=\frac{2x+1}{x^{2}-1}.$$</p>
+<p>Valid for \(x\neq\pm1\).</p>
+</div>
+</div>
+
+<h2 id="s6">6. Solving equations</h2>
+
+<p>Solving means peeling operations off the unknown, one at a time, doing the same thing to both sides. Two families cover most of what we need.</p>
+
+<h3>Linear</h3>
+<p>\(ax+b=c\) has exactly one solution, \(x=(c-b)/a\), as long as \(a\neq 0\). Geometrically: a straight line crosses a horizontal level exactly once unless it is parallel to it.</p>
+
+<h3>Quadratic</h3>
+<p>\(ax^2+bx+c=0\) can be attacked three ways: factoring (fast when it works), completing the square (always works, and explains everything), and the quadratic formula (which <em>is</em> completing the square, done once in general so you never have to do it again).</p>
+
+<div class="box thm">
+<span class="lbl">theorem</span>
+<p>If \(a\neq 0\), the solutions of \(ax^2+bx+c=0\) are
+$$x=\frac{-b\pm\sqrt{b^2-4ac}}{2a}.$$
+The quantity \(D=b^2-4ac\) is the <strong>discriminant</strong>: two real solutions if \(D&gt;0\), one if \(D=0\), none at all among the reals if \(D&lt;0\).</p>
+</div>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp0_6q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp0_6q">How many real solutions does \(x^{2}+4x+7=0\) have?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp0_6r" value="0"> <span>two</span></label>
+<label class="spot-opt"><input type="radio" name="sp0_6r" value="1"> <span>one</span></label>
+<label class="spot-opt"><input type="radio" name="sp0_6r" value="2" data-right> <span>none</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(D=16-28=-12&lt;0\), so the parabola never reaches the \(x\)-axis.</div><div class="spot-msg bad" data-kind="bad" data-opt="0" hidden><span class="spot-tag">Not quite.</span> Compute the discriminant before anything else: \(b^{2}-4ac=16-28\). What sign is that?</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> Exactly one solution needs \(b^{2}-4ac=0\). Here it is \(16-28\).</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 0.11</span>
+<p>Solve \(x^2-6x+4=0\) by completing the square, and check against the formula.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Move the constant: \(x^2-6x=-4\). Half of \(-6\) is \(-3\); its square is \(9\). Add \(9\) to both sides:
+$$x^2-6x+9=5 \quad\Longrightarrow\quad (x-3)^2=5 \quad\Longrightarrow\quad x=3\pm\sqrt5.$$
+The formula gives \(x=\dfrac{6\pm\sqrt{36-16}}{2}=\dfrac{6\pm\sqrt{20}}{2}=3\pm\sqrt5\). Same answer, because it is the same method.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 0.12 &mdash; an answer that is not one</span>
+<p>Solve \(\dfrac{2}{x-3}=\dfrac{x}{x-3}-1\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Multiply through by \(x-3\):
+$$2=x-(x-3)=3.$$
+That is false for every \(x\), so there is no solution at all. Worse things can happen: if the algebra had produced \(x=3\), we would have to throw it away, because \(x=3\) makes the original denominators zero and the equation meaningless.</p>
+<p>Multiplying both sides by something containing the unknown is the one algebraic move that can manufacture solutions out of nothing. Whenever you make it, check your answers against the <em>original</em> equation.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 0.13 &mdash; when the discriminant says no</span>
+<p>A ball thrown upward has height \(h(t)=-4.9t^{2}+12t+1.5\) metres after \(t\) seconds. Does it ever reach 12 metres?</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Set \(-4.9t^{2}+12t+1.5=12\), that is \(4.9t^{2}-12t+10.5=0\). The discriminant is
+$$D=144-4(4.9)(10.5)=144-205.8=-61.8&lt;0,$$
+so there are no real solutions: the ball never gets there. Its peak is lower than 12 m.</p>
+<figure>
+<svg viewBox="0 0 620 280" width="620" height="280" role="img" aria-labelledby="dsct dscd">
+<title id="dsct">A parabola that never reaches the target height</title><desc id="dscd">The height of a thrown ball plotted against time, peaking at about 8.85 metres, with a dashed horizontal line at 12 metres that the curve never touches.</desc>
+<rect x="64" y="22" width="536" height="206" class="plot-bg" stroke="var(--rule)"/><line x1="167.1" y1="22" x2="167.1" y2="228" class="gridline"/><line x1="270.2" y1="22" x2="270.2" y2="228" class="gridline"/><line x1="373.2" y1="22" x2="373.2" y2="228" class="gridline"/><line x1="476.3" y1="22" x2="476.3" y2="228" class="gridline"/><line x1="579.4" y1="22" x2="579.4" y2="228" class="gridline"/><line x1="64" y1="198.6" x2="600" y2="198.6" class="gridline"/><line x1="64" y1="169.1" x2="600" y2="169.1" class="gridline"/><line x1="64" y1="139.7" x2="600" y2="139.7" class="gridline"/><line x1="64" y1="110.3" x2="600" y2="110.3" class="gridline"/><line x1="64" y1="80.9" x2="600" y2="80.9" class="gridline"/><line x1="64" y1="51.4" x2="600" y2="51.4" class="gridline"/><line class="axis" x1="64" y1="228.0" x2="600" y2="228.0"/><line class="axis" x1="64.0" y1="22" x2="64.0" y2="228"/><line x1="64" y1="51.4" x2="600" y2="51.4" stroke="var(--rose)" stroke-width="2.5" stroke-dasharray="7 5"/><text x="420" y="52" class="axtext" fill="var(--rose)">the ball never reaches 12 m</text><polyline points="64.0,205.9 64.7,205.4 65.3,204.8 66.0,204.2 66.7,203.6 67.3,203.1 68.0,202.5 68.7,201.9 69.4,201.4 70.0,200.8 70.7,200.3 71.4,199.7 72.0,199.2 72.7,198.6 73.4,198.0 74.0,197.5 74.7,196.9 75.4,196.4 76.1,195.8 76.7,195.3 77.4,194.8 78.1,194.2 78.7,193.7 79.4,193.1 80.1,192.6 80.8,192.1 81.4,191.5 82.1,191.0 82.8,190.5 83.4,189.9 84.1,189.4 84.8,188.9 85.4,188.3 86.1,187.8 86.8,187.3 87.5,186.8 88.1,186.3 88.8,185.7 89.5,185.2 90.1,184.7 90.8,184.2 91.5,183.7 92.1,183.2 92.8,182.7 93.5,182.2 94.2,181.6 94.8,181.1 95.5,180.6 96.2,180.1 96.8,179.6 97.5,179.1 98.2,178.6 98.8,178.1 99.5,177.7 100.2,177.2 100.8,176.7 101.5,176.2 102.2,175.7 102.9,175.2 103.5,174.7 104.2,174.2 104.9,173.8 105.5,173.3 106.2,172.8 106.9,172.3 107.5,171.8 108.2,171.4 108.9,170.9 109.6,170.4 110.2,170.0 110.9,169.5 111.6,169.0 112.2,168.6 112.9,168.1 113.6,167.6 114.2,167.2 114.9,166.7 115.6,166.3 116.3,165.8 116.9,165.3 117.6,164.9 118.3,164.4 118.9,164.0 119.6,163.5 120.3,163.1 120.9,162.7 121.6,162.2 122.3,161.8 123.0,161.3 123.6,160.9 124.3,160.5 125.0,160.0 125.6,159.6 126.3,159.1 127.0,158.7 127.7,158.3 128.3,157.9 129.0,157.4 129.7,157.0 130.3,156.6 131.0,156.2 131.7,155.7 132.3,155.3 133.0,154.9 133.7,154.5 134.4,154.1 135.0,153.7 135.7,153.2 136.4,152.8 137.0,152.4 137.7,152.0 138.4,151.6 139.0,151.2 139.7,150.8 140.4,150.4 141.1,150.0 141.7,149.6 142.4,149.2 143.1,148.8 143.7,148.4 144.4,148.0 145.1,147.6 145.7,147.3 146.4,146.9 147.1,146.5 147.8,146.1 148.4,145.7 149.1,145.3 149.8,145.0 150.4,144.6 151.1,144.2 151.8,143.8 152.4,143.4 153.1,143.1 153.8,142.7 154.4,142.3 155.1,142.0 155.8,141.6 156.5,141.2 157.1,140.9 157.8,140.5 158.5,140.2 159.1,139.8 159.8,139.4 160.5,139.1 161.1,138.7 161.8,138.4 162.5,138.0 163.2,137.7 163.8,137.3 164.5,137.0 165.2,136.6 165.8,136.3 166.5,136.0 167.2,135.6 167.9,135.3 168.5,134.9 169.2,134.6 169.9,134.3 170.5,133.9 171.2,133.6 171.9,133.3 172.5,132.9 173.2,132.6 173.9,132.3 174.6,132.0 175.2,131.7 175.9,131.3 176.6,131.0 177.2,130.7 177.9,130.4 178.6,130.1 179.2,129.8 179.9,129.4 180.6,129.1 181.2,128.8 181.9,128.5 182.6,128.2 183.3,127.9 183.9,127.6 184.6,127.3 185.3,127.0 185.9,126.7 186.6,126.4 187.3,126.1 187.9,125.8 188.6,125.5 189.3,125.2 190.0,125.0 190.6,124.7 191.3,124.4 192.0,124.1 192.6,123.8 193.3,123.5 194.0,123.3 194.7,123.0 195.3,122.7 196.0,122.4 196.7,122.2 197.3,121.9 198.0,121.6 198.7,121.4 199.3,121.1 200.0,120.8 200.7,120.6 201.3,120.3 202.0,120.0 202.7,119.8 203.4,119.5 204.0,119.3 204.7,119.0 205.4,118.7 206.0,118.5 206.7,118.2 207.4,118.0 208.0,117.8 208.7,117.5 209.4,117.3 210.1,117.0 210.7,116.8 211.4,116.5 212.1,116.3 212.7,116.1 213.4,115.8 214.1,115.6 214.8,115.4 215.4,115.1 216.1,114.9 216.8,114.7 217.4,114.5 218.1,114.2 218.8,114.0 219.4,113.8 220.1,113.6 220.8,113.3 221.5,113.1 222.1,112.9 222.8,112.7 223.5,112.5 224.1,112.3 224.8,112.1 225.5,111.9 226.1,111.7 226.8,111.5 227.5,111.2 228.2,111.0 228.8,110.8 229.5,110.6 230.2,110.5 230.8,110.3 231.5,110.1 232.2,109.9 232.8,109.7 233.5,109.5 234.2,109.3 234.8,109.1 235.5,108.9 236.2,108.7 236.9,108.6 237.5,108.4 238.2,108.2 238.9,108.0 239.5,107.9 240.2,107.7 240.9,107.5 241.5,107.3 242.2,107.2 242.9,107.0 243.6,106.8 244.2,106.7 244.9,106.5 245.6,106.3 246.2,106.2 246.9,106.0 247.6,105.9 248.2,105.7 248.9,105.6 249.6,105.4 250.3,105.3 250.9,105.1 251.6,105.0 252.3,104.8 252.9,104.7 253.6,104.5 254.3,104.4 255.0,104.2 255.6,104.1 256.3,104.0 257.0,103.8 257.6,103.7 258.3,103.6 259.0,103.4 259.6,103.3 260.3,103.2 261.0,103.0 261.6,102.9 262.3,102.8 263.0,102.7 263.7,102.5 264.3,102.4 265.0,102.3 265.7,102.2 266.3,102.1 267.0,102.0 267.7,101.9 268.4,101.7 269.0,101.6 269.7,101.5 270.4,101.4 271.0,101.3 271.7,101.2 272.4,101.1 273.0,101.0 273.7,100.9 274.4,100.8 275.0,100.7 275.7,100.6 276.4,100.5 277.1,100.5 277.7,100.4 278.4,100.3 279.1,100.2 279.7,100.1 280.4,100.0 281.1,99.9 281.8,99.9 282.4,99.8 283.1,99.7 283.8,99.6 284.4,99.6 285.1,99.5 285.8,99.4 286.4,99.3 287.1,99.3 287.8,99.2 288.5,99.2 289.1,99.1 289.8,99.0 290.5,99.0 291.1,98.9 291.8,98.9 292.5,98.8 293.1,98.7 293.8,98.7 294.5,98.6 295.1,98.6 295.8,98.5 296.5,98.5 297.2,98.5 297.8,98.4 298.5,98.4 299.2,98.3 299.8,98.3 300.5,98.3 301.2,98.2 301.9,98.2 302.5,98.2 303.2,98.1 303.9,98.1 304.5,98.1 305.2,98.0 305.9,98.0 306.5,98.0 307.2,98.0 307.9,97.9 308.5,97.9 309.2,97.9 309.9,97.9 310.6,97.9 311.2,97.9 311.9,97.9 312.6,97.8 313.2,97.8 313.9,97.8 314.6,97.8 315.2,97.8 315.9,97.8 316.6,97.8 317.3,97.8 317.9,97.8 318.6,97.8 319.3,97.8 319.9,97.8 320.6,97.9 321.3,97.9 321.9,97.9 322.6,97.9 323.3,97.9 324.0,97.9 324.6,97.9 325.3,98.0 326.0,98.0 326.6,98.0 327.3,98.0 328.0,98.0 328.6,98.1 329.3,98.1 330.0,98.1 330.7,98.2 331.3,98.2 332.0,98.2 332.7,98.3 333.3,98.3 334.0,98.3 334.7,98.4 335.3,98.4 336.0,98.5 336.7,98.5 337.4,98.6 338.0,98.6 338.7,98.7 339.4,98.7 340.0,98.8 340.7,98.8 341.4,98.9 342.0,98.9 342.7,99.0 343.4,99.1 344.1,99.1 344.7,99.2 345.4,99.2 346.1,99.3 346.7,99.4 347.4,99.5 348.1,99.5 348.8,99.6 349.4,99.7 350.1,99.7 350.8,99.8 351.4,99.9 352.1,100.0 352.8,100.1 353.4,100.1 354.1,100.2 354.8,100.3 355.4,100.4 356.1,100.5 356.8,100.6 357.5,100.7 358.1,100.8 358.8,100.9 359.5,101.0 360.1,101.1 360.8,101.2 361.5,101.3 362.2,101.4 362.8,101.5 363.5,101.6 364.2,101.7 364.8,101.8 365.5,101.9 366.2,102.0 366.8,102.1 367.5,102.2 368.2,102.4 368.8,102.5 369.5,102.6 370.2,102.7 370.9,102.8 371.5,103.0 372.2,103.1 372.9,103.2 373.5,103.4 374.2,103.5 374.9,103.6 375.5,103.8 376.2,103.9 376.9,104.0 377.6,104.2 378.2,104.3 378.9,104.4 379.6,104.6 380.2,104.7 380.9,104.9 381.6,105.0 382.2,105.2 382.9,105.3 383.6,105.5 384.3,105.6 384.9,105.8 385.6,105.9 386.3,106.1 386.9,106.3 387.6,106.4 388.3,106.6 388.9,106.7 389.6,106.9 390.3,107.1 391.0,107.2 391.6,107.4 392.3,107.6 393.0,107.8 393.6,107.9 394.3,108.1 395.0,108.3 395.6,108.5 396.3,108.7 397.0,108.8 397.7,109.0 398.3,109.2 399.0,109.4 399.7,109.6 400.3,109.8 401.0,110.0 401.7,110.2 402.3,110.3 403.0,110.5 403.7,110.7 404.4,110.9 405.0,111.1 405.7,111.3 406.4,111.5 407.0,111.8 407.7,112.0 408.4,112.2 409.1,112.4 409.7,112.6 410.4,112.8 411.1,113.0 411.7,113.2 412.4,113.4 413.1,113.7 413.7,113.9 414.4,114.1 415.1,114.3 415.8,114.6 416.4,114.8 417.1,115.0 417.8,115.2 418.4,115.5 419.1,115.7 419.8,115.9 420.4,116.2 421.1,116.4 421.8,116.7 422.4,116.9 423.1,117.1 423.8,117.4 424.5,117.6 425.1,117.9 425.8,118.1 426.5,118.4 427.1,118.6 427.8,118.9 428.5,119.1 429.2,119.4 429.8,119.6 430.5,119.9 431.2,120.2 431.8,120.4 432.5,120.7 433.2,120.9 433.8,121.2 434.5,121.5 435.2,121.7 435.8,122.0 436.5,122.3 437.2,122.6 437.9,122.8 438.5,123.1 439.2,123.4 439.9,123.7 440.5,124.0 441.2,124.2 441.9,124.5 442.5,124.8 443.2,125.1 443.9,125.4 444.6,125.7 445.2,126.0 445.9,126.3 446.6,126.6 447.2,126.9 447.9,127.1 448.6,127.4 449.2,127.8 449.9,128.1 450.6,128.4 451.3,128.7 451.9,129.0 452.6,129.3 453.3,129.6 453.9,129.9 454.6,130.2 455.3,130.5 456.0,130.8 456.6,131.2 457.3,131.5 458.0,131.8 458.6,132.1 459.3,132.5 460.0,132.8 460.6,133.1 461.3,133.4 462.0,133.8 462.7,134.1 463.3,134.4 464.0,134.8 464.7,135.1 465.3,135.4 466.0,135.8 466.7,136.1 467.3,136.5 468.0,136.8 468.7,137.1 469.3,137.5 470.0,137.8 470.7,138.2 471.4,138.5 472.0,138.9 472.7,139.3 473.4,139.6 474.0,140.0 474.7,140.3 475.4,140.7 476.0,141.0 476.7,141.4 477.4,141.8 478.1,142.1 478.7,142.5 479.4,142.9 480.1,143.3 480.7,143.6 481.4,144.0 482.1,144.4 482.8,144.8 483.4,145.1 484.1,145.5 484.8,145.9 485.4,146.3 486.1,146.7 486.8,147.0 487.4,147.4 488.1,147.8 488.8,148.2 489.5,148.6 490.1,149.0 490.8,149.4 491.5,149.8 492.1,150.2 492.8,150.6 493.5,151.0 494.1,151.4 494.8,151.8 495.5,152.2 496.1,152.6 496.8,153.0 497.5,153.4 498.2,153.8 498.8,154.3 499.5,154.7 500.2,155.1 500.8,155.5 501.5,155.9 502.2,156.4 502.8,156.8 503.5,157.2 504.2,157.6 504.9,158.1 505.5,158.5 506.2,158.9 506.9,159.3 507.5,159.8 508.2,160.2 508.9,160.7 509.5,161.1 510.2,161.5 510.9,162.0 511.6,162.4 512.2,162.9 512.9,163.3 513.6,163.8 514.2,164.2 514.9,164.7 515.6,165.1 516.2,165.6 516.9,166.0 517.6,166.5 518.3,166.9 518.9,167.4 519.6,167.8 520.3,168.3 520.9,168.8 521.6,169.2 522.3,169.7 523.0,170.2 523.6,170.6 524.3,171.1 525.0,171.6 525.6,172.1 526.3,172.5 527.0,173.0 527.6,173.5 528.3,174.0 529.0,174.5 529.7,174.9 530.3,175.4 531.0,175.9 531.7,176.4 532.3,176.9 533.0,177.4 533.7,177.9 534.3,178.4 535.0,178.9 535.7,179.4 536.3,179.9 537.0,180.4 537.7,180.9 538.4,181.4 539.0,181.9 539.7,182.4 540.4,182.9 541.0,183.4 541.7,183.9 542.4,184.4 543.0,184.9 543.7,185.5 544.4,186.0 545.1,186.5 545.7,187.0 546.4,187.5 547.1,188.1 547.7,188.6 548.4,189.1 549.1,189.6 549.8,190.2 550.4,190.7 551.1,191.2 551.8,191.8 552.4,192.3 553.1,192.8 553.8,193.4 554.4,193.9 555.1,194.5 555.8,195.0 556.5,195.6 557.1,196.1 557.8,196.6 558.5,197.2 559.1,197.8 559.8,198.3 560.5,198.9 561.1,199.4 561.8,200.0 562.5,200.5 563.2,201.1 563.8,201.6 564.5,202.2 565.2,202.8 565.8,203.3 566.5,203.9 567.2,204.5 567.8,205.1 568.5,205.6 569.2,206.2 569.8,206.8 570.5,207.3 571.2,207.9 571.9,208.5 572.5,209.1 573.2,209.7 573.9,210.3 574.5,210.8 575.2,211.4 575.9,212.0 576.6,212.6 577.2,213.2 577.9,213.8 578.6,214.4 579.2,215.0 579.9,215.6 580.6,216.2 581.2,216.8 581.9,217.4 582.6,218.0 583.2,218.6 583.9,219.2 584.6,219.8 585.3,220.4 585.9,221.0 586.6,221.7 587.3,222.3 587.9,222.9 588.6,223.5 589.3,224.1 589.9,224.7 590.6,225.4 591.3,226.0 592.0,226.6 592.6,227.2 593.3,227.9" fill="none" stroke="var(--sky)" stroke-width="3"/><circle cx="316.4" cy="97.8" r="5.5" fill="var(--rose)"/><text x="324.4" y="89.8" class="axtext">peak 8.85 m</text><text x="167.1" y="250" class="axtext" text-anchor="middle">0.5</text><text x="270.2" y="250" class="axtext" text-anchor="middle">1</text><text x="373.2" y="250" class="axtext" text-anchor="middle">1.5</text><text x="476.3" y="250" class="axtext" text-anchor="middle">2</text><text x="579.4" y="250" class="axtext" text-anchor="middle">2.5</text><text x="56" y="173.1" class="axtext" text-anchor="end">4</text><text x="56" y="114.3" class="axtext" text-anchor="end">8</text><text x="56" y="55.4" class="axtext" text-anchor="end">12</text><text x="300" y="270" class="axtext" fill="var(--cap)" text-anchor="middle">time t (seconds)</text>
+</svg>
+<figcaption>A negative discriminant, drawn. The curve peaks at 8.85 m, so the equation \(h(t)=12\) has no real solution &mdash; there is simply no time at which the ball is that high.</figcaption>
+</figure>
+
+<p>The discriminant answered a physical question without our ever solving anything. That is the useful thing about it &mdash; it tells you whether an answer exists before you go looking, and "no real solution" is often the most informative result you can get.</p>
+</div>
+</div>
+
+<figure>
+<svg viewBox="0 0 620 250" width="620" height="250" role="img" aria-labelledby="csT csD">
+<title id="csT">Completing the square, drawn as a shape</title>
+<desc id="csD">On the left, a square of side x with two rectangles of width 3 attached to its right and bottom, forming an L-shape with a missing corner. On the right, the same figure with a three by three square added to fill the corner, making a complete square of side x plus three.</desc>
+<g>
+<rect x="40" y="40" width="120" height="120" fill="#7fb0c4" fill-opacity="0.28" stroke="var(--axis)"/>
+<rect x="160" y="40" width="45" height="120" fill="#d7a54a" fill-opacity="0.28" stroke="var(--axis)"/>
+<rect x="40" y="160" width="120" height="45" fill="#d7a54a" fill-opacity="0.28" stroke="var(--axis)"/>
+<rect x="160" y="160" width="45" height="45" fill="none" stroke="var(--rose)" stroke-width="2" stroke-dasharray="6 4"/>
+<text class="lbltext" x="88" y="106">x&#178;</text>
+<text class="lbltext" x="168" y="106">3x</text>
+<text class="lbltext" x="92" y="188">3x</text>
+<text class="axtext" x="166" y="188">?</text>
+<text class="axtext" x="40" y="230">x&#178; + 6x  — a corner is missing</text>
+<g transform="translate(330,0)">
+<rect x="40" y="40" width="120" height="120" fill="#7fb0c4" fill-opacity="0.28" stroke="var(--axis)"/>
+<rect x="160" y="40" width="45" height="120" fill="#d7a54a" fill-opacity="0.28" stroke="var(--axis)"/>
+<rect x="40" y="160" width="120" height="45" fill="#d7a54a" fill-opacity="0.28" stroke="var(--axis)"/>
+<rect x="160" y="160" width="45" height="45" fill="#cd8ea6" fill-opacity="0.4" stroke="var(--rose)" stroke-width="2"/>
+<text class="lbltext" x="88" y="106">x&#178;</text>
+<text class="lbltext" x="168" y="106">3x</text>
+<text class="lbltext" x="92" y="188">3x</text>
+<text class="lbltext" x="166" y="190">9</text>
+<text class="axtext" x="20" y="230">x&#178; + 6x + 9 = (x + 3)&#178;  — now it is a square</text>
+</g>
+</g>
+</svg>
+<figcaption>Why the recipe says to add the square of half the coefficient. Half of 6 is 3, the two rectangles are \(3x\) each, and the corner they leave empty is exactly \(3\times3\).</figcaption>
+</figure>
+
+<div class="box idea">
+<span class="lbl">idea</span>
+<p>"Completing the square" is not a metaphor. Look again at the picture in section 3. \(x^2+6x\) is a square of side \(x\) with two \(3\times x\) rectangles attached to its sides &mdash; an L-shape. To make it a genuine square you must fill in the missing \(3\times 3\) corner, which is why you add \(9\). The algebra is a literal description of a shape being completed. This is how the method was first found, and it is why it works.</p>
+</div>
+
+<h2 id="s7">7. Inequalities and absolute value</h2>
+
+<p>Inequalities follow the same rules as equations with one exception, and it is the exception that gets people: <strong>multiplying or dividing by a negative number reverses the inequality.</strong> \(-2x&lt;6\) gives \(x&gt;-3\).</p>
+<div class="box spot" data-type="sel" role="group" aria-labelledby="sp0_7q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp0_7q">Solving \(-3x&gt;12\) gives \(x\) <select aria-label="inequality sign" data-ans="0"><option value="">choose&hellip;</option><option value="0">&lt;</option><option value="1">&gt;</option><option value="2">≤</option><option value="3">≥</option></select> <select aria-label="boundary value" data-ans="1"><option value="">choose&hellip;</option><option value="0">−36</option><option value="1">−4</option><option value="2">4</option><option value="3">36</option></select>.</p>
+<div class="spot-row"><button type="button" class="spot-go">check</button></div>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(x&lt;-4\). Check with \(x=-5\): \(-3(-5)=15&gt;12\). &#10003;</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Divide both sides by \(-3\). Dividing by a negative number flips the inequality, and \(12\div(-3)=-4\).</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Fill every blank.</span> Choose something in each box, then check.</div></div>
+</div>
+
+
+<p>For a nonlinear inequality, do not divide &mdash; factor, find where each factor changes sign, and test one point in each resulting interval.</p>
+
+<div class="box ex">
+<span class="lbl">example 0.14</span>
+<p>Solve \(x^2-x-6&gt;0\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Factor: \((x-3)(x+2)&gt;0\). The factors vanish at \(x=-2\) and \(x=3\), splitting the line into three intervals. Test \(x=-3\): \((-6)(-1)=6&gt;0\), yes. Test \(x=0\): \((-3)(2)=-6\), no. Test \(x=4\): \((1)(6)=6&gt;0\), yes.</p>
+<p>Solution: \(x&lt;-2\) or \(x&gt;3\), written \((-\infty,-2)\cup(3,\infty)\).</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 0.15 &mdash; a sign chart with a denominator</span>
+<p>Solve \(\dfrac{x-1}{x+2}\ge 0\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Do not multiply by \(x+2\) &mdash; its sign is unknown, so you would not know whether to flip. Instead find where the expression can change sign: the numerator vanishes at \(x=1\), the denominator at \(x=-2\).</p>
+<p>Test one point in each region: at \(x=-3\), \(\frac{-4}{-1}=4&gt;0\) &#10003;. At \(x=0\), \(\frac{-1}{2}&lt;0\) &#10007;. At \(x=2\), \(\frac{1}{4}&gt;0\) &#10003;.</p>
+<p>So the solution is \((-\infty,-2)\cup[1,\infty)\). Note the bracket at 1, where the expression is zero and therefore allowed, and the round bracket at \(-2\), where it is undefined and never allowed no matter what the inequality says.</p>
+<figure>
+<svg viewBox="0 0 620 170" width="620" height="170" role="img" aria-labelledby="sgnt sgnd">
+<title id="sgnt">Sign chart for the rational inequality</title><desc id="sgnd">A number line from minus five to four. The stretch left of minus two and the stretch from one rightwards are shaded as positive; between them the expression is negative. Minus two is marked with an open circle because the expression is undefined there, and one with a filled circle because it is allowed.</desc>
+<rect x="64.0" y="40" width="178.7" height="70" fill="var(--moss)" fill-opacity="0.18"/><rect x="421.3" y="40" width="178.7" height="70" fill="var(--moss)" fill-opacity="0.18"/><rect x="242.7" y="40" width="178.7" height="70" fill="var(--rose)" fill-opacity="0.14"/><line class="axis" x1="64" y1="75.0" x2="600" y2="75.0"/><line x1="123.6" y1="68" x2="123.6" y2="82" stroke="var(--axis)"/><text x="124" y="100" class="axtext" text-anchor="middle">−4</text><line x1="183.1" y1="68" x2="183.1" y2="82" stroke="var(--axis)"/><text x="183" y="100" class="axtext" text-anchor="middle">−3</text><line x1="242.7" y1="68" x2="242.7" y2="82" stroke="var(--axis)"/><text x="243" y="100" class="axtext" text-anchor="middle">−2</text><line x1="302.2" y1="68" x2="302.2" y2="82" stroke="var(--axis)"/><text x="302" y="100" class="axtext" text-anchor="middle">−1</text><line x1="361.8" y1="68" x2="361.8" y2="82" stroke="var(--axis)"/><text x="362" y="100" class="axtext" text-anchor="middle">0</text><line x1="421.3" y1="68" x2="421.3" y2="82" stroke="var(--axis)"/><text x="421" y="100" class="axtext" text-anchor="middle">1</text><line x1="480.9" y1="68" x2="480.9" y2="82" stroke="var(--axis)"/><text x="481" y="100" class="axtext" text-anchor="middle">2</text><line x1="540.4" y1="68" x2="540.4" y2="82" stroke="var(--axis)"/><text x="540" y="100" class="axtext" text-anchor="middle">3</text><circle cx="242.7" cy="75" r="7" fill="none" stroke="var(--rose)" stroke-width="2.5"/><circle cx="421.3" cy="75" r="7" fill="var(--moss)"/><text x="243" y="34" class="axtext" fill="var(--rose)" text-anchor="middle">undefined</text><text x="421" y="34" class="axtext" fill="var(--moss)" text-anchor="middle">zero: allowed</text><text x="153" y="132" class="axtext" fill="var(--moss)" text-anchor="middle">positive ✓</text><text x="332" y="132" class="axtext" fill="var(--rose)" text-anchor="middle">negative ✗</text><text x="511" y="132" class="axtext" fill="var(--moss)" text-anchor="middle">positive ✓</text>
+</svg>
+<figcaption>The two places the expression can change sign split the line into three stretches, and one test value settles each. The open circle at \(-2\) is the whole reason the answer uses a round bracket there and a square bracket at \(1\).</figcaption>
+</figure>
+
+</div>
+</div>
+
+<p>The <strong>absolute value</strong> \(|a|\) is the distance from \(a\) to \(0\). Read every absolute value as a distance and these stop being memorization: \(|x-c|&lt;r\) says <em>\(x\) is within \(r\) of \(c\)</em>, which is the interval \((c-r,c+r)\).</p>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp0_8q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp0_8q">Which interval is described by \(|x-5|\le 2\)?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp0_8r" value="0" data-right> <span>\([3,7]\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp0_8r" value="1"> <span>\([-3,7]\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp0_8r" value="2"> <span>\([5,7]\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp0_8r" value="3"> <span>\((3,7)\)</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> Everything within 2 of 5, endpoints included: \([3,7]\).</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> Measure from 5, not from 0: the inequality says \(x\) is within 2 <em>of 5</em>.</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> Within 2 of 5 goes both ways &mdash; to the left of 5 as well as the right.</div><div class="spot-msg bad" data-kind="bad" data-opt="3" hidden><span class="spot-tag">Not quite.</span> The \(\le\) includes the endpoints, so the brackets should be square.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 0.16 &mdash; two cases, or one distance</span>
+<p>Solve \(|2x-1|=7\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>By cases: \(2x-1=7\) gives \(x=4\), and \(2x-1=-7\) gives \(x=-3\).</p>
+<p>By distance: divide inside by 2 first, \(2|x-\tfrac12|=7\), so \(|x-\tfrac12|=3.5\) &mdash; the points exactly \(3.5\) away from \(\tfrac12\), namely \(4\) and \(-3\). Same answers, and the second reading tells you in advance that there will be exactly two of them, symmetric about \(\tfrac12\).</p>
+</div>
+</div>
+
+<h2 id="s8">8. Where all this came from</h2>
+
+<div class="box hist">
+<span class="lbl">history</span>
+<p>None of the notation above is old. The Greeks did algebra in sentences and pictures; the Babylonians solved quadratics on clay tablets a thousand years before that, with recipes and no symbols at all.</p>
+<p>Around 820 CE, at the House of Wisdom in Baghdad, Muhammad ibn Musa <strong>al-Khwarizmi</strong> wrote a book whose title contains the phrase <em>al-jabr</em> &mdash; the restoring, the moving of a subtracted term to the other side. The word became <em>algebra</em>. His own name, run through Latin, became <em>algorithm</em>. His book contains no symbols whatsoever: every equation is a paragraph, and every solution is justified by a drawing of a square being completed.</p>
+<p>The same scholarly world carried the Hindu decimal numerals &mdash; including the zero, made a full-fledged number by Brahmagupta in India in 628 CE &mdash; west into the Mediterranean, where Fibonacci learned them from merchants in North Africa and argued for them in Europe in 1202. It took another three centuries for them to win. The symbols \(+\), \(-\), \(=\) and the use of letters for unknowns arrive only in the 1500s and 1600s, with Viete and Descartes.</p>
+<p>So the compact line \(x^2-6x+4=0\) is a piece of technology roughly four hundred years old, assembled from parts made in Baghdad, India, and Renaissance Europe. It feels like it was always there. It was not. You are reading the current draft.</p>
+</div>
+
+<h2 id="s9">9. Self-test</h2>
+
+<p>If you can do these without help, you are ready for Lecture 1. If one of them stops you, the relevant section is named beside it.</p>
+
+<div class="box exr">
+<span class="lbl">exercises</span>
+<ol>
+<li>Evaluate \(27^{-2/3}\) and simplify \(\left(3x^{-2}y^{4}\right)^{-2}\). <span class="mono" style="color:var(--muted)">(&sect;2)</span></li>
+<li>Show that \((a+b)^{2}-(a-b)^{2}=4ab\), and use it to compute \(51^{2}-49^{2}\) in your head. <span class="mono" style="color:var(--muted)">(&sect;3)</span></li>
+<li>Factor completely: \(x^{4}-81\), then \(6x^{2}+x-2\), then \(2x^{3}-x^{2}-18x+9\). <span class="mono" style="color:var(--muted)">(&sect;4)</span></li>
+<li>Write \(\dfrac{2}{x+1}-\dfrac{1}{x-1}\) as a single fraction and say where it is undefined. <span class="mono" style="color:var(--muted)">(&sect;5)</span></li>
+<li>Solve \(x(2x-3)=2\). <span class="mono" style="color:var(--muted)">(&sect;6)</span></li>
+<li>A rectangular plot has perimeter 34 m and area 60 m&#178;. Find its dimensions. <span class="mono" style="color:var(--muted)">(&sect;6)</span></li>
+<li>For what values of \(k\) does \(x^{2}+kx+9=0\) have exactly one solution? <span class="mono" style="color:var(--muted)">(&sect;6)</span></li>
+<li>Solve \(\dfrac{2x+1}{x-3}&lt;1\). Why can you not simply multiply both sides by \(x-3\)? <span class="mono" style="color:var(--muted)">(&sect;7)</span></li>
+<li>Solve \(|3-2x|\ge 5\) and describe the answer as a statement about distance. <span class="mono" style="color:var(--muted)">(&sect;7)</span></li>
+<li>A number is 3 more than twice its reciprocal. Find every such number. <span class="mono" style="color:var(--muted)">(&sect;5, &sect;6)</span></li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>\(27^{-2/3}=\dfrac{1}{(\sqrt[3]{27})^{2}}=\dfrac19\). &nbsp; \(\left(3x^{-2}y^{4}\right)^{-2}=3^{-2}x^{4}y^{-8}=\dfrac{x^{4}}{9y^{8}}\).</li>
+<li>Expanding, \((a^{2}+2ab+b^{2})-(a^{2}-2ab+b^{2})=4ab\). With \(a=50,b=1\): \(51^{2}-49^{2}=4(50)(1)=200\).</li>
+<li>\(x^{4}-81=(x^{2}-9)(x^{2}+9)=(x-3)(x+3)(x^{2}+9)\), and \(x^{2}+9\) does not factor further over the reals. &nbsp; \(6x^{2}+x-2=(3x+2)(2x-1)\). &nbsp; By grouping, \(x^{2}(2x-1)-9(2x-1)=(x^{2}-9)(2x-1)=(x-3)(x+3)(2x-1)\).</li>
+<li>\(\dfrac{2(x-1)-(x+1)}{(x+1)(x-1)}=\dfrac{x-3}{x^{2}-1}\), undefined at \(x=\pm1\).</li>
+<li>\(2x^{2}-3x-2=0\), so \((2x+1)(x-2)=0\) and \(x=-\tfrac12\) or \(x=2\).</li>
+<li>Half the perimeter is 17, so the sides \(a\) and \(b\) satisfy \(a+b=17\) and \(ab=60\). Then \(a(17-a)=60\), giving \(a^{2}-17a+60=0\) and \((a-5)(a-12)=0\): the plot is 5 m by 12 m.</li>
+<li>Exactly one solution means \(D=k^{2}-36=0\), so \(k=\pm6\). At \(k=6\) the equation is \((x+3)^{2}=0\), a genuine double root.</li>
+<li>Because the sign of \(x-3\) is unknown, and multiplying by a negative would flip the inequality. Move everything to one side instead: \(\dfrac{2x+1}{x-3}-1=\dfrac{x+4}{x-3}&lt;0\). Sign changes at \(-4\) and \(3\); testing gives \(-4&lt;x&lt;3\).</li>
+<li>\(|3-2x|=|2x-3|\ge5\) means \(2x-3\ge5\) or \(2x-3\le-5\), so \(x\ge4\) or \(x\le-1\). As distance: \(2|x-\tfrac32|\ge5\), so \(x\) is at least \(2.5\) away from \(\tfrac32\).</li>
+<li>\(x=3+\dfrac{2}{x}\) gives \(x^{2}-3x-2=0\) and \(x=\dfrac{3\pm\sqrt{17}}{2}\). Neither is rational, and neither can be discarded: both check out, and \(x=0\) was never a candidate since it has no reciprocal.</li>
+</ol>
+</div>
+</div>
+
+<hr>
+<p class="kicker">Next: Chapter 1, where a function stops being a formula and becomes a way of moving information from one place to another.</p>
+
+<script>
+(function(){
+  var sa=document.getElementById('sa'), sb=document.getElementById('sb');
+  if(!sa) return;
+  var U=25, base=150; // 150px = x
+  function upd(){
+    var a=+sa.value, b=+sb.value;
+    var w=a*U, h=b*U;
+    document.getElementById('va').textContent=a;
+    document.getElementById('vb').textContent=b;
+    document.getElementById('rB').setAttribute('width',w);
+    document.getElementById('rC').setAttribute('height',h);
+    document.getElementById('rD').setAttribute('width',w);
+    document.getElementById('rD').setAttribute('height',h);
+    document.getElementById('tB').setAttribute('x',190+w/2-9);
+    document.getElementById('tC').setAttribute('y',180+h/2+4);
+    document.getElementById('tD').setAttribute('x',190+w/2-9);
+    document.getElementById('tD').setAttribute('y',180+h/2+4);
+    document.getElementById('tB').textContent=a+'x';
+    document.getElementById('tC').textContent=b+'x';
+    document.getElementById('tD').textContent=(a*b);
+    document.getElementById('topLbl').textContent='x + '+a;
+    document.getElementById('sideLbl').textContent='x + '+b;
+    document.getElementById('prodLbl').textContent=
+      '(x+'+a+')(x+'+b+') = x\u00B2 + '+(a+b)+'x + '+(a*b);
+    document.getElementById('rectOut').textContent=
+      'Sum of the two middle pieces: '+a+'x + '+b+'x = '+(a+b)+'x.  Corner piece: '+(a*b)+'.';
+  }
+  sa.addEventListener('input',upd); sb.addEventListener('input',upd); upd();
+})();
+</script>
+</div>
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    b.textContent=open?'hide solution':'show solution';
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+<script>
+/* ===== spot checks: quick, self-marking questions ===== */
+(function(){
+  /* --- a small, safe arithmetic reader: 3/4, -2.5, 2pi/3, sqrt(3)/2, √2, 1e3, pi --- */
+  function tokens(s){
+    var t=[], re=/\s*(\d*\.\d+|\d+\.?\d*(?:e[+-]?\d+)?|[a-z]+|[-+*\/^()])/gy, m, i=0;
+    re.lastIndex=0;
+    while(re.lastIndex<s.length){
+      var at=re.lastIndex; m=re.exec(s);
+      if(!m||m.index!==at){ if(/^\s*$/.test(s.slice(at))) break; return null; }
+      t.push(m[1]);
+    }
+    return t;
+  }
+  function evaluate(src){
+    var s=String(src).toLowerCase()
+      .replace(/[−–—]/g,'-').replace(/[×·]/g,'*').replace(/÷/g,'/')
+      .replace(/π/g,'pi').replace(/√/g,'sqrt').replace(/[° ]/g,' ')
+      .replace(/^\s*[a-z]\w*\s*=\s*/,'').replace(/(\d),(?=\d{3}\b)/g,'$1');
+    var t=tokens(s); if(!t||!t.length) return NaN;
+    var k=0;
+    function peek(){return t[k];}
+    function next(){return t[k++];}
+    function starts(x){return x!==undefined&&(/^[a-z]/.test(x)||x==='(');}   /* 2pi, 3(2) — never 4 5 */
+    function expr(){var v=term(); while(peek()==='+'||peek()==='-'){var o=next(),w=term(); v=o==='+'?v+w:v-w;} return v;}
+    function term(){
+      var v=unary();
+      for(;;){
+        if(peek()==='*'){next(); v*=unary();}
+        else if(peek()==='/'){next(); v/=unary();}
+        else if(starts(peek())){ v*=power(); }        /* implicit: 2pi, 3sqrt(2) */
+        else return v;
+      }
+    }
+    function unary(){ if(peek()==='-'){next(); return -unary();} if(peek()==='+'){next(); return unary();} return power(); }
+    function power(){ var b=primary(); if(peek()==='^'){next(); return Math.pow(b,unary());} return b; }
+    function primary(){
+      var x=next();
+      if(x===undefined) throw 0;
+      if(x==='('){var v=expr(); if(next()!==')') throw 0; return v;}
+      if(/^[\d.]/.test(x)) return parseFloat(x);
+      if(x==='pi') return Math.PI;
+      if(x==='e') return Math.E;
+      if(x==='sqrt') return Math.sqrt(power());
+      throw 0;
+    }
+    try{ var v=expr(); return (k===t.length&&isFinite(v))?v:NaN; }catch(e){ return NaN; }
+  }
+  function close(a,b,tol){ return Math.abs(a-b)<=tol; }
+  function defaultTol(a){ return Math.max(0.005*Math.abs(a),0.005); }
+  function splitList(s){
+    return String(s).replace(/^[\s(\[⟨<{]+|[\s)\]⟩>}]+$/g,'')
+      .split(/\s*(?:,|;|\band\b|\bor\b)\s*/i).filter(function(x){return x.trim()!=='';});
+  }
+
+  /* exactly one message is visible at a time: ok, bad (generic or per option), read, count, pick, ans */
+  function show(box, which, opt){
+    var msgs=box.querySelectorAll('.spot-msg');
+    var specific=(which==='bad'&&opt!==undefined)?
+      box.querySelector('.spot-msg[data-kind="bad"][data-opt="'+opt+'"]'):null;
+    for(var i=0;i<msgs.length;i++){
+      var m=msgs[i];
+      m.hidden = !(m===specific || (!specific && m.getAttribute('data-kind')===which && !m.hasAttribute('data-opt')));
+    }
+    box.classList.toggle('is-ok', which==='ok');
+    box.classList.toggle('is-bad', which!=='ok' && which!=='ans');
+  }
+
+  function judge(box){
+    var type=box.getAttribute('data-type');
+    if(type==='mc'){
+      var picked=box.querySelector('input[type=radio]:checked');
+      if(!picked){ show(box,'pick'); return null; }
+      var opts=box.querySelectorAll('.spot-opt');
+      for(var i=0;i<opts.length;i++) opts[i].classList.remove('right','wrong');
+      var lab=picked.closest('.spot-opt'), ok=picked.hasAttribute('data-right');
+      lab.classList.add(ok?'right':'wrong');
+      show(box, ok?'ok':'bad', ok?undefined:picked.value);
+      return ok;
+    }
+    if(type==='sel'){
+      var sels=box.querySelectorAll('select'), all=true, any=false;
+      for(var j=0;j<sels.length;j++){
+        if(sels[j].value===''){ any=true; continue; }
+        var good=sels[j].value===sels[j].getAttribute('data-ans');
+        sels[j].setAttribute('aria-invalid', good?'false':'true');
+        if(!good) all=false;
+      }
+      if(any){ show(box,'pick'); return null; }
+      show(box, all?'ok':'bad'); return all;
+    }
+    var inp=box.querySelector('.spot-in'), raw=inp.value;
+    if(raw.trim()===''){ show(box,'read'); return null; }
+    if(type==='text'){
+      var norm=function(z){return String(z).toLowerCase().replace(/[\s.]/g,'');};
+      var ok2=box.getAttribute('data-ans').split('|').some(function(a){return norm(a)===norm(raw);});
+      inp.setAttribute('aria-invalid', ok2?'false':'true');
+      show(box, ok2?'ok':'bad'); return ok2;
+    }
+    var want=box.getAttribute('data-ans').split('|').map(Number);
+    var tol=box.hasAttribute('data-tol')?Number(box.getAttribute('data-tol')):null;
+    var got;
+    if(type==='list'){
+      got=splitList(raw).map(evaluate);
+      if(got.some(isNaN)){ inp.setAttribute('aria-invalid','true'); show(box,'read'); return null; }
+      if(got.length!==want.length){ inp.setAttribute('aria-invalid','true'); show(box,'count'); return false; }
+      var ordered=box.hasAttribute('data-ordered'), used=[], ok3=true;
+      for(var a=0;a<want.length;a++){
+        var tl=tol===null?defaultTol(want[a]):tol, hit=-1;
+        if(ordered){ if(close(got[a],want[a],tl)) hit=a; }
+        else for(var b=0;b<got.length;b++){ if(used.indexOf(b)<0&&close(got[b],want[a],tl)){hit=b;break;} }
+        if(hit<0){ok3=false;break;} used.push(hit);
+      }
+      inp.setAttribute('aria-invalid', ok3?'false':'true');
+      show(box, ok3?'ok':'bad'); return ok3;
+    }
+    var v=evaluate(raw);
+    if(isNaN(v)){ inp.setAttribute('aria-invalid','true'); show(box,'read'); return null; }
+    var ok4=close(v,want[0],tol===null?defaultTol(want[0]):tol);
+    inp.setAttribute('aria-invalid', ok4?'false':'true');
+    show(box, ok4?'ok':'bad'); return ok4;
+  }
+
+  var spots=document.querySelectorAll('.spot');
+  for(var n=0;n<spots.length;n++)(function(box){
+    var misses=0, go=box.querySelector('.spot-go'), reveal=box.querySelector('.spot-show');
+    function run(){
+      var r=judge(box);
+      if(r===false){ misses++; if(misses>=2&&reveal) reveal.hidden=false; }
+      if(r===true&&reveal) reveal.hidden=true;
+    }
+    go.addEventListener('click',run);
+    var inp=box.querySelector('.spot-in');
+    if(inp){
+      inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();run();} });
+      inp.addEventListener('input',function(){ inp.removeAttribute('aria-invalid'); box.classList.remove('is-ok','is-bad'); });
+    }
+    var radios=box.querySelectorAll('input[type=radio]');
+    for(var i=0;i<radios.length;i++) radios[i].addEventListener('change',function(){
+      var ls=box.querySelectorAll('.spot-opt');
+      for(var j=0;j<ls.length;j++) ls[j].classList.remove('chosen','right','wrong');
+      this.closest('.spot-opt').classList.add('chosen');
+      box.classList.remove('is-ok','is-bad');
+    });
+    var sels=box.querySelectorAll('select');
+    for(var s=0;s<sels.length;s++) sels[s].addEventListener('change',function(){
+      this.removeAttribute('aria-invalid'); box.classList.remove('is-ok','is-bad'); });
+    if(reveal) reveal.addEventListener('click',function(){
+      var a=box.querySelector('.spot-msg[data-kind="ans"]');
+      var msgs=box.querySelectorAll('.spot-msg'); for(var i=0;i<msgs.length;i++) msgs[i].hidden=true;
+      if(a) a.hidden=false; reveal.hidden=true;
+    });
+  })(spots[n]);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Lecture 13 — The Quantum Fourier Transform</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+  /* course additions, same family */
+  .crypto{border-left-color:var(--moss);background:var(--surface2)} .crypto .lbl{color:var(--moss)}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  dl.gloss dt{font-family:var(--mono);color:var(--sky);font-size:.95rem;margin-top:.9em}
+  dl.gloss dd{margin:.1em 0 0 1.1em}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<style id="spot-css">
+.spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+  border-radius:6px;padding:12px 16px;margin:1.3em 0;transition:background .25s,border-color .25s}
+.spot .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em;color:var(--sky)}
+.spot > p{margin:.35em 0}
+.spot .hint,.spot .why,.spot .oh{display:none}
+.spot .fb{display:none;margin:.55em 0 0;font-size:.97rem}
+.spot .fb > :first-child{margin-top:0}.spot .fb > :last-child{margin-bottom:0}
+.spot.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 13%,var(--surface))}
+.spot.ok .lbl{color:var(--moss)}
+.spot.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 13%,var(--surface))}
+.spot.bad .lbl{color:var(--amber)}
+.spot.ok .fb{display:block;color:var(--ink)} .spot.bad .fb{display:block;color:var(--ink)}
+.spot .fb .tag{font-family:var(--mono);font-size:.85rem;margin-right:.4em}
+.spot.ok .fb .tag{color:var(--moss)} .spot.bad .fb .tag{color:var(--amber)}
+.spot ul.opts{list-style:none;padding:0;margin:.5em 0}
+.spot ul.opts li{display:flex;gap:.6em;align-items:baseline;padding:4px 8px;margin:3px 0;border-radius:5px;cursor:pointer;
+  border:1px solid transparent}
+.spot ul.opts li:hover{border-color:var(--rule)}
+.spot ul.opts li input{accent-color:var(--sky);flex:none;margin:0;transform:translateY(1px)}
+.spot ul.opts li.right{border-color:var(--moss)}
+.spot .row{display:flex;flex-wrap:wrap;gap:.6em 1em;align-items:center;margin:.55em 0 .2em}
+.spot .row label{font-family:var(--mono);font-size:.88rem;color:var(--muted);display:flex;gap:.45em;align-items:center}
+.spot input.ans{font-family:var(--mono);font-size:.95rem;width:9.5em;max-width:100%;padding:5px 8px;border-radius:5px;
+  border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.spot input.ans:focus,.spot select:focus{outline:2px solid var(--sky);outline-offset:1px}
+.spot select{font-family:var(--mono);font-size:.9rem;padding:3px 6px;border-radius:5px;border:1px solid var(--rule);
+  background:var(--bg);color:var(--ink);max-width:100%}
+.spot .btns{display:flex;gap:.5em;flex-wrap:wrap;margin-top:.5em}
+.spot .btns button{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--sky);border:1px solid var(--sky);
+  padding:5px 12px;border-radius:999px;cursor:pointer}
+.spot .btns button:hover{background:var(--sky);color:var(--bg)}
+.spot .btns button.reveal{color:var(--muted);border-color:var(--rule)}
+.spot .btns button.reveal:hover{background:var(--rule);color:var(--ink)}
+.spot .fmt{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+@media print{.spot .btns,.spot .fmt{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Quantum Computation &amp; Cryptography · Lecture 13</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Lecture 13<br>The Quantum Fourier Transform</h1>
+<p class="kicker">Week 7 &nbsp;|&nbsp; the Fourier transform on 2<sup>n</sup> amplitudes with about n<sup>2</sup>/2 gates, and why that does not make it a fast FFT &nbsp;|&nbsp; reading: Watrous Ch. 7 (the QFT); de Wolf Ch. 4</p>
+
+<figure class="toon">
+<svg viewBox="0 0 600 210" width="600" height="210" role="img" aria-labelledby="c13t c13d">
+<title id="c13t">Cartoon: hearing the beat of a drum</title><desc id="c13d">A stick figure wearing headphones listens to a drummer hitting a drum at regular intervals, shown as evenly spaced marks along a timeline. A speech bubble says: I can't tell you every beat, but I can tell you the rhythm.</desc>
+<defs><filter id="rough1313" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="13" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough1313)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="80" cy="116" r="11"/><path d="M 68 112 Q 80 96 92 112" stroke="var(--sky)" stroke-width="3"/><path d="M 80 127 L 80 158"/><path d="M 80 134 L 66 152"/><path d="M 80 134 L 94 152"/><path d="M 80 158 L 69 186"/><path d="M 80 158 L 91 186"/>
+<circle cx="470" cy="116" r="11"/><path d="M 470 127 L 470 158"/><path d="M 470 134 L 444 140"/><path d="M 470 134 L 496 120"/><path d="M 470 158 L 459 186"/><path d="M 470 158 L 481 186"/>
+<ellipse cx="420" cy="150" rx="26" ry="8" fill="var(--surface2)"/><path d="M 394 150 L 394 176 Q 420 186 446 176 L 446 150"/>
+<path d="M 140 186 L 360 186" stroke-width="1.4"/>
+<path d="M 160 176 L 160 186 M 200 176 L 200 186 M 240 176 L 240 186 M 280 176 L 280 186 M 320 176 L 320 186" stroke="var(--rose)" stroke-width="3"/>
+<rect x="110" y="10" width="330" height="56" rx="9" fill="var(--surface2)"/><path d="M 130 64 L 86 98 L 156 64" fill="var(--surface2)" stroke-width="1.6"/>
+<path d="M 20 196 L 580 196" stroke-width="1.6"/>
+</g>
+<text x="124" y="34" class="ctext">I can't tell you every beat,</text><text x="124" y="54" class="ctext">but I can tell you the rhythm.</text>
+</svg>
+<figcaption class="tooncap">the QFT turns a hidden period into a measurable peak; it cannot hand you the whole spectrum</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">From the DFT to the QFT</a></li>
+<li><a href="#s2">The product formula</a></li>
+<li><a href="#s3">The circuit</a></li>
+<li><a href="#s4">What the QFT can and cannot do</a></li>
+<li><a href="#s5">The approximate QFT</a></li>
+<li><a href="#s6">Detecting periods</a></li>
+<li><a href="#s7">Try it in code</a></li>
+<li><a href="#s8">Summary and exercises</a></li>
+</ol>
+</div>
+
+<p>Simon's algorithm found a hidden XOR-period with the Hadamard transform. Shor's algorithm finds an ordinary period, \(f(x+r)=f(x)\) with integer addition, and for that it needs the Fourier transform over the integers mod \(N\). This lecture builds it. By the end you should be able to define the quantum Fourier transform, prove that it is unitary, state and use its product formula, build its circuit and count its gates, explain why it is not a faster FFT, and show how it turns a periodic state into peaks at multiples of \(N/r\).</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; From the DFT to the QFT</h2>
+
+<p>The discrete Fourier transform of a list \((a_0,\dots,a_{N-1})\) is the list \(b_y=\tfrac{1}{\sqrt N}\sum_x\omega^{xy}a_x\), where \(\omega=e^{2\pi i/N}\) is a primitive \(N\)-th root of unity. Engineers use it to find the frequencies hidden in a signal: a signal that repeats every \(r\) samples has a spectrum concentrated on multiples of \(N/r\). The quantum version applies the same matrix to the amplitudes of a state.</p>
+
+<div class="box def">
+<span class="lbl">definition 13.1 &mdash; quantum Fourier transform</span>
+<p>For \(N=2^n\) and \(\omega=e^{2\pi i/N}\), the <strong>quantum Fourier transform</strong> on \(n\) qubits is the linear map with</p>
+$$\mathrm{QFT}_N\,|x\rangle=\frac{1}{\sqrt N}\sum_{y=0}^{N-1}\omega^{xy}\,|y\rangle ,\qquad x=0,1,\dots,N-1 ,$$
+<p>where \(|x\rangle\) is the basis state whose bits are the binary digits of \(x\) (qubit \(j\) holds the \(2^j\) digit, as in Lecture 5). Its matrix has entry \(\omega^{xy}/\sqrt N\) in row \(y\), column \(x\).</p>
+</div>
+
+<div class="spot" data-kind="num" data-ans="3*pi/2" data-labels="φ" data-show="φ = 3π/2 ≈ 4.712 (the amplitude is −i/√8)">
+<p>In \(\mathrm{QFT}_8|2\rangle\), the amplitude of \(|3\rangle\) is \(\tfrac{1}{\sqrt8}e^{i\varphi}\) with \(0\le\varphi\lt2\pi\). Find \(\varphi\).</p>
+<div class="hint">By Definition 13.1 the amplitude is \(\omega^{xy}/\sqrt8\) with \(\omega=e^{2\pi i/8}\). Here \(xy=6\).</div>
+<div class="why">\(\omega^6=e^{2\pi i\cdot6/8}=e^{3\pi i/2}=-i\), so \(\varphi=\tfrac{3\pi}{2}\). Every amplitude has the same size; only the phase \(2\pi xy/N\) carries information.</div>
+</div>
+
+
+<p>For \(N=2\), \(\omega=-1\) and the matrix is \(\tfrac{1}{\sqrt2}\begin{pmatrix}1&1\\1&-1\end{pmatrix}=H\): the one-qubit QFT is the Hadamard gate. For larger \(N\) the QFT is not \(H^{\otimes n}\); the Hadamard transform of Lecture 9 is the Fourier transform for XOR, and the QFT is the one for addition mod \(N\).</p>
+
+<div class="box thm">
+<span class="lbl">proposition 13.1 &mdash; the QFT is unitary</span>
+<p>The columns of \(\mathrm{QFT}_N\) are orthonormal, so \(\mathrm{QFT}_N\) is unitary, and its inverse is \(\mathrm{QFT}_N^{-1}|y\rangle=\tfrac{1}{\sqrt N}\sum_x\omega^{-xy}|x\rangle\).</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>The inner product of columns \(x\) and \(x'\) is \(\tfrac1N\sum_y\overline{\omega^{xy}}\,\omega^{x'y}=\tfrac1N\sum_y\omega^{ky}\) with \(k=x'-x\). If \(k\equiv0\pmod N\) every term is 1 and the sum is \(N\). Otherwise \(\omega^k\neq1\), and the geometric series gives</p>
+$$\sum_{y=0}^{N-1}\big(\omega^k\big)^y=\frac{\omega^{kN}-1}{\omega^k-1}=0 ,$$
+<p>since \(\omega^{kN}=1\). (This is Lecture 2's fact that the \(N\)-th roots of unity, walked around the circle, return to the start.) So the columns are orthonormal. The inverse of a unitary is its conjugate transpose, whose entries are \(\overline{\omega^{xy}}/\sqrt N=\omega^{-xy}/\sqrt N\).</p>
+</div>
+</div>
+
+<div class="spot" data-kind="num" data-ans="7" data-labels="x">
+<p>By Proposition 13.1, \(\mathrm{QFT}_8^{-1}|1\rangle\) is equal to \(\mathrm{QFT}_8|x\rangle\) for exactly one \(x\in\{0,\dots,7\}\). Which?</p>
+<div class="hint">The inverse puts the phase \(\omega^{-y}\) on \(|y\rangle\). Which power \(\omega^{xy}\) equals \(\omega^{-y}\) for every \(y\), given \(\omega^8=1\)?</div>
+<div class="why">\(\omega^{-y}=\omega^{7y}\) because \(\omega^{8y}=1\), so \(\mathrm{QFT}_8^{-1}|1\rangle=\mathrm{QFT}_8|7\rangle\): the same winding, run backwards.</div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 13.1 &mdash; QFT|x&rangle; as a winding pattern, N = 8</span>
+<p>Describe \(\mathrm{QFT}_8|0\rangle\), \(\mathrm{QFT}_8|1\rangle\) and \(\mathrm{QFT}_8|3\rangle\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Every output amplitude has size \(1/\sqrt8\); only the phases differ. For \(x=0\) all phases are \(\omega^0=1\): \(\mathrm{QFT}|0\rangle\) is the uniform superposition, exactly like \(H^{\otimes3}|000\rangle\). For \(x=1\) the phase of \(|y\rangle\) is \(\omega^y\), which advances by one eighth of a turn per step of \(y\) and winds once around the circle as \(y\) runs from 0 to 7. For \(x=3\) the phase \(\omega^{3y}\) advances by three eighths per step and winds three times. In general \(\mathrm{QFT}|x\rangle\) is a "wave" of frequency \(x\).</p>
+</div>
+</div>
+
+<figure>
+<svg viewBox="0 0 720 270" width="720" height="270" role="img" aria-labelledby="pwt pwd"><title id="pwt">Phases of QFT|x> for N = 8 and x = 1, 3</title><desc id="pwd">Two rows of eight small circles, one per output y = 0 to 7. In each circle an arrow shows the phase of the amplitude of |y>, which is omega^(xy) with omega = e^(2 pi i/8). Top row, x = 1: the arrow turns by one eighth of a turn from each circle to the next, completing one full turn across the row. Bottom row, x = 3: it turns by three eighths each step, completing three turns. All amplitudes have the same size, 1/sqrt 8.</desc><rect x="0" y="0" width="720" height="270" rx="8" class="plot-bg"/><defs><marker id="pwA" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--rose)"/></marker></defs><text class="lbltext" x="20.0" y="85.0" text-anchor="start" style="fill:var(--sky)">x = 1</text><circle cx="120" cy="80" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="120" y1="80" x2="146.0" y2="80.0" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="120.0" y="44.0" text-anchor="middle">y = 0</text><text class="axtext" x="120.0" y="122.0" text-anchor="middle" style="fill:var(--muted)">0/8</text><circle cx="196" cy="80" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="196" y1="80" x2="214.4" y2="61.6" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="196.0" y="44.0" text-anchor="middle">y = 1</text><text class="axtext" x="196.0" y="122.0" text-anchor="middle" style="fill:var(--muted)">1/8</text><circle cx="272" cy="80" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="272" y1="80" x2="272.0" y2="54.0" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="272.0" y="44.0" text-anchor="middle">y = 2</text><text class="axtext" x="272.0" y="122.0" text-anchor="middle" style="fill:var(--muted)">2/8</text><circle cx="348" cy="80" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="348" y1="80" x2="329.6" y2="61.6" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="348.0" y="44.0" text-anchor="middle">y = 3</text><text class="axtext" x="348.0" y="122.0" text-anchor="middle" style="fill:var(--muted)">3/8</text><circle cx="424" cy="80" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="424" y1="80" x2="398.0" y2="80.0" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="424.0" y="44.0" text-anchor="middle">y = 4</text><text class="axtext" x="424.0" y="122.0" text-anchor="middle" style="fill:var(--muted)">4/8</text><circle cx="500" cy="80" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="500" y1="80" x2="481.6" y2="98.4" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="500.0" y="44.0" text-anchor="middle">y = 5</text><text class="axtext" x="500.0" y="122.0" text-anchor="middle" style="fill:var(--muted)">5/8</text><circle cx="576" cy="80" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="576" y1="80" x2="576.0" y2="106.0" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="576.0" y="44.0" text-anchor="middle">y = 6</text><text class="axtext" x="576.0" y="122.0" text-anchor="middle" style="fill:var(--muted)">6/8</text><circle cx="652" cy="80" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="652" y1="80" x2="670.4" y2="98.4" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="652.0" y="44.0" text-anchor="middle">y = 7</text><text class="axtext" x="652.0" y="122.0" text-anchor="middle" style="fill:var(--muted)">7/8</text><text class="lbltext" x="20.0" y="195.0" text-anchor="start" style="fill:var(--sky)">x = 3</text><circle cx="120" cy="190" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="120" y1="190" x2="146.0" y2="190.0" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="120.0" y="232.0" text-anchor="middle" style="fill:var(--muted)">0/8</text><circle cx="196" cy="190" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="196" y1="190" x2="177.6" y2="171.6" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="196.0" y="232.0" text-anchor="middle" style="fill:var(--muted)">3/8</text><circle cx="272" cy="190" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="272" y1="190" x2="272.0" y2="216.0" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="272.0" y="232.0" text-anchor="middle" style="fill:var(--muted)">6/8</text><circle cx="348" cy="190" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="348" y1="190" x2="366.4" y2="171.6" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="348.0" y="232.0" text-anchor="middle" style="fill:var(--muted)">1/8</text><circle cx="424" cy="190" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="424" y1="190" x2="398.0" y2="190.0" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="424.0" y="232.0" text-anchor="middle" style="fill:var(--muted)">4/8</text><circle cx="500" cy="190" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="500" y1="190" x2="518.4" y2="208.4" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="500.0" y="232.0" text-anchor="middle" style="fill:var(--muted)">7/8</text><circle cx="576" cy="190" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="576" y1="190" x2="576.0" y2="164.0" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="576.0" y="232.0" text-anchor="middle" style="fill:var(--muted)">2/8</text><circle cx="652" cy="190" r="26" fill="none" stroke="var(--axis)" stroke-width="1.2"/><line x1="652" y1="190" x2="633.6" y2="208.4" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pwA)"/><text class="axtext" x="652.0" y="232.0" text-anchor="middle" style="fill:var(--muted)">5/8</text><text class="axtext" x="360.0" y="260.0" text-anchor="middle">arrow angle = (xy mod 8)/8 of a full turn; every amplitude has size 1/sqrt8</text></svg>
+<figcaption>Example 13.1: the phase of each amplitude of \(\mathrm{QFT}_8|x\rangle\), drawn as an arrow. Input \(x\) becomes a pattern that winds \(x\) times around the circle as \(y\) goes from 0 to 7.</figcaption>
+</figure>
+
+<div class="widget">
+<h4>Phase wheels</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Choose \(N\) and an input \(x\). Each wheel shows the phase of the amplitude of \(|y\rangle\) in \(\mathrm{QFT}_N|x\rangle\); all amplitudes have size \(1/\sqrt N\). Try \(x=N/2\): every other arrow points backwards.</p>
+<svg id="pwSvg" viewBox="0 0 600 170" width="600" height="170" role="img" aria-label="Phase of each output amplitude of the QFT of a basis state"></svg>
+<div class="ctrls" id="pwN"></div>
+<div class="ctrls"><label><span>input x = <span id="pwXv">1</span></span><input type="range" id="pwX" min="0" max="7" step="1" value="1"></label></div>
+<p class="readout" role="status" aria-live="polite" id="pwOut"></p>
+</div>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; The product formula</h2>
+
+<p>The QFT of a basis state is not entangled: it is a product of single-qubit states. That fact is what makes it cheap to implement. We write \(e^{2\pi i\,x/2^k}\) for the phase that a full turn, divided into \(2^k\) parts, reaches after \(x\) steps; it depends only on the last \(k\) bits of \(x\), since adding multiples of \(2^k\) to \(x\) adds whole turns.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 13.2 &mdash; product formula</span>
+<p>For \(N=2^n\) and every \(x\),</p>
+$$\begin{aligned}\mathrm{QFT}_N|x\rangle=\;&\frac{|0\rangle+e^{2\pi i\,x/2}|1\rangle}{\sqrt2}\otimes\frac{|0\rangle+e^{2\pi i\,x/4}|1\rangle}{\sqrt2}\\[4pt] &\otimes\cdots\otimes\frac{|0\rangle+e^{2\pi i\,x/2^n}|1\rangle}{\sqrt2},\end{aligned}$$
+<p>with the factors in ket order: the leftmost is qubit \(n-1\) and the rightmost is qubit 0. So output qubit \(j\) is in the state \(\tfrac{1}{\sqrt2}\big(|0\rangle+e^{2\pi i\,x/2^{n-j}}|1\rangle\big)\).</p>
+<p><em>Proof.</em> HW7 asks you to derive this for \(n=3\); Example 13.2 does \(n=2\). The idea: write \(y=\sum_jy_j2^j\), so \(\omega^{xy}=\prod_j\omega^{xy_j2^j}\), and the sum over \(y\) splits into a product of sums over each bit \(y_j\).</p>
+</div>
+
+<div class="spot" data-kind="select">
+<p>By Theorem 13.2, in \(\mathrm{QFT}_8|5\rangle\) qubit 2 is in the state
+<select><option data-hint="Qubit 2 gets the phase e^(2πi·x/2) = (−1)^x, and x = 5 is odd.">|+⟩</option><option data-ok>|−⟩</option><option data-hint="Qubit 2 is the leftmost factor, with phase e^(2πi·x/2). Is that ±1 or ±i for x = 5?">|+i⟩</option></select>
+and qubit 1 is in the state
+<select><option data-hint="Qubit 1 gets e^(2πi·x/4); for x = 5 that is a quarter turn, not a half turn.">|−⟩</option><option data-ok>|+i⟩</option><option data-hint="e^(2πi·5/4) = e^(iπ/2) = +i, not −i.">|−i⟩</option></select>.</p>
+<div class="hint">Qubit \(j\) carries the phase \(e^{2\pi i\,x/2^{n-j}}\) on its \(|1\rangle\): with \(n=3\), qubit 2 uses \(x/2\) and qubit 1 uses \(x/4\).</div>
+<div class="why">\(e^{2\pi i\cdot5/2}=-1\) gives \(|-\rangle\) on qubit 2 and \(e^{2\pi i\cdot5/4}=i\) gives \(|{+i}\rangle\) on qubit 1. Qubit 0 gets \(e^{2\pi i\cdot5/8}\), which is not a cardinal state.</div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 13.2 &mdash; the product formula for n = 2</span>
+<p>Show that \(\mathrm{QFT}_4|x\rangle=\tfrac{1}{\sqrt2}\big(|0\rangle+(-1)^{x_0}|1\rangle\big)\otimes\tfrac{1}{\sqrt2}\big(|0\rangle+i^{x}|1\rangle\big)\), where \(x=2x_1+x_0\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Here \(\omega=i\). Write \(y=2y_1+y_0\), so \(\omega^{xy}=i^{2xy_1}\,i^{xy_0}=(-1)^{xy_1}\,i^{xy_0}\). Then</p>
+$$\begin{aligned}\mathrm{QFT}_4|x\rangle&=\frac12\sum_{y_1,y_0}(-1)^{xy_1}i^{xy_0}\,|y_1\rangle|y_0\rangle\\[4pt] &=\Big(\frac{1}{\sqrt2}\sum_{y_1}(-1)^{xy_1}|y_1\rangle\Big)\otimes\Big(\frac{1}{\sqrt2}\sum_{y_0}i^{xy_0}|y_0\rangle\Big).\end{aligned}$$
+<p>Finally \((-1)^x=(-1)^{x_0}\), because \(2x_1\) is even. The left factor (qubit 1) depends only on the last bit of \(x\), and the right factor (qubit 0) on all of \(x\), matching Theorem 13.2: \(e^{2\pi ix/2}=(-1)^x\) and \(e^{2\pi ix/4}=i^x\).</p>
+</div>
+</div>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; The circuit</h2>
+
+<p>Theorem 13.2 says that each output qubit needs the phase \(e^{2\pi ix/2^k}\) on its \(|1\rangle\) part for one value of \(k\). Expanding \(x=\sum_jx_j2^j\), that phase is a product of factors \(e^{2\pi i\,x_j2^j/2^k}\), one for each input bit \(j\lt k\). The circuit creates them with one Hadamard and a ladder of <strong>controlled phase</strong> gates \(CP(\varphi)=\mathrm{diag}(1,1,1,e^{i\varphi})\), which multiply \(|11\rangle\) by \(e^{i\varphi}\) and, like CZ, have no preferred control.</p>
+
+<figure>
+<svg viewBox="0 0 780 230" width="780" height="230" role="img" aria-labelledby="qc3t qc3d"><title id="qc3t">The QFT circuit for n = 3</title><desc id="qc3d">Three wires, q0 on top. The circuit applies H to q2, then a controlled phase P(pi/2) between q1 and q2 and a controlled phase P(pi/4) between q0 and q2; then H to q1 and P(pi/2) between q0 and q1; then H to q0; finally a SWAP of q0 and q2. After the swap, q0 holds |0> + e^(2 pi i x/8)|1>, q1 holds |0> + e^(2 pi i x/4)|1> and q2 holds |0> + e^(2 pi i x/2)|1>, each up to a factor 1/sqrt2.</desc><rect x="0" y="0" width="780" height="230" rx="8" class="plot-bg"/><text class="axtext" x="14.0" y="55.0" text-anchor="start" style="fill:var(--sky)">q0</text><text class="lbltext" x="44.0" y="55.0" text-anchor="start">|x0&gt;</text><line x1="84" y1="50" x2="590" y2="50" stroke="var(--ink)" stroke-width="2"/><text class="axtext" x="14.0" y="115.0" text-anchor="start" style="fill:var(--sky)">q1</text><text class="lbltext" x="44.0" y="115.0" text-anchor="start">|x1&gt;</text><line x1="84" y1="110" x2="590" y2="110" stroke="var(--ink)" stroke-width="2"/><text class="axtext" x="14.0" y="175.0" text-anchor="start" style="fill:var(--sky)">q2</text><text class="lbltext" x="44.0" y="175.0" text-anchor="start">|x2&gt;</text><line x1="84" y1="170" x2="590" y2="170" stroke="var(--ink)" stroke-width="2"/><rect x="102.0" y="153.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="120.0" y="175.0" text-anchor="middle" style="fill:var(--amber)">H</text><line x1="190" y1="110" x2="190" y2="170" stroke="var(--rose)" stroke-width="2"/><circle cx="190" cy="110" r="6" fill="var(--rose)"/><circle cx="190" cy="170" r="6" fill="var(--rose)"/><text class="axtext" x="198.0" y="144.0" text-anchor="start" style="fill:var(--rose)">P(pi/2)</text><line x1="260" y1="50" x2="260" y2="170" stroke="var(--rose)" stroke-width="2"/><circle cx="260" cy="50" r="6" fill="var(--rose)"/><circle cx="260" cy="170" r="6" fill="var(--rose)"/><text class="axtext" x="268.0" y="84.0" text-anchor="start" style="fill:var(--rose)">P(pi/4)</text><line x1="430" y1="50" x2="430" y2="110" stroke="var(--rose)" stroke-width="2"/><circle cx="430" cy="50" r="6" fill="var(--rose)"/><circle cx="430" cy="110" r="6" fill="var(--rose)"/><text class="axtext" x="438.0" y="84.0" text-anchor="start" style="fill:var(--rose)">P(pi/2)</text><rect x="352.0" y="93.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="370.0" y="115.0" text-anchor="middle" style="fill:var(--amber)">H</text><rect x="487.0" y="33.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="505.0" y="55.0" text-anchor="middle" style="fill:var(--amber)">H</text><line x1="560" y1="50" x2="560" y2="170" stroke="var(--moss)" stroke-width="2"/><path d="M552,42 L568,58 M552,58 L568,42" stroke="var(--moss)" stroke-width="2.4"/><path d="M552,162 L568,178 M552,178 L568,162" stroke="var(--moss)" stroke-width="2.4"/><text class="axtext" x="600.0" y="55.0" text-anchor="start">|0&gt; + e^(2pi i x/8)|1&gt;</text><text class="axtext" x="600.0" y="115.0" text-anchor="start">|0&gt; + e^(2pi i x/4)|1&gt;</text><text class="axtext" x="600.0" y="175.0" text-anchor="start">|0&gt; + e^(2pi i x/2)|1&gt;</text><text class="axtext" x="330.0" y="218.0" text-anchor="middle">3 H + 3 controlled phases + 1 SWAP;  outputs shown up to the factor 1/sqrt2 each</text></svg>
+<figcaption>The QFT on three qubits. \(H\) on \(q_2\) puts \(e^{2\pi i\,x_2/2}\) on its \(|1\rangle\) part; the controlled phases \(P(\pi/2)\) and \(P(\pi/4)\) from \(q_1\) and \(q_0\) add \(e^{2\pi i\,x_1/4}\) and \(e^{2\pi i\,x_0/8}\). So \(q_2\) ends with the phase \(e^{2\pi ix/8}\), the factor that belongs on qubit 0. The final SWAP puts the factors in the right order.</figcaption>
+</figure>
+
+<div class="box thm">
+<span class="lbl">theorem 13.3 &mdash; the QFT circuit</span>
+<p>For \(j=n-1,n-2,\dots,0\): apply \(H\) to qubit \(j\), then for each \(k\lt j\) a controlled phase \(CP(\pi/2^{\,j-k})\) between qubits \(k\) and \(j\). Finally reverse the order of the qubits with \(\lfloor n/2\rfloor\) SWAPs. This circuit implements \(\mathrm{QFT}_{2^n}\) with \(n\) Hadamards and \(n(n-1)/2\) controlled phases: \(n(n+1)/2\) gates, plus the SWAPs, which a compiler can often absorb by relabelling qubits.</p>
+<button class="sol-btn">show why it works</button>
+<div class="sol">
+<p>When \(H\) acts on qubit \(j\), that qubit still holds \(x_j\), and \(H|x_j\rangle=\tfrac{1}{\sqrt2}(|0\rangle+e^{2\pi i\,x_j2^j/2^{j+1}}|1\rangle)\) because \(e^{\pi ix_j}=(-1)^{x_j}\). Each \(CP(\pi/2^{\,j-k})\) controlled by qubit \(k\), which still holds \(x_k\), multiplies the \(|1\rangle\) part by \(e^{i\pi x_k/2^{j-k}}=e^{2\pi i\,x_k2^k/2^{j+1}}\). After the ladder, qubit \(j\) carries \(\prod_{k\le j}e^{2\pi i\,x_k2^k/2^{j+1}}=e^{2\pi i\,x/2^{j+1}}\), using that only the bits of \(x\) below \(2^{j+1}\) matter. Qubits below \(j\) have not been touched yet, so they still hold their bits when their turn comes. Qubit \(j\) now holds the factor that Theorem 13.2 assigns to qubit \(n-1-j\); the SWAPs move each factor to its place. (verify_L13.py also checks the circuit against the matrix for \(n\le5\).)</p>
+</div>
+</div>
+
+<div class="spot" data-kind="num" data-ans="36|4" data-labels="controlled phases|SWAPs" data-tol="0.01">
+<p>How many controlled phases and how many SWAPs does the circuit of Theorem 13.3 use for \(n=9\) qubits?</p>
+<div class="hint">Qubit \(j\) receives one controlled phase from each lower qubit \(k\lt j\); add these up. Reversing 9 qubits swaps them in pairs.</div>
+<div class="why">\(0+1+\dots+8=9\cdot8/2=36\) controlled phases and \(\lfloor9/2\rfloor=4\) SWAPs (the middle qubit stays put), plus 9 Hadamards.</div>
+</div>
+
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; What the QFT can and cannot do</h2>
+
+<p>The classical fast Fourier transform computes the DFT of \(N=2^n\) numbers with about \(N\log_2N=n2^n\) arithmetic operations. The QFT uses about \(n^2/2\) gates. The gap is exponential:</p>
+
+<table>
+<tr><th>\(n\)</th><th>\(N=2^n\)</th><th>QFT gates \(n(n+1)/2\)</th><th>FFT operations \(\approx n2^n\)</th></tr>
+<tr><td>10</td><td>1,024</td><td>55</td><td>about \(1.0\times10^4\)</td></tr>
+<tr><td>20</td><td>1,048,576</td><td>210</td><td>about \(2.1\times10^7\)</td></tr>
+<tr><td>30</td><td>about \(1.1\times10^9\)</td><td>465</td><td>about \(3.2\times10^{10}\)</td></tr>
+</table>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; why this is not a faster FFT</span>
+<p>The comparison is unfair in both directions. The input: loading \(N\) arbitrary numbers into the amplitudes of a state generally takes about \(N\) gates, which already costs as much as the FFT. The output: the QFT leaves the \(N\) Fourier coefficients in the amplitudes, and a measurement returns <em>one</em> \(y\), with probability \(|b_y|^2\). Reading all coefficients would take about \(N\) repetitions per digit of precision. So the QFT is useful only inside algorithms that prepare the input state efficiently and need a single sample from the output distribution. Period finding is exactly such a problem.</p>
+</div>
+
+<div class="spot" data-kind="multi">
+<p>Tick every true statement about the \(n\)-qubit QFT with \(N=2^n\).</p>
+<ul class="opts">
+<li data-ok>The circuit itself uses about \(n^2/2\) gates.</li>
+<li>One run, followed by a measurement, reveals all \(N\) Fourier coefficients.<span class="oh">A measurement returns a single \(y\), with probability \(|b_y|^2\); the coefficients themselves stay hidden in the amplitudes.</span></li>
+<li data-ok>Preparing a state whose amplitudes are \(N\) arbitrary numbers generally takes about \(N\) gates.</li>
+<li>It speeds up any classical program that calls an FFT exponentially.<span class="oh">Loading the data and reading out the answer each cost about \(N\), which wipes out the gain unless the input state is cheap and one sample suffices.</span></li>
+</ul>
+<div class="hint">Separate the cost of the circuit from the cost of getting data in and results out.</div>
+<div class="why">The circuit is cheap (\(\approx n^2/2\) gates), but input preparation costs about \(N\) and a measurement yields one sample. Only algorithms that need one sample from an efficiently prepared state benefit.</div>
+</div>
+
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; The approximate QFT</h2>
+
+<p>The controlled phases \(CP(\pi/2^d)\) for large distance \(d\) are nearly the identity: \(\pi/2^{10}\) is under 0.2 degrees. Coppersmith (1994) observed that they can simply be dropped.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 13.4 &mdash; dropping small rotations</span>
+<p>Keep only the controlled phases \(CP(\pi/2^d)\) with \(d\lt m\). The resulting circuit \(\widetilde{\mathrm{QFT}}\) satisfies \(\|\widetilde{\mathrm{QFT}}-\mathrm{QFT}\|\le n\pi/2^{m-1}\) in operator norm, and it uses about \(nm\) controlled phases instead of \(n^2/2\). Choosing \(m\approx\log_2(n/\varepsilon)+3\) gives error at most \(\varepsilon\).</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>A dropped gate \(CP(\varphi)\) differs from the identity by \(|e^{i\varphi}-1|\le\varphi\) in operator norm. Replacing gates one at a time and using that unitaries preserve norms, the errors of a sequence of gates add up. There are \(n-d\le n\) dropped gates at each distance \(d\ge m\), so the total is at most \(\sum_{d\ge m}n\pi/2^d=n\pi/2^{m-1}\). For the gate count, each qubit keeps at most \(m-1\) controlled phases.</p>
+</div>
+</div>
+
+<div class="spot" data-kind="num" data-ans="16*pi/2^9" data-labels="bound">
+<p>For a 16-qubit QFT that keeps only the controlled phases with distance \(d\lt10\), what error bound does Proposition 13.4 give? (Three decimal places.)</p>
+<div class="hint">The bound is \(n\pi/2^{m-1}\), here with \(n=16\) and \(m=10\).</div>
+<div class="why">\(16\pi/2^9=\pi/32\approx0.098\). The bound grows only linearly in \(n\) but halves with each extra distance kept.</div>
+</div>
+
+
+<p>For \(n=8\) the exact operator-norm errors, computed in verify_L13.py, are 0.414, 0.123 and 0.025 for \(m=5,6,7\). For a 20-qubit QFT with \(m=8\), 112 of the 190 controlled phases are kept. In Shor's algorithm \(n\) is in the thousands, so dropping all but about \(\log n\) rotations per qubit turns \(O(n^2)\) into \(O(n\log n)\) gates, and it removes the need for absurdly precise rotation angles, which a fault-tolerant machine would have to synthesise from many \(T\) gates (Lecture 7).</p>
+
+<!-- =================== 6 =================== -->
+<h2 id="s6">6 &mdash; Detecting periods</h2>
+
+<p>Here is the property Shor's algorithm uses.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 13.5 &mdash; periodic states have peaked transforms</span>
+<p>Let \(r\) divide \(N\), let \(0\le x_0\lt r\), and let \(|\psi\rangle=\sqrt{r/N}\sum_{j=0}^{N/r-1}|x_0+jr\rangle\), the uniform superposition of an arithmetic progression with step \(r\). Then measuring \(\mathrm{QFT}|\psi\rangle\) gives each multiple of \(N/r\) with probability \(1/r\), and never anything else. The offset \(x_0\) only changes phases.</p>
+
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>The amplitude of \(|y\rangle\) is</p>
+$$\frac{1}{\sqrt N}\sqrt{\frac rN}\sum_{j=0}^{N/r-1}\omega^{(x_0+jr)y}=\frac{\sqrt r}{N}\,\omega^{x_0y}\sum_{j=0}^{N/r-1}\big(\omega^{ry}\big)^j .$$
+<p>Now \(\omega^{r}=e^{2\pi i/(N/r)}\) is a primitive \((N/r)\)-th root of unity, so by the geometric-series argument of Proposition 13.1 the sum is \(N/r\) when \(N/r\) divides \(y\) and 0 otherwise. In the first case the amplitude has size \(\tfrac{\sqrt r}{N}\cdot\tfrac Nr=\tfrac{1}{\sqrt r}\), so its probability is \(\tfrac1r\); there are exactly \(r\) multiples of \(N/r\) below \(N\). The factor \(\omega^{x_0y}\) is a phase.</p>
+</div>
+</div>
+
+<div class="spot" data-kind="num" data-ans="1/8|0" data-labels="P(12)|P(6)">
+<p>Take \(N=32\) and the periodic state with period \(r=8\) and offset \(x_0=3\). After the QFT, what are the probabilities of measuring \(y=12\) and \(y=6\)?</p>
+<div class="hint">By Proposition 13.5 the outcomes are the multiples of \(N/r=4\), each with probability \(1/r\). The offset does not matter.</div>
+<div class="why">12 is a multiple of 4, so \(P(12)=\tfrac18\); 6 is not, so \(P(6)=0\). The offset 3 changes only the phases \(\omega^{3y}\).</div>
+</div>
+
+<figure>
+<svg viewBox="0 0 720 360" width="720" height="360" role="img" aria-labelledby="pdt pdd"><title id="pdt">A periodic state before and after the QFT, N = 16</title><desc id="pdd">Four bar charts. Top left: the state with period 4 starting at 1, equal weight on 1, 5, 9, 13. Top right: after the QFT, probability 1/4 on each of 0, 4, 8, 12, the multiples of 16/4. Bottom left: period 3 starting at 0, equal weight on 0, 3, 6, 9, 12, 15. Bottom right: after the QFT the probability concentrates near multiples of 16/3: 0.375 at 0, 0.234 at 5 and at 11, and 0.036 at 6 and 10, with small values elsewhere.</desc><rect x="0" y="0" width="720" height="360" rx="8" class="plot-bg"/><text class="axtext" x="40.0" y="32.0" text-anchor="start">period 4: |amplitude|^2 before</text><line class="axis" x1="40" y1="150" x2="340" y2="150"/><text class="axtext" x="49.4" y="164.0" text-anchor="middle" style="font-size:10px">0</text><rect x="60.8" y="81.2" width="14.8" height="68.8" fill="var(--sky)" fill-opacity="0.8" rx="1"/><text class="axtext" x="86.9" y="164.0" text-anchor="middle" style="font-size:10px">2</text><text class="axtext" x="124.4" y="164.0" text-anchor="middle" style="font-size:10px">4</text><rect x="135.8" y="81.2" width="14.8" height="68.8" fill="var(--sky)" fill-opacity="0.8" rx="1"/><text class="axtext" x="161.9" y="164.0" text-anchor="middle" style="font-size:10px">6</text><text class="axtext" x="199.4" y="164.0" text-anchor="middle" style="font-size:10px">8</text><rect x="210.8" y="81.2" width="14.8" height="68.8" fill="var(--sky)" fill-opacity="0.8" rx="1"/><text class="axtext" x="236.9" y="164.0" text-anchor="middle" style="font-size:10px">10</text><text class="axtext" x="274.4" y="164.0" text-anchor="middle" style="font-size:10px">12</text><rect x="285.8" y="81.2" width="14.8" height="68.8" fill="var(--sky)" fill-opacity="0.8" rx="1"/><text class="axtext" x="311.9" y="164.0" text-anchor="middle" style="font-size:10px">14</text><text class="axtext" x="330.6" y="164.0" text-anchor="middle" style="font-size:10px">15</text><text class="axtext" x="390.0" y="32.0" text-anchor="start">after the QFT (amber: multiples of 16/4)</text><line class="axis" x1="390" y1="150" x2="690" y2="150"/><line x1="399.4" y1="40" x2="399.4" y2="150" stroke="var(--amber)" stroke-dasharray="3 4"/><line x1="474.4" y1="40" x2="474.4" y2="150" stroke="var(--amber)" stroke-dasharray="3 4"/><line x1="549.4" y1="40" x2="549.4" y2="150" stroke="var(--amber)" stroke-dasharray="3 4"/><line x1="624.4" y1="40" x2="624.4" y2="150" stroke="var(--amber)" stroke-dasharray="3 4"/><rect x="392.0" y="81.2" width="14.8" height="68.8" fill="var(--moss)" fill-opacity="0.8" rx="1"/><text class="axtext" x="399.4" y="164.0" text-anchor="middle" style="font-size:10px">0</text><text class="axtext" x="436.9" y="164.0" text-anchor="middle" style="font-size:10px">2</text><rect x="467.0" y="81.2" width="14.8" height="68.8" fill="var(--moss)" fill-opacity="0.8" rx="1"/><text class="axtext" x="474.4" y="164.0" text-anchor="middle" style="font-size:10px">4</text><text class="axtext" x="511.9" y="164.0" text-anchor="middle" style="font-size:10px">6</text><rect x="542.0" y="81.2" width="14.8" height="68.8" fill="var(--moss)" fill-opacity="0.8" rx="1"/><text class="axtext" x="549.4" y="164.0" text-anchor="middle" style="font-size:10px">8</text><text class="axtext" x="586.9" y="164.0" text-anchor="middle" style="font-size:10px">10</text><rect x="617.0" y="81.2" width="14.8" height="68.8" fill="var(--moss)" fill-opacity="0.8" rx="1"/><text class="axtext" x="624.4" y="164.0" text-anchor="middle" style="font-size:10px">12</text><text class="axtext" x="661.9" y="164.0" text-anchor="middle" style="font-size:10px">14</text><text class="axtext" x="680.6" y="164.0" text-anchor="middle" style="font-size:10px">15</text><text class="axtext" x="40.0" y="202.0" text-anchor="start">period 3: |amplitude|^2 before</text><line class="axis" x1="40" y1="320" x2="340" y2="320"/><rect x="42.0" y="274.2" width="14.8" height="45.8" fill="var(--sky)" fill-opacity="0.8" rx="1"/><text class="axtext" x="49.4" y="334.0" text-anchor="middle" style="font-size:10px">0</text><text class="axtext" x="86.9" y="334.0" text-anchor="middle" style="font-size:10px">2</text><rect x="98.2" y="274.2" width="14.8" height="45.8" fill="var(--sky)" fill-opacity="0.8" rx="1"/><text class="axtext" x="124.4" y="334.0" text-anchor="middle" style="font-size:10px">4</text><rect x="154.5" y="274.2" width="14.8" height="45.8" fill="var(--sky)" fill-opacity="0.8" rx="1"/><text class="axtext" x="161.9" y="334.0" text-anchor="middle" style="font-size:10px">6</text><text class="axtext" x="199.4" y="334.0" text-anchor="middle" style="font-size:10px">8</text><rect x="210.8" y="274.2" width="14.8" height="45.8" fill="var(--sky)" fill-opacity="0.8" rx="1"/><text class="axtext" x="236.9" y="334.0" text-anchor="middle" style="font-size:10px">10</text><rect x="267.0" y="274.2" width="14.8" height="45.8" fill="var(--sky)" fill-opacity="0.8" rx="1"/><text class="axtext" x="274.4" y="334.0" text-anchor="middle" style="font-size:10px">12</text><text class="axtext" x="311.9" y="334.0" text-anchor="middle" style="font-size:10px">14</text><rect x="323.2" y="274.2" width="14.8" height="45.8" fill="var(--sky)" fill-opacity="0.8" rx="1"/><text class="axtext" x="330.6" y="334.0" text-anchor="middle" style="font-size:10px">15</text><text class="axtext" x="390.0" y="202.0" text-anchor="start">after the QFT (amber: multiples of 16/3)</text><line class="axis" x1="390" y1="320" x2="690" y2="320"/><line x1="399.4" y1="210" x2="399.4" y2="320" stroke="var(--amber)" stroke-dasharray="3 4"/><line x1="499.4" y1="210" x2="499.4" y2="320" stroke="var(--amber)" stroke-dasharray="3 4"/><line x1="599.4" y1="210" x2="599.4" y2="320" stroke="var(--amber)" stroke-dasharray="3 4"/><rect x="392.0" y="216.9" width="14.8" height="103.1" fill="var(--moss)" fill-opacity="0.8" rx="1"/><text class="axtext" x="399.4" y="334.0" text-anchor="middle" style="font-size:10px">0</text><rect x="410.8" y="318.6" width="14.8" height="1.4" fill="var(--moss)" fill-opacity="0.8" rx="1"/><rect x="429.5" y="318.3" width="14.8" height="1.7" fill="var(--moss)" fill-opacity="0.8" rx="1"/><text class="axtext" x="436.9" y="334.0" text-anchor="middle" style="font-size:10px">2</text><rect x="448.2" y="317.5" width="14.8" height="2.5" fill="var(--moss)" fill-opacity="0.8" rx="1"/><rect x="467.0" y="314.3" width="14.8" height="5.7" fill="var(--moss)" fill-opacity="0.8" rx="1"/><text class="axtext" x="474.4" y="334.0" text-anchor="middle" style="font-size:10px">4</text><rect x="485.8" y="255.8" width="14.8" height="64.2" fill="var(--moss)" fill-opacity="0.8" rx="1"/><rect x="504.5" y="310.2" width="14.8" height="9.8" fill="var(--moss)" fill-opacity="0.8" rx="1"/><text class="axtext" x="511.9" y="334.0" text-anchor="middle" style="font-size:10px">6</text><rect x="523.2" y="319.4" width="14.8" height="0.6" fill="var(--moss)" fill-opacity="0.8" rx="1"/><text class="axtext" x="549.4" y="334.0" text-anchor="middle" style="font-size:10px">8</text><rect x="560.8" y="319.4" width="14.8" height="0.6" fill="var(--moss)" fill-opacity="0.8" rx="1"/><rect x="579.5" y="310.2" width="14.8" height="9.8" fill="var(--moss)" fill-opacity="0.8" rx="1"/><text class="axtext" x="586.9" y="334.0" text-anchor="middle" style="font-size:10px">10</text><rect x="598.2" y="255.8" width="14.8" height="64.2" fill="var(--moss)" fill-opacity="0.8" rx="1"/><rect x="617.0" y="314.3" width="14.8" height="5.7" fill="var(--moss)" fill-opacity="0.8" rx="1"/><text class="axtext" x="624.4" y="334.0" text-anchor="middle" style="font-size:10px">12</text><rect x="635.8" y="317.5" width="14.8" height="2.5" fill="var(--moss)" fill-opacity="0.8" rx="1"/><rect x="654.5" y="318.3" width="14.8" height="1.7" fill="var(--moss)" fill-opacity="0.8" rx="1"/><text class="axtext" x="661.9" y="334.0" text-anchor="middle" style="font-size:10px">14</text><rect x="673.2" y="318.6" width="14.8" height="1.4" fill="var(--moss)" fill-opacity="0.8" rx="1"/><text class="axtext" x="680.6" y="334.0" text-anchor="middle" style="font-size:10px">15</text></svg>
+<figcaption>Period 4 (top) and period 3 (bottom) with \(N=16\). When \(r\) divides \(N\), the transform is exactly \(r\) equal peaks at multiples of \(N/r\). When it does not, the peaks sit near the multiples of \(16/3\approx5.33\) and leak into neighbours: here 0.375 at 0, 0.234 at 5 and at 11, and 0.036 at 6 and at 10. Shor's algorithm recovers \(r\) from such near-multiples with continued fractions (Lecture 15).</figcaption>
+</figure>
+
+<p>A measured \(y\) is a multiple of \(N/r\), say \(y=c\,N/r\), so \(y/N=c/r\): the measurement reveals a random fraction with denominator \(r\). A few samples pin \(r\) down. Shor's algorithm (Lectures 15–16) prepares such a periodic state from \(f(x)=a^x\bmod M\), where the period \(r\) is unknown and in general does not divide \(N\), which is why the bottom row of the figure matters.</p>
+
+<div class="spot" data-kind="select">
+<p>With \(N=32\) and a period \(r\) that divides 32, one run returns \(y=20\). The period \(r\) is
+<select><option data-hint="5 is the numerator of y/N in lowest terms, not the period.">5</option><option data-hint="20 is the measured outcome y, not the period. The period is a denominator.">20</option><option data-ok>8 or a multiple of 8</option><option data-hint="N/y is not meaningful here; it is y/N that equals c/r.">32/20</option></select>.</p>
+<div class="hint">Write \(y/N=c/r\) and reduce \(20/32\) to lowest terms. Which part is the period?</div>
+<div class="why">\(20/32=5/8=c/r\). The denominator in lowest terms is 8, so \(r\) is 8, or a multiple of 8 if \(c\) and \(r\) share a factor. A second sample usually settles which.</div>
+</div>
+
+<div class="widget">
+<h4>Periodicity detector</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Choose \(N\), a period \(r\) and an offset. Top: the probabilities of the periodic state. Bottom: the probabilities after the QFT, with the multiples of \(N/r\) marked. Compare a period that divides \(N\) with one that does not, and check that the offset never changes the bottom row.</p>
+<svg id="pdSvg" viewBox="0 0 600 260" width="600" height="260" role="img" aria-label="A periodic state and its QFT"></svg>
+<div class="ctrls" id="pdN"></div>
+<div class="ctrls">
+<label><span>period r = <span id="pdRv">4</span></span><input type="range" id="pdR" min="1" max="12" step="1" value="4"></label>
+<label><span>offset x<sub>0</sub> = <span id="pdOv">1</span></span><input type="range" id="pdO" min="0" max="11" step="1" value="1"></label>
+</div>
+<p class="readout" role="status" aria-live="polite" id="pdOut"></p>
+</div>
+
+<!-- =================== 7 =================== -->
+<h2 id="s7">7 &mdash; Try it in code</h2>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; QFTGate on periodic states (tested with qiskit 2.5)</span>
+<pre>import numpy as np
+from qiskit import QuantumCircuit
+from qiskit.circuit.library import QFTGate
+from qiskit.quantum_info import Statevector
+
+n = 4; N = 2 ** n
+def periodic_state(r, x0):
+    """uniform superposition of x0, x0 + r, x0 + 2r, ... below N"""
+    amps = np.zeros(N); idx = np.arange(x0, N, r); amps[idx] = 1 / np.sqrt(len(idx))
+    return Statevector(amps)
+
+qft = QuantumCircuit(n); qft.append(QFTGate(n), range(n))
+for r, x0 in [(4, 1), (3, 0)]:
+    p = periodic_state(r, x0).evolve(qft).probabilities()
+    top = np.argsort(-p)[:5]
+    print(f"r = {r}:", {int(y): round(float(p[y]), 3) for y in sorted(top) if p[y] &gt; 1e-9})</pre>
+<pre class="out">r = 4: {0: 0.25, 4: 0.25, 8: 0.25, 12: 0.25}
+r = 3: {0: 0.375, 5: 0.234, 6: 0.036, 10: 0.036, 11: 0.234}</pre>
+<p><code>QFTGate(n)</code> implements Definition 13.1 with Qiskit's usual ordering: the integer \(x\) is read with qubit 0 as the \(2^0\) digit, and the output index \(y\) the same way. The two runs reproduce Proposition 13.5 and the bottom row of the figure.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; how many gates?</span>
+<pre>from qiskit import QuantumCircuit, transpile
+from qiskit.circuit.library import QFTGate
+
+for n in range(3, 9):
+    qc = QuantumCircuit(n); qc.append(QFTGate(n), range(n))
+    textbook = transpile(qc, basis_gates=["h", "cp", "swap"], optimization_level=0)
+    ibm = transpile(qc, basis_gates=["cx", "rz", "sx", "x"], optimization_level=1, seed_transpiler=1)
+    print(n, dict(textbook.count_ops()), "  cx after transpiling:", ibm.count_ops()["cx"])</pre>
+<pre class="out">3 {'h': 3, 'cp': 3, 'swap': 1}   cx after transpiling: 9
+4 {'cp': 6, 'h': 4, 'swap': 2}   cx after transpiling: 18
+5 {'cp': 10, 'h': 5, 'swap': 2}   cx after transpiling: 26
+6 {'cp': 15, 'h': 6, 'swap': 3}   cx after transpiling: 39
+7 {'cp': 21, 'h': 7, 'swap': 3}   cx after transpiling: 51
+8 {'cp': 28, 'h': 8, 'swap': 4}   cx after transpiling: 68</pre>
+<p>The counts match Theorem 13.3: \(n\) Hadamards, \(n(n-1)/2\) controlled phases and \(\lfloor n/2\rfloor\) SWAPs. Each controlled phase costs 2 CNOTs and each SWAP 3 (Lecture 6), which gives the CNOT column exactly: for \(n=8\), \(2\cdot28+3\cdot4=68\).</p>
+</div>
+
+<!-- =================== 8 =================== -->
+<h2 id="s8">8 &mdash; Summary and exercises</h2>
+
+<div class="box thm">
+<span class="lbl">summary</span>
+<ul>
+<li>\(\mathrm{QFT}_N|x\rangle=\tfrac{1}{\sqrt N}\sum_y\omega^{xy}|y\rangle\), \(\omega=e^{2\pi i/N}\). It is unitary because the \(N\)-th roots of unity sum to zero; for \(N=2\) it is \(H\).</li>
+<li>Product formula: \(\mathrm{QFT}|x\rangle\) is a product state, qubit \(j\) holding \(\tfrac{1}{\sqrt2}(|0\rangle+e^{2\pi ix/2^{n-j}}|1\rangle)\).</li>
+<li>Circuit: \(n\) Hadamards, \(n(n-1)/2\) controlled phases, \(\lfloor n/2\rfloor\) SWAPs. Dropping the rotations of angle \(\pi/2^m\) and smaller costs error at most \(n\pi/2^{m-1}\) and leaves \(O(n\log n)\) gates.</li>
+<li>Not a fast FFT: loading data and reading coefficients are the bottlenecks. Useful when one sample of the Fourier distribution answers the question.</li>
+<li>A state with period \(r\), where \(r\mid N\), transforms into \(r\) equal peaks at multiples of \(N/r\); otherwise the peaks are near those multiples.</li>
+</ul>
+<p><strong>Next time:</strong> phase estimation, which uses the inverse QFT to read eigenvalues of unitaries. <strong>HW7</strong> covers Lectures 13 and 14; the midterm follows.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 13</span>
+<ol>
+<li>Show that \(\mathrm{QFT}_8|4\rangle=|+\rangle|+\rangle|-\rangle\) (kets \(|q_2q_1q_0\rangle\)), and check it against Theorem 13.2.</li>
+<li>Show that the QFT maps the uniform superposition \(\tfrac{1}{\sqrt N}\sum_x|x\rangle\) to \(|0\rangle\).</li>
+<li>Show that \(\mathrm{QFT}_N^2|x\rangle=|{-x}\bmod N\rangle\), and deduce \(\mathrm{QFT}_N^4=I\).</li>
+<li>Using Proposition 13.5, what does the QFT do to the state \(\tfrac{1}{\sqrt8}\sum_{j=0}^{7}|2j\rangle\) when \(N=16\)?</li>
+<li>How many controlled phases does the 20-qubit QFT use, and how many are kept with \(m=8\)?</li>
+<li>A student claims the QFT computes the DFT of a million numbers with only 210 gates, so quantum computers make signal processing exponentially faster. Give two reasons this is wrong.</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>\(\omega=e^{2\pi i/8}\), so \(\omega^{4y}=e^{\pi iy}=(-1)^y=(-1)^{y_0}\). Hence \(\mathrm{QFT}|4\rangle=\tfrac{1}{\sqrt8}\sum_y(-1)^{y_0}|y\rangle\), which factors as \(|+\rangle\) on \(q_2\), \(|+\rangle\) on \(q_1\) and \(|-\rangle\) on \(q_0\). Theorem 13.2 gives qubit \(j\) the phase \(e^{2\pi i\cdot4/2^{3-j}}\): \(e^{2\pi i\cdot4/2}=1\) for \(j=2\), \(e^{2\pi i\cdot4/4}=1\) for \(j=1\), and \(e^{2\pi i\cdot4/8}=-1\) for \(j=0\).</li>
+<li>Apply the definition and add up. The amplitude of \(|y\rangle\) is \(\tfrac1N\sum_x\omega^{xy}\), which is 1 for \(y=0\) and 0 otherwise by the roots-of-unity sum. So the output is \(|0\rangle\).</li>
+<li>The amplitude of \(|z\rangle\) in \(\mathrm{QFT}^2|x\rangle\) is \(\tfrac1N\sum_y\omega^{xy}\omega^{yz}=\tfrac1N\sum_y\omega^{y(x+z)}\), which is 1 if \(x+z\equiv0\pmod N\) and 0 otherwise. So \(\mathrm{QFT}^2|x\rangle=|{-x}\rangle\), and applying it twice more returns \(|x\rangle\).</li>
+<li>This is the periodic state with \(r=2\), \(x_0=0\). The output is \(|0\rangle\) or \(|8\rangle\), each with probability \(\tfrac12\).</li>
+<li>\(20\cdot19/2=190\) controlled phases. With \(m=8\), those with distance \(d\le7\) are kept: \(\sum_{d=1}^{7}(20-d)=140-28=112\).</li>
+<li>Loading a million arbitrary numbers into amplitudes takes about a million gates, and the output cannot be read: a measurement returns one index \(y\), sampled with probability \(|b_y|^2\). Estimating all the coefficients would need far more than a million repetitions.</li>
+</ol>
+</div>
+</div>
+
+<h3>Reading and sources</h3>
+<ul>
+<li>J. Watrous, <em>Understanding Quantum Information and Computation</em>, Ch. 7, the part on the quantum Fourier transform (<a href="https://arxiv.org/abs/2507.11536">arXiv:2507.11536</a>; IBM course <a href="https://quantum.cloud.ibm.com/learning/en/courses/fundamentals-of-quantum-algorithms">Fundamentals of Quantum Algorithms</a>, Lesson 3).</li>
+<li>R. de Wolf, <em>Quantum Computing: Lecture Notes</em>, Ch. 4 (<a href="https://arxiv.org/abs/1907.09415">arXiv:1907.09415</a>).</li>
+<li>Qiskit documentation: <a href="https://quantum.cloud.ibm.com/docs/en/api/qiskit/qiskit.circuit.library.QFTGate">QFTGate</a>.</li>
+<li>D. Coppersmith, "An approximate Fourier transform useful in quantum factoring", IBM Research Report RC 19642 (1994); M. A. Nielsen and I. L. Chuang, <em>Quantum Computation and Quantum Information</em>, §5.1.</li>
+</ul>
+<p class="kicker" style="margin-top:2.4em">all numbers and figures in these notes are computed in python (verify_L13.py) and follow the page theme</p>
+</div>
+
+<script>
+var NS='http://www.w3.org/2000/svg';
+function mk(tag,at,parent,txt){var e=document.createElementNS(NS,tag);for(var k in at)e.setAttribute(k,at[k]);if(txt!==undefined)e.textContent=txt;if(parent)parent.appendChild(e);return e;}
+function clr(s){while(s.firstChild)s.removeChild(s.firstChild);}
+function fx(x,d){d=(d===undefined?3:d);var v=Number(x).toFixed(d);return /^-0\.?0*$/.test(v)?v.slice(1):v;}
+function btn(parent,label,fn){var b=document.createElement('button');b.className='ctl';b.type='button';b.textContent=label;b.addEventListener('click',fn);parent.appendChild(b);return b;}
+
+/* ---------- phase wheels ---------- */
+(function(){
+  var svg=document.getElementById('pwSvg'); if(!svg) return;
+  var xEl=document.getElementById('pwX'), out=document.getElementById('pwOut'), nEl=document.getElementById('pwN'), N=8, nb=[];
+  [4,8,16].forEach(function(m){nb.push(btn(nEl,'N = '+m,function(){N=m; xEl.max=N-1; if(+xEl.value>N-1) xEl.value=N-1; draw();}));});
+  function draw(){
+    var x=+xEl.value; document.getElementById('pwXv').textContent=x;
+    nb.forEach(function(b){b.classList.toggle('on',b.textContent==='N = '+N);});
+    clr(svg); mk('rect',{x:0,y:0,width:600,height:170,rx:8,class:'plot-bg'},svg);
+    var cols=N<=8?N:8, rows=Math.ceil(N/cols), R=N<=8?26:20, dx=560/cols;
+    for(var y=0;y<N;y++){ var c=y%cols, rw=Math.floor(y/cols), cx=20+c*dx+dx/2, cy=rows===1?80:50+rw*70, a=2*Math.PI*((x*y)%N)/N;
+      mk('circle',{cx:cx,cy:cy,r:R,fill:'none',stroke:'var(--axis)','stroke-width':1.2},svg);
+      mk('line',{x1:cx,y1:cy,x2:cx+R*Math.cos(a),y2:cy-R*Math.sin(a),stroke:'var(--rose)','stroke-width':2.4},svg);
+      mk('circle',{cx:cx+R*Math.cos(a),cy:cy-R*Math.sin(a),r:3.2,fill:'var(--rose)'},svg);
+      mk('text',{x:cx,y:cy+R+14,'text-anchor':'middle',class:'axtext',style:'font-size:11px'},svg,'y='+y); }
+    out.textContent='QFT_'+N+'|'+x+'>: the phase advances by '+x+'/'+N+' of a turn from each y to the next, winding '+x+' time'+(x===1?'':'s')+' in total. Every amplitude has size 1/sqrt('+N+') = '+fx(1/Math.sqrt(N),3)+'.';
+  }
+  xEl.addEventListener('input',draw); draw();
+})();
+
+/* ---------- periodicity detector ---------- */
+(function(){
+  var svg=document.getElementById('pdSvg'); if(!svg) return;
+  var rEl=document.getElementById('pdR'), oEl=document.getElementById('pdO'), out=document.getElementById('pdOut'), nEl=document.getElementById('pdN'), N=16, nb=[];
+  [16,32,64].forEach(function(m){nb.push(btn(nEl,'N = '+m,function(){N=m;draw();}));});
+  function draw(){
+    var r=+rEl.value, x0=Math.min(+oEl.value,r-1); oEl.max=Math.max(r-1,0); oEl.value=x0;
+    document.getElementById('pdRv').textContent=r; document.getElementById('pdOv').textContent=x0;
+    nb.forEach(function(b){b.classList.toggle('on',b.textContent==='N = '+N);});
+    var idx=[]; for(var x=x0;x<N;x+=r) idx.push(x); var a=1/Math.sqrt(idx.length), p=[];
+    for(var y=0;y<N;y++){ var re=0,im=0; idx.forEach(function(x){var t=2*Math.PI*x*y/N; re+=a*Math.cos(t); im+=a*Math.sin(t);}); p.push((re*re+im*im)/N); }
+    clr(svg); mk('rect',{x:0,y:0,width:600,height:260,rx:8,class:'plot-bg'},svg);
+    var L=30,W=550,bw=W/N;
+    function panel(y0,h,vals,col,title,marks){ var base=y0+h, mx=Math.max.apply(null,vals.concat([1e-9]));
+      mk('text',{x:L,y:y0-6,class:'axtext'},svg,title); mk('line',{x1:L,y1:base,x2:L+W,y2:base,class:'axis'},svg);
+      (marks||[]).forEach(function(m){mk('line',{x1:L+(m+0.5)*bw,y1:y0,x2:L+(m+0.5)*bw,y2:base,stroke:'var(--amber)','stroke-dasharray':'3 4'},svg);});
+      vals.forEach(function(v,i){ var hh=v/mx*h; if(v>1e-9) mk('rect',{x:L+i*bw+bw*0.12,y:base-hh,width:bw*0.76,height:hh,fill:col,'fill-opacity':0.8,rx:1},svg);
+        if(N<=16||i%(N/16)===0) mk('text',{x:L+(i+0.5)*bw,y:base+13,'text-anchor':'middle',class:'axtext',style:'font-size:10px'},svg,String(i)); }); }
+    var before=[]; for(var i=0;i<N;i++) before.push(idx.indexOf(i)>=0?a*a:0);
+    var marks=[]; for(var m=0;m<r;m++) marks.push(m*N/r);
+    panel(24,70,before,'var(--sky)','before: period '+r+', offset '+x0);
+    panel(150,80,p,'var(--moss)','after the QFT (amber: multiples of N/r = '+fx(N/r,2)+')',marks);
+    var top=p.map(function(v,i){return [v,i];}).sort(function(u,v){return v[0]-u[0];}).slice(0,Math.min(r,6));
+    out.textContent=(N%r===0?'r divides N: exactly '+r+' peaks of probability 1/'+r+'.':'r does not divide N: peaks lie near the multiples of N/r and leak into neighbours.')+' Largest: '+top.map(function(t){return 'y = '+t[1]+' ('+fx(t[0],3)+')';}).join(', ')+'.';
+  }
+  [rEl,oEl].forEach(function(e){e.addEventListener('input',draw);}); draw();
+})();
+</script>
+
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    var lab=b.getAttribute('data-lab')||b.textContent.replace(/^(show|hide) /,''); b.setAttribute('data-lab',lab);
+    b.textContent=(open?'hide ':'show ')+lab;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+
+<script id="spot-js">
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×/g,'*').replace(/π/g,'pi').replace(/,/g,'');
+    var pct=/%$/.test(s); if(pct) s=s.slice(0,-1);
+    s=s.replace(/√\s*\(/g,'sqrt(').replace(/√\s*([0-9.]+)/g,'sqrt($1)');
+    if(!s||!/^[0-9a-z+\-*\/^().\s]*$/.test(s)) return NaN;
+    var ok=s.replace(/sqrt|pi|ln|log|exp|sin|cos|tan|e(?![a-z])/g,'').replace(/[0-9+\-*\/^().\s]/g,'');
+    if(ok.length) return NaN;
+    s=s.replace(/\^/g,'**').replace(/(\d)\s*(pi|sqrt|\()/g,'$1*$2').replace(/\)\s*(\d|pi|sqrt|\()/g,')*$1')
+       .replace(/sqrt/g,'Math.sqrt').replace(/pi/g,'Math.PI').replace(/\blog\b/g,'Math.log10').replace(/\bln\b/g,'Math.log')
+       .replace(/exp/g,'Math.exp').replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos').replace(/tan/g,'Math.tan')
+       .replace(/(^|[^a-z.0-9])e(?![a-z0-9(])/g,'$1Math.E');
+    try{ var v=Function('"use strict";return ('+s+')')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function typeset(el){ if(window.MathJax&&MathJax.typesetPromise){ MathJax.typesetPromise([el]).catch(function(){}); } }
+  function fb(spot,ok,html){
+    var f=spot.querySelector('.fb'); spot.classList.toggle('ok',ok); spot.classList.toggle('bad',!ok);
+    f.innerHTML='<p><span class="tag">'+(ok?'correct.':'not yet.')+'</span>'+(html||'')+'</p>'; typeset(f);
+  }
+  function part(spot,sel){ var e=spot.querySelector(sel); return e? e.innerHTML : ''; }
+  var n=0, lec=(document.title.match(/^Lecture (\d+)/)||[])[1];
+  document.querySelectorAll('.spot').forEach(function(spot){
+    n++; var kind=spot.getAttribute('data-kind')||'num', tries=0;
+    var lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent='spot check '+(lec?lec+'.':'')+n+(spot.getAttribute('data-tag')?' — '+spot.getAttribute('data-tag'):'');
+    spot.insertBefore(lbl,spot.firstChild);
+    var area=document.createElement('div'), btns=document.createElement('div'), f=document.createElement('div');
+    btns.className='btns'; f.className='fb'; f.setAttribute('role','status'); f.setAttribute('aria-live','polite');
+    var check=document.createElement('button'); check.type='button'; check.textContent='check';
+    var reveal=document.createElement('button'); reveal.type='button'; reveal.className='reveal'; reveal.textContent='show answer'; reveal.style.display='none';
+    btns.appendChild(check); btns.appendChild(reveal);
+    var grade, show;
+    if(kind==='num'){
+      var ans=spot.getAttribute('data-ans').split('|').map(evalNum), labs=(spot.getAttribute('data-labels')||'').split('|');
+      var tol=spot.getAttribute('data-tol'), row=document.createElement('div'); row.className='row'; area.appendChild(row);
+      var ins=ans.map(function(a,i){ var lab=document.createElement('label'), inp=document.createElement('input');
+        inp.className='ans'; inp.type='text'; inp.setAttribute('inputmode','text'); inp.setAttribute('autocomplete','off');
+        inp.setAttribute('aria-label',labs[i]||'answer'); if(labs[i]){ lab.appendChild(document.createTextNode(labs[i]+' =')); }
+        lab.appendChild(inp); row.appendChild(lab);
+        inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); check.click(); } }); return inp; });
+      var fmt=document.createElement('div'); fmt.className='fmt'; fmt.textContent='decimals, fractions, sqrt(2)/2, pi/4 or 2^-3 all work';
+      area.appendChild(fmt);
+      grade=function(){ var bad=[]; ins.forEach(function(inp,i){ var v=evalNum(inp.value), a=ans[i];
+          var t= tol!==null? Number(tol) : Math.max(0.005, 0.005*Math.abs(a)); if(!(Math.abs(v-a)<=t)) bad.push(i); });
+        var empty=ins.some(function(inp){return !inp.value.trim();});
+        if(empty) return {ok:false,msg:'Fill in '+(ins.length>1?'every box':'the box')+' first.',soft:true};
+        var unparsed=ins.some(function(inp){return isNaN(evalNum(inp.value));});
+        if(unparsed) return {ok:false,msg:'I could not read that as a number. Try a decimal or a fraction such as 3/8.',soft:true};
+        return {ok:!bad.length, which:bad}; };
+      show=function(){ var s=spot.getAttribute('data-show'); if(!s){ s=spot.getAttribute('data-ans').split('|').map(function(a,i){return (labs[i]?labs[i]+' = ':'')+a;}).join(', '); } return 'The answer is '+s+'.'; };
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=spot.querySelector('ul.opts'), name='spot'+n, lis=[].slice.call(ul.querySelectorAll(':scope > li'));
+      lis.forEach(function(li,i){ var inp=document.createElement('input'); inp.type= kind==='mc'?'radio':'checkbox'; inp.name=name; inp.value=i;
+        inp.setAttribute('aria-label','option '+(i+1)); li.insertBefore(inp,li.firstChild);
+        li.addEventListener('click',function(e){ if(e.target!==inp&&e.target.tagName!=='A'){ if(kind==='mc') inp.checked=true; else inp.checked=!inp.checked; } }); });
+      grade=function(){ var picked=lis.filter(function(li){return li.querySelector('input').checked;});
+        if(!picked.length) return {ok:false,msg:'Pick '+(kind==='mc'?'an answer':'at least one option')+' first.',soft:true};
+        var ok= lis.every(function(li){ return li.hasAttribute('data-ok')===li.querySelector('input').checked; });
+        var oh=''; picked.forEach(function(li){ if(!li.hasAttribute('data-ok')){ var h=li.querySelector('.oh'); if(h) oh+=' '+h.innerHTML; } });
+        if(kind==='multi'&&!ok&&!oh){ var miss=lis.filter(function(li){return li.hasAttribute('data-ok')&&!li.querySelector('input').checked;});
+          if(miss.length&&picked.every(function(li){return li.hasAttribute('data-ok');})) oh=' Everything you ticked is right, but something is missing.'; }
+        return {ok:ok, extra:oh}; };
+      show=function(){ lis.forEach(function(li){ li.classList.toggle('right',li.hasAttribute('data-ok')); }); return 'The right '+(kind==='mc'?'option is':'options are')+' outlined.'; };
+    } else if(kind==='select'){
+      var sels=[].slice.call(spot.querySelectorAll('select'));
+      sels.forEach(function(s){ var o=document.createElement('option'); o.textContent='choose…'; o.value=''; o.selected=true; s.insertBefore(o,s.firstChild);
+        s.setAttribute('aria-label', s.getAttribute('aria-label')||'choose an answer'); });
+      grade=function(){ if(sels.some(function(s){return !s.value;})) return {ok:false,msg:'Make a choice in '+(sels.length>1?'every menu':'the menu')+' first.',soft:true};
+        var oh=''; var ok=sels.every(function(s){ var o=s.options[s.selectedIndex]; if(!o.hasAttribute('data-ok')&&o.getAttribute('data-hint')) oh+=' '+o.getAttribute('data-hint'); return o.hasAttribute('data-ok'); });
+        return {ok:ok, extra:oh}; };
+      show=function(){ sels.forEach(function(s){ [].forEach.call(s.options,function(o,i){ if(o.hasAttribute('data-ok')) s.selectedIndex=i; }); }); return 'The right choices are now selected.'; };
+    }
+    var anchor=null;
+    [].forEach.call(spot.children,function(c){ if(!anchor&&(c.classList.contains('hint')||c.classList.contains('why'))) anchor=c; });
+    if(kind==='select'){ spot.insertBefore(btns,anchor); } else { spot.insertBefore(area,anchor); spot.insertBefore(btns,anchor); }
+    spot.appendChild(f);
+    check.addEventListener('click',function(){ var r=grade();
+      if(r.soft){ spot.classList.remove('ok'); spot.classList.add('bad'); f.innerHTML='<p><span class="tag">hold on.</span>'+r.msg+'</p>'; return; }
+      if(r.ok){ fb(spot,true,part(spot,'.why')); reveal.style.display='none'; }
+      else { tries++; var h=part(spot,'.hint'); var extra=r.extra||'';
+        if(r.which&&r.which.length&&ans.length>1){ extra=' Check '+r.which.map(function(i){return labs[i]||('box '+(i+1));}).join(' and ')+'.'+extra; }
+        fb(spot,false,(extra?extra+' ':'')+h); if(tries>=2) reveal.style.display=''; } });
+    reveal.addEventListener('click',function(){ var msg=show(); spot.classList.remove('ok'); spot.classList.add('bad');
+      f.innerHTML='<p><span class="tag">answer.</span>'+msg+' '+part(spot,'.why')+'</p>'; typeset(f); });
+  });
+})();
+</script>
+</body>
+</html>

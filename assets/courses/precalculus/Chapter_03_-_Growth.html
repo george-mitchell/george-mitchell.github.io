@@ -1,0 +1,1206 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Chapter 3 — Growth: Exponentials and Logarithms</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  /* ---- spot checks ---- */
+  .spot{border:1px dashed var(--sky);border-left:3px solid var(--sky);background:var(--surface)}
+  .spot .lbl{color:var(--sky)}
+  .spot.is-ok{border-color:var(--moss)} .spot.is-ok .lbl{color:var(--moss)}
+  .spot.is-bad{border-color:var(--amber)} .spot.is-bad .lbl{color:var(--amber)}
+  .spot-q,.spot legend{margin:.15em 0 .75em;padding:0;color:var(--ink);font-size:1rem;line-height:1.7}
+  .spot fieldset{border:0;margin:0;padding:0;min-width:0}
+  .spot-opts{display:grid;gap:8px;margin:0 0 .8em}
+  .spot-opt{display:flex;gap:12px;align-items:flex-start;padding:9px 13px;min-height:44px;
+    border:1px solid var(--rule);border-radius:8px;background:var(--surface2);cursor:pointer;line-height:1.6}
+  .spot-opt:hover{border-color:var(--sky)}
+  .spot-opt input{margin:.42em 0 0;accent-color:var(--sky);flex:none;width:18px;height:18px}
+  .spot-opt.chosen{border-color:var(--sky);border-width:2px;padding:8px 12px}
+  .spot-opt.chosen.right{border-color:var(--moss)}
+  .spot-opt.chosen.wrong{border-color:var(--amber)}
+  .spot-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .spot-row label{font-family:var(--mono);font-size:.86rem;color:var(--cap)}
+  .spot-in,.spot select{font-family:var(--mono);font-size:1rem;color:var(--ink);background:var(--surface2);
+    border:1px solid var(--rule);border-radius:6px;padding:8px 10px;min-height:44px}
+  .spot-in{width:13em;max-width:100%}
+  .spot select{max-width:100%;margin:.15em .2em}
+  .spot-in[aria-invalid="true"],.spot select[aria-invalid="true"]{border:2px solid var(--amber)}
+  .spot-in[aria-invalid="false"],.spot select[aria-invalid="false"]{border:2px solid var(--moss)}
+  .spot-go,.spot-show{font-family:var(--mono);font-size:.88rem;background:transparent;border-radius:999px;
+    padding:8px 18px;min-height:44px;cursor:pointer}
+  .spot-go{color:var(--sky);border:1px solid var(--sky)}
+  .spot-go:hover{background:var(--sky);color:var(--bg)}
+  .spot-show{color:var(--cap);border:1px dashed var(--rule);margin-top:.7em}
+  .spot-show:hover{border-color:var(--sky);color:var(--ink)}
+  .spot-msg{margin-top:.85em;padding:10px 14px;border-left:3px solid var(--rule);border-radius:0 6px 6px 0;
+    background:var(--surface2);color:var(--ink);line-height:1.65}
+  .spot-msg.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 11%,var(--surface))}
+  .spot-msg.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 11%,var(--surface))}
+  .spot-msg.ans{border-left-color:var(--sky)}
+  .spot-msg > :last-child{margin-bottom:0}
+  .spot-tag{font-family:var(--mono);font-size:.86rem;font-weight:700;margin-right:.35em}
+  .spot-msg.ok .spot-tag{color:var(--moss)} .spot-msg.bad .spot-tag{color:var(--amber)}
+  .spot-msg.ans .spot-tag{color:var(--sky)}
+  .spot-help{font-family:var(--mono);font-size:.8rem;color:var(--cap);margin:.55em 0 0}
+  .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  /* narrow screens: wide tables and long equations scroll sideways ---- */
+  .tscroll{overflow-x:auto;max-width:100%;margin:1.2em 0;-webkit-overflow-scrolling:touch}
+  .tscroll:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+  .tscroll>table{margin:0}
+  mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;max-width:100%;padding:2px 0}
+  mjx-container[jax] > mjx-assistive-mml{width:1px !important;max-width:1px !important;height:1px !important;overflow:hidden !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Precalculus · Chapter 3</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Chapter 3<br>Growth: exponentials and logarithms</h1>
+<p class="kicker">Lectures 12&ndash;14 &nbsp;|&nbsp; things that grow in proportion to themselves</p>
+
+<div class="toc">
+<strong class="mono">In this chapter</strong>
+<ol>
+<li><a href="#L12">Exponential growth and decay</a></li>
+<li><a href="#L13">Logarithms: turning hard operations into easy ones</a></li>
+<li><a href="#L14">Laws of logarithms and the log scale</a></li>
+</ol>
+</div>
+
+<p>Chapter 2 was about functions that bend. This chapter is about one particular kind of bending, the kind that arises whenever a quantity grows in proportion to how much of it there already is. Money earning interest, a rumour spreading, a population, a signal decaying in a wire &mdash; all of these obey the same rule, and it is not the rule you get from adding a fixed amount each step.</p>
+
+<hr>
+<!-- ================= LECTURE 12 ================= -->
+<h2 id="L12">Lecture 12 &mdash; Exponential growth and decay</h2>
+
+<figure class="toon">
+<svg viewBox="0 0 560 200" width="560" height="200" role="img" aria-labelledby="L12t L12d">
+<title id="L12t">Cartoon: a fixed daily payment against a doubling penny</title><desc id="L12d">One stick figure boasts about five hundred dollars while the other stands beside a curve that is about to rise off the top of the frame.</desc>
+<defs><filter id="rough81" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="81" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough81)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="120.0" cy="124.0" r="11.0" /><path d="M 120.0 135.0 L 120.0 160.0" /><path d="M 120.0 140.0 L 107.0 158.0" /><path d="M 120.0 140.0 L 140.0 140.0" /><path d="M 120.0 160.0 L 109.0 184.0" /><path d="M 120.0 160.0 L 131.0 184.0" /><circle cx="470.0" cy="124.0" r="11.0" /><path d="M 470.0 135.0 L 470.0 160.0" /><path d="M 470.0 140.0 L 484.0 158.0" /><path d="M 470.0 140.0 L 456.0 158.0" /><path d="M 470.0 160.0 L 481.0 184.0" /><path d="M 470.0 160.0 L 459.0 184.0" /><path d="M 30 170 L 540 170" stroke-width="1.6"/><rect x="60.0" y="14.0" width="195.3" height="52.0" rx="9" fill="var(--surface2)"/><path d="M 110.8 63.0 L 120.0 92.0 L 153.7 63.0" fill="var(--surface2)" stroke-width="1.6"/><path d="M 300 168 L 330 166 L 360 160 L 390 148 L 410 126 L 425 90 L 433 40"/><rect x="318.0" y="116.0" width="90.9" height="34.0" rx="9" fill="var(--surface2)"/><path d="M 341.6 147.0 L 392.0 158.0 L 361.6 147.0" fill="var(--surface2)" stroke-width="1.6"/>
+</g>
+<text x="75.0" y="41.0" class="ctext">Day 5. I have $500.</text><text x="75.0" y="59.0" class="ctext">You have 16 cents.</text><text x="333.0" y="143.0" class="ctext">Day 20.</text>
+</svg>
+<figcaption class="tooncap">the penny wins, and then keeps winning</figcaption></figure>
+
+<h3>Adding versus multiplying</h3>
+
+<p>Take two savings schemes. The first adds \(\$100\) every day. The second starts with a single penny and doubles it every day. For seventeen days the first looks obviously better, and anyone watching would say so. Then it stops being better, permanently, and by a margin that keeps widening forever.</p>
+
+<figure>
+<svg viewBox="0 0 700 300" width="700" height="300" role="img" aria-labelledby="expt expd">
+<title id="expt">A penny doubling daily against a hundred dollars a day</title>
+<desc id="expd">Two curves over twenty days. The straight line rises steadily to two thousand dollars. The doubling curve stays near zero for two weeks, crosses the line at about day seventeen, and reaches ten thousand dollars by day twenty.</desc>
+<rect x="60" y="20" width="600" height="230" class="plot-bg" stroke="var(--rule)"/>
+<g class="gridline"><line x1="60" y1="150" x2="660" y2="150"/><line x1="60" y1="50" x2="660" y2="50"/>
+<line x1="210" y1="20" x2="210" y2="250"/><line x1="360" y1="20" x2="360" y2="250"/><line x1="510" y1="20" x2="510" y2="250"/></g>
+<polyline class="curve2" points="60.0,250.0 75.0,249.0 90.0,248.0 105.0,247.0 120.0,246.0 135.0,245.0 150.0,244.0 165.0,243.0 180.0,242.0 195.0,241.0 210.0,240.0 225.0,239.0 240.0,238.0 255.0,237.0 270.0,236.0 285.0,235.0 300.0,234.0 315.0,233.0 330.0,232.0 345.0,231.0 360.0,230.0 375.0,229.0 390.0,228.0 405.0,227.0 420.0,226.0 435.0,225.0 450.0,224.0 465.0,223.0 480.0,222.0 495.0,221.0 510.0,220.0 525.0,219.0 540.0,218.0 555.0,217.0 570.0,216.0 585.0,215.0 600.0,214.0 615.0,213.0 630.0,212.0 645.0,211.0 660.0,210.0"/>
+<polyline class="curve" points="60.0,250.0 61.5,250.0 63.0,250.0 64.5,250.0 66.0,250.0 67.5,250.0 69.0,250.0 70.5,250.0 72.0,250.0 73.5,250.0 75.0,250.0 76.5,250.0 78.0,250.0 79.5,250.0 81.0,250.0 82.5,250.0 84.0,250.0 85.5,250.0 87.0,250.0 88.5,250.0 90.0,250.0 91.5,250.0 93.0,250.0 94.5,250.0 96.0,250.0 97.5,250.0 99.0,250.0 100.5,250.0 102.0,250.0 103.5,250.0 105.0,250.0 106.5,250.0 108.0,250.0 109.5,250.0 111.0,250.0 112.5,250.0 114.0,250.0 115.5,250.0 117.0,250.0 118.5,250.0 120.0,250.0 121.5,250.0 123.0,250.0 124.5,250.0 126.0,250.0 127.5,250.0 129.0,250.0 130.5,250.0 132.0,250.0 133.5,250.0 135.0,250.0 136.5,250.0 138.0,250.0 139.5,250.0 141.0,250.0 142.5,250.0 144.0,250.0 145.5,250.0 147.0,250.0 148.5,250.0 150.0,250.0 151.5,250.0 153.0,250.0 154.5,250.0 156.0,250.0 157.5,250.0 159.0,250.0 160.5,250.0 162.0,250.0 163.5,250.0 165.0,250.0 166.5,250.0 168.0,250.0 169.5,250.0 171.0,250.0 172.5,250.0 174.0,250.0 175.5,250.0 177.0,250.0 178.5,250.0 180.0,250.0 181.5,250.0 183.0,250.0 184.5,250.0 186.0,250.0 187.5,250.0 189.0,250.0 190.5,250.0 192.0,250.0 193.5,250.0 195.0,250.0 196.5,250.0 198.0,250.0 199.5,250.0 201.0,250.0 202.5,250.0 204.0,250.0 205.5,250.0 207.0,250.0 208.5,250.0 210.0,250.0 211.5,250.0 213.0,250.0 214.5,250.0 216.0,250.0 217.5,250.0 219.0,250.0 220.5,250.0 222.0,250.0 223.5,250.0 225.0,250.0 226.5,250.0 228.0,250.0 229.5,250.0 231.0,250.0 232.5,250.0 234.0,250.0 235.5,250.0 237.0,250.0 238.5,250.0 240.0,250.0 241.5,250.0 243.0,250.0 244.5,250.0 246.0,250.0 247.5,250.0 249.0,250.0 250.5,250.0 252.0,250.0 253.5,250.0 255.0,250.0 256.5,250.0 258.0,250.0 259.5,250.0 261.0,250.0 262.5,250.0 264.0,250.0 265.5,250.0 267.0,250.0 268.5,250.0 270.0,250.0 271.5,250.0 273.0,250.0 274.5,250.0 276.0,250.0 277.5,250.0 279.0,250.0 280.5,250.0 282.0,250.0 283.5,250.0 285.0,250.0 286.5,250.0 288.0,250.0 289.5,250.0 291.0,250.0 292.5,250.0 294.0,250.0 295.5,250.0 297.0,250.0 298.5,250.0 300.0,249.9 301.5,249.9 303.0,249.9 304.5,249.9 306.0,249.9 307.5,249.9 309.0,249.9 310.5,249.9 312.0,249.9 313.5,249.9 315.0,249.9 316.5,249.9 318.0,249.9 319.5,249.9 321.0,249.9 322.5,249.9 324.0,249.9 325.5,249.9 327.0,249.9 328.5,249.9 330.0,249.9 331.5,249.9 333.0,249.9 334.5,249.9 336.0,249.9 337.5,249.9 339.0,249.9 340.5,249.9 342.0,249.9 343.5,249.9 345.0,249.9 346.5,249.9 348.0,249.8 349.5,249.8 351.0,249.8 352.5,249.8 354.0,249.8 355.5,249.8 357.0,249.8 358.5,249.8 360.0,249.8 361.5,249.8 363.0,249.8 364.5,249.8 366.0,249.8 367.5,249.8 369.0,249.7 370.5,249.7 372.0,249.7 373.5,249.7 375.0,249.7 376.5,249.7 378.0,249.7 379.5,249.7 381.0,249.7 382.5,249.7 384.0,249.6 385.5,249.6 387.0,249.6 388.5,249.6 390.0,249.6 391.5,249.6 393.0,249.6 394.5,249.5 396.0,249.5 397.5,249.5 399.0,249.5 400.5,249.5 402.0,249.5 403.5,249.4 405.0,249.4 406.5,249.4 408.0,249.4 409.5,249.4 411.0,249.3 412.5,249.3 414.0,249.3 415.5,249.3 417.0,249.2 418.5,249.2 420.0,249.2 421.5,249.2 423.0,249.1 424.5,249.1 426.0,249.1 427.5,249.0 429.0,249.0 430.5,249.0 432.0,248.9 433.5,248.9 435.0,248.8 436.5,248.8 438.0,248.8 439.5,248.7 441.0,248.7 442.5,248.6 444.0,248.6 445.5,248.5 447.0,248.5 448.5,248.4 450.0,248.4 451.5,248.3 453.0,248.2 454.5,248.2 456.0,248.1 457.5,248.1 459.0,248.0 460.5,247.9 462.0,247.8 463.5,247.8 465.0,247.7 466.5,247.6 468.0,247.5 469.5,247.4 471.0,247.3 472.5,247.2 474.0,247.1 475.5,247.0 477.0,246.9 478.5,246.8 480.0,246.7 481.5,246.6 483.0,246.5 484.5,246.4 486.0,246.2 487.5,246.1 489.0,246.0 490.5,245.8 492.0,245.7 493.5,245.5 495.0,245.4 496.5,245.2 498.0,245.0 499.5,244.9 501.0,244.7 502.5,244.5 504.0,244.3 505.5,244.1 507.0,243.9 508.5,243.7 510.0,243.4 511.5,243.2 513.0,243.0 514.5,242.7 516.0,242.5 517.5,242.2 519.0,241.9 520.5,241.6 522.0,241.4 523.5,241.0 525.0,240.7 526.5,240.4 528.0,240.1 529.5,239.7 531.0,239.4 532.5,239.0 534.0,238.6 535.5,238.2 537.0,237.8 538.5,237.3 540.0,236.9 541.5,236.4 543.0,236.0 544.5,235.5 546.0,234.9 547.5,234.4 549.0,233.9 550.5,233.3 552.0,232.7 553.5,232.1 555.0,231.5 556.5,230.8 558.0,230.1 559.5,229.4 561.0,228.7 562.5,228.0 564.0,227.2 565.5,226.4 567.0,225.5 568.5,224.7 570.0,223.8 571.5,222.9 573.0,221.9 574.5,220.9 576.0,219.9 577.5,218.8 579.0,217.7 580.5,216.6 582.0,215.4 583.5,214.2 585.0,212.9 586.5,211.6 588.0,210.3 589.5,208.9 591.0,207.4 592.5,205.9 594.0,204.4 595.5,202.7 597.0,201.1 598.5,199.4 600.0,197.6 601.5,195.7 603.0,193.8 604.5,191.8 606.0,189.8 607.5,187.7 609.0,185.5 610.5,183.2 612.0,180.8 613.5,178.4 615.0,175.9 616.5,173.2 618.0,170.5 619.5,167.7 621.0,164.8 622.5,161.8 624.0,158.7 625.5,155.5 627.0,152.2 628.5,148.7 630.0,145.1 631.5,141.4 633.0,137.6 634.5,133.7 636.0,129.6 637.5,125.3 639.0,120.9 640.5,116.4 642.0,111.6 643.5,106.8 645.0,101.7 646.5,96.5 648.0,91.1 649.5,85.5 651.0,79.7 652.5,73.7 654.0,67.4 655.5,61.0 657.0,54.3 658.5,47.4 660.0,40.3"/>
+<circle cx="582.3" cy="215.2" r="6" fill="var(--rose)"/>
+<line class="axis" x1="60" y1="250" x2="660" y2="250"/><line class="axis" x1="60" y1="20" x2="60" y2="250"/>
+<text class="axtext" x="14" y="154">5000</text><text class="axtext" x="10" y="54">10000</text>
+<text class="axtext" x="54" y="268">0</text><text class="axtext" x="200" y="268">5</text><text class="axtext" x="350" y="268">10</text><text class="axtext" x="500" y="268">15</text><text class="axtext" x="648" y="268">20</text>
+<text class="axtext" x="330" y="288">days</text><text class="axtext" x="14" y="14">dollars</text>
+<text class="lbltext" x="300" y="200" fill="var(--amber)">$100 a day</text>
+<text class="lbltext" x="560" y="60" fill="var(--sky)">a doubling penny</text>
+<text class="axtext" x="500" y="232">they cross here, day 17</text>
+</svg>
+<figcaption>Adding \(\$100\) daily is a line: the same increase every day. Doubling a penny is an exponential: the increase on day \(n\) is as large as everything accumulated before it. The line is ahead for seventeen days and then irrelevant forever, which is the single most important fact about exponential growth.</figcaption>
+</figure>
+
+<div class="box def">
+<span class="lbl">definition</span>
+<p>Let \(a&gt;0\) and \(a\neq1\). The <strong>exponential function with base \(a\)</strong> is
+$$f(x)=a^{x}.$$
+Its domain is all of \(\mathbb{R}\), its range is \((0,\infty)\), and the \(x\)-axis is a horizontal asymptote. It grows if \(a&gt;1\) and decays if \(0&lt;a&lt;1\), and \(f(0)=1\) whatever \(a\) is.</p>
+</div>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp3_1q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp3_1q">Which of these quantities is growing exponentially?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp3_1r" value="0"> <span>one that rises by 5 every year</span></label>
+<label class="spot-opt"><input type="radio" name="sp3_1r" value="1" data-right> <span>one that rises by 5% every year</span></label>
+<label class="spot-opt"><input type="radio" name="sp3_1r" value="2"> <span>one that rises by 5 more each year than the year before</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> A fixed <em>percentage</em> per step means multiplying by the same factor, \(1.05\), every step.</div><div class="spot-msg bad" data-kind="bad" data-opt="0" hidden><span class="spot-tag">Not quite.</span> Adding the same amount every step is linear growth.</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> Growing increases (5, 10, 15, &hellip;) give a quadratic, not an exponential.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<p>The defining property is not the formula but the behaviour: <em>equal steps in the input multiply the output by the same factor</em>. A linear function adds a fixed amount per step; an exponential multiplies by a fixed amount per step. Everything else follows.</p>
+
+<figure>
+<svg viewBox="0 0 600 280" width="600" height="280" role="img" aria-labelledby="famt famd">
+<title id="famt">The graphs of two to the x, e to the x, and one half to the x</title>
+<desc id="famd">Three curves through the point zero comma one. Two of them rise to the right at different rates, and the third falls, being the mirror image of one of the rising curves.</desc>
+<rect x="20" y="20" width="560" height="230" class="plot-bg" stroke="var(--rule)"/>
+<g class="gridline"><line x1="20" y1="221.3" x2="580" y2="221.3"/><line x1="20" y1="163.8" x2="580" y2="163.8"/><line x1="20" y1="106.3" x2="580" y2="106.3"/><line x1="20" y1="48.8" x2="580" y2="48.8"/></g>
+<line class="axis" x1="20" y1="250" x2="580" y2="250"/><line class="axis" x1="300" y1="20" x2="300" y2="250"/>
+<polyline class="curve" points="39.9,246.4 42.1,246.3 44.2,246.3 46.4,246.2 48.6,246.1 50.7,246.1 52.9,246.0 55.1,245.9 57.2,245.9 59.4,245.8 61.6,245.7 63.7,245.7 65.9,245.6 68.1,245.5 70.2,245.4 72.4,245.3 74.6,245.3 76.7,245.2 78.9,245.1 81.1,245.0 83.2,244.9 85.4,244.8 87.6,244.7 89.8,244.6 91.9,244.6 94.1,244.5 96.3,244.4 98.4,244.3 100.6,244.2 102.8,244.1 104.9,244.0 107.1,243.9 109.3,243.7 111.4,243.6 113.6,243.5 115.8,243.4 117.9,243.3 120.1,243.2 122.3,243.1 124.4,242.9 126.6,242.8 128.8,242.7 130.9,242.6 133.1,242.4 135.3,242.3 137.4,242.2 139.6,242.0 141.8,241.9 143.9,241.7 146.1,241.6 148.3,241.5 150.4,241.3 152.6,241.2 154.8,241.0 156.9,240.8 159.1,240.7 161.3,240.5 163.4,240.4 165.6,240.2 167.8,240.0 169.9,239.8 172.1,239.7 174.3,239.5 176.5,239.3 178.6,239.1 180.8,238.9 183.0,238.7 185.1,238.5 187.3,238.3 189.5,238.1 191.6,237.9 193.8,237.7 196.0,237.5 198.1,237.3 200.3,237.0 202.5,236.8 204.6,236.6 206.8,236.4 209.0,236.1 211.1,235.9 213.3,235.6 215.5,235.4 217.6,235.1 219.8,234.9 222.0,234.6 224.1,234.3 226.3,234.0 228.5,233.8 230.6,233.5 232.8,233.2 235.0,232.9 237.1,232.6 239.3,232.3 241.5,232.0 243.6,231.7 245.8,231.4 248.0,231.0 250.1,230.7 252.3,230.4 254.5,230.0 256.6,229.7 258.8,229.3 261.0,229.0 263.2,228.6 265.3,228.2 267.5,227.8 269.7,227.4 271.8,227.0 274.0,226.6 276.2,226.2 278.3,225.8 280.5,225.4 282.7,225.0 284.8,224.5 287.0,224.1 289.2,223.6 291.3,223.2 293.5,222.7 295.7,222.2 297.8,221.7 300.0,221.2 302.2,220.7 304.3,220.2 306.5,219.7 308.7,219.2 310.8,218.6 313.0,218.1 315.2,217.5 317.3,217.0 319.5,216.4 321.7,215.8 323.8,215.2 326.0,214.6 328.2,214.0 330.3,213.4 332.5,212.7 334.7,212.1 336.8,211.4 339.0,210.7 341.2,210.0 343.4,209.3 345.5,208.6 347.7,207.9 349.9,207.2 352.0,206.4 354.2,205.7 356.4,204.9 358.5,204.1 360.7,203.3 362.9,202.5 365.0,201.6 367.2,200.8 369.4,199.9 371.5,199.1 373.7,198.2 375.9,197.3 378.0,196.4 380.2,195.4 382.4,194.5 384.5,193.5 386.7,192.5 388.9,191.5 391.0,190.5 393.2,189.4 395.4,188.4 397.5,187.3 399.7,186.2 401.9,185.1 404.0,183.9 406.2,182.8 408.4,181.6 410.5,180.4 412.7,179.2 414.9,178.0 417.0,176.7 419.2,175.4 421.4,174.1 423.5,172.8 425.7,171.5 427.9,170.1 430.1,168.7 432.2,167.3 434.4,165.8 436.6,164.3 438.7,162.8 440.9,161.3 443.1,159.8 445.2,158.2 447.4,156.6 449.6,155.0 451.7,153.3 453.9,151.6 456.1,149.9 458.2,148.1 460.4,146.4 462.6,144.5 464.7,142.7 466.9,140.8 469.1,138.9 471.2,137.0 473.4,135.0 475.6,133.0 477.7,130.9 479.9,128.9 482.1,126.7 484.2,124.6 486.4,122.4 488.6,120.2 490.7,117.9 492.9,115.6 495.1,113.2 497.2,110.9 499.4,108.4 501.6,105.9 503.7,103.4 505.9,100.9 508.1,98.3 510.2,95.6 512.4,92.9 514.6,90.2 516.8,87.4 518.9,84.5 521.1,81.6 523.3,78.7 525.4,75.7 527.6,72.6 529.8,69.5 531.9,66.4 534.1,63.2 536.3,59.9 538.4,56.6 540.6,53.2 542.8,49.8 544.9,46.3 547.1,42.7 549.3,39.1 551.4,35.4 553.6,31.7 555.8,27.8 557.9,24.0 560.1,20.0"/>
+<polyline class="curve2" points="39.9,248.6 42.1,248.5 44.2,248.5 46.4,248.5 48.6,248.4 50.7,248.4 52.9,248.3 55.1,248.3 57.2,248.3 59.4,248.2 61.6,248.2 63.7,248.1 65.9,248.1 68.1,248.0 70.2,248.0 72.4,247.9 74.6,247.9 76.7,247.8 78.9,247.8 81.1,247.7 83.2,247.6 85.4,247.6 87.6,247.5 89.8,247.5 91.9,247.4 94.1,247.3 96.3,247.3 98.4,247.2 100.6,247.1 102.8,247.0 104.9,247.0 107.1,246.9 109.3,246.8 111.4,246.7 113.6,246.7 115.8,246.6 117.9,246.5 120.1,246.4 122.3,246.3 124.4,246.2 126.6,246.1 128.8,246.0 130.9,245.9 133.1,245.8 135.3,245.7 137.4,245.6 139.6,245.5 141.8,245.4 143.9,245.2 146.1,245.1 148.3,245.0 150.4,244.9 152.6,244.7 154.8,244.6 156.9,244.5 159.1,244.3 161.3,244.2 163.4,244.0 165.6,243.9 167.8,243.7 169.9,243.6 172.1,243.4 174.3,243.3 176.5,243.1 178.6,242.9 180.8,242.7 183.0,242.5 185.1,242.4 187.3,242.2 189.5,242.0 191.6,241.8 193.8,241.6 196.0,241.3 198.1,241.1 200.3,240.9 202.5,240.7 204.6,240.4 206.8,240.2 209.0,239.9 211.1,239.7 213.3,239.4 215.5,239.2 217.6,238.9 219.8,238.6 222.0,238.3 224.1,238.0 226.3,237.7 228.5,237.4 230.6,237.1 232.8,236.8 235.0,236.4 237.1,236.1 239.3,235.7 241.5,235.4 243.6,235.0 245.8,234.6 248.0,234.2 250.1,233.8 252.3,233.4 254.5,233.0 256.6,232.6 258.8,232.1 261.0,231.7 263.2,231.2 265.3,230.7 267.5,230.2 269.7,229.7 271.8,229.2 274.0,228.7 276.2,228.2 278.3,227.6 280.5,227.0 282.7,226.5 284.8,225.9 287.0,225.3 289.2,224.6 291.3,224.0 293.5,223.3 295.7,222.7 297.8,222.0 300.0,221.2 302.2,220.5 304.3,219.8 306.5,219.0 308.7,218.2 310.8,217.4 313.0,216.6 315.2,215.8 317.3,214.9 319.5,214.0 321.7,213.1 323.8,212.1 326.0,211.2 328.2,210.2 330.3,209.2 332.5,208.2 334.7,207.1 336.8,206.0 339.0,204.9 341.2,203.8 343.4,202.6 345.5,201.4 347.7,200.2 349.9,198.9 352.0,197.6 354.2,196.3 356.4,194.9 358.5,193.5 360.7,192.1 362.9,190.6 365.0,189.1 367.2,187.6 369.4,186.0 371.5,184.4 373.7,182.7 375.9,181.0 378.0,179.3 380.2,177.5 382.4,175.7 384.5,173.8 386.7,171.8 388.9,169.9 391.0,167.8 393.2,165.8 395.4,163.6 397.5,161.4 399.7,159.2 401.9,156.9 404.0,154.5 406.2,152.1 408.4,149.7 410.5,147.1 412.7,144.5 414.9,141.8 417.0,139.1 419.2,136.3 421.4,133.4 423.5,130.5 425.7,127.4 427.9,124.3 430.1,121.2 432.2,117.9 434.4,114.5 436.6,111.1 438.7,107.6 440.9,104.0 443.1,100.3 445.2,96.5 447.4,92.6 449.6,88.6 451.7,84.6 453.9,80.4 456.1,76.1 458.2,71.7 460.4,67.2 462.6,62.5 464.7,57.8 466.9,52.9 469.1,47.9 471.2,42.8 473.4,37.6 475.6,32.2 477.7,26.7 479.9,21.0"/>
+<polyline points="39.9,20.0 42.1,24.0 44.2,27.8 46.4,31.7 48.6,35.4 50.7,39.1 52.9,42.7 55.1,46.3 57.2,49.8 59.4,53.2 61.6,56.6 63.7,59.9 65.9,63.2 68.1,66.4 70.2,69.5 72.4,72.6 74.6,75.7 76.7,78.7 78.9,81.6 81.1,84.5 83.2,87.4 85.4,90.2 87.6,92.9 89.8,95.6 91.9,98.3 94.1,100.9 96.3,103.4 98.4,105.9 100.6,108.4 102.8,110.9 104.9,113.2 107.1,115.6 109.3,117.9 111.4,120.2 113.6,122.4 115.8,124.6 117.9,126.7 120.1,128.9 122.3,130.9 124.4,133.0 126.6,135.0 128.8,137.0 130.9,138.9 133.1,140.8 135.3,142.7 137.4,144.5 139.6,146.4 141.8,148.1 143.9,149.9 146.1,151.6 148.3,153.3 150.4,155.0 152.6,156.6 154.8,158.2 156.9,159.8 159.1,161.3 161.3,162.8 163.4,164.3 165.6,165.8 167.8,167.3 169.9,168.7 172.1,170.1 174.3,171.5 176.5,172.8 178.6,174.1 180.8,175.4 183.0,176.7 185.1,178.0 187.3,179.2 189.5,180.4 191.6,181.6 193.8,182.8 196.0,183.9 198.1,185.1 200.3,186.2 202.5,187.3 204.6,188.4 206.8,189.4 209.0,190.5 211.1,191.5 213.3,192.5 215.5,193.5 217.6,194.5 219.8,195.4 222.0,196.4 224.1,197.3 226.3,198.2 228.5,199.1 230.6,199.9 232.8,200.8 235.0,201.6 237.1,202.5 239.3,203.3 241.5,204.1 243.6,204.9 245.8,205.7 248.0,206.4 250.1,207.2 252.3,207.9 254.5,208.6 256.6,209.3 258.8,210.0 261.0,210.7 263.2,211.4 265.3,212.1 267.5,212.7 269.7,213.4 271.8,214.0 274.0,214.6 276.2,215.2 278.3,215.8 280.5,216.4 282.7,217.0 284.8,217.5 287.0,218.1 289.2,218.6 291.3,219.2 293.5,219.7 295.7,220.2 297.8,220.7 300.0,221.2 302.2,221.7 304.3,222.2 306.5,222.7 308.7,223.2 310.8,223.6 313.0,224.1 315.2,224.5 317.3,225.0 319.5,225.4 321.7,225.8 323.8,226.2 326.0,226.6 328.2,227.0 330.3,227.4 332.5,227.8 334.7,228.2 336.8,228.6 339.0,229.0 341.2,229.3 343.4,229.7 345.5,230.0 347.7,230.4 349.9,230.7 352.0,231.0 354.2,231.4 356.4,231.7 358.5,232.0 360.7,232.3 362.9,232.6 365.0,232.9 367.2,233.2 369.4,233.5 371.5,233.8 373.7,234.0 375.9,234.3 378.0,234.6 380.2,234.9 382.4,235.1 384.5,235.4 386.7,235.6 388.9,235.9 391.0,236.1 393.2,236.4 395.4,236.6 397.5,236.8 399.7,237.0 401.9,237.3 404.0,237.5 406.2,237.7 408.4,237.9 410.5,238.1 412.7,238.3 414.9,238.5 417.0,238.7 419.2,238.9 421.4,239.1 423.5,239.3 425.7,239.5 427.9,239.7 430.1,239.8 432.2,240.0 434.4,240.2 436.6,240.4 438.7,240.5 440.9,240.7 443.1,240.8 445.2,241.0 447.4,241.2 449.6,241.3 451.7,241.5 453.9,241.6 456.1,241.7 458.2,241.9 460.4,242.0 462.6,242.2 464.7,242.3 466.9,242.4 469.1,242.6 471.2,242.7 473.4,242.8 475.6,242.9 477.7,243.1 479.9,243.2 482.1,243.3 484.2,243.4 486.4,243.5 488.6,243.6 490.7,243.7 492.9,243.9 495.1,244.0 497.2,244.1 499.4,244.2 501.6,244.3 503.7,244.4 505.9,244.5 508.1,244.6 510.2,244.6 512.4,244.7 514.6,244.8 516.8,244.9 518.9,245.0 521.1,245.1 523.3,245.2 525.4,245.3 527.6,245.3 529.8,245.4 531.9,245.5 534.1,245.6 536.3,245.7 538.4,245.7 540.6,245.8 542.8,245.9 544.9,245.9 547.1,246.0 549.3,246.1 551.4,246.1 553.6,246.2 555.8,246.3 557.9,246.3 560.1,246.4" fill="none" stroke="var(--rose)" stroke-width="2.5"/>
+<circle cx="300" cy="221.3" r="5" fill="var(--ink)"/>
+<text class="axtext" x="306" y="216">(0, 1)</text>
+<text class="lbltext" x="430" y="60" fill="var(--sky)">2&#8347;</text>
+<text class="lbltext" x="360" y="44" fill="var(--amber)">e&#8347;</text>
+<text class="lbltext" x="60" y="60" fill="var(--rose)">(1/2)&#8347;</text>
+<text class="axtext" x="4" y="226">1</text><text class="axtext" x="4" y="168">3</text><text class="axtext" x="4" y="111">5</text><text class="axtext" x="4" y="53">7</text>
+</svg>
+<figcaption>Every exponential passes through \((0,1)\), hugs the \(x\)-axis on one side, and climbs without bound on the other. Note that \((1/2)^{x}=2^{-x}\), so decay is growth read backwards &mdash; a reflection, in the sense of Lecture 4.</figcaption>
+</figure>
+
+<div class="box ex">
+<span class="lbl">example 3.1 &mdash; which model fits?</span>
+<p>Two accounts of the same outbreak are offered. In the first, the number of cases rises by 40 each day. In the second, it rises by 12% each day. Both start at 200 cases. Complete the table for days 0, 5, 10 and 30, and say which description you would want to be true.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<div class="tscroll" tabindex="0" role="region" aria-label="table (scrolls sideways on small screens)"><table>
+<tr><th>day</th><th>adding 40</th><th>multiplying by 1.12</th></tr>
+<tr><td>0</td><td>200</td><td>200</td></tr>
+<tr><td>5</td><td>400</td><td>352</td></tr>
+<tr><td>10</td><td>600</td><td>621</td></tr>
+<tr><td>30</td><td>1400</td><td>5990</td></tr>
+</table></div>
+<p>The linear model is the worse news for a week and a half and the better news forever after. By day 30 they differ by a factor of four; by day 60 the exponential is over 180,000 and the linear is 2,600.</p>
+<p>The general forms are \(L(t)=200+40t\) and \(E(t)=200(1.12)^{t}\). A useful habit: when you see a percentage per unit time, you are looking at an exponential, and the base is \(1+r\), never \(r\).</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 3.2 &mdash; reading the base off two data points</span>
+<p>A social post has 400 views after 2 hours and 2,500 views after 6 hours. Assuming exponential growth, find the hourly growth factor and predict the views at 10 hours.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Write \(V(t)=V_0a^{t}\). Dividing one equation by the other kills the unknown \(V_0\):
+$$\frac{V(6)}{V(2)}=\frac{V_0a^{6}}{V_0a^{2}}=a^{4}=\frac{2500}{400}=6.25.$$
+So \(a=6.25^{1/4}\approx1.58\): about 58% growth per hour. Then \(V_0=400/a^{2}=400/2.5=160\).</p>
+<p>At 10 hours, \(V(10)=160(1.58)^{10}\approx 15{,}600\). Equivalently, and more cheaply: 10 hours is another four-hour gap past 6 hours, so multiply 2,500 by 6.25 again.</p>
+<p>That second route is worth noticing. For an exponential, what matters is the <em>gap</em> between two times, never where the times sit. Every four-hour window multiplies the count by 6.25, whether it starts at breakfast or midnight.</p>
+</div>
+</div>
+
+<h3>Compound interest, and a number nobody chose</h3>
+
+<p>Invest \(P\) dollars at an annual rate \(r\), compounded \(n\) times per year. Each compounding period multiplies the balance by \(1+r/n\), and there are \(nt\) of them in \(t\) years:</p>
+
+<div class="box thm">
+<span class="lbl">compound interest</span>
+$$A(t)=P\left(1+\frac{r}{n}\right)^{nt}.$$
+</div>
+<div class="box spot" data-type="num" data-ans="1061.6778118644984" data-tol="0.01" role="group" aria-labelledby="sp3_2q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp3_2q">\(\$1000\) at 6% a year, compounded monthly, for one year. What is the balance, to the nearest cent?</p>
+<div class="spot-row"><label for="sp3_2i">your answer</label><input id="sp3_2i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="e.g. 1050.25" aria-describedby="sp3_2q sp3_2h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp3_2h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(1000(1.005)^{12}=\$1061.68\) &mdash; a little more than the \(\$1060\) simple interest would give.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> \(n=12\), so each month multiplies by \(1+\tfrac{0.06}{12}=1.005\). Do that 12 times.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<p>Now ask a greedy question. More frequent compounding is better, so what if we compound every second? Every microsecond? Continuously? Put \(P=1\), \(r=1\), \(t=1\) and watch what \((1+1/n)^{n}\) does as \(n\) grows.</p>
+
+<div class="widget">
+<h4>Compounding faster and faster</h4>
+<p style="font-size:.95rem;margin:.2em 0 .6em">One dollar, 100% interest, one year, compounded \(n\) times. Drag \(n\) upward and watch the balance climb &mdash; and then refuse to climb any further.</p>
+<label for="nComp" class="mono" style="font-size:.88rem;color:var(--cap);display:block">compounding periods per year: <span id="nCompV" class="mono" style="color:var(--ink)">1</span>
+<input type="range" id="nComp" min="0" max="70" step="1" value="0" style="width:100%;margin-top:6px"></label>
+<svg id="compSvg" viewBox="0 0 620 180" width="620" height="180" role="img" aria-label="A bar showing the year-end balance as compounding frequency increases">
+  <rect x="40" y="40" width="540" height="46" fill="var(--surface2)" stroke="var(--rule)"/>
+  <rect id="compBar" x="40" y="40" width="0" height="46" fill="var(--moss)" fill-opacity="0.55"/>
+  <line x1="580" y1="30" x2="580" y2="96" stroke="var(--rose)" stroke-width="2.5"/>
+  <text class="axtext" x="524" y="24" fill="var(--rose)">e = 2.71828\u2026</text>
+  <text class="axtext" x="34" y="110">$2.00</text><text class="axtext" x="556" y="110">$2.72</text>
+  <text id="compTxt" class="lbltext" x="40" y="150"></text>
+</svg>
+<p class="readout" role="status" aria-live="polite" id="compOut"></p>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea</span>
+<p>The balance does not run away. It creeps up to \(2.718281828\dots\) and stops, and no amount of extra compounding gets you another cent. That ceiling is the number \(e\), and notice how it arrived: not as a definition somebody wrote down, but as the answer to a question about limits &mdash; what happens as the steps get infinitely fine?</p>
+<p>This is the first time in the course that an infinite process has produced a specific finite number, and it will not be the last. It is exactly the move calculus is built on. Every derivative you ever compute will be a limit of difference quotients like the ones in Lecture 8, and \(e\) is the first genuine limit you have met. Precalculus builds the sequence; calculus names the destination.</p>
+</div>
+
+<p>With continuous compounding the formula becomes \(A(t)=Pe^{rt}\), and the function \(e^{x}\) becomes the standard exponential: every other base can be written in terms of it, and we will see in Lecture 13 exactly how.</p>
+
+<div class="box ex">
+<span class="lbl">example 3.3 &mdash; the same rate, four ways</span>
+<p>\(\$5{,}000\) is invested at 6% for 10 years. Find the balance under annual, monthly, daily and continuous compounding.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<div class="tscroll" tabindex="0" role="region" aria-label="table (scrolls sideways on small screens)"><table>
+<tr><th>compounding</th><th>computation</th><th>balance</th></tr>
+<tr><td>annual</td><td>\(5000(1.06)^{10}\)</td><td>\$8,954.24</td></tr>
+<tr><td>monthly</td><td>\(5000(1+0.06/12)^{120}\)</td><td>\$9,096.98</td></tr>
+<tr><td>daily</td><td>\(5000(1+0.06/365)^{3650}\)</td><td>\$9,110.14</td></tr>
+<tr><td>continuous</td><td>\(5000e^{0.6}\)</td><td>\$9,110.59</td></tr>
+</table></div>
+<p>Annual to monthly is worth \$143. Monthly to daily is worth \$13. Daily to continuous is worth 45 cents. The gains die off fast, which is the same fact the widget above shows: after the first few refinements, the limit is already close.</p>
+</div>
+</div>
+
+<div class="box hist">
+<span class="lbl">history</span>
+<p>Jacob Bernoulli asked this exact question in 1683 &mdash; what does continuous compounding pay? &mdash; and proved the answer was between 2 and 3, without being able to say what it was. The number had no name and no notation for fifty years, until Euler called it \(e\) in the 1720s and computed it to eighteen decimal places.</p>
+<p>Which is a strange order of events. The most important constant in analysis entered mathematics through a question about bank interest, and it took half a century for anyone to realise it was not really about banks at all.</p>
+</div>
+
+<h3>Decay, half-life, and doubling time</h3>
+
+<p>When \(0&lt;a&lt;1\) the same formula runs downhill. The natural way to describe such a process is not by its rate but by its <strong>half-life</strong>: the time it takes for half of whatever is present to disappear. If the half-life is \(h\), then</p>
+<div class="box spot" data-type="num" data-ans="10.0" role="group" aria-labelledby="sp3_3q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp3_3q">A dose of 80 mg has a half-life of 6 hours. How much remains after 18 hours?</p>
+<div class="spot-row"><label for="sp3_3i">your answer</label><input id="sp3_3i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp3_3q sp3_3h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp3_3h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(80\to40\to20\to10\) mg.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> 18 hours is three half-lives. Halve 80 three times.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+$$N(t)=N_0\left(\tfrac12\right)^{t/h}.$$
+
+<figure>
+<svg viewBox="0 0 640 280" width="640" height="280" role="img" aria-labelledby="cdt cdd">
+<title id="cdt">Exponential decay with a five-hour half-life</title>
+<desc id="cdd">A curve falling from 200 milligrams to about 12 milligrams over 24 hours, halving every five hours.</desc>
+<rect x="60" y="20" width="540" height="220" class="plot-bg" stroke="var(--rule)"/>
+<g class="gridline"><line x1="60" y1="130" x2="600" y2="130"/><line x1="60" y1="185" x2="600" y2="185"/><line x1="60" y1="75" x2="600" y2="75"/>
+<line x1="172.5" y1="20" x2="172.5" y2="240"/><line x1="285" y1="20" x2="285" y2="240"/><line x1="397.5" y1="20" x2="397.5" y2="240"/></g>
+<polyline class="curve" points="60.0,20.0 62.2,23.0 64.5,26.0 66.8,29.0 69.0,31.9 71.2,34.7 73.5,37.6 75.8,40.3 78.0,43.1 80.2,45.8 82.5,48.5 84.8,51.1 87.0,53.7 89.2,56.3 91.5,58.8 93.8,61.3 96.0,63.8 98.2,66.2 100.5,68.6 102.8,70.9 105.0,73.3 107.2,75.6 109.5,77.8 111.8,80.1 114.0,82.3 116.2,84.4 118.5,86.6 120.8,88.7 123.0,90.8 125.2,92.8 127.5,94.9 129.8,96.9 132.0,98.8 134.2,100.8 136.5,102.7 138.8,104.6 141.0,106.4 143.2,108.3 145.5,110.1 147.8,111.9 150.0,113.6 152.2,115.4 154.5,117.1 156.8,118.8 159.0,120.5 161.2,122.1 163.5,123.7 165.8,125.3 168.0,126.9 170.2,128.5 172.5,130.0 174.8,131.5 177.0,133.0 179.2,134.5 181.5,135.9 183.8,137.4 186.0,138.8 188.2,140.2 190.5,141.5 192.8,142.9 195.0,144.2 197.2,145.6 199.5,146.9 201.8,148.1 204.0,149.4 206.2,150.7 208.5,151.9 210.8,153.1 213.0,154.3 215.2,155.5 217.5,156.6 219.8,157.8 222.0,158.9 224.2,160.0 226.5,161.1 228.8,162.2 231.0,163.3 233.2,164.3 235.5,165.4 237.8,166.4 240.0,167.4 242.2,168.4 244.5,169.4 246.8,170.4 249.0,171.3 251.2,172.3 253.5,173.2 255.7,174.1 258.0,175.0 260.2,175.9 262.5,176.8 264.8,177.7 267.0,178.5 269.2,179.4 271.5,180.2 273.8,181.1 276.0,181.9 278.2,182.7 280.5,183.5 282.8,184.2 285.0,185.0 287.2,185.8 289.5,186.5 291.8,187.2 294.0,188.0 296.2,188.7 298.5,189.4 300.8,190.1 303.0,190.8 305.2,191.5 307.5,192.1 309.8,192.8 312.0,193.4 314.2,194.1 316.5,194.7 318.8,195.3 321.0,195.9 323.2,196.5 325.5,197.1 327.8,197.7 330.0,198.3 332.2,198.9 334.5,199.5 336.8,200.0 339.0,200.6 341.2,201.1 343.5,201.6 345.8,202.2 348.0,202.7 350.2,203.2 352.5,203.7 354.8,204.2 357.0,204.7 359.2,205.2 361.5,205.7 363.8,206.1 366.0,206.6 368.2,207.1 370.5,207.5 372.8,208.0 375.0,208.4 377.2,208.8 379.5,209.3 381.8,209.7 384.0,210.1 386.2,210.5 388.5,210.9 390.8,211.3 393.0,211.7 395.2,212.1 397.5,212.5 399.8,212.9 402.0,213.3 404.2,213.6 406.5,214.0 408.8,214.3 411.0,214.7 413.2,215.0 415.5,215.4 417.8,215.7 420.0,216.1 422.3,216.4 424.5,216.7 426.8,217.0 429.0,217.4 431.2,217.7 433.5,218.0 435.8,218.3 438.0,218.6 440.2,218.9 442.5,219.2 444.8,219.4 447.0,219.7 449.2,220.0 451.5,220.3 453.8,220.6 456.0,220.8 458.2,221.1 460.5,221.3 462.7,221.6 465.0,221.9 467.3,222.1 469.5,222.4 471.8,222.6 474.0,222.8 476.2,223.1 478.5,223.3 480.8,223.5 483.0,223.8 485.2,224.0 487.5,224.2 489.8,224.4 492.0,224.6 494.2,224.8 496.5,225.1 498.8,225.3 501.0,225.5 503.2,225.7 505.5,225.9 507.7,226.1 510.0,226.2 512.2,226.4 514.5,226.6 516.8,226.8 519.0,227.0 521.2,227.2 523.5,227.3 525.8,227.5 528.0,227.7 530.2,227.9 532.5,228.0 534.8,228.2 537.0,228.4 539.2,228.5 541.5,228.7 543.8,228.8 546.0,229.0 548.2,229.1 550.5,229.3 552.8,229.4 555.0,229.6 557.2,229.7 559.5,229.9 561.8,230.0 564.0,230.1 566.2,230.3 568.5,230.4 570.8,230.5 573.0,230.7 575.2,230.8 577.5,230.9 579.8,231.1 582.0,231.2 584.2,231.3 586.5,231.4 588.8,231.5 591.0,231.7 593.2,231.8 595.5,231.9 597.8,232.0 600.0,232.1"/>
+<line class="axis" x1="60" y1="240" x2="600" y2="240"/><line class="axis" x1="60" y1="20" x2="60" y2="240"/>
+<g fill="var(--rose)"><circle cx="172.5" cy="130" r="5"/><circle cx="285" cy="185" r="5"/><circle cx="397.5" cy="212.5" r="5"/></g>
+<text class="axtext" x="26" y="134">100</text><text class="axtext" x="32" y="189">50</text><text class="axtext" x="26" y="79">150</text><text class="axtext" x="26" y="24">200</text>
+<text class="axtext" x="54" y="258">0</text><text class="axtext" x="164" y="258">5</text><text class="axtext" x="276" y="258">10</text><text class="axtext" x="388" y="258">15</text><text class="axtext" x="574" y="258">24</text>
+<text class="axtext" x="300" y="276">hours</text><text class="axtext" x="14" y="14">mg</text>
+<text class="axtext" x="182" y="124">half</text><text class="axtext" x="294" y="179">a quarter</text>
+</svg>
+<figcaption>A 200 mg dose of caffeine with a five-hour half-life. Each five hours removes half of what is left, never half of the original &mdash; which is why the curve flattens rather than hitting zero. A late-afternoon coffee still has a quarter of itself in you at midnight.</figcaption>
+</figure>
+
+<div class="box ex">
+<span class="lbl">example 3.4 &mdash; doubling time without logarithms</span>
+<p>An investment grows 8% a year. Roughly how long until it doubles? Estimate it before computing, using the fact that \(1.08^{9}\approx 2\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>We need \(1.08^{t}=2\). Trying values: \(1.08^{8}=1.851\), \(1.08^{9}=1.999\). So the doubling time is essentially 9 years.</p>
+<p>There is a shortcut worth carrying around, known to every banker as the <strong>rule of 70</strong>: the doubling time is about \(70/(\text{percent rate})\). Here \(70/8=8.75\) years, which is within 3% of the truth. It works because of a logarithm fact we will prove in Lecture 13, and it works for any growth at all &mdash; inflation, population, followers, bacteria.</p>
+<p>Notice what we could <em>not</em> do: solve \(1.08^{t}=2\) exactly. The unknown is stuck in the exponent, and nothing in Chapter 0 can get it out. That is precisely the hole the next lecture fills.</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; where this is heading</span>
+<p>Here is a fact you can check right now with the difference quotient from Lecture 8. Take \(f(x)=e^{x}\) at \(x=0\) and compute the average rate of change over a tiny interval:
+$$\frac{e^{0.001}-e^{0}}{0.001}=1.0005\ldots$$
+Try \(h=0.0001\) and you get \(1.00005\). The rate of change of \(e^{x}\) at \(0\) appears to be exactly 1. Try it at \(x=2\) and you will get \(7.389\ldots\), which is \(e^{2}\) itself.</p>
+<p>So \(e^{x}\) is a function whose rate of change, at every point, equals its own value. It is the mathematical statement of "grows in proportion to how much there is", and it is the reason \(e\) rather than 2 or 10 is the natural base. You cannot prove this yet. You can verify it numerically in two minutes, and that is worth doing, because when calculus hands you \(\frac{d}{dx}e^{x}=e^{x}\) in your first week, it should feel like a confirmation rather than a revelation.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">for your toolbox</span>
+<div class="tscroll" tabindex="0" role="region" aria-label="table (scrolls sideways on small screens)"><table>
+<tr><th>function</th><th>domain</th><th>range</th><th>features</th></tr>
+<tr><td>\(y=a^{x}\), \(a&gt;1\)</td><td>all reals</td><td>\((0,\infty)\)</td><td>through \((0,1)\); <strong>horizontal asymptote \(y=0\)</strong> on the left</td></tr>
+<tr><td>\(y=a^{x}\), \(0&lt;a&lt;1\)</td><td>all reals</td><td>\((0,\infty)\)</td><td>the same graph reflected; asymptote \(y=0\) on the right</td></tr>
+</table></div>
+<p>The asymptote moves with a vertical shift: \(y=2^{x}-3\) has asymptote \(y=-3\), and its range is \((-3,\infty)\). Mark that line on every exponential sketch you draw &mdash; a graph that appears to touch the axis is the commonest error in this chapter.</p>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp3_4q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp3_4q">What is the horizontal asymptote of \(y=2^{x}+3\)?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp3_4r" value="0" data-right> <span>\(y=3\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp3_4r" value="1"> <span>\(y=0\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp3_4r" value="2"> <span>\(x=3\)</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(2^{x}\to0\) on the left, so \(2^{x}+3\to3\). The range is \((3,\infty)\).</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> \(2^{x}\) flattens toward 0 on the left &mdash; but then 3 is added to every height.</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> Exponentials have <em>horizontal</em> asymptotes, written \(y=\ldots\).</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 3.1</span>
+<ol>
+<li>Sketch \(y=3^{x}\), \(y=3^{-x}\) and \(y=3^{x}-2\) on one set of axes, and give the asymptote and range of each.</li>
+<li>A culture starts with 500 cells and triples every 4 hours. Write \(N(t)\), and find the population after 10 hours.</li>
+<li>A car worth \$28,000 loses 15% of its value each year. Write \(V(t)\) and find when it is first worth less than \$10,000, by trial.</li>
+<li>\(\$2{,}000\) is invested at 4.5%. Find the balance after 7 years under quarterly and under continuous compounding, and state the difference.</li>
+<li>A medicine has a 9-hour half-life. What fraction remains after 24 hours? After how many hours is less than 5% left?</li>
+<li>Two quantities start equal. One grows by 3 units per day, the other by 3% per day. On what day does the second overtake the first if both start at 100? (Trial and error is expected.)</li>
+<li>Use a calculator to evaluate \(\left(1+\frac1n\right)^{n}\) for \(n=10,100,1000,10^{6}\). What are these numbers approaching, and how many correct digits does each give?</li>
+<li>Show that for any exponential \(f(x)=a^{x}\), the ratio \(f(x+c)/f(x)\) does not depend on \(x\). Explain what this says in words, and why no polynomial has this property.</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>All three have asymptote \(y=0\) except the last, whose asymptote is \(y=-2\). Ranges: \((0,\infty)\), \((0,\infty)\), \((-2,\infty)\). The second is the first reflected across the \(y\)-axis.</li></ol>
+<figure>
+<svg viewBox="0 0 620 280" width="620" height="280" role="img" aria-labelledby="exst exsd">
+<title id="exst">Three exponential graphs and their asymptotes</title><desc id="exsd">Three curves through or near the point zero comma one. y equals three to the x rises steeply to the right and flattens toward the horizontal axis on the left. y equals three to the minus x is its mirror image. y equals three to the x minus two is the first curve slid down two units, so its asymptote is the line y equals minus two.</desc>
+<rect x="64" y="22" width="536" height="206" class="plot-bg" stroke="var(--rule)"/><line x1="88.4" y1="22" x2="88.4" y2="228" class="gridline"/><line x1="210.2" y1="22" x2="210.2" y2="228" class="gridline"/><line x1="453.8" y1="22" x2="453.8" y2="228" class="gridline"/><line x1="575.6" y1="22" x2="575.6" y2="228" class="gridline"/><line x1="64" y1="210.8" x2="600" y2="210.8" class="gridline"/><line x1="64" y1="142.2" x2="600" y2="142.2" class="gridline"/><line x1="64" y1="107.8" x2="600" y2="107.8" class="gridline"/><line x1="64" y1="73.5" x2="600" y2="73.5" class="gridline"/><line x1="64" y1="39.2" x2="600" y2="39.2" class="gridline"/><line class="axis" x1="64" y1="176.5" x2="600" y2="176.5"/><line class="axis" x1="332.0" y1="22" x2="332.0" y2="228"/><line x1="64" y1="176.5" x2="600" y2="176.5" stroke="var(--rose)" stroke-width="2" stroke-dasharray="7 5"/><line x1="64" y1="210.8" x2="600" y2="210.8" stroke="var(--moss)" stroke-width="2" stroke-dasharray="7 5"/><polyline points="64.0,175.0 64.7,175.0 65.3,175.0 66.0,174.9 66.7,174.9 67.3,174.9 68.0,174.9 68.7,174.9 69.4,174.9 70.0,174.9 70.7,174.9 71.4,174.9 72.0,174.9 72.7,174.8 73.4,174.8 74.0,174.8 74.7,174.8 75.4,174.8 76.1,174.8 76.7,174.8 77.4,174.8 78.1,174.8 78.7,174.8 79.4,174.7 80.1,174.7 80.8,174.7 81.4,174.7 82.1,174.7 82.8,174.7 83.4,174.7 84.1,174.7 84.8,174.7 85.4,174.6 86.1,174.6 86.8,174.6 87.4,174.6 88.1,174.6 88.8,174.6 89.5,174.6 90.1,174.6 90.8,174.6 91.5,174.5 92.1,174.5 92.8,174.5 93.5,174.5 94.2,174.5 94.8,174.5 95.5,174.5 96.2,174.5 96.8,174.4 97.5,174.4 98.2,174.4 98.8,174.4 99.5,174.4 100.2,174.4 100.8,174.4 101.5,174.4 102.2,174.3 102.9,174.3 103.5,174.3 104.2,174.3 104.9,174.3 105.5,174.3 106.2,174.3 106.9,174.2 107.5,174.2 108.2,174.2 108.9,174.2 109.6,174.2 110.2,174.2 110.9,174.2 111.6,174.1 112.2,174.1 112.9,174.1 113.6,174.1 114.2,174.1 114.9,174.1 115.6,174.1 116.3,174.0 116.9,174.0 117.6,174.0 118.3,174.0 118.9,174.0 119.6,174.0 120.3,174.0 120.9,173.9 121.6,173.9 122.3,173.9 123.0,173.9 123.6,173.9 124.3,173.9 125.0,173.8 125.6,173.8 126.3,173.8 127.0,173.8 127.6,173.8 128.3,173.8 129.0,173.7 129.7,173.7 130.3,173.7 131.0,173.7 131.7,173.7 132.3,173.7 133.0,173.6 133.7,173.6 134.4,173.6 135.0,173.6 135.7,173.6 136.4,173.6 137.0,173.5 137.7,173.5 138.4,173.5 139.0,173.5 139.7,173.5 140.4,173.5 141.1,173.4 141.7,173.4 142.4,173.4 143.1,173.4 143.7,173.4 144.4,173.3 145.1,173.3 145.7,173.3 146.4,173.3 147.1,173.3 147.8,173.2 148.4,173.2 149.1,173.2 149.8,173.2 150.4,173.2 151.1,173.1 151.8,173.1 152.4,173.1 153.1,173.1 153.8,173.1 154.4,173.0 155.1,173.0 155.8,173.0 156.5,173.0 157.1,173.0 157.8,172.9 158.5,172.9 159.1,172.9 159.8,172.9 160.5,172.8 161.1,172.8 161.8,172.8 162.5,172.8 163.2,172.8 163.8,172.7 164.5,172.7 165.2,172.7 165.8,172.7 166.5,172.6 167.2,172.6 167.9,172.6 168.5,172.6 169.2,172.5 169.9,172.5 170.5,172.5 171.2,172.5 171.9,172.4 172.5,172.4 173.2,172.4 173.9,172.4 174.6,172.4 175.2,172.3 175.9,172.3 176.6,172.3 177.2,172.2 177.9,172.2 178.6,172.2 179.2,172.2 179.9,172.1 180.6,172.1 181.2,172.1 181.9,172.1 182.6,172.0 183.3,172.0 183.9,172.0 184.6,172.0 185.3,171.9 185.9,171.9 186.6,171.9 187.3,171.8 187.9,171.8 188.6,171.8 189.3,171.8 190.0,171.7 190.6,171.7 191.3,171.7 192.0,171.6 192.6,171.6 193.3,171.6 194.0,171.6 194.7,171.5 195.3,171.5 196.0,171.5 196.7,171.4 197.3,171.4 198.0,171.4 198.7,171.3 199.3,171.3 200.0,171.3 200.7,171.2 201.4,171.2 202.0,171.2 202.7,171.2 203.4,171.1 204.0,171.1 204.7,171.1 205.4,171.0 206.0,171.0 206.7,171.0 207.4,170.9 208.0,170.9 208.7,170.9 209.4,170.8 210.1,170.8 210.7,170.7 211.4,170.7 212.1,170.7 212.7,170.6 213.4,170.6 214.1,170.6 214.8,170.5 215.4,170.5 216.1,170.5 216.8,170.4 217.4,170.4 218.1,170.4 218.8,170.3 219.4,170.3 220.1,170.2 220.8,170.2 221.4,170.2 222.1,170.1 222.8,170.1 223.5,170.0 224.1,170.0 224.8,170.0 225.5,169.9 226.1,169.9 226.8,169.9 227.5,169.8 228.1,169.8 228.8,169.7 229.5,169.7 230.2,169.6 230.8,169.6 231.5,169.6 232.2,169.5 232.8,169.5 233.5,169.4 234.2,169.4 234.8,169.4 235.5,169.3 236.2,169.3 236.9,169.2 237.5,169.2 238.2,169.1 238.9,169.1 239.5,169.0 240.2,169.0 240.9,169.0 241.5,168.9 242.2,168.9 242.9,168.8 243.6,168.8 244.2,168.7 244.9,168.7 245.6,168.6 246.2,168.6 246.9,168.5 247.6,168.5 248.2,168.4 248.9,168.4 249.6,168.3 250.3,168.3 250.9,168.2 251.6,168.2 252.3,168.1 252.9,168.1 253.6,168.0 254.3,168.0 254.9,167.9 255.6,167.9 256.3,167.8 257.0,167.8 257.6,167.7 258.3,167.7 259.0,167.6 259.6,167.6 260.3,167.5 261.0,167.5 261.6,167.4 262.3,167.3 263.0,167.3 263.7,167.2 264.3,167.2 265.0,167.1 265.7,167.1 266.3,167.0 267.0,166.9 267.7,166.9 268.4,166.8 269.0,166.8 269.7,166.7 270.4,166.7 271.0,166.6 271.7,166.5 272.4,166.5 273.0,166.4 273.7,166.4 274.4,166.3 275.0,166.2 275.7,166.2 276.4,166.1 277.1,166.0 277.7,166.0 278.4,165.9 279.1,165.8 279.7,165.8 280.4,165.7 281.1,165.7 281.8,165.6 282.4,165.5 283.1,165.5 283.8,165.4 284.4,165.3 285.1,165.3 285.8,165.2 286.4,165.1 287.1,165.0 287.8,165.0 288.5,164.9 289.1,164.8 289.8,164.8 290.5,164.7 291.1,164.6 291.8,164.6 292.5,164.5 293.1,164.4 293.8,164.3 294.5,164.3 295.1,164.2 295.8,164.1 296.5,164.0 297.2,164.0 297.8,163.9 298.5,163.8 299.2,163.7 299.8,163.7 300.5,163.6 301.2,163.5 301.9,163.4 302.5,163.3 303.2,163.3 303.9,163.2 304.5,163.1 305.2,163.0 305.9,162.9 306.5,162.9 307.2,162.8 307.9,162.7 308.6,162.6 309.2,162.5 309.9,162.4 310.6,162.4 311.2,162.3 311.9,162.2 312.6,162.1 313.2,162.0 313.9,161.9 314.6,161.8 315.2,161.7 315.9,161.7 316.6,161.6 317.3,161.5 317.9,161.4 318.6,161.3 319.3,161.2 319.9,161.1 320.6,161.0 321.3,160.9 321.9,160.8 322.6,160.7 323.3,160.6 324.0,160.5 324.6,160.4 325.3,160.3 326.0,160.2 326.6,160.1 327.3,160.0 328.0,159.9 328.7,159.8 329.3,159.7 330.0,159.6 330.7,159.5 331.3,159.4 332.0,159.3 332.7,159.2 333.3,159.1 334.0,159.0 334.7,158.9 335.4,158.8 336.0,158.7 336.7,158.6 337.4,158.5 338.0,158.4 338.7,158.3 339.4,158.2 340.0,158.0 340.7,157.9 341.4,157.8 342.1,157.7 342.7,157.6 343.4,157.5 344.1,157.4 344.7,157.2 345.4,157.1 346.1,157.0 346.7,156.9 347.4,156.8 348.1,156.7 348.8,156.5 349.4,156.4 350.1,156.3 350.8,156.2 351.4,156.0 352.1,155.9 352.8,155.8 353.4,155.7 354.1,155.5 354.8,155.4 355.4,155.3 356.1,155.2 356.8,155.0 357.5,154.9 358.1,154.8 358.8,154.6 359.5,154.5 360.1,154.4 360.8,154.2 361.5,154.1 362.2,154.0 362.8,153.8 363.5,153.7 364.2,153.6 364.8,153.4 365.5,153.3 366.2,153.1 366.8,153.0 367.5,152.9 368.2,152.7 368.9,152.6 369.5,152.4 370.2,152.3 370.9,152.1 371.5,152.0 372.2,151.8 372.9,151.7 373.5,151.5 374.2,151.4 374.9,151.2 375.5,151.1 376.2,150.9 376.9,150.8 377.6,150.6 378.2,150.5 378.9,150.3 379.6,150.1 380.2,150.0 380.9,149.8 381.6,149.7 382.2,149.5 382.9,149.3 383.6,149.2 384.3,149.0 384.9,148.8 385.6,148.7 386.3,148.5 386.9,148.3 387.6,148.2 388.3,148.0 388.9,147.8 389.6,147.6 390.3,147.5 391.0,147.3 391.6,147.1 392.3,146.9 393.0,146.8 393.6,146.6 394.3,146.4 395.0,146.2 395.7,146.0 396.3,145.8 397.0,145.7 397.7,145.5 398.3,145.3 399.0,145.1 399.7,144.9 400.3,144.7 401.0,144.5 401.7,144.3 402.3,144.1 403.0,143.9 403.7,143.7 404.4,143.5 405.0,143.3 405.7,143.1 406.4,142.9 407.0,142.7 407.7,142.5 408.4,142.3 409.0,142.1 409.7,141.9 410.4,141.7 411.1,141.5 411.7,141.3 412.4,141.1 413.1,140.8 413.7,140.6 414.4,140.4 415.1,140.2 415.8,140.0 416.4,139.7 417.1,139.5 417.8,139.3 418.4,139.1 419.1,138.8 419.8,138.6 420.4,138.4 421.1,138.2 421.8,137.9 422.4,137.7 423.1,137.5 423.8,137.2 424.5,137.0 425.1,136.7 425.8,136.5 426.5,136.3 427.1,136.0 427.8,135.8 428.5,135.5 429.1,135.3 429.8,135.0 430.5,134.8 431.2,134.5 431.8,134.3 432.5,134.0 433.2,133.8 433.8,133.5 434.5,133.2 435.2,133.0 435.8,132.7 436.5,132.4 437.2,132.2 437.9,131.9 438.5,131.6 439.2,131.4 439.9,131.1 440.5,130.8 441.2,130.5 441.9,130.3 442.5,130.0 443.2,129.7 443.9,129.4 444.6,129.1 445.2,128.8 445.9,128.5 446.6,128.3 447.2,128.0 447.9,127.7 448.6,127.4 449.2,127.1 449.9,126.8 450.6,126.5 451.3,126.2 451.9,125.9 452.6,125.6 453.3,125.3 453.9,124.9 454.6,124.6 455.3,124.3 455.9,124.0 456.6,123.7 457.3,123.4 458.0,123.0 458.6,122.7 459.3,122.4 460.0,122.1 460.6,121.7 461.3,121.4 462.0,121.1 462.6,120.7 463.3,120.4 464.0,120.1 464.7,119.7 465.3,119.4 466.0,119.0 466.7,118.7 467.3,118.3 468.0,118.0 468.7,117.6 469.3,117.3 470.0,116.9 470.7,116.5 471.4,116.2 472.0,115.8 472.7,115.4 473.4,115.1 474.0,114.7 474.7,114.3 475.4,113.9 476.0,113.6 476.7,113.2 477.4,112.8 478.1,112.4 478.7,112.0 479.4,111.6 480.1,111.2 480.7,110.8 481.4,110.4 482.1,110.0 482.7,109.6 483.4,109.2 484.1,108.8 484.8,108.4 485.4,108.0 486.1,107.6 486.8,107.2 487.4,106.8 488.1,106.3 488.8,105.9 489.4,105.5 490.1,105.1 490.8,104.6 491.5,104.2 492.1,103.7 492.8,103.3 493.5,102.9 494.1,102.4 494.8,102.0 495.5,101.5 496.2,101.1 496.8,100.6 497.5,100.1 498.2,99.7 498.8,99.2 499.5,98.7 500.2,98.3 500.8,97.8 501.5,97.3 502.2,96.8 502.9,96.4 503.5,95.9 504.2,95.4 504.9,94.9 505.5,94.4 506.2,93.9 506.9,93.4 507.5,92.9 508.2,92.4 508.9,91.9 509.6,91.4 510.2,90.9 510.9,90.3 511.6,89.8 512.2,89.3 512.9,88.8 513.6,88.2 514.2,87.7 514.9,87.2 515.6,86.6 516.2,86.1 516.9,85.5 517.6,85.0 518.3,84.4 518.9,83.9 519.6,83.3 520.3,82.7 520.9,82.2 521.6,81.6 522.3,81.0 523.0,80.4 523.6,79.9 524.3,79.3 525.0,78.7 525.6,78.1 526.3,77.5 527.0,76.9 527.6,76.3 528.3,75.7 529.0,75.1 529.7,74.4 530.3,73.8 531.0,73.2 531.7,72.6 532.3,72.0 533.0,71.3 533.7,70.7 534.3,70.0 535.0,69.4 535.7,68.7 536.3,68.1 537.0,67.4 537.7,66.8 538.4,66.1 539.0,65.4 539.7,64.8 540.4,64.1 541.0,63.4 541.7,62.7 542.4,62.0 543.0,61.3 543.7,60.6 544.4,59.9 545.1,59.2 545.7,58.5 546.4,57.8 547.1,57.1 547.7,56.4 548.4,55.6 549.1,54.9 549.8,54.2 550.4,53.4 551.1,52.7 551.8,51.9 552.4,51.2 553.1,50.4 553.8,49.7 554.4,48.9 555.1,48.1 555.8,47.3 556.5,46.5 557.1,45.8 557.8,45.0 558.5,44.2 559.1,43.4 559.8,42.6 560.5,41.8 561.1,40.9 561.8,40.1 562.5,39.3 563.1,38.5 563.8,37.6 564.5,36.8 565.2,35.9 565.8,35.1 566.5,34.2 567.2,33.4 567.8,32.5 568.5,31.6 569.2,30.7 569.9,29.9 570.5,29.0 571.2,28.1 571.9,27.2 572.5,26.3 573.2,25.4 573.9,24.4 574.5,23.5 575.2,22.6" fill="none" stroke="var(--sky)" stroke-width="3"/><polyline points="88.8,22.6 89.5,23.5 90.1,24.4 90.8,25.4 91.5,26.3 92.1,27.2 92.8,28.1 93.5,29.0 94.2,29.9 94.8,30.7 95.5,31.6 96.2,32.5 96.8,33.4 97.5,34.2 98.2,35.1 98.8,35.9 99.5,36.8 100.2,37.6 100.8,38.5 101.5,39.3 102.2,40.1 102.9,40.9 103.5,41.8 104.2,42.6 104.9,43.4 105.5,44.2 106.2,45.0 106.9,45.8 107.5,46.5 108.2,47.3 108.9,48.1 109.6,48.9 110.2,49.7 110.9,50.4 111.6,51.2 112.2,51.9 112.9,52.7 113.6,53.4 114.2,54.2 114.9,54.9 115.6,55.6 116.3,56.4 116.9,57.1 117.6,57.8 118.3,58.5 118.9,59.2 119.6,59.9 120.3,60.6 120.9,61.3 121.6,62.0 122.3,62.7 123.0,63.4 123.6,64.1 124.3,64.8 125.0,65.4 125.6,66.1 126.3,66.8 127.0,67.4 127.6,68.1 128.3,68.7 129.0,69.4 129.7,70.0 130.3,70.7 131.0,71.3 131.7,72.0 132.3,72.6 133.0,73.2 133.7,73.8 134.4,74.4 135.0,75.1 135.7,75.7 136.4,76.3 137.0,76.9 137.7,77.5 138.4,78.1 139.0,78.7 139.7,79.3 140.4,79.9 141.1,80.4 141.7,81.0 142.4,81.6 143.1,82.2 143.7,82.7 144.4,83.3 145.1,83.9 145.7,84.4 146.4,85.0 147.1,85.5 147.8,86.1 148.4,86.6 149.1,87.2 149.8,87.7 150.4,88.2 151.1,88.8 151.8,89.3 152.4,89.8 153.1,90.3 153.8,90.9 154.4,91.4 155.1,91.9 155.8,92.4 156.5,92.9 157.1,93.4 157.8,93.9 158.5,94.4 159.1,94.9 159.8,95.4 160.5,95.9 161.1,96.4 161.8,96.8 162.5,97.3 163.2,97.8 163.8,98.3 164.5,98.7 165.2,99.2 165.8,99.7 166.5,100.1 167.2,100.6 167.9,101.1 168.5,101.5 169.2,102.0 169.9,102.4 170.5,102.9 171.2,103.3 171.9,103.7 172.5,104.2 173.2,104.6 173.9,105.1 174.6,105.5 175.2,105.9 175.9,106.3 176.6,106.8 177.2,107.2 177.9,107.6 178.6,108.0 179.2,108.4 179.9,108.8 180.6,109.2 181.2,109.6 181.9,110.0 182.6,110.4 183.3,110.8 183.9,111.2 184.6,111.6 185.3,112.0 185.9,112.4 186.6,112.8 187.3,113.2 187.9,113.6 188.6,113.9 189.3,114.3 190.0,114.7 190.6,115.1 191.3,115.4 192.0,115.8 192.6,116.2 193.3,116.5 194.0,116.9 194.7,117.3 195.3,117.6 196.0,118.0 196.7,118.3 197.3,118.7 198.0,119.0 198.7,119.4 199.3,119.7 200.0,120.1 200.7,120.4 201.4,120.7 202.0,121.1 202.7,121.4 203.4,121.7 204.0,122.1 204.7,122.4 205.4,122.7 206.0,123.0 206.7,123.4 207.4,123.7 208.0,124.0 208.7,124.3 209.4,124.6 210.1,124.9 210.7,125.3 211.4,125.6 212.1,125.9 212.7,126.2 213.4,126.5 214.1,126.8 214.8,127.1 215.4,127.4 216.1,127.7 216.8,128.0 217.4,128.3 218.1,128.5 218.8,128.8 219.4,129.1 220.1,129.4 220.8,129.7 221.4,130.0 222.1,130.3 222.8,130.5 223.5,130.8 224.1,131.1 224.8,131.4 225.5,131.6 226.1,131.9 226.8,132.2 227.5,132.4 228.1,132.7 228.8,133.0 229.5,133.2 230.2,133.5 230.8,133.8 231.5,134.0 232.2,134.3 232.8,134.5 233.5,134.8 234.2,135.0 234.8,135.3 235.5,135.5 236.2,135.8 236.9,136.0 237.5,136.3 238.2,136.5 238.9,136.7 239.5,137.0 240.2,137.2 240.9,137.5 241.5,137.7 242.2,137.9 242.9,138.2 243.6,138.4 244.2,138.6 244.9,138.8 245.6,139.1 246.2,139.3 246.9,139.5 247.6,139.7 248.2,140.0 248.9,140.2 249.6,140.4 250.3,140.6 250.9,140.8 251.6,141.1 252.3,141.3 252.9,141.5 253.6,141.7 254.3,141.9 254.9,142.1 255.6,142.3 256.3,142.5 257.0,142.7 257.6,142.9 258.3,143.1 259.0,143.3 259.6,143.5 260.3,143.7 261.0,143.9 261.6,144.1 262.3,144.3 263.0,144.5 263.7,144.7 264.3,144.9 265.0,145.1 265.7,145.3 266.3,145.5 267.0,145.7 267.7,145.8 268.4,146.0 269.0,146.2 269.7,146.4 270.4,146.6 271.0,146.8 271.7,146.9 272.4,147.1 273.0,147.3 273.7,147.5 274.4,147.6 275.0,147.8 275.7,148.0 276.4,148.2 277.1,148.3 277.7,148.5 278.4,148.7 279.1,148.8 279.7,149.0 280.4,149.2 281.1,149.3 281.8,149.5 282.4,149.7 283.1,149.8 283.8,150.0 284.4,150.1 285.1,150.3 285.8,150.5 286.4,150.6 287.1,150.8 287.8,150.9 288.5,151.1 289.1,151.2 289.8,151.4 290.5,151.5 291.1,151.7 291.8,151.8 292.5,152.0 293.1,152.1 293.8,152.3 294.5,152.4 295.1,152.6 295.8,152.7 296.5,152.9 297.2,153.0 297.8,153.1 298.5,153.3 299.2,153.4 299.8,153.6 300.5,153.7 301.2,153.8 301.9,154.0 302.5,154.1 303.2,154.2 303.9,154.4 304.5,154.5 305.2,154.6 305.9,154.8 306.5,154.9 307.2,155.0 307.9,155.2 308.6,155.3 309.2,155.4 309.9,155.5 310.6,155.7 311.2,155.8 311.9,155.9 312.6,156.0 313.2,156.2 313.9,156.3 314.6,156.4 315.2,156.5 315.9,156.7 316.6,156.8 317.3,156.9 317.9,157.0 318.6,157.1 319.3,157.2 319.9,157.4 320.6,157.5 321.3,157.6 321.9,157.7 322.6,157.8 323.3,157.9 324.0,158.0 324.6,158.2 325.3,158.3 326.0,158.4 326.6,158.5 327.3,158.6 328.0,158.7 328.7,158.8 329.3,158.9 330.0,159.0 330.7,159.1 331.3,159.2 332.0,159.3 332.7,159.4 333.3,159.5 334.0,159.6 334.7,159.7 335.4,159.8 336.0,159.9 336.7,160.0 337.4,160.1 338.0,160.2 338.7,160.3 339.4,160.4 340.0,160.5 340.7,160.6 341.4,160.7 342.1,160.8 342.7,160.9 343.4,161.0 344.1,161.1 344.7,161.2 345.4,161.3 346.1,161.4 346.7,161.5 347.4,161.6 348.1,161.7 348.8,161.7 349.4,161.8 350.1,161.9 350.8,162.0 351.4,162.1 352.1,162.2 352.8,162.3 353.4,162.4 354.1,162.4 354.8,162.5 355.4,162.6 356.1,162.7 356.8,162.8 357.5,162.9 358.1,162.9 358.8,163.0 359.5,163.1 360.1,163.2 360.8,163.3 361.5,163.3 362.2,163.4 362.8,163.5 363.5,163.6 364.2,163.7 364.8,163.7 365.5,163.8 366.2,163.9 366.8,164.0 367.5,164.0 368.2,164.1 368.9,164.2 369.5,164.3 370.2,164.3 370.9,164.4 371.5,164.5 372.2,164.6 372.9,164.6 373.5,164.7 374.2,164.8 374.9,164.8 375.5,164.9 376.2,165.0 376.9,165.0 377.6,165.1 378.2,165.2 378.9,165.3 379.6,165.3 380.2,165.4 380.9,165.5 381.6,165.5 382.2,165.6 382.9,165.7 383.6,165.7 384.3,165.8 384.9,165.8 385.6,165.9 386.3,166.0 386.9,166.0 387.6,166.1 388.3,166.2 388.9,166.2 389.6,166.3 390.3,166.4 391.0,166.4 391.6,166.5 392.3,166.5 393.0,166.6 393.6,166.7 394.3,166.7 395.0,166.8 395.7,166.8 396.3,166.9 397.0,166.9 397.7,167.0 398.3,167.1 399.0,167.1 399.7,167.2 400.3,167.2 401.0,167.3 401.7,167.3 402.3,167.4 403.0,167.5 403.7,167.5 404.4,167.6 405.0,167.6 405.7,167.7 406.4,167.7 407.0,167.8 407.7,167.8 408.4,167.9 409.0,167.9 409.7,168.0 410.4,168.0 411.1,168.1 411.7,168.1 412.4,168.2 413.1,168.2 413.7,168.3 414.4,168.3 415.1,168.4 415.8,168.4 416.4,168.5 417.1,168.5 417.8,168.6 418.4,168.6 419.1,168.7 419.8,168.7 420.4,168.8 421.1,168.8 421.8,168.9 422.4,168.9 423.1,169.0 423.8,169.0 424.5,169.0 425.1,169.1 425.8,169.1 426.5,169.2 427.1,169.2 427.8,169.3 428.5,169.3 429.1,169.4 429.8,169.4 430.5,169.4 431.2,169.5 431.8,169.5 432.5,169.6 433.2,169.6 433.8,169.6 434.5,169.7 435.2,169.7 435.8,169.8 436.5,169.8 437.2,169.9 437.9,169.9 438.5,169.9 439.2,170.0 439.9,170.0 440.5,170.0 441.2,170.1 441.9,170.1 442.5,170.2 443.2,170.2 443.9,170.2 444.6,170.3 445.2,170.3 445.9,170.4 446.6,170.4 447.2,170.4 447.9,170.5 448.6,170.5 449.2,170.5 449.9,170.6 450.6,170.6 451.3,170.6 451.9,170.7 452.6,170.7 453.3,170.7 453.9,170.8 454.6,170.8 455.3,170.9 455.9,170.9 456.6,170.9 457.3,171.0 458.0,171.0 458.6,171.0 459.3,171.1 460.0,171.1 460.6,171.1 461.3,171.2 462.0,171.2 462.6,171.2 463.3,171.2 464.0,171.3 464.7,171.3 465.3,171.3 466.0,171.4 466.7,171.4 467.3,171.4 468.0,171.5 468.7,171.5 469.3,171.5 470.0,171.6 470.7,171.6 471.4,171.6 472.0,171.6 472.7,171.7 473.4,171.7 474.0,171.7 474.7,171.8 475.4,171.8 476.0,171.8 476.7,171.8 477.4,171.9 478.1,171.9 478.7,171.9 479.4,172.0 480.1,172.0 480.7,172.0 481.4,172.0 482.1,172.1 482.7,172.1 483.4,172.1 484.1,172.1 484.8,172.2 485.4,172.2 486.1,172.2 486.8,172.2 487.4,172.3 488.1,172.3 488.8,172.3 489.4,172.4 490.1,172.4 490.8,172.4 491.5,172.4 492.1,172.4 492.8,172.5 493.5,172.5 494.1,172.5 494.8,172.5 495.5,172.6 496.2,172.6 496.8,172.6 497.5,172.6 498.2,172.7 498.8,172.7 499.5,172.7 500.2,172.7 500.8,172.8 501.5,172.8 502.2,172.8 502.9,172.8 503.5,172.8 504.2,172.9 504.9,172.9 505.5,172.9 506.2,172.9 506.9,173.0 507.5,173.0 508.2,173.0 508.9,173.0 509.6,173.0 510.2,173.1 510.9,173.1 511.6,173.1 512.2,173.1 512.9,173.1 513.6,173.2 514.2,173.2 514.9,173.2 515.6,173.2 516.2,173.2 516.9,173.3 517.6,173.3 518.3,173.3 518.9,173.3 519.6,173.3 520.3,173.4 520.9,173.4 521.6,173.4 522.3,173.4 523.0,173.4 523.6,173.5 524.3,173.5 525.0,173.5 525.6,173.5 526.3,173.5 527.0,173.5 527.6,173.6 528.3,173.6 529.0,173.6 529.7,173.6 530.3,173.6 531.0,173.6 531.7,173.7 532.3,173.7 533.0,173.7 533.7,173.7 534.3,173.7 535.0,173.7 535.7,173.8 536.3,173.8 537.0,173.8 537.7,173.8 538.4,173.8 539.0,173.8 539.7,173.9 540.4,173.9 541.0,173.9 541.7,173.9 542.4,173.9 543.0,173.9 543.7,174.0 544.4,174.0 545.1,174.0 545.7,174.0 546.4,174.0 547.1,174.0 547.7,174.0 548.4,174.1 549.1,174.1 549.8,174.1 550.4,174.1 551.1,174.1 551.8,174.1 552.4,174.1 553.1,174.2 553.8,174.2 554.4,174.2 555.1,174.2 555.8,174.2 556.5,174.2 557.1,174.2 557.8,174.3 558.5,174.3 559.1,174.3 559.8,174.3 560.5,174.3 561.1,174.3 561.8,174.3 562.5,174.4 563.1,174.4 563.8,174.4 564.5,174.4 565.2,174.4 565.8,174.4 566.5,174.4 567.2,174.4 567.8,174.5 568.5,174.5 569.2,174.5 569.9,174.5 570.5,174.5 571.2,174.5 571.9,174.5 572.5,174.5 573.2,174.6 573.9,174.6 574.5,174.6 575.2,174.6 575.9,174.6 576.6,174.6 577.2,174.6 577.9,174.6 578.6,174.6 579.2,174.7 579.9,174.7 580.6,174.7 581.2,174.7 581.9,174.7 582.6,174.7 583.2,174.7 583.9,174.7 584.6,174.7 585.3,174.8 585.9,174.8 586.6,174.8 587.3,174.8 587.9,174.8 588.6,174.8 589.3,174.8 590.0,174.8 590.6,174.8 591.3,174.8 592.0,174.9 592.6,174.9 593.3,174.9 594.0,174.9 594.6,174.9 595.3,174.9 596.0,174.9 596.6,174.9 597.3,174.9 598.0,174.9 598.7,175.0 599.3,175.0 600.0,175.0" fill="none" stroke="var(--amber)" stroke-width="3"/><polyline points="64.0,209.3 64.7,209.3 65.3,209.3 66.0,209.3 66.7,209.3 67.3,209.3 68.0,209.2 68.7,209.2 69.4,209.2 70.0,209.2 70.7,209.2 71.4,209.2 72.0,209.2 72.7,209.2 73.4,209.2 74.0,209.2 74.7,209.1 75.4,209.1 76.1,209.1 76.7,209.1 77.4,209.1 78.1,209.1 78.7,209.1 79.4,209.1 80.1,209.1 80.8,209.1 81.4,209.0 82.1,209.0 82.8,209.0 83.4,209.0 84.1,209.0 84.8,209.0 85.4,209.0 86.1,209.0 86.8,209.0 87.4,208.9 88.1,208.9 88.8,208.9 89.5,208.9 90.1,208.9 90.8,208.9 91.5,208.9 92.1,208.9 92.8,208.8 93.5,208.8 94.2,208.8 94.8,208.8 95.5,208.8 96.2,208.8 96.8,208.8 97.5,208.8 98.2,208.7 98.8,208.7 99.5,208.7 100.2,208.7 100.8,208.7 101.5,208.7 102.2,208.7 102.9,208.7 103.5,208.6 104.2,208.6 104.9,208.6 105.5,208.6 106.2,208.6 106.9,208.6 107.5,208.6 108.2,208.6 108.9,208.5 109.6,208.5 110.2,208.5 110.9,208.5 111.6,208.5 112.2,208.5 112.9,208.5 113.6,208.4 114.2,208.4 114.9,208.4 115.6,208.4 116.3,208.4 116.9,208.4 117.6,208.4 118.3,208.3 118.9,208.3 119.6,208.3 120.3,208.3 120.9,208.3 121.6,208.3 122.3,208.2 123.0,208.2 123.6,208.2 124.3,208.2 125.0,208.2 125.6,208.2 126.3,208.1 127.0,208.1 127.6,208.1 128.3,208.1 129.0,208.1 129.7,208.1 130.3,208.0 131.0,208.0 131.7,208.0 132.3,208.0 133.0,208.0 133.7,208.0 134.4,207.9 135.0,207.9 135.7,207.9 136.4,207.9 137.0,207.9 137.7,207.9 138.4,207.8 139.0,207.8 139.7,207.8 140.4,207.8 141.1,207.8 141.7,207.7 142.4,207.7 143.1,207.7 143.7,207.7 144.4,207.7 145.1,207.7 145.7,207.6 146.4,207.6 147.1,207.6 147.8,207.6 148.4,207.6 149.1,207.5 149.8,207.5 150.4,207.5 151.1,207.5 151.8,207.5 152.4,207.4 153.1,207.4 153.8,207.4 154.4,207.4 155.1,207.4 155.8,207.3 156.5,207.3 157.1,207.3 157.8,207.3 158.5,207.2 159.1,207.2 159.8,207.2 160.5,207.2 161.1,207.2 161.8,207.1 162.5,207.1 163.2,207.1 163.8,207.1 164.5,207.0 165.2,207.0 165.8,207.0 166.5,207.0 167.2,207.0 167.9,206.9 168.5,206.9 169.2,206.9 169.9,206.9 170.5,206.8 171.2,206.8 171.9,206.8 172.5,206.8 173.2,206.7 173.9,206.7 174.6,206.7 175.2,206.7 175.9,206.6 176.6,206.6 177.2,206.6 177.9,206.6 178.6,206.5 179.2,206.5 179.9,206.5 180.6,206.5 181.2,206.4 181.9,206.4 182.6,206.4 183.3,206.3 183.9,206.3 184.6,206.3 185.3,206.3 185.9,206.2 186.6,206.2 187.3,206.2 187.9,206.2 188.6,206.1 189.3,206.1 190.0,206.1 190.6,206.0 191.3,206.0 192.0,206.0 192.6,205.9 193.3,205.9 194.0,205.9 194.7,205.9 195.3,205.8 196.0,205.8 196.7,205.8 197.3,205.7 198.0,205.7 198.7,205.7 199.3,205.6 200.0,205.6 200.7,205.6 201.4,205.5 202.0,205.5 202.7,205.5 203.4,205.5 204.0,205.4 204.7,205.4 205.4,205.4 206.0,205.3 206.7,205.3 207.4,205.3 208.0,205.2 208.7,205.2 209.4,205.2 210.1,205.1 210.7,205.1 211.4,205.0 212.1,205.0 212.7,205.0 213.4,204.9 214.1,204.9 214.8,204.9 215.4,204.8 216.1,204.8 216.8,204.8 217.4,204.7 218.1,204.7 218.8,204.7 219.4,204.6 220.1,204.6 220.8,204.5 221.4,204.5 222.1,204.5 222.8,204.4 223.5,204.4 224.1,204.3 224.8,204.3 225.5,204.3 226.1,204.2 226.8,204.2 227.5,204.1 228.1,204.1 228.8,204.1 229.5,204.0 230.2,204.0 230.8,203.9 231.5,203.9 232.2,203.9 232.8,203.8 233.5,203.8 234.2,203.7 234.8,203.7 235.5,203.6 236.2,203.6 236.9,203.6 237.5,203.5 238.2,203.5 238.9,203.4 239.5,203.4 240.2,203.3 240.9,203.3 241.5,203.2 242.2,203.2 242.9,203.1 243.6,203.1 244.2,203.1 244.9,203.0 245.6,203.0 246.2,202.9 246.9,202.9 247.6,202.8 248.2,202.8 248.9,202.7 249.6,202.7 250.3,202.6 250.9,202.6 251.6,202.5 252.3,202.5 252.9,202.4 253.6,202.4 254.3,202.3 254.9,202.3 255.6,202.2 256.3,202.2 257.0,202.1 257.6,202.1 258.3,202.0 259.0,201.9 259.6,201.9 260.3,201.8 261.0,201.8 261.6,201.7 262.3,201.7 263.0,201.6 263.7,201.6 264.3,201.5 265.0,201.5 265.7,201.4 266.3,201.3 267.0,201.3 267.7,201.2 268.4,201.2 269.0,201.1 269.7,201.0 270.4,201.0 271.0,200.9 271.7,200.9 272.4,200.8 273.0,200.7 273.7,200.7 274.4,200.6 275.0,200.6 275.7,200.5 276.4,200.4 277.1,200.4 277.7,200.3 278.4,200.2 279.1,200.2 279.7,200.1 280.4,200.1 281.1,200.0 281.8,199.9 282.4,199.9 283.1,199.8 283.8,199.7 284.4,199.7 285.1,199.6 285.8,199.5 286.4,199.5 287.1,199.4 287.8,199.3 288.5,199.2 289.1,199.2 289.8,199.1 290.5,199.0 291.1,199.0 291.8,198.9 292.5,198.8 293.1,198.7 293.8,198.7 294.5,198.6 295.1,198.5 295.8,198.4 296.5,198.4 297.2,198.3 297.8,198.2 298.5,198.1 299.2,198.1 299.8,198.0 300.5,197.9 301.2,197.8 301.9,197.8 302.5,197.7 303.2,197.6 303.9,197.5 304.5,197.4 305.2,197.4 305.9,197.3 306.5,197.2 307.2,197.1 307.9,197.0 308.6,196.9 309.2,196.9 309.9,196.8 310.6,196.7 311.2,196.6 311.9,196.5 312.6,196.4 313.2,196.3 313.9,196.3 314.6,196.2 315.2,196.1 315.9,196.0 316.6,195.9 317.3,195.8 317.9,195.7 318.6,195.6 319.3,195.5 319.9,195.4 320.6,195.3 321.3,195.2 321.9,195.2 322.6,195.1 323.3,195.0 324.0,194.9 324.6,194.8 325.3,194.7 326.0,194.6 326.6,194.5 327.3,194.4 328.0,194.3 328.7,194.2 329.3,194.1 330.0,194.0 330.7,193.9 331.3,193.8 332.0,193.7 332.7,193.6 333.3,193.5 334.0,193.4 334.7,193.2 335.4,193.1 336.0,193.0 336.7,192.9 337.4,192.8 338.0,192.7 338.7,192.6 339.4,192.5 340.0,192.4 340.7,192.3 341.4,192.2 342.1,192.0 342.7,191.9 343.4,191.8 344.1,191.7 344.7,191.6 345.4,191.5 346.1,191.3 346.7,191.2 347.4,191.1 348.1,191.0 348.8,190.9 349.4,190.7 350.1,190.6 350.8,190.5 351.4,190.4 352.1,190.3 352.8,190.1 353.4,190.0 354.1,189.9 354.8,189.8 355.4,189.6 356.1,189.5 356.8,189.4 357.5,189.2 358.1,189.1 358.8,189.0 359.5,188.8 360.1,188.7 360.8,188.6 361.5,188.4 362.2,188.3 362.8,188.2 363.5,188.0 364.2,187.9 364.8,187.8 365.5,187.6 366.2,187.5 366.8,187.3 367.5,187.2 368.2,187.0 368.9,186.9 369.5,186.8 370.2,186.6 370.9,186.5 371.5,186.3 372.2,186.2 372.9,186.0 373.5,185.9 374.2,185.7 374.9,185.6 375.5,185.4 376.2,185.3 376.9,185.1 377.6,184.9 378.2,184.8 378.9,184.6 379.6,184.5 380.2,184.3 380.9,184.1 381.6,184.0 382.2,183.8 382.9,183.7 383.6,183.5 384.3,183.3 384.9,183.2 385.6,183.0 386.3,182.8 386.9,182.7 387.6,182.5 388.3,182.3 388.9,182.1 389.6,182.0 390.3,181.8 391.0,181.6 391.6,181.4 392.3,181.3 393.0,181.1 393.6,180.9 394.3,180.7 395.0,180.5 395.7,180.4 396.3,180.2 397.0,180.0 397.7,179.8 398.3,179.6 399.0,179.4 399.7,179.2 400.3,179.0 401.0,178.8 401.7,178.7 402.3,178.5 403.0,178.3 403.7,178.1 404.4,177.9 405.0,177.7 405.7,177.5 406.4,177.3 407.0,177.1 407.7,176.9 408.4,176.6 409.0,176.4 409.7,176.2 410.4,176.0 411.1,175.8 411.7,175.6 412.4,175.4 413.1,175.2 413.7,175.0 414.4,174.7 415.1,174.5 415.8,174.3 416.4,174.1 417.1,173.9 417.8,173.6 418.4,173.4 419.1,173.2 419.8,172.9 420.4,172.7 421.1,172.5 421.8,172.3 422.4,172.0 423.1,171.8 423.8,171.6 424.5,171.3 425.1,171.1 425.8,170.8 426.5,170.6 427.1,170.3 427.8,170.1 428.5,169.9 429.1,169.6 429.8,169.4 430.5,169.1 431.2,168.9 431.8,168.6 432.5,168.3 433.2,168.1 433.8,167.8 434.5,167.6 435.2,167.3 435.8,167.0 436.5,166.8 437.2,166.5 437.9,166.2 438.5,166.0 439.2,165.7 439.9,165.4 440.5,165.1 441.2,164.9 441.9,164.6 442.5,164.3 443.2,164.0 443.9,163.7 444.6,163.5 445.2,163.2 445.9,162.9 446.6,162.6 447.2,162.3 447.9,162.0 448.6,161.7 449.2,161.4 449.9,161.1 450.6,160.8 451.3,160.5 451.9,160.2 452.6,159.9 453.3,159.6 453.9,159.3 454.6,159.0 455.3,158.6 455.9,158.3 456.6,158.0 457.3,157.7 458.0,157.4 458.6,157.0 459.3,156.7 460.0,156.4 460.6,156.1 461.3,155.7 462.0,155.4 462.6,155.1 463.3,154.7 464.0,154.4 464.7,154.0 465.3,153.7 466.0,153.4 466.7,153.0 467.3,152.7 468.0,152.3 468.7,151.9 469.3,151.6 470.0,151.2 470.7,150.9 471.4,150.5 472.0,150.1 472.7,149.8 473.4,149.4 474.0,149.0 474.7,148.7 475.4,148.3 476.0,147.9 476.7,147.5 477.4,147.1 478.1,146.7 478.7,146.4 479.4,146.0 480.1,145.6 480.7,145.2 481.4,144.8 482.1,144.4 482.7,144.0 483.4,143.6 484.1,143.2 484.8,142.8 485.4,142.3 486.1,141.9 486.8,141.5 487.4,141.1 488.1,140.7 488.8,140.2 489.4,139.8 490.1,139.4 490.8,139.0 491.5,138.5 492.1,138.1 492.8,137.6 493.5,137.2 494.1,136.7 494.8,136.3 495.5,135.8 496.2,135.4 496.8,134.9 497.5,134.5 498.2,134.0 498.8,133.5 499.5,133.1 500.2,132.6 500.8,132.1 501.5,131.7 502.2,131.2 502.9,130.7 503.5,130.2 504.2,129.7 504.9,129.2 505.5,128.7 506.2,128.2 506.9,127.7 507.5,127.2 508.2,126.7 508.9,126.2 509.6,125.7 510.2,125.2 510.9,124.7 511.6,124.1 512.2,123.6 512.9,123.1 513.6,122.6 514.2,122.0 514.9,121.5 515.6,120.9 516.2,120.4 516.9,119.9 517.6,119.3 518.3,118.7 518.9,118.2 519.6,117.6 520.3,117.1 520.9,116.5 521.6,115.9 522.3,115.3 523.0,114.8 523.6,114.2 524.3,113.6 525.0,113.0 525.6,112.4 526.3,111.8 527.0,111.2 527.6,110.6 528.3,110.0 529.0,109.4 529.7,108.8 530.3,108.2 531.0,107.5 531.7,106.9 532.3,106.3 533.0,105.7 533.7,105.0 534.3,104.4 535.0,103.7 535.7,103.1 536.3,102.4 537.0,101.8 537.7,101.1 538.4,100.4 539.0,99.8 539.7,99.1 540.4,98.4 541.0,97.7 541.7,97.1 542.4,96.4 543.0,95.7 543.7,95.0 544.4,94.3 545.1,93.6 545.7,92.9 546.4,92.1 547.1,91.4 547.7,90.7 548.4,90.0 549.1,89.2 549.8,88.5 550.4,87.8 551.1,87.0 551.8,86.3 552.4,85.5 553.1,84.7 553.8,84.0 554.4,83.2 555.1,82.4 555.8,81.7 556.5,80.9 557.1,80.1 557.8,79.3 558.5,78.5 559.1,77.7 559.8,76.9 560.5,76.1 561.1,75.3 561.8,74.4 562.5,73.6 563.1,72.8 563.8,72.0 564.5,71.1 565.2,70.3 565.8,69.4 566.5,68.6 567.2,67.7 567.8,66.8 568.5,66.0 569.2,65.1 569.9,64.2 570.5,63.3 571.2,62.4 571.9,61.5 572.5,60.6 573.2,59.7 573.9,58.8 574.5,57.9 575.2,56.9 575.9,56.0 576.6,55.1 577.2,54.1 577.9,53.2 578.6,52.2 579.2,51.2 579.9,50.3 580.6,49.3 581.2,48.3 581.9,47.3 582.6,46.3 583.2,45.4 583.9,44.3 584.6,43.3 585.3,42.3 585.9,41.3 586.6,40.3 587.3,39.2 587.9,38.2 588.6,37.2 589.3,36.1 590.0,35.0 590.6,34.0 591.3,32.9 592.0,31.8 592.6,30.7 593.3,29.7 594.0,28.6 594.6,27.5 595.3,26.3 596.0,25.2 596.6,24.1 597.3,23.0" fill="none" stroke="var(--moss)" stroke-width="3"/><text x="496" y="74" class="lbltext" fill="var(--sky)">y = 3ˣ</text><text x="88" y="63" class="lbltext" fill="var(--amber)">y = 3⁻ˣ</text><text x="509" y="135" class="lbltext" fill="var(--moss)">y = 3ˣ − 2</text><text x="82" y="169" class="axtext" fill="var(--rose)">asymptote y = 0</text><text x="82" y="204" class="axtext" fill="var(--moss)">asymptote y = −2</text><text x="88.4" y="250" class="axtext" text-anchor="middle">−2</text><text x="210.2" y="250" class="axtext" text-anchor="middle">−1</text><text x="453.8" y="250" class="axtext" text-anchor="middle">1</text><text x="575.6" y="250" class="axtext" text-anchor="middle">2</text><text x="56" y="146.2" class="axtext" text-anchor="end">2</text><text x="56" y="111.8" class="axtext" text-anchor="end">4</text><text x="56" y="77.5" class="axtext" text-anchor="end">6</text><text x="56" y="43.2" class="axtext" text-anchor="end">8</text><text x="56" y="214.8" class="axtext" text-anchor="end">−2</text>
+</svg>
+<figcaption>A vertical shift drags the asymptote with it. The first two flatten toward \(y=0\); the third flattens toward \(y=-2\), which is why its range is \((-2,\infty)\) rather than \((0,\infty)\). Draw the asymptote before you draw the curve.</figcaption>
+</figure>
+<ol start="2">
+<li>\(N(t)=500\cdot3^{t/4}\); at \(t=10\), \(N=500\cdot3^{2.5}\approx 7{,}794\) cells.</li>
+<li>\(V(t)=28000(0.85)^{t}\). \(V(6)=10{,}553\) and \(V(7)=8{,}970\), so during year 7.</li>
+<li>Quarterly: \(2000(1+0.045/4)^{28}=\$2{,}736.10\). Continuous: \(2000e^{0.315}=\$2{,}740.26\). About \$4 apart over seven years.</li>
+<li>\(0.5^{24/9}=0.158\), so about 15.8% remains. For under 5%: \(0.5^{t/9}&lt;0.05\) first happens near \(t=39\) hours (at \(t=39\), 4.9%).</li>
+<li>Linear: \(100+3t\). Exponential: \(100(1.03)^{t}\). They tie exactly at \(t=1\) (both 103) and the exponential is ahead from \(t=2\) on (106.09 against 106). The overtake is almost immediate here because 3% of 100 <em>is</em> 3 &mdash; the two models start with identical first steps and then the exponential compounds. By \(t=50\) it is 438 against 250.</li>
+<li>\(2.5937,\ 2.7048,\ 2.7169,\ 2.718280\). They approach \(e=2.718281\ldots\), gaining roughly one correct digit each time \(n\) is multiplied by ten &mdash; slow convergence, and a bad way to compute \(e\) in practice.</li>
+<li>\(\dfrac{a^{x+c}}{a^{x}}=a^{c}\), independent of \(x\). In words: the growth over any window of length \(c\) is the same factor wherever the window sits. A polynomial cannot do this &mdash; for \(f(x)=x^{2}\), the ratio \((x+1)^2/x^2\) is 4 at \(x=1\) and 1.02 at \(x=10\). Polynomials grow by a shrinking proportion; exponentials never slow down.</li>
+</ol>
+</div>
+</div>
+<hr>
+<!-- ================= LECTURE 13 ================= -->
+<h2 id="L13">Lecture 13 &mdash; Logarithms: turning hard operations into easy ones</h2>
+
+<figure class="toon">
+<svg viewBox="0 0 560 200" width="560" height="200" role="img" aria-labelledby="L13t L13d">
+<title id="L13t">Cartoon: a slide rule against a phone</title><desc id="L13d">Two stick figures each hold a device: one a slide rule, one a phone.</desc>
+<defs><filter id="rough43" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="43" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough43)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="110.0" cy="124.0" r="11.0" /><path d="M 110.0 135.0 L 110.0 160.0" /><path d="M 110.0 140.0 L 97.0 148.0" /><path d="M 110.0 140.0 L 123.0 148.0" /><path d="M 110.0 160.0 L 99.0 184.0" /><path d="M 110.0 160.0 L 121.0 184.0" /><circle cx="470.0" cy="124.0" r="11.0" /><path d="M 470.0 135.0 L 470.0 160.0" /><path d="M 470.0 140.0 L 483.0 148.0" /><path d="M 470.0 140.0 L 457.0 148.0" /><path d="M 470.0 160.0 L 481.0 184.0" /><path d="M 470.0 160.0 L 459.0 184.0" /><path d="M 30 170 L 540 170" stroke-width="1.6"/><rect x="140" y="112" width="86" height="24" rx="6" fill="none"/><path d="M 140 124 L 226 124"/><rect x="430" y="104" width="30" height="46" rx="4" fill="none"/><rect x="280.0" y="14.0" width="177.9" height="34.0" rx="9" fill="var(--surface2)"/><path d="M 326.3 45.0 L 270.0 96.0 L 365.4 45.0" fill="var(--surface2)" stroke-width="1.6"/>
+</g>
+<text x="295.0" y="41.0" class="ctext">Mine flew Apollo.</text>
+</svg>
+<figcaption class="tooncap">“Mine has a flashlight.”</figcaption></figure>
+
+<p>The last lecture ended stuck. We could write \(1.08^{t}=2\) but not solve it, because the unknown sat in the exponent and no amount of algebra would bring it down. Lecture 5 already told us what to do when a function needs undoing: check whether it is one-to-one, and if so, invert it. Exponentials pass the horizontal line test comfortably. So the inverse exists, and it has a name.</p>
+
+<div class="box def">
+<span class="lbl">definition</span>
+<p>For \(a&gt;0\), \(a\neq1\), the <strong>logarithm base \(a\)</strong> is the inverse of \(x\mapsto a^{x}\):
+$$\log_a y = x \iff a^{x}=y.$$
+In words: \(\log_a y\) is <em>the exponent you must raise \(a\) to in order to get \(y\)</em>. Its domain is \((0,\infty)\) &mdash; only positive numbers are outputs of an exponential &mdash; and its range is all of \(\mathbb{R}\).</p>
+</div>
+<div class="box spot" data-type="num" data-ans="6.0" role="group" aria-labelledby="sp3_5q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp3_5q">Evaluate \(\log_{2}64\).</p>
+<div class="spot-row"><label for="sp3_5i">your answer</label><input id="sp3_5i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp3_5q sp3_5h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp3_5h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(2^{6}=64\), so \(\log_{2}64=6\).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Ask the defining question: 2 raised to <em>what</em> power gives 64?</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<p>Say that sentence out loud a few times. Almost every mistake made with logarithms is made by someone who has not internalised it, and almost every logarithm question can be answered by asking it. What is \(\log_2 32\)? The exponent that turns 2 into 32, which is 5.</p>
+
+<figure>
+<svg viewBox="0 0 360 360" width="360" height="360" role="img" aria-labelledby="lgt lgd">
+<title id="lgt">An exponential and a logarithm reflected in the line y equals x</title>
+<desc id="lgd">The curve y equals two to the x rising steeply, the curve y equals log base two of x rising slowly, and the dashed mirror line y equals x between them.</desc>
+<rect x="10" y="10" width="340" height="340" class="plot-bg" stroke="var(--rule)"/>
+<g class="gridline">
+<line x1="111.8" y1="10" x2="111.8" y2="350"/><line x1="166.3" y1="10" x2="166.3" y2="350"/><line x1="220.9" y1="10" x2="220.9" y2="350"/><line x1="275.4" y1="10" x2="275.4" y2="350"/><line x1="330" y1="10" x2="330" y2="350"/>
+<line x1="10" y1="248.2" x2="350" y2="248.2"/><line x1="10" y1="193.6" x2="350" y2="193.6"/><line x1="10" y1="139.1" x2="350" y2="139.1"/><line x1="10" y1="84.5" x2="350" y2="84.5"/><line x1="10" y1="30" x2="350" y2="30"/>
+</g>
+<line x1="111.8" y1="10" x2="111.8" y2="350" stroke="var(--rose)" stroke-width="2.5" stroke-dasharray="8 5"/><line x1="10" y1="248.2" x2="350" y2="248.2" stroke="var(--rose)" stroke-width="2.5" stroke-dasharray="8 5"/><line class="axis" x1="10" y1="248.2" x2="350" y2="248.2"/><line class="axis" x1="111.8" y1="10" x2="111.8" y2="350"/>
+<line x1="30" y1="330" x2="350" y2="10" stroke="var(--muted)" stroke-dasharray="6 5"/>
+<polyline class="curve" points="30.0,244.8 30.6,244.7 31.1,244.7 31.7,244.6 32.3,244.6 32.8,244.5 33.4,244.5 33.9,244.4 34.5,244.4 35.1,244.3 35.6,244.3 36.2,244.2 36.8,244.1 37.3,244.1 37.9,244.0 38.5,244.0 39.0,243.9 39.6,243.8 40.1,243.8 40.7,243.7 41.3,243.7 41.8,243.6 42.4,243.5 43.0,243.5 43.5,243.4 44.1,243.3 44.7,243.2 45.2,243.2 45.8,243.1 46.3,243.0 46.9,243.0 47.5,242.9 48.0,242.8 48.6,242.7 49.2,242.6 49.7,242.6 50.3,242.5 50.9,242.4 51.4,242.3 52.0,242.2 52.5,242.1 53.1,242.1 53.7,242.0 54.2,241.9 54.8,241.8 55.4,241.7 55.9,241.6 56.5,241.5 57.1,241.4 57.6,241.3 58.2,241.2 58.7,241.1 59.3,241.0 59.9,240.9 60.4,240.8 61.0,240.7 61.6,240.6 62.1,240.5 62.7,240.4 63.3,240.3 63.8,240.1 64.4,240.0 64.9,239.9 65.5,239.8 66.1,239.7 66.6,239.5 67.2,239.4 67.8,239.3 68.3,239.2 68.9,239.0 69.5,238.9 70.0,238.8 70.6,238.6 71.1,238.5 71.7,238.4 72.3,238.2 72.8,238.1 73.4,237.9 74.0,237.8 74.5,237.6 75.1,237.5 75.6,237.3 76.2,237.2 76.8,237.0 77.3,236.8 77.9,236.7 78.5,236.5 79.0,236.3 79.6,236.2 80.2,236.0 80.7,235.8 81.3,235.6 81.8,235.5 82.4,235.3 83.0,235.1 83.5,234.9 84.1,234.7 84.7,234.5 85.2,234.3 85.8,234.1 86.4,233.9 86.9,233.7 87.5,233.5 88.0,233.3 88.6,233.1 89.2,232.8 89.7,232.6 90.3,232.4 90.9,232.2 91.4,231.9 92.0,231.7 92.6,231.5 93.1,231.2 93.7,231.0 94.2,230.7 94.8,230.5 95.4,230.2 95.9,230.0 96.5,229.7 97.1,229.4 97.6,229.2 98.2,228.9 98.8,228.6 99.3,228.3 99.9,228.1 100.4,227.8 101.0,227.5 101.6,227.2 102.1,226.9 102.7,226.6 103.3,226.2 103.8,225.9 104.4,225.6 105.0,225.3 105.5,224.9 106.1,224.6 106.6,224.3 107.2,223.9 107.8,223.6 108.3,223.2 108.9,222.9 109.5,222.5 110.0,222.1 110.6,221.8 111.2,221.4 111.7,221.0 112.3,220.6 112.8,220.2 113.4,219.8 114.0,219.4 114.5,219.0 115.1,218.5 115.7,218.1 116.2,217.7 116.8,217.2 117.4,216.8 117.9,216.3 118.5,215.9 119.0,215.4 119.6,214.9 120.2,214.5 120.7,214.0 121.3,213.5 121.9,213.0 122.4,212.5 123.0,212.0 123.6,211.4 124.1,210.9 124.7,210.4 125.2,209.8 125.8,209.3 126.4,208.7 126.9,208.1 127.5,207.6 128.1,207.0 128.6,206.4 129.2,205.8 129.8,205.2 130.3,204.5 130.9,203.9 131.4,203.3 132.0,202.6 132.6,202.0 133.1,201.3 133.7,200.6 134.3,199.9 134.8,199.2 135.4,198.5 136.0,197.8 136.5,197.1 137.1,196.4 137.6,195.6 138.2,194.8 138.8,194.1 139.3,193.3 139.9,192.5 140.5,191.7 141.0,190.9 141.6,190.1 142.2,189.2 142.7,188.4 143.3,187.5 143.8,186.6 144.4,185.7 145.0,184.8 145.5,183.9 146.1,183.0 146.7,182.1 147.2,181.1 147.8,180.1 148.4,179.2 148.9,178.2 149.5,177.1 150.0,176.1 150.6,175.1 151.2,174.0 151.7,173.0 152.3,171.9 152.9,170.8 153.4,169.7 154.0,168.5 154.6,167.4 155.1,166.2 155.7,165.0 156.2,163.8 156.8,162.6 157.4,161.4 157.9,160.1 158.5,158.8 159.1,157.6 159.6,156.3 160.2,154.9 160.8,153.6 161.3,152.2 161.9,150.8 162.4,149.4 163.0,148.0 163.6,146.6 164.1,145.1 164.7,143.6 165.3,142.1 165.8,140.6 166.4,139.0 166.9,137.4 167.5,135.8 168.1,134.2 168.6,132.6 169.2,130.9 169.8,129.2 170.3,127.5 170.9,125.8 171.5,124.0 172.0,122.2 172.6,120.4 173.1,118.5 173.7,116.7 174.3,114.8 174.8,112.8 175.4,110.9 176.0,108.9 176.5,106.9 177.1,104.9 177.7,102.8 178.2,100.7 178.8,98.6 179.3,96.4 179.9,94.2 180.5,92.0 181.0,89.7 181.6,87.5 182.2,85.1 182.7,82.8 183.3,80.4 183.9,78.0 184.4,75.5 185.0,73.0 185.5,70.5 186.1,67.9 186.7,65.3 187.2,62.7 187.8,60.0 188.4,57.3 188.9,54.5 189.5,51.8 190.1,48.9 190.6,46.0 191.2,43.1 191.7,40.2 192.3,37.2 192.9,34.1 193.4,31.0"/>
+<polyline class="curve2" points="115.4,328.5 115.9,322.9 116.4,318.1 117.0,313.7 117.5,309.8 118.0,306.3 118.6,303.0 119.1,300.0 119.6,297.2 120.2,294.6 120.7,292.2 121.3,289.9 121.8,287.7 122.3,285.7 122.9,283.7 123.4,281.8 123.9,280.1 124.5,278.4 125.0,276.7 125.5,275.2 126.1,273.7 126.6,272.2 127.2,270.8 127.7,269.4 128.2,268.1 128.8,266.9 129.3,265.7 129.8,264.5 130.4,263.3 130.9,262.2 131.5,261.1 132.0,260.0 132.5,259.0 133.1,258.0 133.6,257.0 134.1,256.1 134.7,255.1 135.2,254.2 135.7,253.3 136.3,252.5 136.8,251.6 137.4,250.8 137.9,249.9 138.4,249.1 139.0,248.4 139.5,247.6 140.0,246.8 140.6,246.1 141.1,245.4 141.6,244.7 142.2,244.0 142.7,243.3 143.3,242.6 143.8,241.9 144.3,241.3 144.9,240.6 145.4,240.0 145.9,239.4 146.5,238.8 147.0,238.1 147.5,237.6 148.1,237.0 148.6,236.4 149.2,235.8 149.7,235.3 150.2,234.7 150.8,234.2 151.3,233.6 151.8,233.1 152.4,232.6 152.9,232.0 153.4,231.5 154.0,231.0 154.5,230.5 155.1,230.0 155.6,229.6 156.1,229.1 156.7,228.6 157.2,228.1 157.7,227.7 158.3,227.2 158.8,226.8 159.4,226.3 159.9,225.9 160.4,225.4 161.0,225.0 161.5,224.6 162.0,224.2 162.6,223.7 163.1,223.3 163.6,222.9 164.2,222.5 164.7,222.1 165.3,221.7 165.8,221.3 166.3,220.9 166.9,220.6 167.4,220.2 167.9,219.8 168.5,219.4 169.0,219.0 169.5,218.7 170.1,218.3 170.6,218.0 171.2,217.6 171.7,217.2 172.2,216.9 172.8,216.5 173.3,216.2 173.8,215.9 174.4,215.5 174.9,215.2 175.4,214.9 176.0,214.5 176.5,214.2 177.1,213.9 177.6,213.5 178.1,213.2 178.7,212.9 179.2,212.6 179.7,212.3 180.3,212.0 180.8,211.7 181.3,211.4 181.9,211.1 182.4,210.8 183.0,210.5 183.5,210.2 184.0,209.9 184.6,209.6 185.1,209.3 185.6,209.0 186.2,208.7 186.7,208.4 187.3,208.2 187.8,207.9 188.3,207.6 188.9,207.3 189.4,207.1 189.9,206.8 190.5,206.5 191.0,206.2 191.5,206.0 192.1,205.7 192.6,205.5 193.2,205.2 193.7,204.9 194.2,204.7 194.8,204.4 195.3,204.2 195.8,203.9 196.4,203.7 196.9,203.4 197.4,203.2 198.0,202.9 198.5,202.7 199.1,202.4 199.6,202.2 200.1,202.0 200.7,201.7 201.2,201.5 201.7,201.2 202.3,201.0 202.8,200.8 203.3,200.5 203.9,200.3 204.4,200.1 205.0,199.9 205.5,199.6 206.0,199.4 206.6,199.2 207.1,199.0 207.6,198.7 208.2,198.5 208.7,198.3 209.2,198.1 209.8,197.9 210.3,197.7 210.9,197.4 211.4,197.2 211.9,197.0 212.5,196.8 213.0,196.6 213.5,196.4 214.1,196.2 214.6,196.0 215.2,195.8 215.7,195.6 216.2,195.4 216.8,195.2 217.3,195.0 217.8,194.8 218.4,194.6 218.9,194.4 219.4,194.2 220.0,194.0 220.5,193.8 221.1,193.6 221.6,193.4 222.1,193.2 222.7,193.0 223.2,192.8 223.7,192.6 224.3,192.4 224.8,192.3 225.3,192.1 225.9,191.9 226.4,191.7 227.0,191.5 227.5,191.3 228.0,191.2 228.6,191.0 229.1,190.8 229.6,190.6 230.2,190.4 230.7,190.3 231.2,190.1 231.8,189.9 232.3,189.7 232.9,189.6 233.4,189.4 233.9,189.2 234.5,189.0 235.0,188.9 235.5,188.7 236.1,188.5 236.6,188.4 237.1,188.2 237.7,188.0 238.2,187.8 238.8,187.7 239.3,187.5 239.8,187.4 240.4,187.2 240.9,187.0 241.4,186.9 242.0,186.7 242.5,186.5 243.1,186.4 243.6,186.2 244.1,186.1 244.7,185.9 245.2,185.7 245.7,185.6 246.3,185.4 246.8,185.3 247.3,185.1 247.9,185.0 248.4,184.8 249.0,184.6 249.5,184.5 250.0,184.3 250.6,184.2 251.1,184.0 251.6,183.9 252.2,183.7 252.7,183.6 253.2,183.4 253.8,183.3 254.3,183.1 254.9,183.0 255.4,182.8 255.9,182.7 256.5,182.5 257.0,182.4 257.5,182.3 258.1,182.1 258.6,182.0 259.1,181.8 259.7,181.7 260.2,181.5 260.8,181.4 261.3,181.3 261.8,181.1 262.4,181.0 262.9,180.8 263.4,180.7 264.0,180.6 264.5,180.4 265.0,180.3 265.6,180.1 266.1,180.0 266.7,179.9 267.2,179.7 267.7,179.6 268.3,179.5 268.8,179.3 269.3,179.2 269.9,179.1 270.4,178.9 271.0,178.8 271.5,178.7 272.0,178.5 272.6,178.4 273.1,178.3 273.6,178.1 274.2,178.0 274.7,177.9 275.2,177.7 275.8,177.6 276.3,177.5 276.9,177.4 277.4,177.2 277.9,177.1 278.5,177.0 279.0,176.8 279.5,176.7 280.1,176.6 280.6,176.5 281.1,176.3 281.7,176.2 282.2,176.1 282.8,176.0 283.3,175.9 283.8,175.7 284.4,175.6 284.9,175.5 285.4,175.4 286.0,175.2 286.5,175.1 287.0,175.0 287.6,174.9 288.1,174.8 288.7,174.6 289.2,174.5 289.7,174.4 290.3,174.3 290.8,174.2 291.3,174.0 291.9,173.9 292.4,173.8 292.9,173.7 293.5,173.6 294.0,173.5 294.6,173.3 295.1,173.2 295.6,173.1 296.2,173.0 296.7,172.9 297.2,172.8 297.8,172.7 298.3,172.5 298.9,172.4 299.4,172.3 299.9,172.2 300.5,172.1 301.0,172.0 301.5,171.9 302.1,171.8 302.6,171.7 303.1,171.5 303.7,171.4 304.2,171.3 304.8,171.2 305.3,171.1 305.8,171.0 306.4,170.9 306.9,170.8 307.4,170.7 308.0,170.6 308.5,170.5 309.0,170.3 309.6,170.2 310.1,170.1 310.7,170.0 311.2,169.9 311.7,169.8 312.3,169.7 312.8,169.6 313.3,169.5 313.9,169.4 314.4,169.3 314.9,169.2 315.5,169.1 316.0,169.0 316.6,168.9 317.1,168.8 317.6,168.7 318.2,168.6 318.7,168.5 319.2,168.4 319.8,168.3 320.3,168.2 320.8,168.1 321.4,168.0 321.9,167.9 322.5,167.8 323.0,167.7 323.5,167.6 324.1,167.5 324.6,167.4 325.1,167.3 325.7,167.2 326.2,167.1 326.8,167.0 327.3,166.9 327.8,166.8 328.4,166.7 328.9,166.6 329.4,166.5 330.0,166.4"/>
+<circle cx="139.1" cy="193.6" r="5" fill="var(--rose)"/><circle cx="166.3" cy="220.9" r="5" fill="var(--rose)"/>
+<text class="axtext" x="145" y="188">(1, 2)</text><text class="axtext" x="172" y="216">(2, 1)</text>
+<text class="lbltext" x="216" y="40" fill="var(--sky)">y = 2&#8347;</text>
+<text class="lbltext" x="264" y="200" fill="var(--amber)">y = log&#8322;x</text>
+<text class="axtext" x="318" y="34">y = x</text>
+</svg>
+<figcaption>The two dashed lines are the asymptotes: \(y=0\) for the exponential, \(x=0\) for the logarithm &mdash; and the reflection swaps them, as it swaps everything else. Two views of one relationship. The exponential climbs vertically and its asymptote is horizontal; the logarithm climbs horizontally and its asymptote is vertical. Swap the axes and each becomes the other, exactly as Lecture 5 said an inverse must.</figcaption>
+</figure>
+
+<p>Two bases are used so often they get their own notation: \(\log x\) means \(\log_{10}x\), and \(\ln x\) means \(\log_e x\), the <strong>natural logarithm</strong>. And because they are inverses, the two cancellation rules hold for every base:</p>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp3_6q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp3_6q">What is \(\log_{3}(-9)\)?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp3_6r" value="0"> <span>\(-2\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp3_6r" value="1"> <span>\(2\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp3_6r" value="2" data-right> <span>it is not defined</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> Every power of a positive base is positive, so no exponent produces \(-9\). Logarithms only accept positive inputs.</div><div class="spot-msg bad" data-kind="bad" data-opt="0" hidden><span class="spot-tag">Not quite.</span> \(3^{-2}=\tfrac19\), not \(-9\). Can any power of 3 be negative?</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> \(3^{2}=9\), not \(-9\).</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+$$\log_a(a^{x})=x \qquad\text{and}\qquad a^{\log_a x}=x.$$
+
+<div class="box ex">
+<span class="lbl">example 3.5 &mdash; reading the definition off</span>
+<p>Evaluate without a calculator: \(\log_3 81\), \(\log_5 \frac{1}{25}\), \(\log_{16}2\), \(\ln e^{7}\), \(\log_7 1\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(\log_3 81=4\), since \(3^4=81\).</p>
+<p>\(\log_5\frac1{25}=-2\), since \(5^{-2}=\frac1{25}\). Logarithms of numbers below 1 are negative.</p>
+<p>\(\log_{16}2=\frac14\), since \(16^{1/4}=2\). Fractional answers are perfectly normal.</p>
+<p>\(\ln e^{7}=7\), straight from the cancellation rule.</p>
+<p>\(\log_7 1=0\), and in fact \(\log_a 1=0\) for every base, since \(a^{0}=1\) always.</p>
+<p>Two things have no answer at all: \(\log_a 0\) and \(\log_a(\text{negative})\). No exponent turns a positive base into zero or into a negative number. That is not a rule to memorise; it is the range of the exponential, seen from the other side.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 3.6 &mdash; finally solving for the exponent</span>
+<p>Solve \(1.08^{t}=2\), and then \(3\cdot 2^{x}+1=100\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Take a logarithm of both sides &mdash; any base, as long as it is the same one on both sides:
+$$t=\log_{1.08}2 = \frac{\ln 2}{\ln 1.08}=\frac{0.6931}{0.07696}=9.006\ \text{years},$$
+confirming the estimate from Lecture 12 exactly.</p>
+<p>For the second, peel the outside first, as always: \(2^{x}=33\), so \(x=\log_2 33=\dfrac{\ln 33}{\ln 2}=5.044\).</p>
+<p>The middle step used the <strong>change of base formula</strong>,
+$$\log_a y=\frac{\ln y}{\ln a},$$
+which exists because your calculator has only two logarithm buttons and there are infinitely many bases. It also says something structural: all logarithms are the same function up to a constant multiple. The base is a choice of units, not a change of shape.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 3.7 &mdash; why the rule of 70 works</span>
+<p>Show that the doubling time at growth rate \(r\) (as a decimal) is \(\ln 2/\ln(1+r)\), and explain why \(70/(100r)\) is a good approximation for small \(r\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Doubling means \((1+r)^{t}=2\), so \(t=\dfrac{\ln2}{\ln(1+r)}\).</p>
+<p>Now, \(\ln 2=0.693\), and for small \(r\) it turns out that \(\ln(1+r)\approx r\) &mdash; at \(r=0.08\), \(\ln(1.08)=0.0770\), within 4%. So
+$$t\approx\frac{0.693}{r}=\frac{69.3}{100r},$$
+and 70 is used because it is friendlier to divide by. At 8%: \(70/8=8.75\) years against the true 9.01.</p>
+<p>Hold on to \(\ln(1+r)\approx r\). It is not a coincidence and not a numerical accident: it is the first-degree polynomial approximation to \(\ln(1+x)\) at \(x=0\), exactly the kind of object Lecture 11 built. The next term is \(-x^{2}/2\), and including it gives \(\ln(1.08)\approx 0.08-0.0032=0.0768\) &mdash; now within 0.3%. Approximation is not guesswork; it comes with a way to do better.</p>
+</div>
+</div>
+
+<div class="box hist">
+<span class="lbl">history</span>
+<p>John Napier spent twenty years, from roughly 1594 to 1614, computing tables by hand so that astronomers could multiply by adding. The problem was real and enormous: a sixteenth-century astronomer doing planetary positions might multiply eight-digit numbers hundreds of times in one calculation, by hand, with every digit an opportunity for error. Laplace later said logarithms doubled the working life of an astronomer.</p>
+<p>The idea reached its physical form in the slide rule, which encoded \(\log\) as distance so that sliding two scales past each other performed multiplication. Engineers used them for three centuries. They designed the Boeing 747 and got Apollo to the Moon with them, and within ten years of Apollo 11 they were gone, killed by the pocket calculator. There is a slide rule in a display case in most engineering departments, and every one of them was somebody's most important tool.</p>
+</div>
+
+<div class="widget">
+<h4>A working slide rule</h4>
+<p style="font-size:.95rem;margin:.2em 0 .6em">Drag the lower scale, or focus it and nudge it with the arrow keys. Line its 1 up against a number on the top scale, and read off products under the other marks. You are adding lengths; the scales are logarithmic, so the numbers multiply.</p>
+<svg id="slideSvg" viewBox="0 0 660 200" width="660" height="200" role="application" aria-label="Interactive slide rule. Drag the lower scale to multiply.">
+  <rect x="10" y="30" width="640" height="52" fill="var(--surface2)" stroke="var(--rule)"/>
+  <g id="topScale"></g>
+  <g id="botGroup">
+    <rect id="botRect" x="10" y="86" width="640" height="52" fill="var(--surface)" stroke="var(--moss)" style="cursor:grab"/>
+    <g id="botScale"></g>
+  </g>
+  <line id="cursorLine" x1="330" y1="24" x2="330" y2="144" stroke="var(--rose)" stroke-width="2"/>
+</svg>
+<div class="ctrls"><button class="ctl" id="slideReset">reset to 1</button></div>
+<p class="readout" role="status" aria-live="polite" id="slideOut"></p>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea</span>
+<p>Look at what the slide rule really is. Multiplication is hard; addition is easy. The logarithm is a translation that turns one into the other, you do the easy work in the translated world, and then you translate back. Nothing about the multiplication got simpler &mdash; you changed where you were standing.</p>
+<p>That manoeuvre is the deepest recurring idea in mathematics, and you have already seen it twice: coordinates translated geometry into algebra in Lecture 2, and Lecture 18 will translate repetition into position on a circle. Later, the Fourier transform will translate a signal into its frequencies because filtering is trivial there, and a change of basis in linear algebra will translate a hard matrix into a diagonal one. Same move every time. Find the world where the problem is easy, and build the bridge.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">for your toolbox</span>
+<div class="tscroll" tabindex="0" role="region" aria-label="table (scrolls sideways on small screens)"><table>
+<tr><th>function</th><th>domain</th><th>range</th><th>features</th></tr>
+<tr><td>\(y=\log_a x\), \(a&gt;1\)</td><td>\((0,\infty)\)</td><td>all reals</td><td>through \((1,0)\); <strong>vertical asymptote \(x=0\)</strong>; rises forever, but slowly</td></tr>
+<tr><td>\(y=\ln x\)</td><td>\((0,\infty)\)</td><td>all reals</td><td>the same shape, base \(e\)</td></tr>
+</table></div>
+<p>The asymptote moves with a horizontal shift: \(y=\ln(x-2)\) has asymptote \(x=2\) and domain \((2,\infty)\). Finding the domain of a logarithm always means solving the inequality "whatever is inside \(&gt;0\)".</p>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp3_7q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp3_7q">What is the domain of \(y=\ln(x-2)\)?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp3_7r" value="0" data-right> <span>\((2,\infty)\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp3_7r" value="1"> <span>\([2,\infty)\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp3_7r" value="2"> <span>\((0,\infty)\)</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> Need \(x-2&gt;0\). The asymptote moved with the shift, to \(x=2\).</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> At \(x=2\) you would need \(\ln0\), and no exponent turns \(e\) into 0.</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> That is the domain of \(\ln x\). Here the inside is \(x-2\), which must be positive.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 3.2</span>
+<ol>
+<li>Evaluate without a calculator: \(\log_2 64\), \(\log_9 3\), \(\log_{10}0.001\), \(\ln 1\), \(\log_4 \frac18\).</li>
+<li>Rewrite in the other form: (a) \(\log_5 125=3\); (b) \(e^{x}=11\); (c) \(\log_a w=v\).</li>
+<li>Find the domain of \(f(x)=\log_3(5-2x)\) and of \(g(x)=\ln(x^{2}-4)\).</li>
+<li>Solve for \(x\): (a) \(4^{x}=70\); (b) \(e^{3x-1}=20\); (c) \(5^{2x}=3^{x+1}\).</li>
+<li>Sketch \(y=\ln x\), \(y=\ln(x-2)\) and \(y=-\ln x\), marking the asymptote of each.</li>
+<li>An account grows at 5.5% compounded continuously. How long until it triples?</li>
+<li>Show that \(\log_a b\) and \(\log_b a\) are reciprocals, and check it with \(a=2,b=8\).</li>
+<li>A quantity decays with half-life \(h\). Show that it can also be written as \(N_0e^{-kt}\), and find \(k\) in terms of \(h\). Which form would you rather use to answer "how much is left after 3 half-lives", and which for "how much is left after 7 hours"?</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>\(6\); \(\tfrac12\); \(-3\); \(0\); \(-\tfrac32\) (since \(4^{-3/2}=\tfrac18\)).</li>
+<li>(a) \(5^{3}=125\); (b) \(x=\ln 11\); (c) \(a^{v}=w\).</li>
+<li>Need \(5-2x&gt;0\), so \(x&lt;\tfrac52\). Need \(x^{2}-4&gt;0\), so \(x&lt;-2\) or \(x&gt;2\) &mdash; note that this domain has a hole in the middle.</li>
+<li>(a) \(x=\dfrac{\ln70}{\ln4}=3.064\); (b) \(x=\dfrac{1+\ln20}{3}=1.332\); (c) take logs of both sides: \(2x\ln5=(x+1)\ln3\), so \(x(2\ln5-\ln3)=\ln3\) and \(x=0.4587\).</li>
+<li>Asymptotes \(x=0\), \(x=2\), \(x=0\). The third is the first flipped upside down, so it falls instead of rising.</li>
+<li>\(e^{0.055t}=3\) gives \(t=\dfrac{\ln3}{0.055}=19.98\) years.</li>
+<li>If \(\log_a b=x\) then \(a^{x}=b\), so \(b^{1/x}=a\) and \(\log_b a=1/x\). Check: \(\log_2 8=3\) and \(\log_8 2=\tfrac13\).</li>
+<li>\(N_0(1/2)^{t/h}=N_0e^{-kt}\) requires \(e^{-k}= (1/2)^{1/h}\), so \(k=\dfrac{\ln 2}{h}\). Half-life form for whole numbers of half-lives (the answer is \(1/8\) instantly); the \(e^{-kt}\) form for awkward times, and it is the form that makes the rate of decay visible, which is why physics uses it.</li>
+</ol>
+</div>
+</div>
+<hr>
+<!-- ================= LECTURE 14 ================= -->
+<h2 id="L14">Lecture 14 &mdash; Laws of logarithms and the log scale</h2>
+
+<figure class="toon">
+<svg viewBox="0 0 560 200" width="560" height="200" role="img" aria-labelledby="L14t L14d">
+<title id="L14t">Cartoon: underestimating two points on a logarithmic scale</title><desc id="L14d">A stick figure stands beside a seismograph trace, describing an earthquake as only two points bigger.</desc>
+<defs><filter id="rough3" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="3" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough3)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="120.0" cy="124.0" r="11.0" /><path d="M 120.0 135.0 L 120.0 160.0" /><path d="M 120.0 140.0 L 106.0 158.0" /><path d="M 120.0 140.0 L 134.0 158.0" /><path d="M 120.0 160.0 L 109.0 184.0" /><path d="M 120.0 160.0 L 131.0 184.0" /><path d="M 30 170 L 540 170" stroke-width="1.6"/><path d="M 300 168 L 300 160"/><path d="M 326 168 L 326 154"/><path d="M 352 168 L 352 142"/><path d="M 378 168 L 378 118"/><path d="M 404 168 L 404 78"/><path d="M 430 168 L 430 128"/><path d="M 456 168 L 456 148"/><path d="M 482 168 L 482 158"/><rect x="60.0" y="14.0" width="204.0" height="52.0" rx="9" fill="var(--surface2)"/><path d="M 113.0 63.0 L 120.0 96.0 L 157.9 63.0" fill="var(--surface2)" stroke-width="1.6"/>
+</g>
+<text x="75.0" y="41.0" class="ctext">It was only 2 points</text><text x="75.0" y="59.0" class="ctext">bigger.</text>
+</svg>
+<figcaption class="tooncap">two points on a log scale is 500 times the energy</figcaption></figure>
+
+<p>Every property of logarithms is a property of exponents, wearing a disguise. Since \(a^{m}a^{n}=a^{m+n}\), and a logarithm is just the exponent, the logarithm of a product must be the sum of the logarithms. That is the whole derivation.</p>
+
+<div class="box thm">
+<span class="lbl">laws of logarithms</span>
+<p>For \(A,B&gt;0\) and any base \(a\):</p>
+$$\log_a(AB)=\log_a A+\log_a B$$
+$$\log_a\!\left(\frac{A}{B}\right)=\log_a A-\log_a B$$
+$$\log_a(A^{c})=c\log_a A$$
+</div>
+<div class="box spot" data-type="num" data-ans="32.0" role="group" aria-labelledby="sp3_8q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp3_8q">\(\log_{2}8+\log_{2}4=\log_{2}(\,?\,)\). What goes in the bracket?</p>
+<div class="spot-row"><label for="sp3_8i">your answer</label><input id="sp3_8i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp3_8q sp3_8h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp3_8h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(8\times4=32\). Check: \(3+2=5\) and \(\log_{2}32=5\). &#10003;</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> The product law: adding logarithms corresponds to multiplying the insides.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<div class="box hist">
+<span class="lbl">what the laws do not say</span>
+<p>\(\log(A+B)\) is <strong>not</strong> \(\log A+\log B\). There is no law for the logarithm of a sum &mdash; not because nobody has found it, but because none exists. Sums are what logarithms are bad at; that is the price of being so good at products.</p>
+<p>Likewise \(\dfrac{\log A}{\log B}\) is not \(\log\!\left(\dfrac{A}{B}\right)\), and \((\log A)^{2}\) is not \(2\log A\). Check any suspicion with \(A=B=10\) in base 10, where every logarithm is 1 and wrong rules fall apart immediately.</p>
+</div>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp3_9q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp3_9q">\(\log(A+B)\) equals&hellip;</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp3_9r" value="0"> <span>\(\log A+\log B\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp3_9r" value="1"> <span>\(\log A\cdot\log B\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp3_9r" value="2" data-right> <span>nothing simpler &mdash; there is no law for it</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> Logarithms are good at products and bad at sums. \(\log(A+B)\) stays as it is.</div><div class="spot-msg bad" data-kind="bad" data-opt="0" hidden><span class="spot-tag">Not quite.</span> That is the product law, \(\log(AB)\), misapplied to a sum. Test with \(A=B=10\) in base 10.</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> Test it with \(A=B=10\): the left side is \(\log20\approx1.30\), the right side is 1.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 3.8 &mdash; expanding and combining</span>
+<p>Expand \(\displaystyle \ln\frac{x^{3}\sqrt{y}}{z^{2}}\), then combine \(2\log x+\tfrac13\log y-4\log z\) into a single logarithm.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Expanding, one law at a time:
+$$\ln\frac{x^{3}y^{1/2}}{z^{2}}=3\ln x+\tfrac12\ln y-2\ln z.$$</p>
+<p>Combining runs the same laws backwards. Coefficients become powers first, then products and quotients:
+$$2\log x+\tfrac13\log y-4\log z=\log\frac{x^{2}\sqrt[3]{y}}{z^{4}}.$$</p>
+<p>Expanding turns one complicated logarithm into several simple ones, which is what you want when differentiating next year. Combining turns several into one, which is what you want when solving an equation. Knowing which direction you are heading is most of the skill.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 3.9 &mdash; an answer that must be thrown away</span>
+<p>Solve \(\log_2(x)+\log_2(x-2)=3\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Combine the left side: \(\log_2\big(x(x-2)\big)=3\), so \(x(x-2)=2^{3}=8\), giving \(x^{2}-2x-8=0\) and \((x-4)(x+2)=0\). The candidates are \(x=4\) and \(x=-2\).</p>
+<p>Now check them in the <em>original</em> equation. At \(x=-2\), the first term is \(\log_2(-2)\), which does not exist. So \(x=4\) is the only solution.</p>
+<p>The extraneous root was created by the combining step: \(\log_2 x+\log_2(x-2)\) needs both \(x&gt;0\) and \(x&gt;2\), but \(\log_2(x(x-2))\) is happy whenever the product is positive, including when both factors are negative. Rewriting an expression can enlarge its domain, and the enlargement is where phantom answers come from &mdash; the same trap as clearing denominators in Chapter 0.</p>
+</div>
+</div>
+
+<h3>Log scales: making room for the very large</h3>
+
+<p>Human senses are roughly logarithmic. A sound that seems twice as loud carries about ten times the power; a star that looks a little dimmer may be a hundred times fainter. So it is not an accident that so many measurement scales are logarithmic &mdash; they were built to match perception, or to fit an enormous range onto a small ruler.</p>
+
+<figure>
+<svg viewBox="0 0 620 220" width="620" height="220" role="img" aria-labelledby="lsT lsD">
+<title id="lsT">The same numbers on a linear and a logarithmic scale</title>
+<desc id="lsD">On a linear ruler from 0 to 1000, the values 1, 10 and 100 are crushed against the left end. On a logarithmic ruler the same values are evenly spaced.</desc>
+<text class="axtext" x="30" y="40">linear scale</text>
+<line class="axis" x1="40" y1="70" x2="580" y2="70"/>
+<g stroke="var(--axis)"><line x1="40.5" y1="62" x2="40.5" y2="78"/><line x1="45.4" y1="62" x2="45.4" y2="78"/><line x1="94.0" y1="62" x2="94.0" y2="78"/><line x1="580.0" y1="62" x2="580.0" y2="78"/></g>
+<text class="axtext" x="32.5" y="96">1</text><text class="axtext" x="37.4" y="96">10</text><text class="axtext" x="86.0" y="96">100</text><text class="axtext" x="572.0" y="96">1000</text>
+<text class="axtext" x="30" y="140">log scale</text>
+<line class="axis" x1="40" y1="170" x2="580" y2="170"/>
+<g stroke="var(--axis)"><line x1="40.0" y1="162" x2="40.0" y2="178"/><line x1="220.0" y1="162" x2="220.0" y2="178"/><line x1="400.0" y1="162" x2="400.0" y2="178"/><line x1="580.0" y1="162" x2="580.0" y2="178"/></g>
+<text class="axtext" x="32.0" y="196">1</text><text class="axtext" x="212.0" y="196">10</text><text class="axtext" x="392.0" y="196">100</text><text class="axtext" x="572.0" y="196">1000</text>
+</svg>
+<figcaption>Four quantities spanning three orders of magnitude. On the linear ruler, three of them are indistinguishable from zero. On the logarithmic ruler, equal spacing means equal <em>ratios</em> &mdash; each step is ten times the last.</figcaption>
+</figure>
+
+<div class="tscroll" tabindex="0" role="region" aria-label="table (scrolls sideways on small screens)"><table>
+<tr><th>scale</th><th>definition</th><th>what one unit means</th></tr>
+<tr><td>decibels</td><td>\(L=10\log_{10}(I/I_0)\)</td><td>+10 dB is ten times the power</td></tr>
+<tr><td>Richter</td><td>\(M=\log_{10}(A/A_0)\)</td><td>+1 is ten times the ground motion, about 32 times the energy</td></tr>
+<tr><td>pH</td><td>\(\mathrm{pH}=-\log_{10}[\mathrm{H}^{+}]\)</td><td>&minus;1 is ten times as acidic</td></tr>
+<tr><td>stellar magnitude</td><td>\(m=-2.5\log_{10}(F/F_0)\)</td><td>&minus;1 is about 2.5 times brighter</td></tr>
+</table></div>
+<div class="box spot" data-type="num" data-ans="1000.0" role="group" aria-labelledby="sp3_10q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp3_10q">How many times more sound power does an 80 dB sound carry than a 50 dB sound?</p>
+<div class="spot-row"><label for="sp3_10i">your answer</label><input id="sp3_10i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp3_10q sp3_10h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp3_10h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> 30 dB is three factors of ten: \(10^{3}=1000\).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Every 10 dB is a factor of ten in power. How many tens of decibels separate them?</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 3.10 &mdash; a concert and a conversation</span>
+<p>A conversation runs at 60 dB and a concert at 110 dB. How many times more sound power is the concert? And if a second identical stack of speakers is switched on, doubling the power, how much does the reading rise?</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The difference is 50 dB, and each 10 dB is a factor of ten, so the concert carries \(10^{5}=100{,}000\) times the power. Not twice as loud &mdash; a hundred thousand times the energy arriving at your ear.</p>
+<p>Doubling the power adds \(10\log_{10}2=3.01\) dB. Three decibels. To gain another 10 dB you would need ten times the speakers.</p>
+<p>That asymmetry is worth sitting with. Perception compresses: enormous changes in the physical quantity produce modest changes in what you notice. It is also why hearing damage is sneaky &mdash; the sound that does harm does not feel a hundred thousand times more intense, it just feels loud.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 3.11 &mdash; comparing two earthquakes</span>
+<p>One earthquake measures 7.2 and another 5.4. Compare their ground motion and their energy, given that energy scales as \(10^{1.5M}\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Ground motion: \(10^{7.2-5.4}=10^{1.8}\approx 63\) times greater.</p>
+<p>Energy: \(10^{1.5(1.8)}=10^{2.7}\approx 500\) times greater.</p>
+<p>A difference of 1.8 on a scale that runs from about 2 to about 9 sounds small. It is a factor of five hundred. Whenever a number is a logarithm, small differences are never small &mdash; and headline writers who report that one quake was "slightly stronger" than another are making exactly this mistake.</p>
+</div>
+</div>
+
+<h3>Straightening a curve: how to spot a growth law</h3>
+
+<p>Here is the practical payoff. Suppose you have data and want to know what kind of growth it shows. Plotting it usually will not tell you: many curves bend upward, and the eye is terrible at distinguishing them. But logarithms can flatten the candidates into lines, and the eye is excellent at judging straightness.</p>
+
+<div class="box thm">
+<span class="lbl">the two straightening tricks</span>
+<p>If \(y=Ca^{x}\) (exponential), then \(\log y=\log C+x\log a\): plotting \(\log y\) against \(x\) gives a <strong>straight line</strong>. This is a <em>semi-log</em> plot.</p>
+<p>If \(y=Cx^{k}\) (power law), then \(\log y=\log C+k\log x\): plotting \(\log y\) against \(\log x\) gives a straight line of slope \(k\). This is a <em>log-log</em> plot.</p>
+</div>
+<div class="box spot" data-type="sel" role="group" aria-labelledby="sp3_11q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp3_11q">Data that forms a straight line on a semi-log plot (\(\log y\) against \(x\)) is <select aria-label="kind of growth" data-ans="1"><option value="">choose&hellip;</option><option value="0">linear</option><option value="1">exponential</option><option value="2">a power law</option></select>.</p>
+<div class="spot-row"><button type="button" class="spot-go">check</button></div>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> Exponential. A power law needs both axes logged before it straightens.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Take logs of \(y=Ca^{x}\): you get \(\log y=\log C+x\log a\), which is a line in \(x\).</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Fill every blank.</span> Choose something in each box, then check.</div></div>
+</div>
+
+
+<figure>
+<svg viewBox="0 0 620 220" width="620" height="220" role="img" aria-labelledby="slt sld">
+<title id="slt">The same data on a linear and a semi-logarithmic vertical axis</title>
+<desc id="sld">On the left, thirteen data points curving steeply upward. On the right, the same points plotted against a logarithmic vertical axis, where they fall almost exactly on a straight line.</desc>
+<rect x="40" y="20" width="240" height="160" class="plot-bg" stroke="var(--rule)"/>
+<line class="axis" x1="40" y1="180" x2="280" y2="180"/><line class="axis" x1="40" y1="20" x2="40" y2="180"/>
+<polyline points="40.0,177.8 60.0,176.5 80.0,174.9 100.0,173.7 120.0,171.7 140.0,167.2 160.0,161.2 180.0,152.4 200.0,147.9 220.0,135.3 240.0,106.5 260.0,79.1 280.0,26.2" fill="none" stroke="var(--sky)" stroke-width="1.5" opacity="0.5"/>
+<g id="linpts" fill="var(--sky)"></g>
+<text class="axtext" x="46" y="14">linear axis</text>
+<text class="axtext" x="10" y="184">0</text><text class="axtext" x="4" y="104">100</text>
+<rect x="360" y="20" width="240" height="160" class="plot-bg" stroke="var(--rule)"/>
+<line class="axis" x1="360" y1="180" x2="600" y2="180"/><line class="axis" x1="360" y1="20" x2="360" y2="180"/>
+<g class="gridline"><line x1="360" y1="110.5" x2="600" y2="110.5"/><line x1="360" y1="41" x2="600" y2="41"/></g>
+<polyline points="360.0,149.8 380.0,135.8 400.0,124.1 420.0,117.6 440.0,109.4 460.0,96.2 480.0,84.7 500.0,73.0 520.0,68.5 540.0,58.5 560.0,43.5 580.0,33.9 600.0,21.2" fill="none" stroke="var(--amber)" stroke-width="1.5" opacity="0.5"/>
+<g id="logpts" fill="var(--amber)"></g>
+<text class="axtext" x="366" y="14">log axis</text>
+<text class="axtext" x="340" y="184">1</text><text class="axtext" x="334" y="114">10</text><text class="axtext" x="328" y="45">100</text>
+<text class="axtext" x="120" y="206">time</text><text class="axtext" x="440" y="206">time</text>
+</svg>
+<figcaption>The same thirteen measurements. On the left they curve, and a dozen different models would fit them equally badly. On the right the logarithm has straightened them, which settles the question: the data is exponential, and the slope of the line gives the growth rate.</figcaption>
+</figure>
+
+<div class="box lab">
+<span class="lbl">lab &mdash; identify the growth law</span>
+<p>Work with the data above (read the points from the left panel: at times 0 through 12 the values are approximately 2.7, 4.3, 6.4, 7.9, 10.4, 16.1, 23.5, 34.5, 40.2, 55.9, 91.8, 126.2, 192.3).</p>
+<ol>
+<li>Compute \(\log_{10}y\) for \(t=0,4,8,12\).</li>
+<li>Find the slope of the line through the first and last of those points.</li>
+<li>That slope is \(\log_{10}a\). Recover \(a\), the growth factor per unit time.</li>
+<li>Predict \(y\) at \(t=15\), and say how much you trust it.</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The logarithms are \(0.431,\ 1.017,\ 1.604,\ 2.284\).</p>
+<p>Slope \(=\dfrac{2.284-0.431}{12}=0.1544\).</p>
+<p>So \(a=10^{0.1544}=1.427\): the quantity grows about 43% per unit time. (It was generated from \(1.4\) with noise, so the estimate is honest.)</p>
+<p>At \(t=15\): \(\log_{10}y=0.431+15(0.1544)=2.747\), so \(y\approx 558\). How much to trust it? The model fits well over the observed range, but nothing in the data justifies extrapolating three units past the last measurement &mdash; real exponential growth always stops eventually, when it runs out of whatever it was consuming. A confident prediction is a claim about a mechanism, not about a line.</p>
+</div>
+</div>
+
+<div class="widget">
+<h4>Switch the axis</h4>
+<p style="font-size:.95rem;margin:.2em 0 .6em">The same three data sets, drawn on a linear or a logarithmic vertical axis. Only one of them is exponential. On the linear axis, good luck; on the log axis it is the straight one.</p>
+<svg id="axSvg" viewBox="0 0 620 280" width="620" height="280" role="img" aria-label="Three data sets that can be redrawn on a linear or logarithmic axis">
+  <rect x="50" y="20" width="540" height="210" class="plot-bg" stroke="var(--rule)"/>
+  <g id="axGrid"></g>
+  <line class="axis" x1="50" y1="230" x2="590" y2="230"/><line class="axis" x1="50" y1="20" x2="50" y2="230"/>
+  <polyline id="axA" fill="none" stroke="var(--sky)" stroke-width="2.5" points=""/>
+  <polyline id="axB" fill="none" stroke="var(--amber)" stroke-width="2.5" points=""/>
+  <polyline id="axC" fill="none" stroke="var(--rose)" stroke-width="2.5" points=""/>
+  <text class="lbltext" x="60" y="250" fill="var(--sky)">quadratic</text>
+  <text class="lbltext" x="200" y="250" fill="var(--amber)">exponential</text>
+  <text class="lbltext" x="380" y="250" fill="var(--rose)">linear</text>
+</svg>
+<div class="ctrls"><button class="ctl" id="axToggle">switch to log axis</button></div>
+<p class="readout" role="status" aria-live="polite" id="axOut"></p>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea</span>
+<p>This is why loss curves in machine learning are almost always plotted with a logarithmic vertical axis. Training drives the error down by factors, not by amounts: from 1.0 to 0.1 to 0.01. On a linear axis the last two stages are invisible, squashed against the bottom, and you cannot tell a model that is still improving from one that has stopped. On a log axis, constant progress looks like a straight line, and the moment it flattens is the moment to stop.</p>
+<p>There is a companion reason logarithms are everywhere in that field. A model's confidence over a whole dataset is a product of thousands of probabilities, each less than one &mdash; a number so small no computer can store it. Take the logarithm and the product becomes a sum, which is exactly Napier's trick, four centuries later, running inside every training loop on Earth.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 3.3</span>
+<ol>
+<li>Expand: (a) \(\log_2\dfrac{8x^{4}}{y}\); (b) \(\ln\sqrt{\dfrac{a}{bc}}\).</li>
+<li>Combine into one logarithm: (a) \(3\ln x-\ln(x+1)\); (b) \(\tfrac12[\log z+\log(z-1)]-2\log w\).</li>
+<li>Solve: (a) \(\log_5(2x-3)=2\); (b) \(\log x+\log(x-3)=1\); (c) \(\ln(x+1)-\ln(x-1)=2\).</li>
+<li>A sound is measured at 94 dB. What happens to the reading if the power is cut to one quarter?</li>
+<li>Lemon juice has pH 2.2 and black coffee pH 5.0. How many times more acidic is the lemon juice?</li>
+<li>Data is collected and \(\log y\) is plotted against \(\log x\), producing a straight line of slope 1.5 through \((0, 0.6)\). Find the relationship between \(y\) and \(x\).</li>
+<li>Explain why the number of digits in a whole number \(n\) is \(\lfloor\log_{10}n\rfloor+1\), and use it to find the number of digits in \(2^{1000}\).</li>
+<li>Prove the quotient law from the product law and the power law, using nothing else.</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>(a) \(3+4\log_2x-\log_2y\). (b) \(\tfrac12(\ln a-\ln b-\ln c)\).</li>
+<li>(a) \(\ln\dfrac{x^{3}}{x+1}\). (b) \(\log\dfrac{\sqrt{z(z-1)}}{w^{2}}\).</li>
+<li>(a) \(2x-3=25\), so \(x=14\). (b) \(x(x-3)=10\) gives \(x=5\) or \(x=-2\); only \(x=5\) survives. (c) \(\dfrac{x+1}{x-1}=e^{2}\), so \(x=\dfrac{e^{2}+1}{e^{2}-1}\approx1.313\).</li>
+<li>Quartering the power subtracts \(10\log_{10}4=6.02\) dB, giving about 88 dB.</li>
+<li>\(10^{5.0-2.2}=10^{2.8}\approx 631\) times.</li>
+<li>Slope 1.5 and intercept 0.6 means \(\log y=0.6+1.5\log x\), so \(y=10^{0.6}x^{1.5}\approx 3.98\,x^{1.5}\). A straight log-log plot means a power law, and the slope is the power.</li>
+<li>\(n\) has \(d\) digits exactly when \(10^{d-1}\le n&lt;10^{d}\); taking \(\log_{10}\) gives \(d-1\le\log_{10}n&lt;d\), which is the floor statement. For \(2^{1000}\): \(\log_{10}2^{1000}=1000(0.30103)=301.03\), so it has 302 digits &mdash; found without computing the number.</li>
+<li>\(\log_a\!\left(\dfrac{A}{B}\right)=\log_a(AB^{-1})=\log_a A+\log_a B^{-1}=\log_a A-\log_a B\), using the product law and then the power law with \(c=-1\).</li>
+</ol>
+</div>
+</div>
+
+<hr>
+<h2 id="wrap">Where this chapter leaves you</h2>
+<p>Exponentials are what growth looks like when the rate is proportional to the amount; logarithms are the inverse that lets you get at the exponent, and the translation that turns products into sums. Along the way a limit appeared and produced \(e\), a number nobody chose.</p>
+<p>Chapter 4 turns to functions that come back around. It will start by defining sine and cosine as coordinates on a circle rather than as ratios in a triangle, which is the definition that makes them useful for modelling anything that repeats &mdash; and by the end of it you will pull the hidden frequencies out of a year of real data using nothing but finite sums.</p>
+
+<p class="kicker">Next: Chapter 4 &mdash; Trigonometry of circles.</p>
+
+<script>
+/* ---------- L12: compounding widget ---------- */
+(function(){
+  var s=document.getElementById('nComp'); if(!s) return;
+  function nFrom(v){ return Math.round(Math.pow(10, v/20)); }   // 1 .. ~3162
+  function upd(){
+    var n=Math.max(1,nFrom(+s.value));
+    var val=Math.pow(1+1/n, n);
+    document.getElementById('nCompV').textContent=n.toLocaleString();
+    var frac=(val-2)/(Math.E-2);
+    document.getElementById('compBar').setAttribute('width', Math.max(0,Math.min(1,frac))*540);
+    document.getElementById('compTxt').textContent='balance after one year: $'+val.toFixed(6);
+    var gap=Math.E-val;
+    document.getElementById('compOut').textContent=
+      'n = '+n.toLocaleString()+'   \u2192   $'+val.toFixed(6)+'    still short of e by '+gap.toFixed(6)+
+      (n>=1000?'   \u2014 a thousandfold more compounding bought you four decimal places.':'');
+  }
+  s.addEventListener('input',upd); upd();
+})();
+
+/* ---------- L13: slide rule ---------- */
+(function(){
+  var svg=document.getElementById('slideSvg'); if(!svg) return;
+  var X0=20, LEN=600, drag=null, off=0;
+  function mk(t,a){var e=document.createElementNS('http://www.w3.org/2000/svg',t);
+    for(var k in a)e.setAttribute(k,a[k]);return e;}
+  function px(v){ return X0+Math.log10(v)*LEN; }          // v in [1,10]
+  function scale(g,y,cls){
+    var marks=[1,1.5,2,2.5,3,4,5,6,7,8,9,10];
+    marks.forEach(function(v){
+      var x=px(v), major=(v%1===0);
+      g.appendChild(mk('line',{x1:x,y1:y,x2:x,y2:y+(major?18:11),stroke:'var(--axis)','stroke-width':major?1.6:1}));
+      if(major){ var t=mk('text',{x:x,y:y+34,'text-anchor':'middle',class:'axtext'}); t.textContent=v; g.appendChild(t); }
+    });
+  }
+  scale(document.getElementById('topScale'),34,'');
+  scale(document.getElementById('botScale'),90,'');
+  var grp=document.getElementById('botGroup');
+  function readout(){
+    var slid=off/LEN;                       // in decades
+    var a=Math.pow(10,-slid);               // top value above bottom-scale 1
+    var cx=330, topV=Math.pow(10,(cx-X0)/LEN), botV=Math.pow(10,(cx-X0-off)/LEN);
+    var msg='The bottom 1 sits under '+ (1/ (botV/topV) ).toFixed(3);
+    document.getElementById('slideOut').textContent=
+      'Under the cursor: top scale reads '+topV.toFixed(3)+',  bottom scale reads '+botV.toFixed(3)+
+      '.   Their ratio '+(topV/botV).toFixed(3)+' is the number the bottom 1 is parked under \u2014 every pair down the rule multiplies to it.';
+  }
+  function move(e){
+    if(drag===null) return;
+    var r=svg.getBoundingClientRect();
+    var cx=(e.touches?e.touches[0].clientX:e.clientX);
+    var v=(cx-r.left)/r.width*660;
+    off=Math.max(-LEN*0.95, Math.min(LEN*0.95, v-drag));
+    grp.setAttribute('transform','translate('+off+',0)');
+    readout(); e.preventDefault();
+  }
+  svg.setAttribute('tabindex','0');
+  svg.addEventListener('keydown',function(e){
+    var d=(e.shiftKey?30:6);
+    if(e.key==='ArrowRight'){off=Math.min(LEN*0.95,off+d);}
+    else if(e.key==='ArrowLeft'){off=Math.max(-LEN*0.95,off-d);}
+    else return;
+    grp.setAttribute('transform','translate('+off+',0)'); readout(); e.preventDefault();
+  });
+  svg.addEventListener('pointerdown',function(e){
+    var r=svg.getBoundingClientRect();
+    var cx=(e.touches?e.touches[0].clientX:e.clientX);
+    drag=(cx-r.left)/r.width*660-off;
+  });
+  window.addEventListener('pointermove',move);
+  window.addEventListener('pointerup',function(){drag=null;});
+  document.getElementById('slideReset').addEventListener('click',function(){
+    off=0; grp.setAttribute('transform','translate(0,0)'); readout();});
+  readout();
+})();
+
+/* ---------- L14: scatter dots + axis toggle ---------- */
+(function(){
+  var lin=document.getElementById('linpts'); if(!lin) return;
+  var data=[2.7,4.3,6.4,7.9,10.4,16.1,23.5,34.5,40.2,55.9,91.8,126.2,192.3];
+  function mk(t,a){var e=document.createElementNS('http://www.w3.org/2000/svg',t);
+    for(var k in a)e.setAttribute(k,a[k]);return e;}
+  data.forEach(function(y,i){
+    lin.appendChild(mk('circle',{cx:40+i*20, cy:180-y*0.8, r:4}));
+    document.getElementById('logpts').appendChild(
+      mk('circle',{cx:360+i*20, cy:180-(Math.log(y)/Math.LN10/2.301)*160, r:4}));
+  });
+})();
+(function(){
+  var btn=document.getElementById('axToggle'); if(!btn) return;
+  var logMode=false;
+  var fns={ axA:function(x){return 2*x*x+5;}, axB:function(x){return 5*Math.pow(1.45,x);},
+            axC:function(x){return 30*x+5;} };
+  var X0=50, W=540, Y0=230, H=210, XMAX=12, YMAX=440;
+  function upd(){
+    for(var id in fns){
+      var p=[];
+      for(var i=0;i<=48;i++){
+        var x=XMAX*i/48, y=fns[id](x);
+        if(y<=0) continue;
+        var py = logMode
+          ? Y0 - (Math.log(y)/Math.LN10 - 0.3)/(Math.log(YMAX)/Math.LN10 - 0.3)*H
+          : Y0 - y/YMAX*H;
+        if(py<20||py>Y0) continue;
+        p.push((X0+x/XMAX*W).toFixed(1)+','+py.toFixed(1));
+      }
+      document.getElementById(id).setAttribute('points',p.join(' '));
+    }
+    var g=document.getElementById('axGrid');
+    while(g.firstChild) g.removeChild(g.firstChild);
+    var levels = logMode ? [1,10,100] : [100,200,300,400];
+    levels.forEach(function(v){
+      var py = logMode
+        ? Y0-(Math.log(v)/Math.LN10-0.3)/(Math.log(YMAX)/Math.LN10-0.3)*H
+        : Y0-v/YMAX*H;
+      var l=document.createElementNS('http://www.w3.org/2000/svg','line');
+      l.setAttribute('x1',X0);l.setAttribute('y1',py);l.setAttribute('x2',X0+W);l.setAttribute('y2',py);
+      l.setAttribute('class','gridline'); g.appendChild(l);
+      var t=document.createElementNS('http://www.w3.org/2000/svg','text');
+      t.setAttribute('x',X0-34);t.setAttribute('y',py+4);t.setAttribute('class','axtext');
+      t.textContent=v; g.appendChild(t);
+    });
+    btn.textContent = logMode ? 'switch to linear axis' : 'switch to log axis';
+    document.getElementById('axOut').textContent = logMode
+      ? 'On the log axis the exponential is the straight one. The quadratic still bends \u2014 it grows, but by a shrinking proportion.'
+      : 'On the linear axis all three bend upward and the eye cannot separate them. Switch the axis.';
+  }
+  btn.addEventListener('click',function(){logMode=!logMode;upd();});
+  upd();
+})();
+</script>
+</div>
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    b.textContent=open?'hide solution':'show solution';
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+<script>
+/* ===== spot checks: quick, self-marking questions ===== */
+(function(){
+  /* --- a small, safe arithmetic reader: 3/4, -2.5, 2pi/3, sqrt(3)/2, √2, 1e3, pi --- */
+  function tokens(s){
+    var t=[], re=/\s*(\d*\.\d+|\d+\.?\d*(?:e[+-]?\d+)?|[a-z]+|[-+*\/^()])/gy, m, i=0;
+    re.lastIndex=0;
+    while(re.lastIndex<s.length){
+      var at=re.lastIndex; m=re.exec(s);
+      if(!m||m.index!==at){ if(/^\s*$/.test(s.slice(at))) break; return null; }
+      t.push(m[1]);
+    }
+    return t;
+  }
+  function evaluate(src){
+    var s=String(src).toLowerCase()
+      .replace(/[−–—]/g,'-').replace(/[×·]/g,'*').replace(/÷/g,'/')
+      .replace(/π/g,'pi').replace(/√/g,'sqrt').replace(/[° ]/g,' ')
+      .replace(/^\s*[a-z]\w*\s*=\s*/,'').replace(/(\d),(?=\d{3}\b)/g,'$1');
+    var t=tokens(s); if(!t||!t.length) return NaN;
+    var k=0;
+    function peek(){return t[k];}
+    function next(){return t[k++];}
+    function starts(x){return x!==undefined&&(/^[a-z]/.test(x)||x==='(');}   /* 2pi, 3(2) — never 4 5 */
+    function expr(){var v=term(); while(peek()==='+'||peek()==='-'){var o=next(),w=term(); v=o==='+'?v+w:v-w;} return v;}
+    function term(){
+      var v=unary();
+      for(;;){
+        if(peek()==='*'){next(); v*=unary();}
+        else if(peek()==='/'){next(); v/=unary();}
+        else if(starts(peek())){ v*=power(); }        /* implicit: 2pi, 3sqrt(2) */
+        else return v;
+      }
+    }
+    function unary(){ if(peek()==='-'){next(); return -unary();} if(peek()==='+'){next(); return unary();} return power(); }
+    function power(){ var b=primary(); if(peek()==='^'){next(); return Math.pow(b,unary());} return b; }
+    function primary(){
+      var x=next();
+      if(x===undefined) throw 0;
+      if(x==='('){var v=expr(); if(next()!==')') throw 0; return v;}
+      if(/^[\d.]/.test(x)) return parseFloat(x);
+      if(x==='pi') return Math.PI;
+      if(x==='e') return Math.E;
+      if(x==='sqrt') return Math.sqrt(power());
+      throw 0;
+    }
+    try{ var v=expr(); return (k===t.length&&isFinite(v))?v:NaN; }catch(e){ return NaN; }
+  }
+  function close(a,b,tol){ return Math.abs(a-b)<=tol; }
+  function defaultTol(a){ return Math.max(0.005*Math.abs(a),0.005); }
+  function splitList(s){
+    return String(s).replace(/^[\s(\[⟨<{]+|[\s)\]⟩>}]+$/g,'')
+      .split(/\s*(?:,|;|\band\b|\bor\b)\s*/i).filter(function(x){return x.trim()!=='';});
+  }
+
+  /* exactly one message is visible at a time: ok, bad (generic or per option), read, count, pick, ans */
+  function show(box, which, opt){
+    var msgs=box.querySelectorAll('.spot-msg');
+    var specific=(which==='bad'&&opt!==undefined)?
+      box.querySelector('.spot-msg[data-kind="bad"][data-opt="'+opt+'"]'):null;
+    for(var i=0;i<msgs.length;i++){
+      var m=msgs[i];
+      m.hidden = !(m===specific || (!specific && m.getAttribute('data-kind')===which && !m.hasAttribute('data-opt')));
+    }
+    box.classList.toggle('is-ok', which==='ok');
+    box.classList.toggle('is-bad', which!=='ok' && which!=='ans');
+  }
+
+  function judge(box){
+    var type=box.getAttribute('data-type');
+    if(type==='mc'){
+      var picked=box.querySelector('input[type=radio]:checked');
+      if(!picked){ show(box,'pick'); return null; }
+      var opts=box.querySelectorAll('.spot-opt');
+      for(var i=0;i<opts.length;i++) opts[i].classList.remove('right','wrong');
+      var lab=picked.closest('.spot-opt'), ok=picked.hasAttribute('data-right');
+      lab.classList.add(ok?'right':'wrong');
+      show(box, ok?'ok':'bad', ok?undefined:picked.value);
+      return ok;
+    }
+    if(type==='sel'){
+      var sels=box.querySelectorAll('select'), all=true, any=false;
+      for(var j=0;j<sels.length;j++){
+        if(sels[j].value===''){ any=true; continue; }
+        var good=sels[j].value===sels[j].getAttribute('data-ans');
+        sels[j].setAttribute('aria-invalid', good?'false':'true');
+        if(!good) all=false;
+      }
+      if(any){ show(box,'pick'); return null; }
+      show(box, all?'ok':'bad'); return all;
+    }
+    var inp=box.querySelector('.spot-in'), raw=inp.value;
+    if(raw.trim()===''){ show(box,'read'); return null; }
+    if(type==='text'){
+      var norm=function(z){return String(z).toLowerCase().replace(/[\s.]/g,'');};
+      var ok2=box.getAttribute('data-ans').split('|').some(function(a){return norm(a)===norm(raw);});
+      inp.setAttribute('aria-invalid', ok2?'false':'true');
+      show(box, ok2?'ok':'bad'); return ok2;
+    }
+    var want=box.getAttribute('data-ans').split('|').map(Number);
+    var tol=box.hasAttribute('data-tol')?Number(box.getAttribute('data-tol')):null;
+    var got;
+    if(type==='list'){
+      got=splitList(raw).map(evaluate);
+      if(got.some(isNaN)){ inp.setAttribute('aria-invalid','true'); show(box,'read'); return null; }
+      if(got.length!==want.length){ inp.setAttribute('aria-invalid','true'); show(box,'count'); return false; }
+      var ordered=box.hasAttribute('data-ordered'), used=[], ok3=true;
+      for(var a=0;a<want.length;a++){
+        var tl=tol===null?defaultTol(want[a]):tol, hit=-1;
+        if(ordered){ if(close(got[a],want[a],tl)) hit=a; }
+        else for(var b=0;b<got.length;b++){ if(used.indexOf(b)<0&&close(got[b],want[a],tl)){hit=b;break;} }
+        if(hit<0){ok3=false;break;} used.push(hit);
+      }
+      inp.setAttribute('aria-invalid', ok3?'false':'true');
+      show(box, ok3?'ok':'bad'); return ok3;
+    }
+    var v=evaluate(raw);
+    if(isNaN(v)){ inp.setAttribute('aria-invalid','true'); show(box,'read'); return null; }
+    var ok4=close(v,want[0],tol===null?defaultTol(want[0]):tol);
+    inp.setAttribute('aria-invalid', ok4?'false':'true');
+    show(box, ok4?'ok':'bad'); return ok4;
+  }
+
+  var spots=document.querySelectorAll('.spot');
+  for(var n=0;n<spots.length;n++)(function(box){
+    var misses=0, go=box.querySelector('.spot-go'), reveal=box.querySelector('.spot-show');
+    function run(){
+      var r=judge(box);
+      if(r===false){ misses++; if(misses>=2&&reveal) reveal.hidden=false; }
+      if(r===true&&reveal) reveal.hidden=true;
+    }
+    go.addEventListener('click',run);
+    var inp=box.querySelector('.spot-in');
+    if(inp){
+      inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();run();} });
+      inp.addEventListener('input',function(){ inp.removeAttribute('aria-invalid'); box.classList.remove('is-ok','is-bad'); });
+    }
+    var radios=box.querySelectorAll('input[type=radio]');
+    for(var i=0;i<radios.length;i++) radios[i].addEventListener('change',function(){
+      var ls=box.querySelectorAll('.spot-opt');
+      for(var j=0;j<ls.length;j++) ls[j].classList.remove('chosen','right','wrong');
+      this.closest('.spot-opt').classList.add('chosen');
+      box.classList.remove('is-ok','is-bad');
+    });
+    var sels=box.querySelectorAll('select');
+    for(var s=0;s<sels.length;s++) sels[s].addEventListener('change',function(){
+      this.removeAttribute('aria-invalid'); box.classList.remove('is-ok','is-bad'); });
+    if(reveal) reveal.addEventListener('click',function(){
+      var a=box.querySelector('.spot-msg[data-kind="ans"]');
+      var msgs=box.querySelectorAll('.spot-msg'); for(var i=0;i<msgs.length;i++) msgs[i].hidden=true;
+      if(a) a.hidden=false; reveal.hidden=true;
+    });
+  })(spots[n]);
+})();
+</script>
+</body>
+</html>

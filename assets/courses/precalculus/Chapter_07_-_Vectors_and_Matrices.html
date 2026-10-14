@@ -1,0 +1,1290 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Chapter 7 — Plane Vectors and Matrix Algebra</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  /* ---- spot checks ---- */
+  .spot{border:1px dashed var(--sky);border-left:3px solid var(--sky);background:var(--surface)}
+  .spot .lbl{color:var(--sky)}
+  .spot.is-ok{border-color:var(--moss)} .spot.is-ok .lbl{color:var(--moss)}
+  .spot.is-bad{border-color:var(--amber)} .spot.is-bad .lbl{color:var(--amber)}
+  .spot-q,.spot legend{margin:.15em 0 .75em;padding:0;color:var(--ink);font-size:1rem;line-height:1.7}
+  .spot fieldset{border:0;margin:0;padding:0;min-width:0}
+  .spot-opts{display:grid;gap:8px;margin:0 0 .8em}
+  .spot-opt{display:flex;gap:12px;align-items:flex-start;padding:9px 13px;min-height:44px;
+    border:1px solid var(--rule);border-radius:8px;background:var(--surface2);cursor:pointer;line-height:1.6}
+  .spot-opt:hover{border-color:var(--sky)}
+  .spot-opt input{margin:.42em 0 0;accent-color:var(--sky);flex:none;width:18px;height:18px}
+  .spot-opt.chosen{border-color:var(--sky);border-width:2px;padding:8px 12px}
+  .spot-opt.chosen.right{border-color:var(--moss)}
+  .spot-opt.chosen.wrong{border-color:var(--amber)}
+  .spot-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .spot-row label{font-family:var(--mono);font-size:.86rem;color:var(--cap)}
+  .spot-in,.spot select{font-family:var(--mono);font-size:1rem;color:var(--ink);background:var(--surface2);
+    border:1px solid var(--rule);border-radius:6px;padding:8px 10px;min-height:44px}
+  .spot-in{width:13em;max-width:100%}
+  .spot select{max-width:100%;margin:.15em .2em}
+  .spot-in[aria-invalid="true"],.spot select[aria-invalid="true"]{border:2px solid var(--amber)}
+  .spot-in[aria-invalid="false"],.spot select[aria-invalid="false"]{border:2px solid var(--moss)}
+  .spot-go,.spot-show{font-family:var(--mono);font-size:.88rem;background:transparent;border-radius:999px;
+    padding:8px 18px;min-height:44px;cursor:pointer}
+  .spot-go{color:var(--sky);border:1px solid var(--sky)}
+  .spot-go:hover{background:var(--sky);color:var(--bg)}
+  .spot-show{color:var(--cap);border:1px dashed var(--rule);margin-top:.7em}
+  .spot-show:hover{border-color:var(--sky);color:var(--ink)}
+  .spot-msg{margin-top:.85em;padding:10px 14px;border-left:3px solid var(--rule);border-radius:0 6px 6px 0;
+    background:var(--surface2);color:var(--ink);line-height:1.65}
+  .spot-msg.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 11%,var(--surface))}
+  .spot-msg.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 11%,var(--surface))}
+  .spot-msg.ans{border-left-color:var(--sky)}
+  .spot-msg > :last-child{margin-bottom:0}
+  .spot-tag{font-family:var(--mono);font-size:.86rem;font-weight:700;margin-right:.35em}
+  .spot-msg.ok .spot-tag{color:var(--moss)} .spot-msg.bad .spot-tag{color:var(--amber)}
+  .spot-msg.ans .spot-tag{color:var(--sky)}
+  .spot-help{font-family:var(--mono);font-size:.8rem;color:var(--cap);margin:.55em 0 0}
+  .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  /* narrow screens: wide tables and long equations scroll sideways ---- */
+  .tscroll{overflow-x:auto;max-width:100%;margin:1.2em 0;-webkit-overflow-scrolling:touch}
+  .tscroll:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+  .tscroll>table{margin:0}
+  mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;max-width:100%;padding:2px 0}
+  mjx-container[jax] > mjx-assistive-mml{width:1px !important;max-width:1px !important;height:1px !important;overflow:hidden !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Precalculus · Chapter 7</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Chapter 7<br>Plane vectors and matrix algebra</h1>
+<p class="kicker">Lectures 24&ndash;26 &nbsp;|&nbsp; the bridge to linear algebra</p>
+
+<div class="toc">
+<strong class="mono">In this chapter</strong>
+<ol start="24">
+<li><a href="#L24">Vectors and the dot product</a></li>
+<li><a href="#L25">Matrices as functions that move the plane</a></li>
+<li><a href="#L26">Linear systems, determinants, and losing information</a></li>
+</ol>
+</div>
+
+<p>Every function in this course so far has eaten one number and produced one number. This chapter changes that. The input becomes a <em>point in the plane</em> and so does the output, and the function becomes a rule for moving every point at once.</p>
+
+<p>That sounds like a modest extension. It is the doorway to linear algebra, and to nearly everything computational: rotating a photograph, straightening a scanned document, ranking a web page, compressing a video, and running a layer of a neural network are all the same operation, performed on a great many more than two numbers.</p>
+
+<hr>
+<!-- ================= LECTURE 24 ================= -->
+<h2 id="L24">Lecture 24 &mdash; Vectors and the dot product</h2>
+
+<figure class="toon">
+<svg viewBox="0 0 560 200" width="560" height="200" role="img" aria-labelledby="L24t L24d">
+<title id="L24t">Cartoon: two ways to describe the same journey</title><desc id="L24d">One stick figure gives directions as three east then four north. An arrow diagram shows both that route and the direct diagonal ending at the same place.</desc>
+<defs><filter id="rough78" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="78" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough78)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="90.0" cy="124.0" r="11.0" /><path d="M 90.0 135.0 L 90.0 160.0" /><path d="M 90.0 140.0 L 77.0 158.0" /><path d="M 90.0 140.0 L 110.0 140.0" /><path d="M 90.0 160.0 L 79.0 184.0" /><path d="M 90.0 160.0 L 101.0 184.0" /><circle cx="470.0" cy="124.0" r="11.0" /><path d="M 470.0 135.0 L 470.0 160.0" /><path d="M 470.0 140.0 L 483.0 158.0" /><path d="M 470.0 140.0 L 450.0 140.0" /><path d="M 470.0 160.0 L 481.0 184.0" /><path d="M 470.0 160.0 L 459.0 184.0" /><path d="M 30 170 L 540 170" stroke-width="1.6"/><path d="M 190 160 L 268 160" stroke-width="2.5"/><path d="M 260 154 L 268 160 L 260 166"/><path d="M 268 160 L 268 106" stroke-width="2.5"/><path d="M 262 114 L 268 106 L 274 114"/><path d="M 190 160 L 268 106" stroke-width="2.5" stroke-dasharray="6 4"/><rect x="276.0" y="14.0" width="195.3" height="34.0" rx="9" fill="var(--surface2)"/><path d="M 326.8 45.0 L 270.0 86.0 L 369.7 45.0" fill="var(--surface2)" stroke-width="1.6"/>
+</g>
+<text x="291.0" y="41.0" class="ctext">Or: five, that way.</text>
+</svg>
+<figcaption class="tooncap">“Three east, then four north.”  One destination, two descriptions.</figcaption></figure>
+
+<h3>A vector is a journey</h3>
+
+<div class="box def">
+<span class="lbl">definition</span>
+<p>A <strong>vector</strong> in the plane is a displacement: a distance together with a direction. Writing it in <strong>components</strong> as \(\mathbf{v}=\langle v_1,v_2\rangle\) means "move \(v_1\) across and \(v_2\) up".</p>
+<p>Its <strong>magnitude</strong> is its length, \(|\mathbf{v}|=\sqrt{v_1^{2}+v_2^{2}}\) &mdash; Pythagoras again &mdash; and its direction is the angle it makes with the positive \(x\)-axis.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="13.0" role="group" aria-labelledby="sp7_1q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp7_1q">What is the magnitude of \(\langle5,12\rangle\)?</p>
+<div class="spot-row"><label for="sp7_1i">your answer</label><input id="sp7_1i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp7_1q sp7_1h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp7_1h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\sqrt{25+144}=13\).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> \(|\mathbf{v}|=\sqrt{v_1^{2}+v_2^{2}}\).</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<p>A vector is not a point. The point \((3,4)\) is a place; the vector \(\langle3,4\rangle\) is an instruction, and the same instruction can be carried out starting from anywhere. Drawn as an arrow, it can be picked up and moved about the plane without becoming a different vector, which is exactly what makes vectors useful for forces, velocities and routes.</p>
+
+<div class="box thm">
+<span class="lbl">the arithmetic</span>
+<p><strong>Addition:</strong> \(\mathbf{u}+\mathbf{v}=\langle u_1+v_1,\ u_2+v_2\rangle\) &mdash; do one journey, then the other.</p>
+<p><strong>Scalar multiple:</strong> \(c\mathbf{v}=\langle cv_1,\ cv_2\rangle\) &mdash; same direction, length scaled by \(|c|\), reversed if \(c&lt;0\).</p>
+<p><strong>Unit vector:</strong> \(\dfrac{\mathbf{v}}{|\mathbf{v}|}\) has length 1 and the same direction &mdash; direction stripped of distance.</p>
+</div>
+<div class="box spot" data-type="list" data-ans="-2.0|7.0" data-ordered="1" role="group" aria-labelledby="sp7_2q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp7_2q">Compute \(2\langle1,3\rangle-\langle4,-1\rangle\). Give both components.</p>
+<div class="spot-row"><label for="sp7_2i">your answer</label><input id="sp7_2i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp7_2q sp7_2h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp7_2h">2 numbers, separated by a comma: first component, then second</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\langle2-4,\ 6-(-1)\rangle=\langle-2,7\rangle\).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Scale first: \(2\langle1,3\rangle=\langle2,6\rangle\). Then subtract component by component &mdash; and mind the double negative.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div><div class="spot-msg bad" data-kind="count" hidden><span class="spot-tag">Count again.</span> This one wants exactly 2 numbers, separated by commas.</div></div>
+</div>
+
+
+<figure>
+<svg viewBox="0 0 620 260" width="620" height="260" role="img" aria-labelledby="vaT vaD">
+<title id="vaT">Adding two vectors</title>
+<desc id="vaD">On the left, vector u drawn from the origin and vector v drawn starting where u ends, with the sum reaching from the origin to the final point. On the right, the same two vectors both drawn from the origin, forming two sides of a parallelogram whose diagonal is the sum.</desc>
+<g>
+<line class="axis" x1="30" y1="210" x2="290" y2="210"/><line class="axis" x1="50" y1="20" x2="50" y2="240"/>
+<path d="M 50 210 L 170 150" stroke="var(--sky)" stroke-width="3"/><path d="M 160 144 L 170 150 L 161 157"  fill="none" stroke="var(--sky)" stroke-width="3"/>
+<path d="M 170 150 L 230 60" stroke="var(--amber)" stroke-width="3"/><path d="M 222 62 L 230 60 L 230 71" fill="none" stroke="var(--amber)" stroke-width="3"/>
+<path d="M 50 210 L 230 60" stroke="var(--rose)" stroke-width="3" stroke-dasharray="7 5"/>
+<text class="lbltext" x="96" y="170" fill="var(--sky)">u</text>
+<text class="lbltext" x="208" y="114" fill="var(--amber)">v</text>
+<text class="lbltext" x="120" y="126" fill="var(--rose)">u + v</text>
+<text class="axtext" x="34" y="248">head to tail</text>
+<g transform="translate(320,0)">
+<line class="axis" x1="30" y1="210" x2="290" y2="210"/><line class="axis" x1="50" y1="20" x2="50" y2="240"/>
+<path d="M 50 210 L 170 150" stroke="var(--sky)" stroke-width="3"/>
+<path d="M 50 210 L 110 120" stroke="var(--amber)" stroke-width="3"/>
+<path d="M 170 150 L 230 60" stroke="var(--amber)" stroke-width="1.6" stroke-dasharray="5 4"/>
+<path d="M 110 120 L 230 60" stroke="var(--sky)" stroke-width="1.6" stroke-dasharray="5 4"/>
+<path d="M 50 210 L 230 60" stroke="var(--rose)" stroke-width="3"/>
+<text class="axtext" x="34" y="248">or as a parallelogram &#8212; same answer</text>
+</g>
+</g>
+</svg>
+<figcaption>Two pictures of one rule. Head to tail says "do this journey, then that one"; the parallelogram says "these two pulls act at once". Addition of vectors is commutative for a visible reason: both routes around the parallelogram arrive at the same corner.</figcaption>
+</figure>
+
+<div class="box ex">
+<span class="lbl">example 7.1 &mdash; a plane in a crosswind</span>
+<p>An aircraft flies with velocity \(\langle 240,0\rangle\) km/h relative to the air, and the wind blows at \(\langle 0,-60\rangle\) km/h. Find the ground velocity, its speed, and the direction of travel.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Add them: \(\langle240,0\rangle+\langle0,-60\rangle=\langle240,-60\rangle\).</p>
+<p>Speed: \(\sqrt{240^{2}+60^{2}}=\sqrt{57600+3600}=247.4\) km/h.</p>
+<p>Direction: \(\tan\theta=\dfrac{-60}{240}=-0.25\), so \(\theta=-14.0^{\circ}\) &mdash; fourteen degrees south of the heading.</p>
+<p>The aircraft is pointing east and travelling east-south-east. Correcting for that is the entire job of navigation, and it is vector subtraction: to make the ground velocity due east, the pilot must aim \(14^{\circ}\) into the wind.</p>
+<figure>
+<svg viewBox="0 0 620 250" width="620" height="250" role="img" aria-labelledby="wndt wndd">
+<title id="wndt">Adding the aircraft velocity and the wind velocity</title><desc id="wndd">A horizontal arrow of length 240 for the aircraft through the air, a short downward arrow of 60 for the wind attached to its tip, and the resultant arrow from the start to the final tip, 247.4 long and pointing 14 degrees below the horizontal.</desc>
+<rect x="60" y="26" width="370" height="174" class="plot-bg" stroke="var(--rule)"/><line class="axis" x1="60" y1="87.4" x2="430" y2="87.4"/><line x1="93.6" y1="87.4" x2="362.7" y2="87.4" stroke="var(--sky)" stroke-width="3.5"/><line x1="362.7" y1="87.4" x2="362.7" y2="148.8" stroke="var(--amber)" stroke-width="3.5"/><line x1="93.6" y1="87.4" x2="362.7" y2="148.8" stroke="var(--moss)" stroke-width="3.5"/><path d="M 147.6 87.4 A 54 54 0 0 0 146.0 100.5" fill="none" stroke="var(--rose)" stroke-width="2"/><text x="156" y="113" class="axtext" fill="var(--rose)">14°</text><text x="228" y="75" class="lbltext" fill="var(--sky)" text-anchor="middle">air speed 240</text><text x="368" y="122" class="lbltext" fill="var(--amber)">wind 60</text><text x="217" y="137" class="lbltext" fill="var(--moss)" text-anchor="middle">ground speed 247.4</text><text x="460" y="96" class="axtext">the aircraft points east</text><text x="460" y="120" class="axtext">but travels 14° south of it</text><text x="460" y="160" class="axtext" fill="var(--cap)">to make good a due east track,</text><text x="460" y="184" class="axtext" fill="var(--cap)">aim 14° into the wind</text>
+</svg>
+<figcaption>Head to tail, exactly as in the first figure of this lecture. The aircraft is pointing where its nose says, and travelling where the sum says &mdash; and the gap between those two statements is the whole business of navigation.</figcaption>
+</figure>
+
+</div>
+</div>
+
+<h3>The dot product</h3>
+
+<p>There is no sensible way to multiply two journeys and get a third journey. But there is an extremely useful way to multiply two vectors and get a <em>number</em>, and it answers the question: how much do these two point the same way?</p>
+
+<div class="box def">
+<span class="lbl">definition</span>
+<p>The <strong>dot product</strong> of \(\mathbf{u}\) and \(\mathbf{v}\) is
+$$\mathbf{u}\cdot\mathbf{v}=u_1v_1+u_2v_2.$$
+It can also be computed from the geometry:
+$$\mathbf{u}\cdot\mathbf{v}=|\mathbf{u}|\,|\mathbf{v}|\cos\theta,$$
+where \(\theta\) is the angle between them. The two formulas always agree &mdash; the Law of Cosines from Lecture 20 is what proves it.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="5.0" role="group" aria-labelledby="sp7_3q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp7_3q">Compute \(\langle2,3\rangle\cdot\langle4,-1\rangle\).</p>
+<div class="spot-row"><label for="sp7_3i">your answer</label><input id="sp7_3i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp7_3q sp7_3h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp7_3h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(8-3=5\). A dot product is a number, not a vector.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Multiply matching components and add: \(u_1v_1+u_2v_2\).</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<p>Read the second formula and the meaning falls out. The dot product is largest when the vectors point the same way (\(\cos0=1\)), zero when they are perpendicular (\(\cos90^{\circ}=0\)), and negative when they point away from each other. It is a similarity score.</p>
+<div class="box spot" data-type="sel" role="group" aria-labelledby="sp7_4q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp7_4q">If \(\mathbf{u}\cdot\mathbf{v}\) is negative, the angle between \(\mathbf{u}\) and \(\mathbf{v}\) is <select aria-label="angle type" data-ans="2"><option value="">choose&hellip;</option><option value="0">acute</option><option value="1">a right angle</option><option value="2">obtuse</option></select>.</p>
+<div class="spot-row"><button type="button" class="spot-go">check</button></div>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> Obtuse: \(\cos\theta&lt;0\) exactly when \(\theta\) is between \(90^{\circ}\) and \(180^{\circ}\).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Look at \(|\mathbf{u}||\mathbf{v}|\cos\theta\). The lengths are positive, so the sign comes from \(\cos\theta\).</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Fill every blank.</span> Choose something in each box, then check.</div></div>
+</div>
+
+
+<div class="widget">
+<h4>Two vectors, one number</h4>
+<p style="font-size:.95rem;margin:.2em 0 .6em">Drag either arrowhead, or focus the figure and use the arrow keys. The shadow of \(\mathbf{u}\) along \(\mathbf{v}\) is its projection; the dot product is the length of that shadow times the length of \(\mathbf{v}\).</p>
+<svg id="dotSvg" viewBox="0 0 620 300" width="620" height="300" role="application" aria-label="Two draggable vectors with their angle, dot product and projection">
+  <g id="dotGrid"></g>
+  <line class="axis" x1="20" y1="160" x2="360" y2="160"/><line class="axis" x1="190" y1="20" x2="190" y2="290"/>
+  <line id="dotProjLine" x1="0" y1="0" x2="0" y2="0" stroke="var(--rule)" stroke-width="1.6" stroke-dasharray="5 4"/>
+  <line id="dotProj" x1="0" y1="0" x2="0" y2="0" stroke="var(--moss)" stroke-width="7" opacity="0.55"/>
+  <line id="dotU" x1="190" y1="160" x2="0" y2="0" stroke="var(--sky)" stroke-width="3.5"/>
+  <line id="dotV" x1="190" y1="160" x2="0" y2="0" stroke="var(--amber)" stroke-width="3.5"/>
+  <circle id="dotUh" r="8" fill="var(--sky)"/><circle id="dotVh" r="8" fill="var(--amber)"/>
+  <g id="dotText"></g>
+</svg>
+<p class="readout" role="status" aria-live="polite" id="dotOut"></p>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 7.2 &mdash; angle between two vectors</span>
+<p>Find the angle between \(\mathbf{u}=\langle3,4\rangle\) and \(\mathbf{v}=\langle-2,6\rangle\), and decide whether \(\langle3,4\rangle\) and \(\langle8,-6\rangle\) are perpendicular.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(\mathbf{u}\cdot\mathbf{v}=3(-2)+4(6)=18\). Magnitudes: \(|\mathbf{u}|=5\), \(|\mathbf{v}|=\sqrt{40}=6.325\). So
+$$\cos\theta=\frac{18}{5(6.325)}=0.5692,\qquad \theta=55.3^{\circ}.$$</p>
+<p>For the second pair: \(3(8)+4(-6)=24-24=0\). A dot product of zero means \(\cos\theta=0\), so yes, they are perpendicular &mdash; checked without drawing anything or finding a single angle.</p>
+<p>That is the everyday use of the dot product. Testing perpendicularity by measuring two directions and subtracting is fiddly; testing it by multiplying and adding four numbers is not.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 7.3 &mdash; a shadow, and some work</span>
+<p>A crate is dragged 12 m along the ground by a rope pulling with a force of 80 N at \(25^{\circ}\) above the horizontal. How much work is done?</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Only the part of the force pointing along the motion does any work &mdash; the upward part just tries to lift the crate. That part is the <strong>projection</strong> of the force onto the displacement, of length \(80\cos25^{\circ}=72.5\) N.</p>
+<p>So the work is \(72.5\times12=870\) joules, which is exactly the dot product
+$$\mathbf{F}\cdot\mathbf{d}=|\mathbf{F}||\mathbf{d}|\cos\theta=80(12)\cos25^{\circ}=870\ \text{J}.$$</p>
+<p>If the rope were vertical the work would be zero, however hard you pulled: \(\cos90^{\circ}=0\). Physics defines work as a dot product precisely because "how much of this points along that" is the quantity that matters.</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; cosine similarity</span>
+<p>Take three short documents and count how often each of a few words appears. Each document becomes a vector of counts &mdash; and now two documents can be compared by the angle between their vectors.</p>
+<p>The angle, not the dot product itself, because a long document has big counts and would win every dot product simply by being long. Dividing by both magnitudes strips the length out and leaves only the direction:
+$$\text{similarity}=\frac{\mathbf{u}\cdot\mathbf{v}}{|\mathbf{u}||\mathbf{v}|}=\cos\theta.$$</p>
+<p>This is called <strong>cosine similarity</strong> and it is everywhere: matching a search query to a page, recommending a film, finding duplicate submissions, deciding which sentences in a body of text are about the same thing. Modern systems use vectors with hundreds of components rather than a handful, and nothing about the formula changes &mdash; you simply add up more products. The geometry of Chapter 5 is doing the work, in a space no one can picture.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="1.0" role="group" aria-labelledby="sp7_5q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp7_5q">Two documents have count vectors \(\langle2,1\rangle\) and \(\langle20,10\rangle\). What is their cosine similarity?</p>
+<div class="spot-row"><label for="sp7_5i">your answer</label><input id="sp7_5i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp7_5q sp7_5h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp7_5h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> Exactly 1: same direction, angle zero. Length has been divided out, which is the point.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> The second vector is ten times the first. What is the angle between two vectors pointing the same way?</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<h3>How a language model reads a sentence</h3>
+
+<p>Chapter 1 turned three sentences into arrows by counting words, and stopped there because we had no way to measure the angle between them. We do now.</p>
+
+<p>A modern language model does the same thing, with one important improvement. Counting words treats <span class="mono">car</span> and <span class="mono">automobile</span> as completely unrelated, since they are different words. Instead, a model assigns every word its own list of a few hundred numbers &mdash; called an <strong>embedding</strong> &mdash; and those numbers are not counted, they are <em>learned</em>, by adjusting them until words that tend to appear in similar company end up pointing in similar directions.</p>
+
+<p>Here is the idea with three numbers instead of three hundred.</p>
+
+<figure>
+<svg viewBox="0 0 620 300" width="620" height="300" role="img" aria-labelledby="emT emD">
+<title id="emT">Three word vectors, drawn with their true angles</title>
+<desc id="emD">Three arrows from a common origin. The arrows for king and queen are only about four degrees apart. The arrow for pizza is about seventy three degrees away from both of them.</desc>
+<path d="M 200 250 A 60 60 0 0 0 200 246" fill="none" stroke="var(--rose)" stroke-width="2"/>
+<path d="M 220 250 A 80 80 0 0 0 163 173" fill="none" stroke="var(--rose)" stroke-width="2"/>
+<line x1="140" y1="250" x2="330" y2="250" stroke="var(--sky)" stroke-width="3.5"/><circle cx="330" cy="250" r="6" fill="var(--sky)"/><text x="338" y="244" class="lbltext" fill="var(--sky)">king</text><line x1="140" y1="250" x2="324" y2="236" stroke="var(--moss)" stroke-width="3.5"/><circle cx="324" cy="236" r="6" fill="var(--moss)"/><text x="332" y="250" class="lbltext" fill="var(--moss)">queen</text><line x1="140" y1="250" x2="192" y2="78" stroke="var(--amber)" stroke-width="3.5"/><circle cx="192" cy="78" r="6" fill="var(--amber)"/><text x="200" y="72" class="lbltext" fill="var(--amber)">pizza</text>
+<text class="axtext" x="206" y="242" fill="var(--rose)">4.3&#176;</text>
+<text class="axtext" x="212" y="196" fill="var(--rose)">73.1&#176;</text>
+<text class="axtext" x="360" y="80">king  &#12296;0.90, 0.70, 0.10&#12297;</text>
+<text class="axtext" x="360" y="110">queen &#12296;0.85, 0.75, 0.15&#12297;</text>
+<text class="axtext" x="360" y="140">pizza &#12296;0.10, 0.20, 0.95&#12297;</text>
+<text class="axtext" x="360" y="182">king &#183; queen = 1.305, cos = 0.997</text>
+<text class="axtext" x="360" y="212">king &#183; pizza = 0.325, cos = 0.291</text>
+<text class="axtext" x="360" y="252">a bigger dot product means a</text>
+<text class="axtext" x="360" y="278">smaller angle, and closer meaning</text>
+</svg>
+<figcaption>The three directions drawn with their angles to scale. Words that mean similar things end up pointing in similar directions, so the angle between them is small and the dot product is large. Real systems use several hundred coordinates instead of three, and the arithmetic is identical &mdash; there are simply more products to add up.</figcaption>
+</figure>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp7_6q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp7_6q">Three unit-length word vectors have \(\mathbf{A}\cdot\mathbf{B}=0.9\) and \(\mathbf{A}\cdot\mathbf{C}=0.2\). Which word is closer in meaning to \(\mathbf{A}\)?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp7_6r" value="0" data-right> <span>\(\mathbf{B}\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp7_6r" value="1"> <span>\(\mathbf{C}\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp7_6r" value="2"> <span>you cannot tell without the angles</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\cos\theta=0.9\) is about \(26^{\circ}\); \(\cos\theta=0.2\) is about \(78^{\circ}\). B is much closer.</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> It is easy to get this backwards. A <em>larger</em> dot product means a <em>smaller</em> angle, which means more similar.</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> For unit vectors the dot product <em>is</em> \(\cos\theta\), so it already tells you the angle.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 7.4 &mdash; which two words are related?</span>
+<p>Using the embeddings \(\text{king}=\langle0.90,0.70,0.10\rangle\), \(\text{queen}=\langle0.85,0.75,0.15\rangle\) and \(\text{pizza}=\langle0.10,0.20,0.95\rangle\), compute the cosine similarity of each pair and rank them.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Magnitudes first: \(|\text{king}|=\sqrt{0.81+0.49+0.01}=1.145\), \(|\text{queen}|=\sqrt{0.7225+0.5625+0.0225}=1.143\), \(|\text{pizza}|=\sqrt{0.01+0.04+0.9025}=0.976\).</p>
+<p><strong>king and queen:</strong> the dot product is \(0.90(0.85)+0.70(0.75)+0.10(0.15)=0.765+0.525+0.015=1.305\), so
+$$\cos\theta=\frac{1.305}{1.145\times1.143}=0.997,\qquad \theta=4.3^{\circ}.$$</p>
+<p><strong>king and pizza:</strong> \(0.09+0.14+0.095=0.325\), giving \(\cos\theta=\dfrac{0.325}{1.145\times0.976}=0.291\) and \(\theta=73.1^{\circ}\).</p>
+<p><strong>queen and pizza:</strong> \(0.378\), giving \(\cos\theta=0.338\) and \(\theta=70.2^{\circ}\).</p>
+<p>Ranking: king and queen are by far the closest, and pizza is roughly equally far from both. Note the direction of the comparison, because it is easy to get backwards: <strong>a larger dot product means a smaller angle, which means more similar</strong>. Similarity goes up with the dot product, not down.</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; what this makes possible</span>
+<p>Almost everything you have seen a language model do rests on this one measurement.</p>
+<ul>
+<li><strong>Search that understands paraphrase.</strong> Embed your question, embed every paragraph in a document collection, and return the paragraphs whose vectors have the largest dot product with yours. The matching paragraph need not share a single word with the question.</li>
+<li><strong>Recommendation.</strong> Embed what you watched and find the nearest directions.</li>
+<li><strong>Attention</strong>, the mechanism at the heart of the models these systems are built from, decides how much each word in a sentence should influence each other word &mdash; by taking dot products of their vectors. Every time such a model produces a sentence, it is computing a very large number of dot products.</li>
+</ul>
+<p>The famous demonstration is that arithmetic on these vectors sometimes behaves like arithmetic on meanings: take the vector for <span class="mono">king</span>, subtract <span class="mono">man</span>, add <span class="mono">woman</span>, and the closest vector to the result is often <span class="mono">queen</span>. That is vector addition from earlier in this lecture, performed on direction-encoded meaning. It does not always work, and why it works at all is not fully understood &mdash; which is a fair description of a good deal of the field.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 7.1</span>
+<ol>
+<li>For \(\mathbf{u}=\langle5,-2\rangle\) and \(\mathbf{v}=\langle-1,4\rangle\), find \(\mathbf{u}+\mathbf{v}\), \(3\mathbf{u}-\mathbf{v}\), \(|\mathbf{u}|\) and the unit vector in the direction of \(\mathbf{u}\).</li>
+<li>Write the vector of length 6 making an angle of \(150^{\circ}\) with the positive \(x\)-axis in components, exactly.</li>
+<li>Find the angle between \(\langle1,3\rangle\) and \(\langle4,-2\rangle\).</li>
+<li>For what value of \(k\) are \(\langle2,k\rangle\) and \(\langle6,-4\rangle\) perpendicular?</li>
+<li>A boat heads due north at 14 km/h through a current running east at 5 km/h. Find the boat's speed and direction over the ground, and the heading it should take to travel due north.</li>
+<li>Two forces, \(\langle40,30\rangle\) N and \(\langle-10,25\rangle\) N, act on a bolt. Find the resultant force and its magnitude.</li>
+<li>Three documents have word-count vectors \(\langle3,1,0\rangle\), \(\langle6,2,0\rangle\) and \(\langle0,1,4\rangle\). Compute the cosine similarity of each pair and say which two are "about the same thing", and why the first two score as they do despite having different lengths.</li>
+<li>Toy embeddings: \(\text{dog}=\langle0.8,0.6,0.1\rangle\), \(\text{puppy}=\langle0.75,0.65,0.05\rangle\), \(\text{algebra}=\langle0.1,0.1,0.9\rangle\). Compute all three cosine similarities and say which pair a search engine would treat as a match.</li>
+<li>Show that \(\mathbf{u}\cdot\mathbf{u}=|\mathbf{u}|^{2}\), and explain what that says about the angle between a vector and itself.</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>\(\langle4,2\rangle\); \(\langle16,-10\rangle\); \(|\mathbf{u}|=\sqrt{29}=5.385\); unit vector \(\left\langle\tfrac{5}{\sqrt{29}},\tfrac{-2}{\sqrt{29}}\right\rangle\).</li>
+<li>\(\langle6\cos150^{\circ},6\sin150^{\circ}\rangle=\langle-3\sqrt3,\ 3\rangle\).</li>
+<li>Dot product \(4-6=-2\); magnitudes \(\sqrt{10}\) and \(\sqrt{20}\). \(\cos\theta=\dfrac{-2}{\sqrt{200}}=-0.1414\), so \(\theta=98.1^{\circ}\) &mdash; slightly obtuse, which the negative dot product told us before any arithmetic.</li>
+<li>\(12-4k=0\), so \(k=3\).</li>
+<li>Ground velocity \(\langle5,14\rangle\): speed \(\sqrt{221}=14.87\) km/h, at \(\tan^{-1}(5/14)=19.7^{\circ}\) east of north. To go due north, the boat must aim \(\sin^{-1}(5/14)=20.9^{\circ}\) west of north.</li>
+<li>Resultant \(\langle30,55\rangle\) N, magnitude \(\sqrt{900+3025}=62.6\) N.</li>
+<li>First and second: dot \(20\), magnitudes \(\sqrt{10}\) and \(\sqrt{40}\), similarity \(\dfrac{20}{20}=1\) &mdash; a perfect match, because the second is exactly twice the first and points in precisely the same direction. First and third: dot \(1\), similarity \(\dfrac{1}{\sqrt{10}\sqrt{17}}=0.077\), essentially unrelated. Second and third similarly \(0.077\). Length was divided out, which is the whole point: a long document and a short one on the same subject should score as similar.</li>
+<li>\(\text{dog}\cdot\text{puppy}=0.6+0.39+0.005=0.995\), with magnitudes \(1.005\) and \(0.994\), so \(\cos\theta=0.996\) and \(\theta=4.9^{\circ}\). \(\text{dog}\cdot\text{algebra}=0.08+0.06+0.09=0.23\), giving \(\cos\theta=0.251\) and \(\theta=75.5^{\circ}\); \(\text{puppy}\cdot\text{algebra}=0.185\), giving \(\cos\theta=0.204\). Dog and puppy are the match, by a wide margin.</li>
+<li>\(\mathbf{u}\cdot\mathbf{u}=u_1^{2}+u_2^{2}=|\mathbf{u}|^{2}\). From the geometric formula this is \(|\mathbf{u}|^{2}\cos\theta\), so \(\cos\theta=1\) and the angle between a vector and itself is zero &mdash; which is reassuring, and is the check that the two formulas are consistent.</li>
+</ol>
+</div>
+</div>
+<hr>
+<!-- ================= LECTURE 25 ================= -->
+<h2 id="L25">Lecture 25 &mdash; Matrices as functions that move the plane</h2>
+
+<figure class="toon">
+<svg viewBox="0 0 560 200" width="560" height="200" role="img" aria-labelledby="L25t L25d">
+<title id="L25t">Cartoon: a scanner straightening a tilted QR code</title><desc id="L25d">A stick figure holds a tilted QR code up to a phone, which shows the same code straightened.</desc>
+<defs><filter id="rough76" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="76" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough76)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="90.0" cy="124.0" r="11.0" /><path d="M 90.0 135.0 L 90.0 160.0" /><path d="M 90.0 140.0 L 77.0 148.0" /><path d="M 90.0 140.0 L 103.0 148.0" /><path d="M 90.0 160.0 L 79.0 184.0" /><path d="M 90.0 160.0 L 101.0 184.0" /><path d="M 30 170 L 540 170" stroke-width="1.6"/><path d="M 140 96 L 216 80 L 228 152 L 152 170 Z"/><rect x="150" y="100" width="11" height="11"/><rect x="170" y="100" width="11" height="11"/><rect x="190" y="100" width="11" height="11"/><rect x="150" y="120" width="11" height="11"/><rect x="170" y="120" width="11" height="11"/><rect x="190" y="120" width="11" height="11"/><rect x="440" y="72" width="70" height="94" rx="6"/><rect x="454" y="88" width="42" height="42"/><path d="M 250 124 L 420 124" stroke-width="2"/><path d="M 412 118 L 420 124 L 412 130"/><rect x="266.0" y="14.0" width="169.2" height="34.0" rx="9" fill="var(--surface2)"/><path d="M 310.0 45.0 L 260.0 96.0 L 347.2 45.0" fill="var(--surface2)" stroke-width="1.6"/>
+</g>
+<text x="281.0" y="41.0" class="ctext">How did it know?</text>
+</svg>
+<figcaption class="tooncap">one matrix, applied to every corner at once</figcaption></figure>
+
+<p>Lecture 1 defined a function as a rule taking an input to an output. Nothing in that definition said the input had to be a single number. Let the input be a vector and the output be a vector, and you have a function that moves the whole plane at once.</p>
+
+<p>The <strong>linear</strong> ones &mdash; those that keep the origin fixed and keep straight lines straight and evenly spaced &mdash; turn out to be describable by just four numbers.</p>
+
+<div class="box def">
+<span class="lbl">definition</span>
+<p>A \(2\times2\) <strong>matrix</strong> acts on a vector by
+$$\begin{pmatrix}a & b\\ c & d\end{pmatrix}\begin{pmatrix}x\\ y\end{pmatrix}
+=\begin{pmatrix}ax+by\\ cx+dy\end{pmatrix}.$$
+Each output coordinate is a dot product: the first row with the input, then the second row with the input.</p>
+</div>
+<div class="box spot" data-type="list" data-ans="4.0|6.0" data-ordered="1" role="group" aria-labelledby="sp7_7q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp7_7q">Compute \(\begin{pmatrix}2&1\\0&3\end{pmatrix}\begin{pmatrix}1\\2\end{pmatrix}\).</p>
+<div class="spot-row"><label for="sp7_7i">your answer</label><input id="sp7_7i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp7_7q sp7_7h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp7_7h">2 numbers, separated by a comma: top entry, then bottom</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\langle2+2,\ 0+6\rangle=\langle4,6\rangle\).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Each output entry is a row dotted with the input: first row \(\langle2,1\rangle\cdot\langle1,2\rangle\), then second row.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div><div class="spot-msg bad" data-kind="count" hidden><span class="spot-tag">Count again.</span> This one wants exactly 2 numbers, separated by commas.</div></div>
+</div>
+
+
+<div class="box idea">
+<span class="lbl">idea &mdash; the columns tell you everything</span>
+<p>Feed in \(\langle1,0\rangle\), the unit step east, and the answer is \(\langle a,c\rangle\) &mdash; the first column. Feed in \(\langle0,1\rangle\), the unit step north, and you get \(\langle b,d\rangle\) &mdash; the second column.</p>
+<p>So a matrix is nothing more than a record of <em>where the two basic steps land</em>. And that is enough to determine the whole transformation, because every other vector is built from those two: \(\langle3,4\rangle\) is three east-steps and four north-steps, so its image is three times the first column plus four times the second.</p>
+<p>When you read a matrix, read its columns as destinations. Almost every matrix in this chapter can be written down by asking "where do I want east to go, and where do I want north to go?" and putting those two answers side by side.</p>
+<figure>
+<svg viewBox="0 0 620 280" width="620" height="280" role="img" aria-labelledby="clst clsd">
+<title id="clst">The columns of a matrix are where east and north land</title><desc id="clsd">The dashed unit square with its two edges, east and north, and the shaded parallelogram it becomes. The image of east is the arrow to the point 2, 0.5 and the image of north is the arrow to 1, 1.5.</desc>
+<rect x="60" y="22" width="320" height="206" class="plot-bg" stroke="var(--rule)"/><line x1="74.5" y1="22" x2="74.5" y2="228" class="gridline"/><line x1="220.0" y1="22" x2="220.0" y2="228" class="gridline"/><line x1="292.7" y1="22" x2="292.7" y2="228" class="gridline"/><line x1="365.5" y1="22" x2="365.5" y2="228" class="gridline"/><line x1="60" y1="217.2" x2="380" y2="217.2" class="gridline"/><line x1="60" y1="108.7" x2="380" y2="108.7" class="gridline"/><line x1="60" y1="54.5" x2="380" y2="54.5" class="gridline"/><line class="axis" x1="60" y1="162.9" x2="380" y2="162.9"/><line class="axis" x1="147.3" y1="22" x2="147.3" y2="228"/><polygon points="147.3,162.9 220.0,162.9 220.0,108.7 147.3,108.7" fill="var(--rule)" fill-opacity="0.35" stroke="var(--muted)" stroke-width="1.5" stroke-dasharray="5 4"/><polygon points="147.3,162.9 292.7,135.8 365.5,54.5 220.0,81.6" fill="var(--moss)" fill-opacity="0.25" stroke="var(--moss)" stroke-width="2.5"/><line x1="147.3" y1="162.9" x2="292.7" y2="135.8" stroke="var(--sky)" stroke-width="3.5"/><line x1="147.3" y1="162.9" x2="220.0" y2="81.6" stroke="var(--amber)" stroke-width="3.5"/><line x1="147.3" y1="162.9" x2="220.0" y2="162.9" stroke="var(--muted)" stroke-width="2" stroke-dasharray="4 3"/><line x1="147.3" y1="162.9" x2="147.3" y2="108.7" stroke="var(--muted)" stroke-width="2" stroke-dasharray="4 3"/><circle cx="292.7" cy="135.8" r="6" fill="var(--sky)"/><text x="300.7" y="125.8" class="axtext">east lands here</text><circle cx="220.0" cy="81.6" r="6" fill="var(--amber)"/><text x="228.0" y="71.6" class="axtext">north lands here</text><text x="220.0" y="250" class="axtext" text-anchor="middle">1</text><text x="292.7" y="250" class="axtext" text-anchor="middle">2</text><text x="365.5" y="250" class="axtext" text-anchor="middle">3</text><text x="52" y="112.7" class="axtext" text-anchor="end">1</text><text x="52" y="58.5" class="axtext" text-anchor="end">2</text><text x="412" y="90" class="axtext">the matrix is just</text><text x="412" y="130" class="lbltext">⟨2, 0.5⟩ and ⟨1, 1.5⟩</text><text x="412" y="170" class="axtext">written side by side</text><text x="412" y="214" class="axtext" fill="var(--cap)">as its two columns</text>
+</svg>
+<figcaption>Read every matrix this way. Its first column is where the unit step east ends up, its second is where north ends up, and since every other vector is built from those two steps, those two answers determine the whole transformation.</figcaption>
+</figure>
+
+</div>
+<div class="box spot" data-type="list" data-ans="1.0|4.0" data-ordered="1" role="group" aria-labelledby="sp7_8q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp7_8q">A matrix sends east \(\langle1,0\rangle\) to \(\langle2,1\rangle\) and north \(\langle0,1\rangle\) to \(\langle-1,3\rangle\). Where does it send \(\langle1,1\rangle\)?</p>
+<div class="spot-row"><label for="sp7_8i">your answer</label><input id="sp7_8i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp7_8q sp7_8h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp7_8h">2 numbers, separated by a comma: x, then y</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\langle2,1\rangle+\langle-1,3\rangle=\langle1,4\rangle\).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> \(\langle1,1\rangle\) is one east-step plus one north-step, so its image is the sum of the two columns.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div><div class="spot-msg bad" data-kind="count" hidden><span class="spot-tag">Count again.</span> This one wants exactly 2 numbers, separated by commas.</div></div>
+</div>
+
+
+<div class="widget">
+<h4>Type a matrix, watch the plane move</h4>
+<p style="font-size:.95rem;margin:.2em 0 .6em">The four sliders are the four entries. The shaded square is the unit square, and the two coloured arrows are where east and north have landed &mdash; the columns of your matrix. Try the presets to see the standard transformations.</p>
+<svg id="matSvg" viewBox="0 0 620 300" width="620" height="300" role="img" aria-label="A grid deformed by an adjustable two by two matrix">
+  <g id="matGrid"></g>
+  <polygon id="matSq" points="" fill="var(--moss)" fill-opacity="0.28" stroke="var(--moss)" stroke-width="2"/>
+  <line class="axis" x1="20" y1="150" x2="420" y2="150"/><line class="axis" x1="220" y1="10" x2="220" y2="290"/>
+  <line id="matE" x1="220" y1="150" x2="0" y2="0" stroke="var(--sky)" stroke-width="3.5"/>
+  <line id="matN" x1="220" y1="150" x2="0" y2="0" stroke="var(--amber)" stroke-width="3.5"/>
+  <g id="matText"></g>
+</svg>
+<div class="ctrls">
+  <label for="mA">a = <span id="mAv" class="mono">1.0</span><input type="range" id="mA" min="-2" max="2" step="0.1" value="1"></label>
+  <label for="mB">b = <span id="mBv" class="mono">0.0</span><input type="range" id="mB" min="-2" max="2" step="0.1" value="0"></label>
+  <label for="mC">c = <span id="mCv" class="mono">0.0</span><input type="range" id="mC" min="-2" max="2" step="0.1" value="0"></label>
+  <label for="mD">d = <span id="mDv" class="mono">1.0</span><input type="range" id="mD" min="-2" max="2" step="0.1" value="1"></label>
+</div>
+<div class="ctrls">
+  <button class="ctl" id="mIdent">identity</button>
+  <button class="ctl" id="mRot">rotate 45&deg;</button>
+  <button class="ctl" id="mShear">shear</button>
+  <button class="ctl" id="mFlip">reflect</button>
+  <button class="ctl" id="mSquash">squash flat</button>
+</div>
+<p class="readout" role="status" aria-live="polite" id="matOut"></p>
+</div>
+
+<h3>The standard transformations</h3>
+
+<div class="box thm">
+<span class="lbl">four matrices worth knowing</span>
+<div class="tscroll" tabindex="0" role="region" aria-label="table (scrolls sideways on small screens)"><table>
+<tr><th>effect</th><th>matrix</th><th>where east and north go</th></tr>
+<tr><td>scale by \(s\)</td><td>\(\begin{pmatrix}s & 0\\ 0 & s\end{pmatrix}\)</td><td>both stretched, directions unchanged</td></tr>
+<tr><td>reflect in the \(x\)-axis</td><td>\(\begin{pmatrix}1 & 0\\ 0 & -1\end{pmatrix}\)</td><td>east stays, north flips to south</td></tr>
+<tr><td>shear</td><td>\(\begin{pmatrix}1 & k\\ 0 & 1\end{pmatrix}\)</td><td>east stays, north leans over by \(k\)</td></tr>
+<tr><td>rotate by \(\theta\)</td><td>\(\begin{pmatrix}\cos\theta & -\sin\theta\\ \sin\theta & \cos\theta\end{pmatrix}\)</td><td>east goes to \((\cos\theta,\sin\theta)\)</td></tr>
+</table></div>
+</div>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp7_9q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp7_9q">What does \(\begin{pmatrix}0&-1\\1&0\end{pmatrix}\) do to the plane?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp7_9r" value="0" data-right> <span>rotates it \(90^{\circ}\) anticlockwise</span></label>
+<label class="spot-opt"><input type="radio" name="sp7_9r" value="1"> <span>reflects it in the \(x\)-axis</span></label>
+<label class="spot-opt"><input type="radio" name="sp7_9r" value="2"> <span>shears it</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> East goes to north and north goes to west: a quarter turn anticlockwise, the rotation matrix with \(\theta=90^{\circ}\).</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> Read the columns: east goes to \(\langle0,1\rangle\), straight up. A reflection in the \(x\)-axis would leave east alone.</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> A shear leaves east where it is. Here east has moved to north.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<p>Look hard at the rotation matrix. Its first column is exactly the terminal point of Chapter 4 &mdash; the place east ends up after turning through \(\theta\) is, by definition, \((\cos\theta,\sin\theta)\). The second column is that point turned a further quarter turn. The whole of the unit circle has walked into linear algebra and become a matrix.</p>
+
+<div class="box ex">
+<span class="lbl">example 7.5 &mdash; rotating a point by hand</span>
+<p>Rotate the point \((4,1)\) by \(90^{\circ}\) anticlockwise about the origin, then by \(30^{\circ}\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>At \(90^{\circ}\): \(\cos90^{\circ}=0\) and \(\sin90^{\circ}=1\), so the matrix is \(\begin{pmatrix}0&-1\\1&0\end{pmatrix}\) and
+$$\begin{pmatrix}0&-1\\1&0\end{pmatrix}\begin{pmatrix}4\\1\end{pmatrix}=\begin{pmatrix}-1\\4\end{pmatrix}.$$
+Sanity check: the point was to the right and slightly up; it is now up and slightly left. &#10003;</p>
+<p>At \(30^{\circ}\): \(\begin{pmatrix}0.866&-0.5\\0.5&0.866\end{pmatrix}\begin{pmatrix}4\\1\end{pmatrix}=\begin{pmatrix}3.464-0.5\\2+0.866\end{pmatrix}=\begin{pmatrix}2.964\\2.866\end{pmatrix}\).</p>
+<p>The length should not change under a rotation: \(\sqrt{4^{2}+1^{2}}=4.123\) and \(\sqrt{2.964^{2}+2.866^{2}}=4.123\). &#10003; That check catches almost every sign error people make with rotation matrices.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 7.6 &mdash; straightening a QR code</span>
+<p>A QR code is photographed rotated \(30^{\circ}\) anticlockwise. Its bottom edge, which should run due east, appears in the photo as \(\langle0.866,0.500\rangle\), and its left edge, which should run due north, appears as \(\langle-0.500,0.866\rangle\). Find the matrix that distorted it, and the one the scanner must apply to undo it. Check on one corner.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p><strong>The distortion.</strong> The columns of a matrix are the destinations of east and north, and we have been handed exactly those:
+$$M=\begin{pmatrix}0.866 & -0.500\\ 0.500 & 0.866\end{pmatrix}.$$
+Those entries are \(\cos30^{\circ}\) and \(\sin30^{\circ}\), so \(M\) is the rotation matrix for \(30^{\circ}\) &mdash; which is what we expected, and a good sign that nothing has gone wrong.</p>
+<p><strong>The repair.</strong> To undo a rotation of \(30^{\circ}\), rotate by \(-30^{\circ}\):
+$$M^{-1}=\begin{pmatrix}\cos(-30^{\circ}) & -\sin(-30^{\circ})\\ \sin(-30^{\circ}) & \cos(-30^{\circ})\end{pmatrix}
+=\begin{pmatrix}0.866 & 0.500\\ -0.500 & 0.866\end{pmatrix}.$$
+The inverse formula from this lecture agrees: \(\det M=0.866^{2}+0.500^{2}=1\), so \(M^{-1}=\begin{pmatrix}d&-b\\-c&a\end{pmatrix}\), which is the same matrix.</p>
+<p><strong>The check.</strong> A corner that should sit at \((1,0)\) appears in the photo at \((0.866,0.500)\). Applying \(M^{-1}\):
+$$\begin{pmatrix}0.866 & 0.500\\ -0.500 & 0.866\end{pmatrix}\begin{pmatrix}0.866\\0.500\end{pmatrix}
+=\begin{pmatrix}0.750+0.250\\-0.433+0.433\end{pmatrix}=\begin{pmatrix}1\\0\end{pmatrix}.$$ &#10003;</p>
+<p>The scanner applies that one matrix to every pixel and the whole image comes upright at once. This is why the three chunky squares sit in the corners of every QR code: they are not data and not decoration, they are there so that a scanner can measure where east and north ended up, and therefore recover \(M\).</p>
+<figure>
+<svg viewBox="0 0 620 300" width="620" height="300" role="img" aria-labelledby="qrt qrd">
+<title id="qrt">A tilted QR code and the same code straightened</title><desc id="qrd">On the left, a square grid of code modules rotated thirty degrees anticlockwise, as a camera would see it. On the right, the same grid upright after the inverse matrix has been applied to every point. An arrow labelled with the inverse matrix runs between them.</desc>
+<line x1="150.0" y1="160.0" x2="85.0" y2="47.4" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><line x1="150.0" y1="160.0" x2="262.6" y2="95.0" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><line x1="166.1" y1="150.7" x2="101.1" y2="38.1" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><line x1="140.7" y1="143.9" x2="253.3" y2="78.9" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><line x1="182.2" y1="141.4" x2="117.2" y2="28.8" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><line x1="131.4" y1="127.8" x2="244.0" y2="62.8" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><line x1="198.2" y1="132.1" x2="133.2" y2="19.6" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><line x1="122.1" y1="111.8" x2="234.7" y2="46.8" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><line x1="214.3" y1="122.9" x2="149.3" y2="10.3" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><line x1="112.9" y1="95.7" x2="225.4" y2="30.7" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><line x1="230.4" y1="113.6" x2="165.4" y2="1.0" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><line x1="103.6" y1="79.6" x2="216.2" y2="14.6" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><line x1="246.5" y1="104.3" x2="181.5" y2="-8.3" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><line x1="94.3" y1="63.5" x2="206.9" y2="-1.5" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><line x1="262.6" y1="95.0" x2="197.6" y2="-17.6" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><line x1="85.0" y1="47.4" x2="197.6" y2="-17.6" stroke="var(--amber)" stroke-width="1" opacity="0.55"/><polygon points="189.0,116.1 205.0,106.8 195.8,90.7 179.7,100.0" fill="var(--amber)" fill-opacity="0.6" stroke="none"/><polygon points="163.6,109.3 179.7,100.0 170.4,83.9 154.3,93.2" fill="var(--amber)" fill-opacity="0.6" stroke="none"/><polygon points="195.8,90.7 211.8,81.4 202.6,65.3 186.5,74.6" fill="var(--amber)" fill-opacity="0.6" stroke="none"/><polygon points="138.2,102.5 154.3,93.2 145.0,77.1 128.9,86.4" fill="var(--amber)" fill-opacity="0.6" stroke="none"/><polygon points="202.6,65.3 218.6,56.0 209.4,40.0 193.3,49.2" fill="var(--amber)" fill-opacity="0.6" stroke="none"/><polygon points="161.1,67.8 177.2,58.5 167.9,42.4 151.8,51.7" fill="var(--amber)" fill-opacity="0.6" stroke="none"/><polygon points="156.8,134.6 172.9,125.3 163.6,109.3 147.5,118.5" fill="var(--amber)" fill-opacity="0.6" stroke="none"/><polygon points="193.3,49.2 209.4,40.0 200.1,23.9 184.0,33.2" fill="var(--amber)" fill-opacity="0.6" stroke="none"/><polygon points="142.5,35.6 158.6,26.4 149.3,10.3 133.2,19.6" fill="var(--amber)" fill-opacity="0.6" stroke="none"/><polygon points="214.3,122.9 230.4,113.6 221.1,97.5 205.0,106.8" fill="var(--amber)" fill-opacity="0.6" stroke="none"/><polygon points="150.0,160.0 262.6,95.0 197.6,-17.6 85.0,47.4" fill="none" stroke="var(--amber)" stroke-width="2.5"/><polygon points="103.6,79.6 135.7,61.0 117.2,28.8 85.0,47.4" fill="none" stroke="var(--amber)" stroke-width="2.5"/><polygon points="184.0,33.2 216.2,14.6 197.6,-17.6 165.4,1.0" fill="none" stroke="var(--amber)" stroke-width="2.5"/><polygon points="150.0,160.0 182.2,141.4 163.6,109.3 131.4,127.8" fill="none" stroke="var(--amber)" stroke-width="2.5"/><line x1="430.0" y1="160.0" x2="430.0" y2="30.0" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><line x1="430.0" y1="160.0" x2="560.0" y2="160.0" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><line x1="448.6" y1="160.0" x2="448.6" y2="30.0" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><line x1="430.0" y1="141.4" x2="560.0" y2="141.4" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><line x1="467.1" y1="160.0" x2="467.1" y2="30.0" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><line x1="430.0" y1="122.9" x2="560.0" y2="122.9" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><line x1="485.7" y1="160.0" x2="485.7" y2="30.0" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><line x1="430.0" y1="104.3" x2="560.0" y2="104.3" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><line x1="504.3" y1="160.0" x2="504.3" y2="30.0" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><line x1="430.0" y1="85.7" x2="560.0" y2="85.7" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><line x1="522.9" y1="160.0" x2="522.9" y2="30.0" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><line x1="430.0" y1="67.1" x2="560.0" y2="67.1" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><line x1="541.4" y1="160.0" x2="541.4" y2="30.0" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><line x1="430.0" y1="48.6" x2="560.0" y2="48.6" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><line x1="560.0" y1="160.0" x2="560.0" y2="30.0" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><line x1="430.0" y1="30.0" x2="560.0" y2="30.0" stroke="var(--moss)" stroke-width="1" opacity="0.55"/><polygon points="485.7,141.4 504.3,141.4 504.3,122.9 485.7,122.9" fill="var(--moss)" fill-opacity="0.6" stroke="none"/><polygon points="467.1,122.9 485.7,122.9 485.7,104.3 467.1,104.3" fill="var(--moss)" fill-opacity="0.6" stroke="none"/><polygon points="504.3,122.9 522.9,122.9 522.9,104.3 504.3,104.3" fill="var(--moss)" fill-opacity="0.6" stroke="none"/><polygon points="448.6,104.3 467.1,104.3 467.1,85.7 448.6,85.7" fill="var(--moss)" fill-opacity="0.6" stroke="none"/><polygon points="522.9,104.3 541.4,104.3 541.4,85.7 522.9,85.7" fill="var(--moss)" fill-opacity="0.6" stroke="none"/><polygon points="485.7,85.7 504.3,85.7 504.3,67.1 485.7,67.1" fill="var(--moss)" fill-opacity="0.6" stroke="none"/><polygon points="448.6,141.4 467.1,141.4 467.1,122.9 448.6,122.9" fill="var(--moss)" fill-opacity="0.6" stroke="none"/><polygon points="522.9,85.7 541.4,85.7 541.4,67.1 522.9,67.1" fill="var(--moss)" fill-opacity="0.6" stroke="none"/><polygon points="485.7,48.6 504.3,48.6 504.3,30.0 485.7,30.0" fill="var(--moss)" fill-opacity="0.6" stroke="none"/><polygon points="504.3,160.0 522.9,160.0 522.9,141.4 504.3,141.4" fill="var(--moss)" fill-opacity="0.6" stroke="none"/><polygon points="430.0,160.0 560.0,160.0 560.0,30.0 430.0,30.0" fill="none" stroke="var(--moss)" stroke-width="2.5"/><polygon points="430.0,67.1 467.1,67.1 467.1,30.0 430.0,30.0" fill="none" stroke="var(--moss)" stroke-width="2.5"/><polygon points="522.9,67.1 560.0,67.1 560.0,30.0 522.9,30.0" fill="none" stroke="var(--moss)" stroke-width="2.5"/><polygon points="430.0,160.0 467.1,160.0 467.1,122.9 430.0,122.9" fill="none" stroke="var(--moss)" stroke-width="2.5"/><path d="M 300 90 L 350 90" stroke="var(--ink)" stroke-width="2"/><path d="M 342 84 L 350 90 L 342 96" fill="none" stroke="var(--ink)" stroke-width="2"/><text x="288" y="76" class="axtext">apply M⁻¹</text><text x="96" y="290" class="axtext">as the camera sees it</text><text x="394" y="290" class="axtext">as the decoder needs it</text>
+</svg>
+<figcaption>The same code, before and after. One matrix &mdash; the inverse of the one the tilt produced &mdash; is applied to every point of the image, and the whole grid comes upright at once. The three heavy squares at the corners are how the scanner works out what that matrix is.</figcaption>
+</figure>
+
+<p>A real photograph is usually worse than a pure rotation &mdash; hold the phone at an angle and the square becomes a trapezoid, which needs a slightly larger matrix than the ones in this chapter. The principle does not change: find where a few known points went, deduce the transformation, and invert it.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 7.7 &mdash; turning a colour photograph grey</span>
+<p>A pixel's colour is a vector \(\langle R,G,B\rangle\) of three brightnesses from 0 to 255. The standard conversion to greyscale is the dot product with \(\mathbf{w}=\langle0.299,0.587,0.114\rangle\). Find the grey value of the pixel \(\langle200,120,60\rangle\), and explain the choice of weights.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+$$0.299(200)+0.587(120)+0.114(60)=59.8+70.4+6.8=137.$$
+<p>The weights add to 1, so white stays white and black stays black. They are unequal because the eye is far more sensitive to green than to blue: green carries nearly 60% of the perceived brightness and blue barely a tenth. Averaging the three channels equally would make blues look too light and greens too dark.</p>
+<p>Notice what has happened to the information. Three numbers became one, so the map is nowhere near one-to-one &mdash; \(\langle200,120,60\rangle\) and thousands of other colours all give 137. There is no way back, which is exactly why colourising an old photograph is guesswork rather than arithmetic.</p>
+</div>
+</div>
+
+<h3>Multiplying matrices is doing one thing after another</h3>
+
+<p>Apply \(B\) and then \(A\). The result is another linear transformation, and its matrix is written \(AB\) &mdash; the matrix <strong>product</strong>. Its columns, as always, are the destinations of east and north: apply \(B\) to each column of the identity, then apply \(A\) to the result.</p>
+
+<div class="box thm">
+<span class="lbl">matrix multiplication</span>
+$$\begin{pmatrix}a&b\\c&d\end{pmatrix}\begin{pmatrix}p&q\\r&s\end{pmatrix}
+=\begin{pmatrix}ap+br & aq+bs\\ cp+dr & cq+ds\end{pmatrix}$$
+<p>Every entry is a dot product of a row of the first with a column of the second. The order matters: \(AB\) means "do \(B\) first", and in general \(AB\neq BA\).</p>
+</div>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp7_10q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp7_10q">The product \(AB\) applied to a vector means&hellip;</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp7_10r" value="0" data-right> <span>do \(B\) first, then \(A\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp7_10r" value="1"> <span>do \(A\) first, then \(B\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp7_10r" value="2"> <span>it does not matter which comes first</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(AB\mathbf{x}=A(B\mathbf{x})\): \(B\) touches the vector first, just like composition of functions.</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> \(AB\mathbf{x}=A(B\mathbf{x})\): the matrix nearest the vector acts first, exactly as in \(f(g(x))\).</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> Order matters in general &mdash; the next example shows a rotation and a reflection giving different answers in the two orders.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 7.8 &mdash; order matters, visibly</span>
+<p>Let \(R\) rotate by \(90^{\circ}\) and \(F\) reflect in the \(x\)-axis. Compute \(RF\) and \(FR\), and describe each in words.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(R=\begin{pmatrix}0&-1\\1&0\end{pmatrix}\), \(F=\begin{pmatrix}1&0\\0&-1\end{pmatrix}\).</p>
+$$RF=\begin{pmatrix}0&1\\1&0\end{pmatrix},\qquad FR=\begin{pmatrix}0&-1\\-1&0\end{pmatrix}.$$
+<p>They are not equal. \(RF\) swaps the coordinates, which is a reflection in the line \(y=x\); \(FR\) swaps and negates both, a reflection in \(y=-x\). Reflect-then-rotate and rotate-then-reflect give mirror images in perpendicular lines.</p>
+<p>You met this in Lecture 4 with \(f\circ g\neq g\circ f\), and in Lecture 25 it has the same cause, because matrix multiplication <em>is</em> composition of functions. Socks and shoes, in two dimensions.</p>
+</div>
+</div>
+
+<div class="box thm">
+<span class="lbl">identity and inverse</span>
+<p>The <strong>identity</strong> \(I=\begin{pmatrix}1&0\\0&1\end{pmatrix}\) leaves every vector alone: east goes to east, north to north.</p>
+<p>The <strong>inverse</strong> \(A^{-1}\) undoes \(A\), meaning \(AA^{-1}=I\). For a \(2\times2\) matrix,
+$$A^{-1}=\frac{1}{ad-bc}\begin{pmatrix}d&-b\\-c&a\end{pmatrix},$$
+provided \(ad-bc\neq0\). That condition is the subject of the next lecture, and it is not a technicality.</p>
+</div>
+<div class="box spot" data-type="list" data-ans="1.0|-1.0|-3.0|4.0" data-ordered="1" role="group" aria-labelledby="sp7_11q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp7_11q">Find the inverse of \(\begin{pmatrix}4&1\\3&1\end{pmatrix}\). Enter its four entries row by row: top-left, top-right, bottom-left, bottom-right.</p>
+<div class="spot-row"><label for="sp7_11i">your answer</label><input id="sp7_11i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp7_11q sp7_11h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp7_11h">4 numbers, separated by commas, row by row</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\begin{pmatrix}1&-1\\-3&4\end{pmatrix}\). Check: multiplying by the original gives the identity.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Here \(ad-bc=4-3=1\). Swap \(a\) and \(d\), negate \(b\) and \(c\), and divide by \(ad-bc\).</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div><div class="spot-msg bad" data-kind="count" hidden><span class="spot-tag">Count again.</span> This one wants exactly 4 numbers, separated by commas.</div></div>
+</div>
+
+
+<div class="box exr">
+<span class="lbl">exercises 7.2</span>
+<ol>
+<li>Compute \(\begin{pmatrix}2&-1\\3&0\end{pmatrix}\begin{pmatrix}4\\5\end{pmatrix}\) and \(\begin{pmatrix}1&2\\0&1\end{pmatrix}\begin{pmatrix}-3\\2\end{pmatrix}\).</li>
+<li>Write down the matrix that (a) doubles everything; (b) reflects in the \(y\)-axis; (c) rotates by \(180^{\circ}\); (d) leaves east alone and sends north to \(\langle3,1\rangle\).</li>
+<li>Where does the unit square go under \(\begin{pmatrix}2&1\\0&1\end{pmatrix}\)? Give the images of all four corners and sketch the result.</li>
+<li>Compute \(AB\) and \(BA\) for \(A=\begin{pmatrix}1&2\\0&1\end{pmatrix}\) and \(B=\begin{pmatrix}1&0\\3&1\end{pmatrix}\), and confirm they differ.</li>
+<li>Show that rotating by \(\alpha\) and then by \(\beta\) gives the rotation matrix for \(\alpha+\beta\). Which identities from Chapter 6 appear, and where?</li>
+<li>Find the inverse of \(\begin{pmatrix}3&1\\5&2\end{pmatrix}\) and verify that the product with the original is the identity.</li>
+<li>A rotation matrix has \(ad-bc=\cos^{2}\theta+\sin^{2}\theta\). Evaluate it, and say in one sentence what that tells you about areas under a rotation.</li>
+<li>Explain, using columns, why the matrix of a transformation that sends both east and north to the same vector cannot be undone.</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>\(\begin{pmatrix}3\\12\end{pmatrix}\) and \(\begin{pmatrix}1\\2\end{pmatrix}\).</li>
+<li>(a) \(\begin{pmatrix}2&0\\0&2\end{pmatrix}\); (b) \(\begin{pmatrix}-1&0\\0&1\end{pmatrix}\); (c) \(\begin{pmatrix}-1&0\\0&-1\end{pmatrix}\); (d) \(\begin{pmatrix}1&3\\0&1\end{pmatrix}\).</li>
+<li>\((0,0)\to(0,0)\), \((1,0)\to(2,0)\), \((0,1)\to(1,1)\), \((1,1)\to(3,1)\). The square becomes a leaning parallelogram twice as wide.</li>
+<li>\(AB=\begin{pmatrix}7&2\\3&1\end{pmatrix}\), \(BA=\begin{pmatrix}1&2\\3&7\end{pmatrix}\). Different.</li>
+<li>Multiplying the two rotation matrices gives entries \(\cos\alpha\cos\beta-\sin\alpha\sin\beta\) and \(\sin\alpha\cos\beta+\cos\alpha\sin\beta\) &mdash; which are exactly \(\cos(\alpha+\beta)\) and \(\sin(\alpha+\beta)\). The addition formulas of Lecture 23 are what makes rotation matrices compose correctly; equivalently, matrix multiplication proves them.</li>
+<li>\(ad-bc=6-5=1\), so the inverse is \(\begin{pmatrix}2&-1\\-5&3\end{pmatrix}\). Multiplying gives \(\begin{pmatrix}1&0\\0&1\end{pmatrix}\). &#10003;</li>
+<li>It equals 1. A rotation does not change area &mdash; which is obvious once said, and is exactly what the next lecture shows that number measures.</li>
+<li>If both columns are the same vector, then east and north land on top of each other, so the whole plane is squashed onto a single line. Two different starting vectors can then arrive at the same place, so the transformation is not one-to-one, and by Lecture 5 nothing that loses information can be undone.</li>
+</ol>
+</div>
+</div>
+<hr>
+<!-- ================= LECTURE 26 ================= -->
+<h2 id="L26">Lecture 26 &mdash; Linear systems, determinants, and losing information</h2>
+
+<figure class="toon">
+<svg viewBox="0 0 560 200" width="560" height="200" role="img" aria-labelledby="L26t L26d">
+<title id="L26t">Cartoon: two parallel lines that never meet</title><desc id="L26d">A stick figure waits beside two parallel lines drawn on a board.</desc>
+<defs><filter id="rough54" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="54" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough54)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="110.0" cy="124.0" r="11.0" /><path d="M 110.0 135.0 L 110.0 160.0" /><path d="M 110.0 140.0 L 96.0 158.0" /><path d="M 110.0 140.0 L 124.0 158.0" /><path d="M 110.0 160.0 L 99.0 184.0" /><path d="M 110.0 160.0 L 121.0 184.0" /><path d="M 30 170 L 540 170" stroke-width="1.6"/><path d="M 250 168 L 500 92" stroke-width="2.5"/><path d="M 250 196 L 500 120" stroke-width="2.5"/><rect x="262.0" y="14.0" width="117.0" height="34.0" rx="9" fill="var(--surface2)"/><path d="M 292.4 45.0 L 256.0 96.0 L 318.2 45.0" fill="var(--surface2)" stroke-width="1.6"/>
+</g>
+<text x="277.0" y="41.0" class="ctext">I’ll wait.</text>
+</svg>
+<figcaption class="tooncap">no solution is a solution, and the determinant saw it coming</figcaption></figure>
+
+<p>Two linear equations in two unknowns is the oldest problem in algebra and the most common one in practice. It also turns out to be the same question this course opened with: is anything lost?</p>
+
+<h3>Two lines</h3>
+
+<p>Each equation \(ax+by=e\) describes a line. Solving the pair means finding the points on both lines, so geometry settles the matter completely before any algebra is done.</p>
+
+<figure>
+<svg viewBox="0 0 620 230" width="620" height="230" role="img" aria-labelledby="lsT lsD">
+<title id="lsT">The three possible outcomes for two linear equations</title>
+<desc id="lsD">Three panels. In the first, two lines cross at a single point: one solution. In the second, two parallel lines that never meet: no solution. In the third, two lines lying exactly on top of each other: infinitely many solutions.</desc>
+<g>
+<rect x="20" y="20" width="180" height="150" class="plot-bg" stroke="var(--rule)"/>
+<path d="M 30 150 L 190 40" stroke="var(--sky)" stroke-width="2.5"/>
+<path d="M 30 50 L 190 160" stroke="var(--amber)" stroke-width="2.5"/>
+<circle cx="110" cy="95" r="6" fill="var(--rose)"/>
+<text class="axtext" x="34" y="196">exactly one solution</text>
+<rect x="220" y="20" width="180" height="150" class="plot-bg" stroke="var(--rule)"/>
+<path d="M 230 150 L 390 60" stroke="var(--sky)" stroke-width="2.5"/>
+<path d="M 230 110 L 390 20" stroke="var(--amber)" stroke-width="2.5"/>
+<text class="axtext" x="238" y="196">no solution</text>
+<rect x="420" y="20" width="180" height="150" class="plot-bg" stroke="var(--rule)"/>
+<path d="M 430 150 L 590 50" stroke="var(--sky)" stroke-width="6" opacity="0.55"/>
+<path d="M 430 150 L 590 50" stroke="var(--amber)" stroke-width="2.5" stroke-dasharray="8 6"/>
+<text class="axtext" x="430" y="196">infinitely many solutions</text>
+</g>
+</svg>
+<figcaption>There are only three possibilities, and no amount of algebra can produce a fourth. Two straight lines in a plane either cross once, never cross, or coincide.</figcaption>
+</figure>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp7_12q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp7_12q">Two lines have the same slope and different intercepts. How many solutions does the system have?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp7_12r" value="0" data-right> <span>none</span></label>
+<label class="spot-opt"><input type="radio" name="sp7_12r" value="1"> <span>exactly one</span></label>
+<label class="spot-opt"><input type="radio" name="sp7_12r" value="2"> <span>infinitely many</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> Parallel and distinct: they never meet, so there is no solution.</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> Lines with the same slope never cross, unless they are the same line.</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> That needs the lines to coincide &mdash; same slope <em>and</em> same intercept.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 7.9 &mdash; all three outcomes</span>
+<p>Solve each system, and say which picture it is.</p>
+<p>(a) \(\begin{cases}2x+3y=12\\ x-y=1\end{cases}\) &nbsp;&nbsp; (b) \(\begin{cases}2x+4y=6\\ x+2y=5\end{cases}\) &nbsp;&nbsp; (c) \(\begin{cases}2x+4y=6\\ x+2y=3\end{cases}\)</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>(a) From the second equation \(x=y+1\). Substituting: \(2(y+1)+3y=12\), so \(5y=10\) and \(y=2\), \(x=3\). One crossing point, \((3,2)\).</p>
+<p>(b) The second equation doubled is \(2x+4y=10\), which contradicts the first. No solution &mdash; the lines are parallel, with the same slope and different intercepts.</p>
+<p>(c) The second equation doubled <em>is</em> the first. The two equations say the same thing, so every point on the line \(x+2y=3\) is a solution: infinitely many.</p>
+<p>Cases (b) and (c) have identical left-hand sides. Whether a system has no solutions or infinitely many is decided by the constants on the right; whether it has <em>exactly one</em> is decided entirely by the coefficients on the left. That is the fact the determinant captures.</p>
+</div>
+</div>
+
+<h3>The same system, as a matrix</h3>
+
+<p>Write the system as \(A\mathbf{x}=\mathbf{b}\):
+$$\begin{pmatrix}a&b\\c&d\end{pmatrix}\begin{pmatrix}x\\y\end{pmatrix}=\begin{pmatrix}e\\f\end{pmatrix}.$$
+Now the question changes character. It is no longer "where do two lines cross" but "which input did the transformation \(A\) send to \(\mathbf{b}\)" &mdash; and that is a question about running a function backwards. If \(A\) has an inverse, the answer is immediate: \(\mathbf{x}=A^{-1}\mathbf{b}\), and it is unique.</p>
+
+<h3>The determinant</h3>
+
+<div class="box def">
+<span class="lbl">definition</span>
+<p>The <strong>determinant</strong> of \(A=\begin{pmatrix}a&b\\c&d\end{pmatrix}\) is
+$$\det A=ad-bc.$$
+Geometrically, \(|\det A|\) is the <strong>area of the image of the unit square</strong> &mdash; the parallelogram spanned by the two columns. Its sign records whether the transformation flipped the plane over.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="10.0" role="group" aria-labelledby="sp7_13q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp7_13q">The unit square is sent through \(\begin{pmatrix}3&1\\2&4\end{pmatrix}\). By what factor are areas multiplied?</p>
+<div class="spot-row"><label for="sp7_13i">your answer</label><input id="sp7_13i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp7_13q sp7_13h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp7_13h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(3(4)-1(2)=10\). The unit square becomes a parallelogram of area 10, and every other region is scaled the same way.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Compute \(ad-bc\).</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<div class="widget">
+<h4>The area the columns span</h4>
+<p style="font-size:.95rem;margin:.2em 0 .6em">Drag either arrowhead. The shaded parallelogram is where the unit square has been sent, and its area is the determinant. Bring the two arrows into line and watch what happens.</p>
+<svg id="detSvg" viewBox="0 0 620 300" width="620" height="300" role="application" aria-label="Two draggable vectors spanning a parallelogram whose area is the determinant">
+  <g id="detGrid"></g>
+  <polygon id="detPara" points="" fill="var(--moss)" fill-opacity="0.28" stroke="var(--moss)" stroke-width="2"/>
+  <line class="axis" x1="20" y1="160" x2="380" y2="160"/><line class="axis" x1="200" y1="20" x2="200" y2="290"/>
+  <line id="detU" x1="200" y1="160" x2="0" y2="0" stroke="var(--sky)" stroke-width="3.5"/>
+  <line id="detV" x1="200" y1="160" x2="0" y2="0" stroke="var(--amber)" stroke-width="3.5"/>
+  <circle id="detUh" r="8" fill="var(--sky)"/><circle id="detVh" r="8" fill="var(--amber)"/>
+  <g id="detText"></g>
+</svg>
+<p class="readout" role="status" aria-live="polite" id="detOut"></p>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 7.10 &mdash; reading the determinant</span>
+<p>Find the determinant of each and say what the transformation does to area: \(\begin{pmatrix}3&0\\0&2\end{pmatrix}\), \(\begin{pmatrix}1&5\\0&1\end{pmatrix}\), \(\begin{pmatrix}1&0\\0&-1\end{pmatrix}\), \(\begin{pmatrix}2&4\\1&2\end{pmatrix}\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(6\): areas are multiplied by 6, which is what stretching by 3 one way and 2 the other should do.</p>
+<p>\(1\): a shear leans the square into a parallelogram of the same base and the same height, so the area is unchanged &mdash; a fact that is much easier to see than to compute.</p>
+<p>\(-1\): area preserved, but the sign says the plane has been turned over. Reflections have negative determinant.</p>
+<p>\(2(2)-4(1)=0\): the area is destroyed. The two columns \(\langle2,1\rangle\) and \(\langle4,2\rangle\) are parallel &mdash; the second is twice the first &mdash; so they span no area at all, and the whole plane has been flattened onto a single line.</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; the thread from Lecture 5, tied off</span>
+<p>Follow the chain. A determinant of zero means the image of the unit square has no area. No area means both columns lie along one line, so the entire plane has been squashed onto that line. Squashing means many different inputs arrive at the same output &mdash; so the transformation is <strong>not one-to-one</strong>. And Lecture 5 told us, back in Chapter 1, that a function which is not one-to-one has no inverse, because information has been destroyed and no rule can invent it back.</p>
+<p>So these are all the same statement:</p>
+<ul>
+<li>\(\det A=0\)</li>
+<li>the columns of \(A\) are parallel</li>
+<li>\(A\) flattens the plane</li>
+<li>\(A\) is not one-to-one</li>
+<li>\(A\) has no inverse</li>
+<li>the system \(A\mathbf{x}=\mathbf{b}\) has either no solution or infinitely many &mdash; never exactly one</li>
+</ul>
+<p>One number, computed by multiplying four entries and subtracting, answers all six questions at once. That is what a good definition does, and it is a fair summary of why linear algebra exists.</p>
+</div>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp7_14q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp7_14q">A system \(A\mathbf{x}=\mathbf{b}\) has \(\det A=0\). What can you conclude?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp7_14r" value="0" data-right> <span>it does not have exactly one solution</span></label>
+<label class="spot-opt"><input type="radio" name="sp7_14r" value="1"> <span>it has no solution</span></label>
+<label class="spot-opt"><input type="radio" name="sp7_14r" value="2"> <span>it has infinitely many solutions</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> Zero determinant: the lines are parallel or identical, so the answer is none or infinitely many &mdash; never exactly one.</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> Not necessarily. Zero determinant rules out a <em>unique</em> solution; whether there are none or infinitely many depends on \(\mathbf{b}\).</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> Only if the lines coincide. If they are parallel and distinct there are none.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 7.11 &mdash; solving with the inverse</span>
+<p>Solve \(\begin{cases}3x+y=11\\ 5x+2y=19\end{cases}\) using the inverse matrix, then check the determinant against the geometry.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(A=\begin{pmatrix}3&1\\5&2\end{pmatrix}\) has \(\det A=6-5=1\), so an inverse exists and the solution is unique:
+$$A^{-1}=\frac{1}{1}\begin{pmatrix}2&-1\\-5&3\end{pmatrix},\qquad
+\mathbf{x}=A^{-1}\begin{pmatrix}11\\19\end{pmatrix}=\begin{pmatrix}22-19\\-55+57\end{pmatrix}=\begin{pmatrix}3\\2\end{pmatrix}.$$</p>
+<p>Check: \(3(3)+2=11\) &#10003; and \(5(3)+2(2)=19\) &#10003;</p>
+<p>For a \(2\times2\) system this is more work than elimination, and nobody would do it by hand. It matters because it scales: the same formula, with a much larger matrix, is how a computer solves ten thousand equations at once &mdash; and the determinant is still what tells it whether an answer exists before it starts.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 7.12 &mdash; a code that needs an inverse</span>
+<p>The Hill cipher encrypts text two letters at a time. Letters become numbers \(A=0,B=1,\ldots,Z=25\), each pair is multiplied by a key matrix, and the answers are reduced modulo 26 (that is, wrapped around the alphabet). Using
+$$K=\begin{pmatrix}3&2\\5&3\end{pmatrix},$$
+encrypt the pair <span class="mono">HI</span>, then decrypt it again.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p><strong>Encrypting.</strong> \(H=7\) and \(I=8\), so
+$$K\begin{pmatrix}7\\8\end{pmatrix}=\begin{pmatrix}21+16\\35+24\end{pmatrix}=\begin{pmatrix}37\\59\end{pmatrix}
+\equiv\begin{pmatrix}11\\7\end{pmatrix} \pmod{26},$$
+which is <span class="mono">LH</span>.</p>
+<p><strong>Decrypting</strong> needs \(K^{-1}\). Here \(\det K=9-10=-1\), and working modulo 26 the reciprocal of \(-1\) is \(25\), since \(-1\times25=-25\equiv1\). So
+$$K^{-1}=25\begin{pmatrix}3&-2\\-5&3\end{pmatrix}=\begin{pmatrix}75&-50\\-125&75\end{pmatrix}\equiv\begin{pmatrix}23&2\\5&23\end{pmatrix}\pmod{26}.$$</p>
+<p>Applying it to \(\langle11,7\rangle\): \(23(11)+2(7)=267\equiv7\) and \(5(11)+23(7)=216\equiv8\). That is \(\langle7,8\rangle\) &mdash; <span class="mono">HI</span> again. &#10003;</p>
+<p>Now the point. A key matrix is only usable if it can be inverted, so its determinant must not be zero &mdash; and modulo 26 it must also share no factor with 26, ruling out even determinants and multiples of 13. Choose a key with \(\det K=0\) and you have built the shredder from Lecture 5: different messages encrypt to the same ciphertext, and not even the intended recipient can read it.</p>
+<p>Lester Hill published this in 1929. It is far too weak for real use, but it was the first cipher to be built on matrix algebra, and it makes the determinant condition into something you can feel: a zero determinant is a lost message.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 7.13 &mdash; animating a rotation</span>
+<p>A game sprite has a corner at \((30,0)\) relative to its centre, and must spin at \(6^{\circ}\) per frame. Where is the corner after 1 frame and after 15 frames, and why does the studio store an angle rather than repeatedly multiplying?</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>One frame: \(\begin{pmatrix}\cos6^{\circ}&-\sin6^{\circ}\\ \sin6^{\circ}&\cos6^{\circ}\end{pmatrix}\begin{pmatrix}30\\0\end{pmatrix}=\begin{pmatrix}29.84\\3.14\end{pmatrix}\).</p>
+<p>Fifteen frames is a rotation of \(90^{\circ}\), which sends \((30,0)\) to \((0,30)\) exactly. That follows from the exercise above: composing rotations adds the angles, so applying the \(6^{\circ}\) matrix fifteen times equals applying the \(90^{\circ}\) matrix once.</p>
+<p>Why not just multiply repeatedly? Because each multiplication rounds off a little, and after a few thousand frames those roundings accumulate until the sprite is visibly stretched &mdash; the determinant drifts away from 1. Storing the total angle and rebuilding the matrix each frame keeps the determinant exactly 1 and the shape exactly rigid. This is a real bug that has shipped in real games.</p>
+</div>
+</div>
+
+<div class="box hist">
+<span class="lbl">history</span>
+<p>Determinants appeared twice, independently, within a decade. Seki Takakazu wrote about them in Japan in 1683; Leibniz described the same idea in a letter in 1693. Both were trying to decide when a system of equations could be solved, and both found the same combination of coefficients.</p>
+<p>Matrices themselves came much later &mdash; Cayley, in the 1850s &mdash; which is a strange order of events: the test for whether a matrix can be inverted was invented before anyone had written down a matrix.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">for your toolbox</span>
+<p>The collection is complete. You can now sketch, transform, and state the domain and range of: lines, power functions, roots, reciprocals and polynomials; exponentials and logarithms, with their asymptotes; and sine, cosine and tangent, with theirs. And you can now do to the <em>plane</em> what Lecture 4 did to a graph &mdash; scale it, shear it, reflect it, rotate it &mdash; with a single object of four numbers.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 7.3</span>
+<ol>
+<li>Solve \(\begin{cases}4x-y=7\\ 2x+3y=7\end{cases}\) by elimination, and state the determinant of the coefficient matrix.</li>
+<li>For what value of \(k\) does \(\begin{cases}3x+ky=5\\ 6x+8y=9\end{cases}\) fail to have a unique solution? Describe the two lines at that value.</li>
+<li>Find the determinants: \(\begin{pmatrix}4&2\\3&1\end{pmatrix}\), \(\begin{pmatrix}0&-3\\2&0\end{pmatrix}\), \(\begin{pmatrix}6&9\\4&6\end{pmatrix}\). Which transformation cannot be undone, and why?</li>
+<li>A transformation sends the unit square to a parallelogram of area 7 and does not flip the plane. What is \(\det A\)? What is \(\det(A^{-1})\)?</li>
+<li>Show that \(\det(AB)=\det A\cdot\det B\) for \(A=\begin{pmatrix}2&0\\0&3\end{pmatrix}\) and \(B=\begin{pmatrix}1&4\\0&1\end{pmatrix}\), and explain the result in terms of areas.</li>
+<li>Find the area of the triangle with vertices \((0,0)\), \((5,1)\) and \((2,6)\), using a determinant. (Hint: the triangle is half the parallelogram.)</li>
+<li>Explain why a rotation matrix always has determinant 1 and a reflection always \(-1\).</li>
+<li>A system of two equations is found to have a determinant of zero. Someone concludes that it has no solution. Why is that wrong, and what are the two possibilities?</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>Multiply the first by 3: \(12x-3y=21\); adding the second gives \(14x=28\), \(x=2\), then \(y=1\). Determinant \(4(3)-(-1)(2)=14\), non-zero, so the unique solution was guaranteed.</li>
+<li>\(\det=24-6k=0\) at \(k=4\). The left sides are then proportional but the right sides are not (\(9\neq10\)), so the lines are parallel and distinct: no solution.</li>
+<li>\(4-6=-2\); \(0-(-6)=6\); \(36-36=0\). The third cannot be undone: its columns \(\langle6,4\rangle\) and \(\langle9,6\rangle\) are parallel, so it flattens the plane onto a line and destroys information.</li>
+<li>\(\det A=7\). Since \(A^{-1}\) must undo the stretching, \(\det(A^{-1})=\tfrac17\).</li>
+<li>\(AB=\begin{pmatrix}2&8\\0&3\end{pmatrix}\), determinant 6, and \(\det A\cdot\det B=6\times1=6\). In words: apply one transformation that multiplies areas by 6 and another that leaves them alone, and areas end up multiplied by 6. Determinants multiply because area factors multiply.</li>
+<li>The parallelogram spanned by \(\langle5,1\rangle\) and \(\langle2,6\rangle\) has area \(|5(6)-1(2)|=28\), so the triangle has area 14.</li>
+<li>A rotation preserves every length and every angle, so it cannot change area, and it does not turn the plane over &mdash; determinant \(+1\). Computing it confirms this: \(\cos^{2}\theta+\sin^{2}\theta=1\). A reflection also preserves area but reverses orientation, so its determinant is \(-1\).</li>
+<li>Zero determinant rules out <em>exactly one</em> solution, not all solutions. The two lines are either parallel and distinct, giving none, or identical, giving infinitely many. Which one it is depends on the right-hand sides, as example 7.9 showed.</li>
+</ol>
+</div>
+</div>
+
+<hr>
+<h2 id="wrap">Where this leaves you</h2>
+<p>A vector is a journey, and the dot product measures how much two journeys agree &mdash; which is how a machine decides that two documents are about the same thing. A matrix is a function that moves the whole plane, and its columns say where east and north end up. Multiplying matrices is doing one thing after another. And the determinant is the area of what the unit square became, so a determinant of zero means the plane was flattened, information was lost, and nothing can be undone.</p>
+<p>That last sentence is the one this course has been building toward since Lecture 5, when a shift cipher and a shredder illustrated the difference between a function you can run backwards and one you cannot.</p>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; what comes next</span>
+<p>Three doors are now open, and you have been standing in front of all of them.</p>
+<p><strong>Calculus</strong> takes every approximation in this course and completes it by letting a step size shrink: average rates become instantaneous ones, sums of rectangles become exact areas, polynomial approximations become series, and secant lines become tangents. Nothing will be unfamiliar; the objects are already in your hands.</p>
+<p><strong>Linear algebra</strong> takes this chapter and removes the restriction to two dimensions. The same columns, the same composition, the same determinant &mdash; with a thousand dimensions instead of two, which is where data actually lives.</p>
+<p><strong>Machine learning</strong> is the two of them at once: a model built from matrices, a loss function measuring its failure, and a hunt for the minimum by rolling downhill. You did that in Lecture 8 with a difference quotient and a step size chosen by hand.</p>
+<p>And running underneath all of it is the thing this course has tried hardest to show: mathematics is not a finished object handed down complete. Every idea here was made by somebody, in a particular place, for a reason &mdash; in Baghdad, Kerala, Alexandria, Edo, Göttingen &mdash; and much of it was contested before it was accepted. It is still being made. You are meeting it in motion.</p>
+</div>
+
+<p class="kicker">End of the course.</p>
+<script>
+function sv7(t,a){var e=document.createElementNS('http://www.w3.org/2000/svg',t);
+  for(var k in a)e.setAttribute(k,a[k]);return e;}
+function grid7(id,cx,cy,U,x0,x1,y0,y1){
+  var g=document.getElementById(id); if(!g) return;
+  for(var i=-6;i<=6;i++){
+    var x=cx+i*U; if(x<x0||x>x1) continue;
+    g.appendChild(sv7('line',{x1:x,y1:y0,x2:x,y2:y1,class:'gridline'}));
+    var y=cy+i*U; if(y<y0||y>y1) continue;
+    g.appendChild(sv7('line',{x1:x0,y1:y,x2:x1,y2:y,class:'gridline'}));
+  }
+}
+/* shared drag handling for the two vector widgets */
+function vectorWidget(cfg){
+  var svg=document.getElementById(cfg.svg); if(!svg) return;
+  var CX=cfg.cx, CY=cfg.cy, U=cfg.u, VB=cfg.vb;
+  var u=cfg.u0.slice(), v=cfg.v0.slice(), active='u';
+  grid7(cfg.grid,CX,CY,U,cfg.box[0],cfg.box[2],cfg.box[1],cfg.box[3]);
+  function S(p){return [CX+p[0]*U, CY-p[1]*U];}
+  function draw(){
+    var su=S(u), svv=S(v);
+    document.getElementById(cfg.uLine).setAttribute('x2',su[0]);
+    document.getElementById(cfg.uLine).setAttribute('y2',su[1]);
+    document.getElementById(cfg.vLine).setAttribute('x2',svv[0]);
+    document.getElementById(cfg.vLine).setAttribute('y2',svv[1]);
+    document.getElementById(cfg.uHead).setAttribute('cx',su[0]);
+    document.getElementById(cfg.uHead).setAttribute('cy',su[1]);
+    document.getElementById(cfg.vHead).setAttribute('cx',svv[0]);
+    document.getElementById(cfg.vHead).setAttribute('cy',svv[1]);
+    cfg.extra(u,v,S);
+  }
+  function set(e){
+    var r=svg.getBoundingClientRect();
+    var mx=((e.touches?e.touches[0].clientX:e.clientX)-r.left)/r.width*VB[0];
+    var my=((e.touches?e.touches[0].clientY:e.clientY)-r.top)/r.height*VB[1];
+    var p=[Math.round(((mx-CX)/U)*4)/4, Math.round(((CY-my)/U)*4)/4];
+    if(Math.abs(p[0])>4.2||Math.abs(p[1])>2.6) return;
+    if(active==='u') u=p; else v=p;
+    draw(); e.preventDefault();
+  }
+  var down=false;
+  svg.addEventListener('pointerdown',function(e){
+    var r=svg.getBoundingClientRect();
+    var mx=((e.clientX)-r.left)/r.width*VB[0], my=((e.clientY)-r.top)/r.height*VB[1];
+    var su=S(u), svv=S(v);
+    active=(Math.hypot(mx-svv[0],my-svv[1])<Math.hypot(mx-su[0],my-su[1]))?'v':'u';
+    down=true; set(e);
+  });
+  window.addEventListener('pointermove',function(e){if(down)set(e);});
+  window.addEventListener('pointerup',function(){down=false;});
+  svg.setAttribute('tabindex','0');
+  svg.addEventListener('keydown',function(e){
+    var t=(active==='u'?u:v), s=0.25;
+    if(e.key==='ArrowRight') t[0]+=s; else if(e.key==='ArrowLeft') t[0]-=s;
+    else if(e.key==='ArrowUp') t[1]+=s; else if(e.key==='ArrowDown') t[1]-=s;
+    else if(e.key==='Tab'){return;}
+    else if(e.key==='Enter'||e.key===' '){active=(active==='u'?'v':'u'); draw(); e.preventDefault(); return;}
+    else return;
+    draw(); e.preventDefault();
+  });
+  draw();
+}
+
+/* ---------- L24: the dot product ---------- */
+vectorWidget({svg:'dotSvg', grid:'dotGrid', cx:190, cy:160, u:46, vb:[620,300],
+  box:[20,20,360,290], uLine:'dotU', vLine:'dotV', uHead:'dotUh', vHead:'dotVh',
+  u0:[3,2], v0:[2,-1],
+  extra:function(u,v,S){
+    var dot=u[0]*v[0]+u[1]*v[1];
+    var mu=Math.hypot(u[0],u[1]), mv=Math.hypot(v[0],v[1]);
+    var ang=(mu*mv>0)?Math.acos(Math.max(-1,Math.min(1,dot/(mu*mv))))*180/Math.PI:0;
+    var t=(mv>0)?dot/(mv*mv):0;                       // projection of u onto v, as a multiple of v
+    var proj=[v[0]*t, v[1]*t], sp=S(proj), su=S(u), o=S([0,0]);
+    document.getElementById('dotProj').setAttribute('x1',o[0]);
+    document.getElementById('dotProj').setAttribute('y1',o[1]);
+    document.getElementById('dotProj').setAttribute('x2',sp[0]);
+    document.getElementById('dotProj').setAttribute('y2',sp[1]);
+    document.getElementById('dotProjLine').setAttribute('x1',su[0]);
+    document.getElementById('dotProjLine').setAttribute('y1',su[1]);
+    document.getElementById('dotProjLine').setAttribute('x2',sp[0]);
+    document.getElementById('dotProjLine').setAttribute('y2',sp[1]);
+    var g=document.getElementById('dotText');
+    while(g.firstChild) g.removeChild(g.firstChild);
+    [['u = \u27e8'+u[0]+', '+u[1]+'\u27e9','var(--sky)'],
+     ['v = \u27e8'+v[0]+', '+v[1]+'\u27e9','var(--amber)'],
+     ['u \u00b7 v = '+dot.toFixed(2),'var(--ink)'],
+     ['angle = '+ang.toFixed(1)+'\u00b0','var(--ink)'],
+     ['projection shown in green','var(--moss)']].forEach(function(r,i){
+      var e=sv7('text',{x:400,y:70+i*32,class:(i<2?'lbltext':'axtext'),fill:r[1]});
+      e.textContent=r[0]; g.appendChild(e);});
+    document.getElementById('dotOut').textContent=
+      (Math.abs(dot)<0.01 ? 'The dot product is zero: the two vectors are perpendicular.'
+       : (dot>0 ? 'Positive dot product: the vectors broadly agree, and the shadow of u falls along v.'
+                : 'Negative dot product: the vectors point away from each other, and the shadow falls backwards along v.'))
+      + '   Tap or press Enter to switch which arrow you are moving.';
+  }});
+
+/* ---------- L25: the matrix widget ---------- */
+(function(){
+  var A=document.getElementById('mA'); if(!A) return;
+  var CX=220, CY=150, U=42;
+  function S(x,y){return [CX+x*U, CY-y*U];}
+  function upd(){
+    var a=+A.value, b=+document.getElementById('mB').value,
+        c=+document.getElementById('mC').value, d=+document.getElementById('mD').value;
+    ['A','B','C','D'].forEach(function(k){
+      document.getElementById('m'+k+'v').textContent=(+document.getElementById('m'+k).value).toFixed(1);});
+    var g=document.getElementById('matGrid');
+    while(g.firstChild) g.removeChild(g.firstChild);
+    for(var i=-4;i<=4;i++){
+      var p1=S(a*i+b*(-3), c*i+d*(-3)), p2=S(a*i+b*3, c*i+d*3);
+      g.appendChild(sv7('line',{x1:p1[0],y1:p1[1],x2:p2[0],y2:p2[1],
+        stroke:'var(--rule)','stroke-width':1}));
+      var q1=S(a*(-4)+b*i, c*(-4)+d*i), q2=S(a*4+b*i, c*4+d*i);
+      g.appendChild(sv7('line',{x1:q1[0],y1:q1[1],x2:q2[0],y2:q2[1],
+        stroke:'var(--rule)','stroke-width':1}));
+    }
+    var corners=[[0,0],[a,c],[a+b,c+d],[b,d]].map(function(p){return S(p[0],p[1]);});
+    document.getElementById('matSq').setAttribute('points',
+      corners.map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' '));
+    var e=S(a,c), n=S(b,d);
+    document.getElementById('matE').setAttribute('x2',e[0]);
+    document.getElementById('matE').setAttribute('y2',e[1]);
+    document.getElementById('matN').setAttribute('x2',n[0]);
+    document.getElementById('matN').setAttribute('y2',n[1]);
+    var det=a*d-b*c;
+    var t=document.getElementById('matText');
+    while(t.firstChild) t.removeChild(t.firstChild);
+    [['east \u2192 \u27e8'+a.toFixed(1)+', '+c.toFixed(1)+'\u27e9','var(--sky)'],
+     ['north \u2192 \u27e8'+b.toFixed(1)+', '+d.toFixed(1)+'\u27e9','var(--amber)'],
+     ['determinant = '+det.toFixed(2),'var(--ink)']].forEach(function(r,i){
+       var q=sv7('text',{x:450,y:90+i*34,class:'lbltext',fill:r[1]});
+       q.textContent=r[0]; t.appendChild(q);});
+    document.getElementById('matOut').textContent=
+      (Math.abs(det)<0.02 ? 'The determinant is zero: both arrows lie on one line, the square has been squashed flat, and this transformation cannot be undone.'
+       : (det<0 ? 'Negative determinant: the plane has been turned over, and areas are scaled by '+Math.abs(det).toFixed(2)+'.'
+                : 'Areas are multiplied by '+det.toFixed(2)+'.'));
+  }
+  ['mA','mB','mC','mD'].forEach(function(id){
+    document.getElementById(id).addEventListener('input',upd);});
+  function preset(a,b,c,d){
+    document.getElementById('mA').value=a; document.getElementById('mB').value=b;
+    document.getElementById('mC').value=c; document.getElementById('mD').value=d; upd();}
+  document.getElementById('mIdent').addEventListener('click',function(){preset(1,0,0,1);});
+  document.getElementById('mRot').addEventListener('click',function(){preset(0.7,-0.7,0.7,0.7);});
+  document.getElementById('mShear').addEventListener('click',function(){preset(1,1,0,1);});
+  document.getElementById('mFlip').addEventListener('click',function(){preset(1,0,0,-1);});
+  document.getElementById('mSquash').addEventListener('click',function(){preset(1,2,0.5,1);});
+  upd();
+})();
+
+/* ---------- L26: the determinant as an area ---------- */
+vectorWidget({svg:'detSvg', grid:'detGrid', cx:200, cy:160, u:46, vb:[620,300],
+  box:[20,20,380,290], uLine:'detU', vLine:'detV', uHead:'detUh', vHead:'detVh',
+  u0:[2,1], v0:[1,2],
+  extra:function(u,v,S){
+    var o=S([0,0]), a=S(u), b=S([u[0]+v[0],u[1]+v[1]]), c=S(v);
+    document.getElementById('detPara').setAttribute('points',
+      [o,a,b,c].map(function(p){return p[0].toFixed(1)+','+p[1].toFixed(1);}).join(' '));
+    var det=u[0]*v[1]-u[1]*v[0];
+    var g=document.getElementById('detText');
+    while(g.firstChild) g.removeChild(g.firstChild);
+    [['columns \u27e8'+u[0]+', '+u[1]+'\u27e9 and \u27e8'+v[0]+', '+v[1]+'\u27e9','var(--ink)'],
+     ['det = ('+u[0]+')('+v[1]+') \u2212 ('+u[1]+')('+v[0]+') = '+det.toFixed(2),'var(--ink)'],
+     ['area = '+Math.abs(det).toFixed(2),'var(--moss)']].forEach(function(r,i){
+      var e=sv7('text',{x:410,y:80+i*34,class:'lbltext',fill:r[1]});
+      e.textContent=r[0]; g.appendChild(e);});
+    document.getElementById('detOut').textContent=
+      (Math.abs(det)<0.01
+        ? 'Zero area. The two arrows are parallel, so the plane has been flattened onto a line \u2014 not one-to-one, and no inverse exists.'
+        : (det<0 ? 'The determinant is negative, which means the two arrows have swapped their sense of turn: the plane has been flipped over.'
+                 : 'The parallelogram is where the unit square went, and its area is the determinant.'))
+      + '   Tap or press Enter to switch arrows.';
+  }});
+</script>
+</div>
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    b.textContent=open?'hide solution':'show solution';
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+<script>
+/* ===== spot checks: quick, self-marking questions ===== */
+(function(){
+  /* --- a small, safe arithmetic reader: 3/4, -2.5, 2pi/3, sqrt(3)/2, √2, 1e3, pi --- */
+  function tokens(s){
+    var t=[], re=/\s*(\d*\.\d+|\d+\.?\d*(?:e[+-]?\d+)?|[a-z]+|[-+*\/^()])/gy, m, i=0;
+    re.lastIndex=0;
+    while(re.lastIndex<s.length){
+      var at=re.lastIndex; m=re.exec(s);
+      if(!m||m.index!==at){ if(/^\s*$/.test(s.slice(at))) break; return null; }
+      t.push(m[1]);
+    }
+    return t;
+  }
+  function evaluate(src){
+    var s=String(src).toLowerCase()
+      .replace(/[−–—]/g,'-').replace(/[×·]/g,'*').replace(/÷/g,'/')
+      .replace(/π/g,'pi').replace(/√/g,'sqrt').replace(/[° ]/g,' ')
+      .replace(/^\s*[a-z]\w*\s*=\s*/,'').replace(/(\d),(?=\d{3}\b)/g,'$1');
+    var t=tokens(s); if(!t||!t.length) return NaN;
+    var k=0;
+    function peek(){return t[k];}
+    function next(){return t[k++];}
+    function starts(x){return x!==undefined&&(/^[a-z]/.test(x)||x==='(');}   /* 2pi, 3(2) — never 4 5 */
+    function expr(){var v=term(); while(peek()==='+'||peek()==='-'){var o=next(),w=term(); v=o==='+'?v+w:v-w;} return v;}
+    function term(){
+      var v=unary();
+      for(;;){
+        if(peek()==='*'){next(); v*=unary();}
+        else if(peek()==='/'){next(); v/=unary();}
+        else if(starts(peek())){ v*=power(); }        /* implicit: 2pi, 3sqrt(2) */
+        else return v;
+      }
+    }
+    function unary(){ if(peek()==='-'){next(); return -unary();} if(peek()==='+'){next(); return unary();} return power(); }
+    function power(){ var b=primary(); if(peek()==='^'){next(); return Math.pow(b,unary());} return b; }
+    function primary(){
+      var x=next();
+      if(x===undefined) throw 0;
+      if(x==='('){var v=expr(); if(next()!==')') throw 0; return v;}
+      if(/^[\d.]/.test(x)) return parseFloat(x);
+      if(x==='pi') return Math.PI;
+      if(x==='e') return Math.E;
+      if(x==='sqrt') return Math.sqrt(power());
+      throw 0;
+    }
+    try{ var v=expr(); return (k===t.length&&isFinite(v))?v:NaN; }catch(e){ return NaN; }
+  }
+  function close(a,b,tol){ return Math.abs(a-b)<=tol; }
+  function defaultTol(a){ return Math.max(0.005*Math.abs(a),0.005); }
+  function splitList(s){
+    return String(s).replace(/^[\s(\[⟨<{]+|[\s)\]⟩>}]+$/g,'')
+      .split(/\s*(?:,|;|\band\b|\bor\b)\s*/i).filter(function(x){return x.trim()!=='';});
+  }
+
+  /* exactly one message is visible at a time: ok, bad (generic or per option), read, count, pick, ans */
+  function show(box, which, opt){
+    var msgs=box.querySelectorAll('.spot-msg');
+    var specific=(which==='bad'&&opt!==undefined)?
+      box.querySelector('.spot-msg[data-kind="bad"][data-opt="'+opt+'"]'):null;
+    for(var i=0;i<msgs.length;i++){
+      var m=msgs[i];
+      m.hidden = !(m===specific || (!specific && m.getAttribute('data-kind')===which && !m.hasAttribute('data-opt')));
+    }
+    box.classList.toggle('is-ok', which==='ok');
+    box.classList.toggle('is-bad', which!=='ok' && which!=='ans');
+  }
+
+  function judge(box){
+    var type=box.getAttribute('data-type');
+    if(type==='mc'){
+      var picked=box.querySelector('input[type=radio]:checked');
+      if(!picked){ show(box,'pick'); return null; }
+      var opts=box.querySelectorAll('.spot-opt');
+      for(var i=0;i<opts.length;i++) opts[i].classList.remove('right','wrong');
+      var lab=picked.closest('.spot-opt'), ok=picked.hasAttribute('data-right');
+      lab.classList.add(ok?'right':'wrong');
+      show(box, ok?'ok':'bad', ok?undefined:picked.value);
+      return ok;
+    }
+    if(type==='sel'){
+      var sels=box.querySelectorAll('select'), all=true, any=false;
+      for(var j=0;j<sels.length;j++){
+        if(sels[j].value===''){ any=true; continue; }
+        var good=sels[j].value===sels[j].getAttribute('data-ans');
+        sels[j].setAttribute('aria-invalid', good?'false':'true');
+        if(!good) all=false;
+      }
+      if(any){ show(box,'pick'); return null; }
+      show(box, all?'ok':'bad'); return all;
+    }
+    var inp=box.querySelector('.spot-in'), raw=inp.value;
+    if(raw.trim()===''){ show(box,'read'); return null; }
+    if(type==='text'){
+      var norm=function(z){return String(z).toLowerCase().replace(/[\s.]/g,'');};
+      var ok2=box.getAttribute('data-ans').split('|').some(function(a){return norm(a)===norm(raw);});
+      inp.setAttribute('aria-invalid', ok2?'false':'true');
+      show(box, ok2?'ok':'bad'); return ok2;
+    }
+    var want=box.getAttribute('data-ans').split('|').map(Number);
+    var tol=box.hasAttribute('data-tol')?Number(box.getAttribute('data-tol')):null;
+    var got;
+    if(type==='list'){
+      got=splitList(raw).map(evaluate);
+      if(got.some(isNaN)){ inp.setAttribute('aria-invalid','true'); show(box,'read'); return null; }
+      if(got.length!==want.length){ inp.setAttribute('aria-invalid','true'); show(box,'count'); return false; }
+      var ordered=box.hasAttribute('data-ordered'), used=[], ok3=true;
+      for(var a=0;a<want.length;a++){
+        var tl=tol===null?defaultTol(want[a]):tol, hit=-1;
+        if(ordered){ if(close(got[a],want[a],tl)) hit=a; }
+        else for(var b=0;b<got.length;b++){ if(used.indexOf(b)<0&&close(got[b],want[a],tl)){hit=b;break;} }
+        if(hit<0){ok3=false;break;} used.push(hit);
+      }
+      inp.setAttribute('aria-invalid', ok3?'false':'true');
+      show(box, ok3?'ok':'bad'); return ok3;
+    }
+    var v=evaluate(raw);
+    if(isNaN(v)){ inp.setAttribute('aria-invalid','true'); show(box,'read'); return null; }
+    var ok4=close(v,want[0],tol===null?defaultTol(want[0]):tol);
+    inp.setAttribute('aria-invalid', ok4?'false':'true');
+    show(box, ok4?'ok':'bad'); return ok4;
+  }
+
+  var spots=document.querySelectorAll('.spot');
+  for(var n=0;n<spots.length;n++)(function(box){
+    var misses=0, go=box.querySelector('.spot-go'), reveal=box.querySelector('.spot-show');
+    function run(){
+      var r=judge(box);
+      if(r===false){ misses++; if(misses>=2&&reveal) reveal.hidden=false; }
+      if(r===true&&reveal) reveal.hidden=true;
+    }
+    go.addEventListener('click',run);
+    var inp=box.querySelector('.spot-in');
+    if(inp){
+      inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();run();} });
+      inp.addEventListener('input',function(){ inp.removeAttribute('aria-invalid'); box.classList.remove('is-ok','is-bad'); });
+    }
+    var radios=box.querySelectorAll('input[type=radio]');
+    for(var i=0;i<radios.length;i++) radios[i].addEventListener('change',function(){
+      var ls=box.querySelectorAll('.spot-opt');
+      for(var j=0;j<ls.length;j++) ls[j].classList.remove('chosen','right','wrong');
+      this.closest('.spot-opt').classList.add('chosen');
+      box.classList.remove('is-ok','is-bad');
+    });
+    var sels=box.querySelectorAll('select');
+    for(var s=0;s<sels.length;s++) sels[s].addEventListener('change',function(){
+      this.removeAttribute('aria-invalid'); box.classList.remove('is-ok','is-bad'); });
+    if(reveal) reveal.addEventListener('click',function(){
+      var a=box.querySelector('.spot-msg[data-kind="ans"]');
+      var msgs=box.querySelectorAll('.spot-msg'); for(var i=0;i<msgs.length;i++) msgs[i].hidden=true;
+      if(a) a.hidden=false; reveal.hidden=true;
+    });
+  })(spots[n]);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1709 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Chapter 5 — Geometry of Triangles</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  /* ---- spot checks ---- */
+  .spot{border:1px dashed var(--sky);border-left:3px solid var(--sky);background:var(--surface)}
+  .spot .lbl{color:var(--sky)}
+  .spot.is-ok{border-color:var(--moss)} .spot.is-ok .lbl{color:var(--moss)}
+  .spot.is-bad{border-color:var(--amber)} .spot.is-bad .lbl{color:var(--amber)}
+  .spot-q,.spot legend{margin:.15em 0 .75em;padding:0;color:var(--ink);font-size:1rem;line-height:1.7}
+  .spot fieldset{border:0;margin:0;padding:0;min-width:0}
+  .spot-opts{display:grid;gap:8px;margin:0 0 .8em}
+  .spot-opt{display:flex;gap:12px;align-items:flex-start;padding:9px 13px;min-height:44px;
+    border:1px solid var(--rule);border-radius:8px;background:var(--surface2);cursor:pointer;line-height:1.6}
+  .spot-opt:hover{border-color:var(--sky)}
+  .spot-opt input{margin:.42em 0 0;accent-color:var(--sky);flex:none;width:18px;height:18px}
+  .spot-opt.chosen{border-color:var(--sky);border-width:2px;padding:8px 12px}
+  .spot-opt.chosen.right{border-color:var(--moss)}
+  .spot-opt.chosen.wrong{border-color:var(--amber)}
+  .spot-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .spot-row label{font-family:var(--mono);font-size:.86rem;color:var(--cap)}
+  .spot-in,.spot select{font-family:var(--mono);font-size:1rem;color:var(--ink);background:var(--surface2);
+    border:1px solid var(--rule);border-radius:6px;padding:8px 10px;min-height:44px}
+  .spot-in{width:13em;max-width:100%}
+  .spot select{max-width:100%;margin:.15em .2em}
+  .spot-in[aria-invalid="true"],.spot select[aria-invalid="true"]{border:2px solid var(--amber)}
+  .spot-in[aria-invalid="false"],.spot select[aria-invalid="false"]{border:2px solid var(--moss)}
+  .spot-go,.spot-show{font-family:var(--mono);font-size:.88rem;background:transparent;border-radius:999px;
+    padding:8px 18px;min-height:44px;cursor:pointer}
+  .spot-go{color:var(--sky);border:1px solid var(--sky)}
+  .spot-go:hover{background:var(--sky);color:var(--bg)}
+  .spot-show{color:var(--cap);border:1px dashed var(--rule);margin-top:.7em}
+  .spot-show:hover{border-color:var(--sky);color:var(--ink)}
+  .spot-msg{margin-top:.85em;padding:10px 14px;border-left:3px solid var(--rule);border-radius:0 6px 6px 0;
+    background:var(--surface2);color:var(--ink);line-height:1.65}
+  .spot-msg.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 11%,var(--surface))}
+  .spot-msg.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 11%,var(--surface))}
+  .spot-msg.ans{border-left-color:var(--sky)}
+  .spot-msg > :last-child{margin-bottom:0}
+  .spot-tag{font-family:var(--mono);font-size:.86rem;font-weight:700;margin-right:.35em}
+  .spot-msg.ok .spot-tag{color:var(--moss)} .spot-msg.bad .spot-tag{color:var(--amber)}
+  .spot-msg.ans .spot-tag{color:var(--sky)}
+  .spot-help{font-family:var(--mono);font-size:.8rem;color:var(--cap);margin:.55em 0 0}
+  .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  /* narrow screens: wide tables and long equations scroll sideways ---- */
+  .tscroll{overflow-x:auto;max-width:100%;margin:1.2em 0;-webkit-overflow-scrolling:touch}
+  .tscroll:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+  .tscroll>table{margin:0}
+  mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;max-width:100%;padding:2px 0}
+  mjx-container[jax] > mjx-assistive-mml{width:1px !important;max-width:1px !important;height:1px !important;overflow:hidden !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Precalculus · Chapter 5</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Chapter 5<br>Geometry of triangles</h1>
+<p class="kicker">Lectures 19&ndash;21 &nbsp;|&nbsp; measuring what you cannot reach</p>
+
+<div class="toc">
+<strong class="mono">In this chapter</strong>
+<ol start="19">
+<li><a href="#L19">Right triangles, similarity, and eclipses</a></li>
+<li><a href="#L20">Any angle, any triangle</a></li>
+<li><a href="#L21">Triangles on a sphere, and what curvature means</a></li>
+</ol>
+</div>
+
+<p>Chapter 4 treated sine and cosine as coordinates on a circle, which is what they are and what makes them good at repetition. This chapter goes back to where they came from historically: the triangle, and the problem of measuring things that are too far away, too tall, or too large to put a ruler against.</p>
+
+<p>That problem is older than algebra and it was solved, remarkably well, by people with no equipment beyond a stick and a shadow. By the end of the chapter we will have measured a building, the Earth, and the distance to the Moon, and then we will find a triangle whose angles add to more than \(180^{\circ}\) &mdash; at which point the geometry you have been using since primary school quietly stops being the whole story.</p>
+
+<hr>
+<!-- ================= LECTURE 19 ================= -->
+<h2 id="L19">Lecture 19 &mdash; Right triangles, similarity, and eclipses</h2>
+
+<figure class="toon">
+<svg viewBox="0 0 560 200" width="560" height="200" role="img" aria-labelledby="L19t L19d">
+<title id="L19t">Cartoon: measuring a building from the ground</title><desc id="L19d">A stick figure points at a building. The sun is at the upper right and both the figure and the building cast shadows along the ground.</desc>
+<defs><filter id="rough10" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="10" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough10)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="100.0" cy="124.0" r="11.0" /><path d="M 100.0 135.0 L 100.0 160.0" /><path d="M 100.0 140.0 L 87.0 158.0" /><path d="M 100.0 140.0 L 120.0 140.0" /><path d="M 100.0 160.0 L 89.0 184.0" /><path d="M 100.0 160.0 L 111.0 184.0" /><path d="M 30 170 L 540 170" stroke-width="1.6"/><path d="M 380 170 L 380 70 L 440 70 L 440 170"/><path d="M 380 170 L 300 170" stroke-dasharray="5 4"/><path d="M 100 170 L 78 170" stroke-dasharray="5 4"/><circle cx="490" cy="40" r="16"/><path d="M 508 48 L 515 51"/><path d="M 497 59 L 500 65"/><path d="M 482 58 L 479 65"/><path d="M 471 47 L 465 49"/><path d="M 472 31 L 466 28"/><path d="M 484 21 L 482 14"/><path d="M 499 22 L 503 16"/><path d="M 509 34 L 516 32"/><rect x="268.0" y="14.0" width="160.5" height="34.0" rx="9" fill="var(--surface2)"/><path d="M 309.7 45.0 L 262.0 96.0 L 345.0 45.0" fill="var(--surface2)" stroke-width="1.6"/>
+</g>
+<text x="283.0" y="41.0" class="ctext">How tall is it?</text>
+</svg>
+<figcaption class="tooncap">“Measure its shadow. Then measure your own.”</figcaption></figure>
+
+<h3>Why a triangle at all?</h3>
+
+<div class="box idea">
+<span class="lbl">idea</span>
+<p>Seeing is a triangle. Light leaves the top of a tree, travels in a straight line to your eye, and light from the base does the same; those two rays plus the tree make a triangle, and so do you, your shadow, and the Sun. Every act of looking at something distant sets one up.</p>
+<p>This is why geometry was the mathematics of sight, as Lecture 1 claimed. A triangle is the smallest rigid shape &mdash; fix three side lengths and the shape cannot flex, which is untrue of every other polygon &mdash; and rigidity is exactly what lets you deduce what you cannot reach from what you can.</p>
+</div>
+
+<h3>Similar triangles: the engine of the whole subject</h3>
+
+<p>Two triangles are <strong>similar</strong> if they have the same three angles. They may be wildly different in size. The key fact, known to the Greeks and provable from parallel lines, is that similar triangles have <em>proportional sides</em>: if one is three times wider it is three times taller too.</p>
+
+<figure>
+<svg viewBox="0 0 620 250" width="620" height="250" role="img" aria-labelledby="simT simD">
+<title id="simT">Two similar right triangles</title>
+<desc id="simD">A small triangle and a large triangle with the same angles. Corresponding sides are in the same ratio, so the ratio of height to base is identical in both.</desc>
+<path d="M 60 200 L 160 200 L 160 128 Z" fill="var(--sky)" fill-opacity="0.18" stroke="var(--sky)" stroke-width="2.5"/>
+<path d="M 250 200 L 520 200 L 520 5.6 Z" fill="var(--amber)" fill-opacity="0.14" stroke="var(--amber)" stroke-width="2.5"/>
+<path d="M 146 200 L 146 186 L 160 186" stroke="var(--axis)" fill="none"/>
+<path d="M 506 200 L 506 186 L 520 186" stroke="var(--axis)" fill="none"/>
+<text class="axtext" x="98" y="220">100</text><text class="axtext" x="166" y="168">72</text>
+<text class="axtext" x="370" y="220">270</text><text class="axtext" x="526" y="110">194.4</text>
+<text class="axtext" x="60" y="240">72 / 100 = 0.72</text>
+<text class="axtext" x="250" y="240">194.4 / 270 = 0.72</text>
+<path d="M 78 200 A 18 18 0 0 0 74.2 188" fill="none" stroke="var(--rose)" stroke-width="2"/>
+<path d="M 275 200 A 25 25 0 0 0 269.7 183.4" fill="none" stroke="var(--rose)" stroke-width="2"/>
+</svg>
+<figcaption>Same angles, different sizes, identical ratios. The ratio depends only on the angle &mdash; and that observation is the whole of trigonometry. Give the ratio a name that depends only on the angle, and you can look it up instead of drawing anything.</figcaption>
+</figure>
+
+<div class="box def">
+<span class="lbl">definition</span>
+<p>In a right triangle with acute angle \(\theta\), label the sides <em>opposite</em>, <em>adjacent</em> and <em>hypotenuse</em>. Then
+$$\sin\theta=\frac{\text{opp}}{\text{hyp}},\qquad \cos\theta=\frac{\text{adj}}{\text{hyp}},\qquad \tan\theta=\frac{\text{opp}}{\text{adj}}.$$
+These are well defined precisely because similar triangles have proportional sides: any right triangle with that angle gives the same three numbers.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="0.6" role="group" aria-labelledby="sp5_1q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp5_1q">A right triangle has legs 3 and 4 and hypotenuse 5. Let \(\theta\) be the angle opposite the side of length 3. What is \(\sin\theta\)?</p>
+<div class="spot-row"><label for="sp5_1i">your answer</label><input id="sp5_1i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp5_1q sp5_1h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp5_1h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\sin\theta=\tfrac35=0.6\).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Sine is opposite over hypotenuse.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<p>This agrees with Chapter 4. Put the triangle inside the unit circle with \(\theta\) at the origin and the hypotenuse equal to 1, and the opposite side <em>is</em> the height of the terminal point, the adjacent side <em>is</em> its horizontal coordinate. One definition, two costumes. The circle version handles angles beyond \(90^{\circ}\), which no triangle can contain; the triangle version is what you use with a tape measure.</p>
+
+<div class="box thm">
+<span class="lbl">the Pythagorean theorem</span>
+<p>In a right triangle with legs \(a,b\) and hypotenuse \(c\),
+$$a^{2}+b^{2}=c^{2}.$$</p>
+<p>It is the identity \(\cos^{2}\theta+\sin^{2}\theta=1\) of Chapter 4, multiplied through by \(c^{2}\) &mdash; or, read the other way, that identity is Pythagoras applied to a triangle whose hypotenuse is 1.</p>
+</div>
+<div class="box idea">
+<span class="lbl">idea &mdash; SOH-CAH-TOA</span>
+<p>The three ratios are worth memorising by their initials, because you will reach for them constantly:</p>
+<div class="tscroll" tabindex="0" role="region" aria-label="table (scrolls sideways on small screens)"><table>
+<tr><td class="mono">SOH</td><td>\(\textbf{S}\)ine \(=\) \(\textbf{O}\)pposite \(\div\) \(\textbf{H}\)ypotenuse</td></tr>
+<tr><td class="mono">CAH</td><td>\(\textbf{C}\)osine \(=\) \(\textbf{A}\)djacent \(\div\) \(\textbf{H}\)ypotenuse</td></tr>
+<tr><td class="mono">TOA</td><td>\(\textbf{T}\)angent \(=\) \(\textbf{O}\)pposite \(\div\) \(\textbf{A}\)djacent</td></tr>
+</table></div>
+<p>Which side counts as "opposite" and "adjacent" depends on <em>which acute angle you are standing at</em>. The hypotenuse never changes &mdash; it is always the side facing the right angle &mdash; but swap to the other acute angle and opposite and adjacent trade places. That is the single most common source of wrong answers in this lecture.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="0.6" role="group" aria-labelledby="sp5_2q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp5_2q">Same 3-4-5 triangle. Now stand at the <em>other</em> acute angle, \(\varphi\). What is \(\cos\varphi\)?</p>
+<div class="spot-row"><label for="sp5_2i">your answer</label><input id="sp5_2i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp5_2q sp5_2h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp5_2h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\cos\varphi=\tfrac35=0.6\) &mdash; the same number as \(\sin\theta\), because what is opposite one acute angle is adjacent to the other.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> At the other angle, opposite and adjacent swap. The side of length 3 is now <em>adjacent</em> to \(\varphi\).</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<h3>Completing the triangle</h3>
+
+<p>A right triangle has six parts: three sides and three angles, one of which is the right angle. <strong>Completing</strong> it means finding all six from the few you are given. There are only three situations, and each has a standard opening move.</p>
+
+<div class="box thm">
+<span class="lbl">how to complete a right triangle</span>
+<ol>
+<li><strong>Given one angle and one side.</strong> Find the third angle by subtracting from \(90^{\circ}\). Then pick the ratio that connects the side you have to the side you want &mdash; SOH, CAH or TOA &mdash; and solve.</li>
+<li><strong>Given two sides.</strong> Find the third with Pythagoras. Then find an angle with whichever ratio uses the two sides you started with, undoing it with \(\sin^{-1}\), \(\cos^{-1}\) or \(\tan^{-1}\).</li>
+<li><strong>Given two angles only.</strong> You cannot complete it. Angles fix the shape, never the size &mdash; that is exactly what similarity says. You need at least one length.</li>
+</ol>
+</div>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp5_3q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp5_3q">You are told a right triangle has angles \(30^{\circ}\), \(60^{\circ}\) and \(90^{\circ}\), and nothing else. Can you find its sides?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp5_3r" value="0" data-right> <span>No &mdash; angles fix the shape but not the size</span></label>
+<label class="spot-opt"><input type="radio" name="sp5_3r" value="1"> <span>Yes, using SOH-CAH-TOA</span></label>
+<label class="spot-opt"><input type="radio" name="sp5_3r" value="2"> <span>Yes, using Pythagoras</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> A tiny triangle and an enormous one share these angles. You need at least one length.</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> Every ratio needs one known length to start from. Here there is none to plug in.</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> Pythagoras needs two sides to find the third. We have no sides at all.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 5.1 &mdash; one angle and one side</span>
+<p>A right triangle has an angle of \(28^{\circ}\) and the side adjacent to it is 15 cm. Complete the triangle.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Third angle: \(90-28=62^{\circ}\).</p>
+<p>Opposite side: the ratio connecting opposite to adjacent is TOA, so \(\tan28^{\circ}=\dfrac{\text{opp}}{15}\) and opp \(=15\tan28^{\circ}=7.98\) cm.</p>
+<p>Hypotenuse: CAH connects adjacent to hypotenuse, so \(\cos28^{\circ}=\dfrac{15}{\text{hyp}}\) and hyp \(=\dfrac{15}{\cos28^{\circ}}=16.99\) cm.</p>
+<p>Check with Pythagoras: \(15^{2}+7.98^{2}=225+63.7=288.7\), and \(16.99^{2}=288.7\). &#10003;</p>
+<p>Notice that the hypotenuse came from the <em>given</em> side rather than from the one we had just computed. Where you have a choice, always build on the numbers you were handed, so that one slip does not poison everything after it.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 5.2 &mdash; two sides, find the angles</span>
+<p>A wheelchair ramp rises 0.45 m over a horizontal run of 5.4 m. Complete the triangle, and check it against the common building requirement that a ramp be no steeper than 1 in 12.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Hypotenuse: \(\sqrt{0.45^{2}+5.4^{2}}=\sqrt{0.2025+29.16}=5.419\) m.</p>
+<p>Angle at the bottom: opposite and adjacent are known, so use TOA backwards:
+$$\tan\theta=\frac{0.45}{5.4}=0.08333,\qquad \theta=\tan^{-1}(0.08333)=4.76^{\circ}.$$</p>
+<p>The remaining angle is \(85.24^{\circ}\).</p>
+<p>A slope of 1 in 12 means a rise of 1 for a run of 12, which is \(\tan^{-1}(1/12)=4.76^{\circ}\). This ramp is exactly at the limit. The rule is written as a ratio rather than an angle precisely because a ratio can be checked on site with a tape measure and no instrument at all.</p>
+</div>
+</div>
+
+<h3>Two triangles you should know by heart</h3>
+
+<p>Most angles give ugly ratios that only a calculator can supply. Two do not, and they come from shapes you already know.</p>
+
+<figure>
+<svg viewBox="0 0 620 260" width="620" height="260" role="img" aria-labelledby="spT spD">
+<title id="spT">The two special right triangles</title>
+<desc id="spD">On the left, a unit square cut along its diagonal gives a right triangle with legs 1 and 1 and hypotenuse the square root of 2, with angles of 45, 45 and 90 degrees. On the right, an equilateral triangle of side 2 cut down the middle gives a right triangle with sides 1, the square root of 3, and 2, with angles of 30, 60 and 90 degrees.</desc>
+<rect x="60" y="80" width="120" height="120" fill="none" stroke="var(--rule)" stroke-width="1.5" stroke-dasharray="5 4"/><path d="M 60 200 L 180 200 L 180 80 Z" fill="var(--sky)" fill-opacity="0.18" stroke="var(--sky)" stroke-width="2.5"/><path d="M 166 200 L 166 186 L 180 186" fill="none" stroke="var(--axis)"/>
+<text class="lbltext" x="108" y="220">1</text>
+<text class="lbltext" x="188" y="148">1</text>
+<text class="lbltext" x="96" y="132">&#8730;2</text>
+<text class="axtext" x="70" y="192">45&#176;</text>
+<text class="axtext" x="150" y="96">45&#176;</text>
+<text class="axtext" x="44" y="246">cut a square along its diagonal</text>
+<path d="M 380 200 L 520.0 200 L 450.0 78.8 Z" fill="none" stroke="var(--rule)" stroke-width="1.5" stroke-dasharray="5 4"/><path d="M 380 200 L 450.0 200 L 450.0 78.8 Z" fill="var(--amber)" fill-opacity="0.18" stroke="var(--amber)" stroke-width="2.5"/><path d="M 450.0 200 L 450.0 78.8" stroke="var(--axis)" stroke-dasharray="4 3"/><path d="M 436.0 200 L 436.0 186.0 L 450.0 186.0" fill="none" stroke="var(--axis)"/>
+<text class="lbltext" x="404" y="220">1</text>
+<text class="lbltext" x="456" y="150">&#8730;3</text>
+<text class="lbltext" x="396" y="138">2</text>
+<text class="axtext" x="388" y="190">60&#176;</text>
+<text class="axtext" x="434" y="80">30&#176;</text>
+<text class="axtext" x="356" y="246">cut an equilateral triangle down the middle</text>
+</svg>
+<figcaption>Neither triangle needs a calculator. The first comes from a square, the second from an equilateral triangle, and between them they supply exact values for \(30^{\circ}\), \(45^{\circ}\) and \(60^{\circ}\) &mdash; the three angles that appear in almost every problem you will be set.</figcaption>
+</figure>
+
+<div class="box thm">
+<span class="lbl">exact values</span>
+<div class="tscroll" tabindex="0" role="region" aria-label="table (scrolls sideways on small screens)"><table>
+<tr><th>\(\theta\)</th><th>\(\sin\theta\)</th><th>\(\cos\theta\)</th><th>\(\tan\theta\)</th></tr>
+<tr><td>\(30^{\circ}\)</td><td>\(\tfrac12\)</td><td>\(\tfrac{\sqrt3}{2}\)</td><td>\(\tfrac{1}{\sqrt3}\)</td></tr>
+<tr><td>\(45^{\circ}\)</td><td>\(\tfrac{1}{\sqrt2}\)</td><td>\(\tfrac{1}{\sqrt2}\)</td><td>\(1\)</td></tr>
+<tr><td>\(60^{\circ}\)</td><td>\(\tfrac{\sqrt3}{2}\)</td><td>\(\tfrac12\)</td><td>\(\sqrt3\)</td></tr>
+</table></div>
+<p>Every entry is read straight off the two pictures above. Nothing has to be memorised separately &mdash; if you can draw a square and an equilateral triangle, you can rebuild this table in twenty seconds.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="7.0" role="group" aria-labelledby="sp5_4q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp5_4q">Without a calculator: what is \(10\sin30^{\circ}+4\cos60^{\circ}\)?</p>
+<div class="spot-row"><label for="sp5_4i">your answer</label><input id="sp5_4i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp5_4q sp5_4h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp5_4h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(10\cdot\tfrac12+4\cdot\tfrac12=5+2=7\).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Both \(\sin30^{\circ}\) and \(\cos60^{\circ}\) are the short side of the 30-60-90 triangle over its hypotenuse.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 5.3 &mdash; exact answers, no calculator</span>
+<p>A guy wire runs from the top of a 12 m mast to the ground at \(60^{\circ}\) to the horizontal. Find the exact length of the wire and its exact distance from the base.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The mast is opposite the \(60^{\circ}\) angle, so \(\sin60^{\circ}=\dfrac{12}{L}\), giving
+$$L=\frac{12}{\sqrt3/2}=\frac{24}{\sqrt3}=8\sqrt3\ \text{m}\approx13.86\ \text{m}.$$</p>
+<p>The base distance uses TOA: \(d=\dfrac{12}{\tan60^{\circ}}=\dfrac{12}{\sqrt3}=4\sqrt3\approx6.93\) m.</p>
+<p>Note that \(L=2d\), which is the 30-60-90 triangle announcing itself: the hypotenuse is always twice the shortest side. Spotting that lets you write both answers down without touching a calculator.</p>
+<figure>
+<svg viewBox="0 0 620 280" width="620" height="280" role="img" aria-labelledby="guyt guyd">
+<title id="guyt">The guy wire as a 30-60-90 triangle</title><desc id="guyd">A right triangle with a vertical mast of 12 metres, a base of about 6.93 metres, and a hypotenuse of about 13.86 metres meeting the ground at 60 degrees.</desc>
+<path d="M 101.0 214.3 L 315.8 214.3 L 101.0 49.5 Z" fill="var(--amber)" fill-opacity="0.16" stroke="var(--amber)" stroke-width="2.5"/><path d="M 117.0 214.3 L 117.0 198.3 L 101.0 198.3" fill="none" stroke="var(--axis)"/><path d="M 281.8 214.3 A 34 34 0 0 1 298.8 184.8" fill="none" stroke="var(--moss)" stroke-width="2"/><text x="260" y="202" class="axtext" fill="var(--moss)">60°</text><text x="55" y="132" class="lbltext">12 m</text><text x="208" y="227" class="lbltext" text-anchor="middle">4√3 ≈ 6.93 m</text><text x="175" y="110" class="lbltext" fill="var(--amber)">8√3 ≈ 13.86 m</text><text x="410" y="96" class="axtext">the hypotenuse is exactly</text><text x="410" y="120" class="axtext">twice the shortest side</text><text x="410" y="158" class="axtext" fill="var(--cap)">that is the 30-60-90</text><text x="410" y="182" class="axtext" fill="var(--cap)">triangle, scaled by 4√3</text>
+</svg>
+<figcaption>Recognising the 30-60-90 shape saves the arithmetic: the hypotenuse is always twice the shortest side, so once the base came out as \(4\sqrt3\), the wire had to be \(8\sqrt3\).</figcaption>
+</figure>
+
+</div>
+</div>
+
+<h3>Standard position: where the triangle meets the circle</h3>
+
+<p>Chapter 4 defined sine and cosine as coordinates of a point on the unit circle. This lecture defined them as ratios of sides. Those look like two different definitions. They are one picture, and here it is.</p>
+
+<p>Take any right triangle and place it in <strong>standard position</strong>: the vertex of the angle \(\theta\) at the origin, the adjacent side lying along the positive \(x\)-axis, the opposite side going straight up. Now scale the whole triangle until the hypotenuse has length exactly 1 &mdash; which similarity says changes no angle and no ratio.</p>
+
+<figure>
+<svg viewBox="0 0 620 300" width="620" height="300" role="img" aria-labelledby="stT stD">
+<title id="stT">A right triangle in standard position inside the unit circle</title>
+<desc id="stD">A right triangle drawn with its adjacent side along the positive x-axis and its hypotenuse of length one running to a point on the unit circle. The horizontal leg has length cosine theta, the vertical leg has length sine theta, and the arc from the x-axis to that point has length theta in radians.</desc>
+<circle cx="200" cy="170" r="120" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+<line class="axis" x1="50" y1="170" x2="350" y2="170"/><line class="axis" x1="200" y1="30" x2="200" y2="290"/>
+<path d="M 320 170 A 120 120 0 0 0 273.9 75.4" fill="none" stroke="var(--rose)" stroke-width="5"/>
+<path d="M 200 170 L 273.9 75.4 L 273.9 170 Z" fill="var(--sky)" fill-opacity="0.20" stroke="var(--sky)" stroke-width="2.5"/>
+<path d="M 259.9 170 L 259.9 156 L 273.9 156" fill="none" stroke="var(--axis)"/>
+<path d="M 236 170 A 36 36 0 0 0 222.2 141.6" fill="none" stroke="var(--amber)" stroke-width="2"/>
+<circle cx="273.9" cy="75.4" r="5" fill="var(--rose)"/>
+<text class="axtext" x="240" y="162" fill="var(--amber)">&#952;</text>
+<text class="lbltext" x="228" y="188" fill="var(--sky)">cos &#952;</text>
+<text class="lbltext" x="284" y="132" fill="var(--sky)">sin &#952;</text>
+<text class="lbltext" x="212" y="116">1</text>
+<text class="axtext" x="300" y="60" fill="var(--rose)">arc length = &#952;</text>
+<text class="axtext" x="400" y="110">hypotenuse 1, so</text>
+<text class="axtext" x="400" y="134">adjacent &#247; 1 = cos &#952;</text>
+<text class="axtext" x="400" y="158">opposite &#247; 1 = sin &#952;</text>
+<text class="axtext" x="400" y="196">the corner of the triangle sits at</text>
+<text class="axtext" x="400" y="220">the point (cos &#952;, sin &#952;)</text>
+</svg>
+<figcaption>Put the triangle in <strong>standard position</strong> &mdash; right angle on the \(x\)-axis, adjacent side along the positive \(x\)-direction, hypotenuse of length 1 &mdash; and the triangle definition and the circle definition become the same picture. The legs are the coordinates, and the arc swept out is the angle itself, measured in radians.</figcaption>
+</figure>
+
+<div class="box idea">
+<span class="lbl">idea</span>
+<p>With the hypotenuse equal to 1, the ratios lose their denominators. The adjacent side <em>is</em> \(\cos\theta\) and the opposite side <em>is</em> \(\sin\theta\), so the far corner of the triangle sits at the point \((\cos\theta,\sin\theta)\) &mdash; exactly the terminal point of Chapter 4.</p>
+<p>And there is a second thing to notice, which is the reason radians exist. The corner can be described two ways: by <em>the angle turned</em>, or by <em>the distance travelled</em> along the circle from \((1,0)\). On a circle of radius 1 those two numbers are equal, because arc length is \(r\theta\) and \(r=1\). Turning and travelling carry the same information.</p>
+<p>That is the bridge. Triangles are what you use when you have a ruler and a distant object. The circle is what you use when the thing keeps coming back around. Projecting the moving point of the circle onto the axes gives you a triangle at every instant, and reading the triangle at every instant gives you back the circle.</p>
+</div>
+<div class="box spot" data-type="list" data-ans="0.70710678|0.70710678" data-ordered="1" role="group" aria-labelledby="sp5_5q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp5_5q">A point on the unit circle has travelled an arc of length \(\tfrac{\pi}{4}\) from \((1,0)\). What are its coordinates?</p>
+<div class="spot-row"><label for="sp5_5i">your answer</label><input id="sp5_5i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp5_5q sp5_5h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp5_5h">2 numbers, separated by a comma: x, then y (sqrt(2)/2 is fine)</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\left(\tfrac{\sqrt2}{2},\tfrac{\sqrt2}{2}\right)\approx(0.707,0.707)\).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> An arc of \(\tfrac{\pi}{4}\) on the unit circle is an angle of \(45^{\circ}\); the legs of a 45-45-90 triangle with hypotenuse 1 are equal.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div><div class="spot-msg bad" data-kind="count" hidden><span class="spot-tag">Count again.</span> This one wants exactly 2 numbers, separated by commas.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 5.4 &mdash; the same angle, both ways</span>
+<p>A point on the unit circle has travelled an arc of length \(\tfrac{\pi}{3}\) from \((1,0)\). Draw the right triangle it makes with the \(x\)-axis, give its three sides, and state the coordinates of the point.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>An arc of \(\tfrac{\pi}{3}\) on the unit circle is an angle of \(\tfrac{\pi}{3}\) radians, which is \(60^{\circ}\).</p>
+<p>Dropping a vertical line from the point to the \(x\)-axis makes a 30-60-90 triangle with hypotenuse 1. From the special triangle, the side adjacent to \(60^{\circ}\) is \(\tfrac12\) and the opposite side is \(\tfrac{\sqrt3}{2}\).</p>
+<p>So the point is \(\left(\tfrac12,\tfrac{\sqrt3}{2}\right)\) &mdash; which is exactly the entry in the unit-circle table of Lecture 15, now derived from a cut-up equilateral triangle rather than quoted.</p>
+</div>
+</div>
+
+
+
+<div class="widget">
+<h4>Measure a building with a stick</h4>
+<p style="font-size:.95rem;margin:.2em 0 .6em">The Sun is at some angle you cannot easily measure. But you can measure two shadows. Move the Sun and watch both shadows change together &mdash; the ratio of height to shadow is the same for both objects, always.</p>
+<svg id="shSvg" viewBox="0 0 620 300" width="620" height="300" role="img" aria-label="A person and a building casting shadows from the same sun angle">
+  <g id="shRays"></g>
+  <circle id="shSun" cx="120" cy="50" r="18" fill="var(--amber)" fill-opacity="0.6" stroke="var(--amber)"/>
+  <rect x="400" y="90" width="90" height="160" fill="var(--surface2)" stroke="var(--ink)" stroke-width="2"/>
+  <g id="shWin"></g>
+  <rect x="246" y="214" width="9" height="36" fill="var(--sky)" stroke="var(--sky)"/>
+  <line id="shS1" x1="0" y1="250" x2="0" y2="250" stroke="var(--rose)" stroke-width="5"/>
+  <line id="shS2" x1="0" y1="250" x2="0" y2="250" stroke="var(--rose)" stroke-width="5"/>
+  <line class="axis" x1="20" y1="250" x2="600" y2="250"/>
+  <text class="axtext" x="228" y="206">1.8 m</text>
+  <text class="axtext" x="500" y="170">h = ?</text>
+</svg>
+<div class="ctrls"><label for="shA">sun angle = <span id="shAv" class="mono">36</span>&deg;
+<input type="range" id="shA" min="18" max="72" step="1" value="36"></label></div>
+<p class="readout" role="status" aria-live="polite" id="shOut"></p>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 5.5 &mdash; the oldest trick in the book</span>
+<p>A 1.8 m person casts a 2.5 m shadow. At the same moment a building casts a 31 m shadow. How tall is the building, and what is the Sun's angle of elevation?</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The Sun is so far away that its rays arrive parallel, so both triangles have the same angles &mdash; they are similar. Therefore
+$$\frac{h}{31}=\frac{1.8}{2.5}=0.72,\qquad h=22.3\ \text{m}.$$</p>
+<p>The elevation is \(\tan\theta=0.72\), so \(\theta=35.8^{\circ}\).</p>
+<p>Notice that the Sun's angle was never needed. The ratio did all the work, and the ratio came from a stick you could reach. Thales is said to have measured the Great Pyramid this way around 600 BCE, by waiting for the moment when his own shadow equalled his height &mdash; at which instant the pyramid's shadow equals the pyramid's height, and no arithmetic is required at all.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 5.6 &mdash; solving a right triangle</span>
+<p>A cable runs from the top of a 24 m mast to a point on the ground, making a \(52^{\circ}\) angle with the ground. Find the length of the cable and its distance from the base.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The mast is opposite the angle and the cable is the hypotenuse, so \(\sin 52^{\circ}=\dfrac{24}{c}\), giving
+$$c=\frac{24}{\sin52^{\circ}}=\frac{24}{0.7880}=30.5\ \text{m}.$$</p>
+<p>The base distance is adjacent: \(\tan52^{\circ}=\dfrac{24}{d}\), so \(d=\dfrac{24}{1.2799}=18.8\) m.</p>
+<p>Check with Pythagoras: \(24^{2}+18.8^{2}=576+353=929\), and \(30.5^{2}=930\). &#10003; Always run that check; it catches a sine typed where a cosine was meant.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 5.7 &mdash; angle of depression</span>
+<p>From a cliff-top viewpoint 85 m above the sea, a boat is seen at an angle of depression of \(11^{\circ}\). How far is the boat from the base of the cliff? It then moves to an angle of depression of \(19^{\circ}\); how far has it travelled?</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The angle of depression from the top equals the angle of elevation from the boat, since the two horizontals are parallel. So
+$$\tan 11^{\circ}=\frac{85}{d_1},\qquad d_1=\frac{85}{0.1944}=437\ \text{m}.$$</p>
+<p>At \(19^{\circ}\): \(d_2=\dfrac{85}{0.3443}=247\) m. The boat has come \(190\) m closer.</p>
+<p>Worth noticing: the same \(8^{\circ}\) change would correspond to a very different distance if the boat were further out. Near the horizon, small angle changes mean enormous distance changes &mdash; which is why judging distance at sea by eye is so unreliable, and why the tangent function shoots off to infinity.</p>
+<figure>
+<svg viewBox="0 0 620 250" width="620" height="250" role="img" aria-labelledby="dprt dprd">
+<title id="dprt">A cliff, a boat, and two angles of depression</title><desc id="dprd">A vertical cliff 85 metres high with a horizontal dashed line at the top. Two sight lines run down to the sea, one at 11 degrees below the horizontal reaching a boat 437 metres out, the other at 19 degrees reaching 247 metres out.</desc>
+<rect x="40" y="175.1" width="560" height="24.9" fill="var(--sky)" fill-opacity="0.12"/><line x1="80.0" y1="175.1" x2="80.0" y2="69.5" stroke="var(--ink)" stroke-width="3"/><line x1="40.0" y1="175.1" x2="600.0" y2="175.1" stroke="var(--axis)" stroke-width="2"/><line x1="80.0" y1="69.5" x2="200.0" y2="69.5" stroke="var(--rule)" stroke-width="1.5" stroke-dasharray="6 4"/><line x1="80.0" y1="69.5" x2="327.0" y2="175.1" stroke="var(--amber)" stroke-width="2.5"/><line x1="80.0" y1="69.5" x2="517.0" y2="175.1" stroke="var(--moss)" stroke-width="2.5"/><circle cx="327.0" cy="175.1" r="5" fill="var(--moss)"/><circle cx="517.0" cy="175.1" r="5" fill="var(--amber)"/><path d="M 126.0 69.5 A 46 46 0 0 1 125.2 78.3" fill="none" stroke="var(--amber)" stroke-width="2"/><text x="134" y="88" class="axtext" fill="var(--amber)">11°</text><text x="134" y="110" class="axtext" fill="var(--moss)">19°</text><text x="46" y="119" class="axtext">85 m</text><text x="200" y="197" class="axtext" fill="var(--moss)" text-anchor="middle">247 m</text><text x="410" y="219" class="axtext" fill="var(--amber)" text-anchor="middle">437 m</text><text x="330" y="51" class="axtext" fill="var(--rose)" text-anchor="middle">the boat moves 190 m closer</text>
+</svg>
+<figcaption>The angle of depression from the cliff top equals the angle of elevation from the boat, because the two horizontals are parallel. Notice how much further the shallower sight line reaches &mdash; near the horizon a small change of angle is an enormous change of distance, which is the tangent function running away to infinity.</figcaption>
+</figure>
+
+</div>
+</div>
+
+<h3>Eclipses: a coincidence worth checking</h3>
+
+<p>A total solar eclipse happens because the Moon, seen from the Earth, is almost exactly the same size as the Sun. Not actually the same size &mdash; the Sun is 400 times wider. But it is also about 400 times further away, and similar triangles say that is what matters.</p>
+
+<div class="box def">
+<span class="lbl">definition</span>
+<p>The <strong>angular size</strong> of an object of width \(D\) at distance \(d\) is the angle it takes up in your field of view. For \(D\) much smaller than \(d\),
+$$\theta\approx\frac{D}{d}\ \text{radians}.$$
+<p>This is the small-angle approximation of Lecture 15 doing real work: it is why the Moon and a coin held at arm's length can block the same amount of sky.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="0.01" role="group" aria-labelledby="sp5_6q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp5_6q">A 1 m object is 100 m away. Roughly what is its angular size, in radians?</p>
+<div class="spot-row"><label for="sp5_6i">your answer</label><input id="sp5_6i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp5_6q sp5_6h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp5_6h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\theta\approx1/100=0.01\) rad, a little over half a degree &mdash; about the size of the Moon.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Use \(\theta\approx D/d\) with both lengths in the same units.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<figure>
+<svg viewBox="0 0 620 260" width="620" height="260" role="img" aria-labelledby="eclT eclD">
+<title id="eclT">Why a small moon can cover a huge sun</title>
+<desc id="eclD">An eye on the left, with two lines of sight opening out to the right. A small disc near the eye and a much larger disc far away both exactly fill the gap between the lines.</desc>
+<circle cx="50" cy="130" r="10" fill="var(--ink)" stroke="none"/>
+<path d="M 50 130 L 590 60" stroke="var(--moss)" stroke-width="2"/>
+<path d="M 50 130 L 590 200" stroke="var(--moss)" stroke-width="2"/>
+<circle cx="215" cy="130" r="11" fill="var(--cap)" stroke="var(--ink)" stroke-width="1.5"/>
+<circle cx="540" cy="130" r="32" fill="var(--amber)" fill-opacity="0.55" stroke="var(--amber)" stroke-width="2"/>
+<path d="M 215 108 L 215 152" stroke="var(--rose)" stroke-dasharray="4 3"/>
+<path d="M 540 66 L 540 194" stroke="var(--rose)" stroke-dasharray="4 3"/>
+<text class="axtext" x="188" y="176">Moon</text><text class="axtext" x="520" y="228">Sun</text>
+<text class="axtext" x="72" y="118">one eye</text>
+<text class="axtext" x="250" y="40">400 times smaller, 400 times closer — same angle</text>
+</svg>
+<figcaption>Angular size is all that a single eye can judge. The Moon's diameter is 3,475 km at 384,400 km away; the Sun's is 1,392,000 km at 149,600,000 km. Both work out to about half a degree of sky.</figcaption>
+</figure>
+
+<div class="box ex">
+<span class="lbl">example 5.8 &mdash; total or annular?</span>
+<p>Compute the angular size of the Sun and of the Moon in degrees. Then repeat the Moon's calculation at its closest approach, 363,300 km, and at its furthest, 405,500 km. What do you conclude?</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Sun: \(\theta=\dfrac{1{,}392{,}000}{149{,}600{,}000}=0.009305\) rad \(=0.533^{\circ}\).</p>
+<p>Moon on average: \(\dfrac{3{,}475}{384{,}400}=0.009040\) rad \(=0.518^{\circ}\) &mdash; very slightly smaller than the Sun.</p>
+<p>At its closest: \(0.548^{\circ}\), comfortably larger. At its furthest: \(0.491^{\circ}\), noticeably smaller.</p>
+<p>So it depends on where the Moon is in its orbit. When it is near, it covers the Sun completely and you get a total eclipse with a visible corona. When it is far, a ring of Sun remains uncovered &mdash; an <em>annular</em> eclipse, from the Latin for ring, and one you must never look at directly.</p>
+<p>The whole phenomenon hangs on a coincidence of two ratios, and it is temporary: the Moon recedes about 3.8 cm a year, so in roughly 600 million years total eclipses will stop happening. We are living in the era when they work.</p>
+</div>
+</div>
+
+<h3>Measuring the Earth</h3>
+
+<p>Around 240 BCE the librarian at Alexandria, Eratosthenes, measured the circumference of the planet to within a couple of per cent, using a stick, a well and a single angle. It is the best example there is of how far a triangle can be made to reach.</p>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; how they knew it was round in the first place</span>
+<p>It is worth being clear that the shape of the Earth was not in doubt among educated Greeks by then, and not because anyone had guessed. There were measurements.</p>
+<ul>
+<li><strong>Ships vanish hull first.</strong> A ship sailing away disappears from the bottom upward, and a sailor climbing the mast can see it again. On a flat sea it would simply shrink.</li>
+<li><strong>The stars move as you travel.</strong> Sail south and constellations appear over the horizon that could not be seen from home, while northern ones sink. The amount they shift is proportional to how far you sailed.</li>
+<li><strong>The shadow on the Moon.</strong> During a lunar eclipse the Earth's shadow crossing the Moon is always a circular arc, from every location and at every angle. Only a sphere casts a round shadow in every direction.</li>
+<li><strong>Shadows differ.</strong> Two vertical poles a few hundred miles apart cast different shadows at the same instant. On a flat Earth under a distant Sun they would cast identical ones.</li>
+</ul>
+<p>That last observation is not merely evidence that the Earth is curved. Measure the difference and it tells you <em>how much</em> it curves &mdash; which is the whole method.</p>
+</div>
+
+<figure>
+<svg viewBox="0 0 620 320" width="620" height="320" role="img" aria-labelledby="erT erD">
+<title id="erT">Eratosthenes measuring the Earth from two shadows</title>
+<desc id="erD">A circle representing the Earth with its centre marked. Parallel rays of sunlight arrive from the upper right. At Syene the ray runs straight down a vertical well and casts no shadow. At Alexandria, further north, an identical vertical pole casts a shadow, and the ray makes an angle of 7.2 degrees with the pole. Because the rays are parallel, that same 7.2 degrees is the angle at the centre of the Earth between the two cities.</desc>
+<circle cx="300" cy="190" r="115" fill="var(--surface2)" stroke="var(--rule)" stroke-width="2"/>
+<circle cx="300" cy="190" r="4" fill="var(--ink)"/>
+<line x1="525" y1="1" x2="465" y2="149" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/><path d="M 465 149 l -7.2 5.4 l 8.6 3.5" fill="none" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/><line x1="483" y1="-17" x2="423" y2="132" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/><path d="M 423 132 l -7.2 5.4 l 8.6 3.5" fill="none" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/><line x1="440" y1="-34" x2="380" y2="115" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/><path d="M 380 115 l -7.2 5.4 l 8.6 3.5" fill="none" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/><line x1="397" y1="-51" x2="337" y2="97" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/><path d="M 337 97 l -7.2 5.4 l 8.6 3.5" fill="none" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/><line x1="355" y1="-68" x2="295" y2="80" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/><path d="M 295 80 l -7.2 5.4 l 8.6 3.5" fill="none" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/><line x1="312" y1="-86" x2="252" y2="63" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/><path d="M 252 63 l -7.2 5.4 l 8.6 3.5" fill="none" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/><line x1="269" y1="-103" x2="210" y2="46" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/><path d="M 210 46 l -7.2 5.4 l 8.6 3.5" fill="none" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/><line x1="227" y1="-120" x2="167" y2="28" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/><path d="M 167 28 l -7.2 5.4 l 8.6 3.5" fill="none" stroke="var(--amber)" stroke-width="1.8" opacity="0.75"/>
+<line x1="300" y1="190" x2="343" y2="83" stroke="var(--rule)" stroke-dasharray="4 4"/>
+<line x1="300" y1="190" x2="301" y2="75" stroke="var(--rule)" stroke-dasharray="4 4"/>
+<path d="M 322 168 A 30 30 0 0 0 300.2 160.0" fill="none" stroke="var(--rose)" stroke-width="2.5"/>
+<text class="axtext" x="318" y="160" fill="var(--rose)">7.2&#176;</text>
+<line x1="343" y1="83" x2="356" y2="52" stroke="var(--moss)" stroke-width="4"/>
+<line x1="301" y1="75" x2="301" y2="41" stroke="var(--moss)" stroke-width="4"/>
+<text class="axtext" x="354" y="37">Syene: no shadow</text>
+<text class="axtext" x="151" y="27">Alexandria: a shadow</text>
+<text class="axtext" x="20" y="300">the two cities are 5,000 stadia apart, and 7.2&#176; is one fiftieth of a full turn</text>
+</svg>
+<figcaption>The whole measurement in one picture. Sunlight arrives effectively parallel, so the angle a pole's shadow reveals at Alexandria is the same as the angle between the two cities at the centre of the Earth. One fiftieth of a turn spans 5,000 stadia, so the whole circumference is fifty times that.</figcaption>
+</figure>
+<div class="box spot" data-type="num" data-ans="500000.0" role="group" aria-labelledby="sp5_7q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp5_7q">Suppose the shadow angle at Alexandria had been \(3.6^{\circ}\) instead, with the cities still 5,000 stadia apart. What circumference, in stadia, would that give?</p>
+<div class="spot-row"><label for="sp5_7i">your answer</label><input id="sp5_7i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp5_7q sp5_7h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp5_7h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(3.6/360=1/100\), so the circumference would be \(100\times5{,}000=500{,}000\) stadia. A smaller angle means a flatter, larger Earth.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> \(3.6^{\circ}\) is what fraction of \(360^{\circ}\)? The 5,000 stadia is that fraction of the whole way round.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 5.9 &mdash; the circumference of the Earth</span>
+<p>At noon on the summer solstice the Sun is directly overhead at Syene: a vertical pole casts no shadow and sunlight reaches the bottom of a deep well. At the same moment in Alexandria, 5,000 stadia to the north, an identical pole casts a shadow, and the Sun's rays make an angle of \(7.2^{\circ}\) with the pole. Find the circumference.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The Sun is so distant that its rays arrive parallel. A pole points straight at the centre of the Earth, so the angle between the ray and the pole at Alexandria equals the angle between the two cities measured at the centre &mdash; alternate angles across parallel lines, the same fact that made similar triangles work.</p>
+<p>That angle is \(7.2^{\circ}\), and
+$$\frac{7.2}{360}=\frac{1}{50},$$
+so the arc between the cities is one fiftieth of the whole way round:
+$$C=50\times5{,}000=250{,}000\ \text{stadia}.$$</p>
+<p>A stadion was roughly 157.5 m, giving about 39,400 km against the true 40,075 km &mdash; an error under 2%. From the circumference the radius follows immediately: \(r=C/2\pi\approx6{,}270\) km.</p>
+<p>Every step is in this lecture. What the calculation actually required was noticing that a shadow in one city and no shadow in another, at the same instant, is a measurement of the planet.</p>
+</div>
+</div>
+
+<h3>And then the Moon</h3>
+
+<p>With the size of the Earth known, the Moon falls next &mdash; and it takes two observations and a ratio.</p>
+
+<figure>
+<svg viewBox="0 0 620 260" width="620" height="260" role="img" aria-labelledby="mnT mnD">
+<title id="mnT">Measuring the Moon during a lunar eclipse</title>
+<desc id="mnD">The Earth casts a shadow into space. The Moon passes through it. The width of the shadow where the Moon crosses it is about two and a half times the Moon's own diameter, which tells you how much smaller the Moon is than the Earth.</desc>
+<circle cx="90" cy="130" r="52" fill="var(--sky)" fill-opacity="0.30" stroke="var(--sky)" stroke-width="2"/>
+<text class="axtext" x="70" y="200">Earth</text>
+<path d="M 142 92 L 560 118 L 560 142 L 142 168 Z" fill="var(--ink)" fill-opacity="0.30" stroke="var(--rule)"/>
+<text class="axtext" x="300" y="86">the Earth&#8217;s shadow, narrowing with distance</text>
+<circle cx="430" cy="130" r="14" fill="var(--cap)" stroke="var(--ink)" stroke-width="1.5"/>
+<circle cx="330" cy="130" r="14" fill="none" stroke="var(--rule)" stroke-width="1.5" stroke-dasharray="4 3"/>
+<circle cx="530" cy="130" r="14" fill="none" stroke="var(--rule)" stroke-width="1.5" stroke-dasharray="4 3"/>
+<line x1="430" y1="112" x2="430" y2="148" stroke="var(--rose)" stroke-width="2"/>
+<line x1="404" y1="102" x2="404" y2="158" stroke="var(--rose)" stroke-width="2"/>
+<text class="axtext" x="352" y="222">the shadow is about 2.5 Moon-widths across here</text>
+<text class="axtext" x="412" y="176">Moon</text>
+</svg>
+<figcaption>The Greeks timed how long the Moon took to cross the Earth's shadow and compared it with how long the Moon takes to move its own width. The shadow came out about two and a half times wider than the Moon &mdash; and that single ratio is enough to find the Moon's size, and then its distance.</figcaption>
+</figure>
+
+<div class="box ex">
+<span class="lbl">example 5.10 &mdash; how big is the Moon, and how far?</span>
+<p>During a lunar eclipse the Earth's shadow at the Moon's distance is measured to be about \(2.5\) Moon-diameters wide, and the shadow there is about \(0.72\) of the Earth's own diameter (it has narrowed on the way out). The Moon's angular size is \(0.52^{\circ}\). Taking the Earth's diameter as 12,742 km, find the Moon's diameter and its distance.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p><strong>Size.</strong> The shadow at that distance is \(0.72\times12{,}742=9{,}174\) km across, and the Moon is 2.5 times narrower than that:
+$$D_{\text{Moon}}=\frac{9{,}174}{2.5}=3{,}670\ \text{km},$$
+against the true 3,475 km. Close, from a stopwatch and an eclipse.</p>
+<p><strong>Distance.</strong> Now use angular size, which is the small-angle version of a very thin triangle: \(\theta\approx D/d\), with \(\theta\) in radians. Here \(0.52^{\circ}=0.00908\) rad, so
+$$d=\frac{D}{\theta}=\frac{3{,}475}{0.00908}=382{,}700\ \text{km},$$
+against the true average of 384,400 km.</p>
+<p>Stand back from what just happened. Two thousand two hundred years ago, with no telescope, no clock worth the name and no algebra, people established the size of the Earth, the size of the Moon and the distance between them &mdash; and got all three right to within a few per cent. The only equipment was a shadow, a stopwatch of sorts, and the fact that similar triangles have proportional sides.</p>
+</div>
+</div>
+
+<div class="box hist">
+<span class="lbl">history</span>
+<p>Aristarchus of Samos, around 270 BCE, tried to measure the distance to the Sun. At the exact moment the Moon is half lit, the Earth&ndash;Moon&ndash;Sun angle at the Moon is a right angle, so the triangle is determined by the single angle at the Earth. He measured it as \(87^{\circ}\), giving a Sun roughly 19 times further than the Moon.</p>
+<p>The true angle is \(89.85^{\circ}\) and the true ratio is about 390. His method was flawless and his answer was off by a factor of twenty, because near \(90^{\circ}\) the cosine is brutally sensitive: a fifth of a degree of measurement error moves the answer by a factor of two. Good mathematics plus an instrument that is not quite good enough gives a confident wrong answer, which is a lesson worth more than the number.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 5.1</span>
+<ol>
+<li>In a right triangle, the side opposite a \(38^{\circ}\) angle is 12 cm. Find the hypotenuse, the other leg, and the remaining angle.</li>
+<li>A ladder 6.5 m long leans against a wall, reaching 5.9 m up. Find the angle it makes with the ground and how far its foot is from the wall.</li>
+<li>A 2 m pole casts a 3.4 m shadow. At the same time a flagpole casts a 27 m shadow. Find its height and the Sun's elevation.</li>
+<li>From a window 18 m up, the angle of elevation to the top of a taller building is \(24^{\circ}\) and the angle of depression to its base is \(31^{\circ}\). How tall is the other building?</li>
+<li>Jupiter has a diameter of 143,000 km and at its closest is 588 million km away. Find its angular size in degrees, and compare with the Moon's \(0.52^{\circ}\). Why does it look like a dot to the naked eye?</li>
+<li>A coin 2.4 cm across is held at arm's length, 70 cm from the eye. Compute its angular size, and decide whether it can cover the Moon.</li>
+<li>Explain, using similar triangles, why a pinhole camera produces an image that is upside down and why moving the screen further back makes the image larger.</li>
+<li>Aristarchus measured \(87^{\circ}\) where the true value is \(89.85^{\circ}\). Compute \(1/\cos\theta\) for both, and use the two answers to explain in one sentence why his method was so fragile.</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>\(c=\dfrac{12}{\sin38^{\circ}}=19.5\) cm; other leg \(=\dfrac{12}{\tan38^{\circ}}=15.4\) cm; remaining angle \(52^{\circ}\).</li>
+<li>\(\sin\theta=\dfrac{5.9}{6.5}=0.9077\), so \(\theta=65.2^{\circ}\); the foot is \(\sqrt{6.5^{2}-5.9^{2}}=2.73\) m from the wall.</li>
+<li>\(h=27\times\dfrac{2}{3.4}=15.9\) m; elevation \(\arctan(2/3.4)=30.5^{\circ}\).</li>
+<li>The horizontal distance is \(d=\dfrac{18}{\tan31^{\circ}}=29.9\) m. The part above the window is \(29.9\tan24^{\circ}=13.3\) m, so the building is \(18+13.3=31.3\) m tall.</li>
+<li>\(\dfrac{143{,}000}{588{,}000{,}000}=2.43\times10^{-4}\) rad \(=0.0139^{\circ}\), about one thirty-seventh of the Moon's. The eye cannot resolve detail below roughly \(0.02^{\circ}\), so Jupiter sits right at the edge of being a disc and reads as a point.</li>
+<li>\(\dfrac{2.4}{70}=0.0343\) rad \(=1.96^{\circ}\), nearly four times the Moon's angular size. Yes &mdash; comfortably.</li>
+<li>Rays through the pinhole travel in straight lines, so a ray from the top of the object arrives at the bottom of the screen and vice versa: the image inverts. The object and image form two similar triangles meeting at the hole, so image size divided by screen distance equals object size divided by object distance &mdash; move the screen back and the image grows in proportion.</li>
+<li>\(1/\cos87^{\circ}=19.1\) and \(1/\cos89.85^{\circ}=382\). Near \(90^{\circ}\) the cosine is nearly zero, so dividing by it magnifies a tiny measurement error into an enormous error in the answer.</li>
+</ol>
+</div>
+</div>
+<hr>
+<!-- ================= LECTURE 20 ================= -->
+<h2 id="L20">Lecture 20 &mdash; Any angle, any triangle</h2>
+
+<figure class="toon">
+<svg viewBox="0 0 560 200" width="560" height="200" role="img" aria-labelledby="L20t L20d">
+<title id="L20t">Cartoon: two sides and an angle giving two triangles</title><desc id="L20d">A stick figure thinks beside two different triangles drawn on the same base, one solid and one dashed.</desc>
+<defs><filter id="rough56" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="56" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough56)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="110.0" cy="124.0" r="11.0" /><path d="M 110.0 135.0 L 110.0 160.0" /><path d="M 110.0 140.0 L 96.0 158.0" /><path d="M 110.0 140.0 L 116.0 130.0" /><path d="M 110.0 160.0 L 99.0 184.0" /><path d="M 110.0 160.0 L 121.0 184.0" /><path d="M 30 170 L 540 170" stroke-width="1.6"/><path d="M 300 160 L 440 160 L 350 80 Z"/><path d="M 300 160 L 440 160 L 390 96 Z" stroke-dasharray="6 4"/><rect x="50.0" y="14.0" width="169.2" height="52.0" rx="9" fill="var(--surface2)"/><path d="M 94.0 63.0 L 110.0 96.0 L 131.2 63.0" fill="var(--surface2)" stroke-width="1.6"/>
+</g>
+<text x="65.0" y="41.0" class="ctext">I know two sides</text><text x="65.0" y="59.0" class="ctext">and one angle.</text>
+</svg>
+<figcaption class="tooncap">“Then you may know two triangles.”</figcaption></figure>
+
+<p>Everything so far needed a right angle. Most triangles do not have one, and the fix is two formulas that between them solve any triangle at all.</p>
+
+<h3>Angles beyond the right angle</h3>
+
+<p>First, a definitional loose end. A triangle can contain an obtuse angle, and \(\sin 130^{\circ}\) means nothing in the opposite-over-hypotenuse picture &mdash; no right triangle has a \(130^{\circ}\) angle in it. The circle definition of Chapter 4 has no such difficulty: put the angle in standard position, read off the coordinates of the terminal point, done.</p>
+
+<p>So we use the circle definition and the triangle one becomes a special case. The consequence worth memorising: \(\sin(180^{\circ}-\theta)=\sin\theta\), because reflecting a terminal point across the vertical axis leaves its height unchanged, while \(\cos(180^{\circ}-\theta)=-\cos\theta\), because the horizontal coordinate flips. Sine cannot tell an angle from its supplement. That fact will cause us trouble shortly, and it is honest trouble.</p>
+<div class="box spot" data-type="num" data-ans="0.5" role="group" aria-labelledby="sp5_8q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp5_8q">Without a calculator: what is \(\sin150^{\circ}\)?</p>
+<div class="spot-row"><label for="sp5_8i">your answer</label><input id="sp5_8i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp5_8q sp5_8h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp5_8h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\sin150^{\circ}=\sin30^{\circ}=\tfrac12\). (Cosine <em>can</em> tell: \(\cos150^{\circ}=-\tfrac{\sqrt3}{2}\).)</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> \(150^{\circ}=180^{\circ}-30^{\circ}\), and sine cannot tell an angle from its supplement.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<div class="box thm">
+<span class="lbl">the Law of Sines</span>
+<p>In any triangle with sides \(a,b,c\) opposite angles \(A,B,C\),
+$$\frac{\sin A}{a}=\frac{\sin B}{b}=\frac{\sin C}{c}.$$
+<p>Use it when a side and its opposite angle are known as a pair.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="10.0" role="group" aria-labelledby="sp5_9q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp5_9q">A triangle has \(A=30^{\circ}\), \(a=5\) and \(B=90^{\circ}\). What is \(b\)?</p>
+<div class="spot-row"><label for="sp5_9i">your answer</label><input id="sp5_9i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp5_9q sp5_9h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp5_9h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\dfrac{0.5}{5}=\dfrac{1}{b}\), so \(b=10\) &mdash; the hypotenuse twice the shortest side, as in the 30-60-90 triangle.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Set \(\dfrac{\sin A}{a}=\dfrac{\sin B}{b}\) and solve for \(b\).</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<div class="box thm">
+<span class="lbl">the Law of Cosines</span>
+$$c^{2}=a^{2}+b^{2}-2ab\cos C$$
+<p>Use it for three sides, or for two sides and the angle between them. When \(C=90^{\circ}\) the cosine is zero and this collapses to Pythagoras &mdash; so the Law of Cosines is Pythagoras with a correction term for the angle not being right.</p>
+</div>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp5_10q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp5_10q">You know all three sides of a triangle and none of its angles. Which tool finds an angle?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp5_10r" value="0" data-right> <span>the Law of Cosines</span></label>
+<label class="spot-opt"><input type="radio" name="sp5_10r" value="1"> <span>the Law of Sines</span></label>
+<label class="spot-opt"><input type="radio" name="sp5_10r" value="2"> <span>SOH-CAH-TOA</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> Rearrange \(c^{2}=a^{2}+b^{2}-2ab\cos C\) to get \(\cos C\) from the three sides.</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> The Law of Sines needs a matched pair: a side <em>and</em> the angle opposite it. You have no angles yet.</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> Those ratios only apply when there is a right angle, and we do not know that there is one.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<figure>
+<svg viewBox="0 0 620 250" width="620" height="250" role="img" aria-labelledby="lawT lawD">
+<title id="lawT">Labelling a general triangle</title>
+<desc id="lawD">A triangle with vertices labelled A, B and C, and the side opposite each vertex labelled with the matching lower case letter. A dropped height is shown as a dashed line.</desc>
+<path d="M 90 200 L 470 200 L 330 50 Z" fill="var(--sky)" fill-opacity="0.13" stroke="var(--sky)" stroke-width="2.5"/>
+<path d="M 330 50 L 330 200" stroke="var(--rose)" stroke-width="2" stroke-dasharray="6 4"/>
+<path d="M 330 186 L 344 186 L 344 200" fill="none" stroke="var(--axis)"/>
+<text class="lbltext" x="70" y="214">A</text><text class="lbltext" x="478" y="214">B</text><text class="lbltext" x="324" y="38">C</text>
+<text class="lbltext" x="270" y="222">c</text><text class="lbltext" x="410" y="118">a</text><text class="lbltext" x="196" y="116">b</text>
+<text class="axtext" x="338" y="130" fill="var(--rose)">h = b sin A</text>
+<text class="axtext" x="90" y="240">the height h can be written from either side — and equating the two versions proves the Law of Sines</text>
+</svg>
+<figcaption>Both laws come from dropping a perpendicular and applying right-triangle trigonometry twice. The height is \(b\sin A\) from one side and \(a\sin B\) from the other; setting those equal and dividing gives the Law of Sines in one line.</figcaption>
+</figure>
+
+<div class="box ex">
+<span class="lbl">example 5.11 &mdash; two angles and a side</span>
+<p>A triangle has \(A=41^{\circ}\), \(B=77^{\circ}\) and \(a=13\) cm. Solve it completely.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(C=180-41-77=62^{\circ}\).</p>
+<p>By the Law of Sines, \(b=\dfrac{a\sin B}{\sin A}=\dfrac{13(0.9744)}{0.6561}=19.3\) cm and \(c=\dfrac{13(0.8829)}{0.6561}=17.5\) cm.</p>
+<p>Sanity check: the largest angle is \(B\) and the largest side came out as \(b\). In any triangle the biggest side faces the biggest angle, and checking that ordering catches most arithmetic slips instantly.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 5.12 &mdash; two sides and the angle between</span>
+<p>Two roads leave a junction at an angle of \(60^{\circ}\). One town is 5 km along the first, another 7 km along the second. How far apart are they, and what angle does the connecting road make with the first?</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The angle is between the two known sides, so use the Law of Cosines:
+$$d^{2}=5^{2}+7^{2}-2(5)(7)\cos60^{\circ}=25+49-35=39,$$
+so \(d=6.245\) km.</p>
+<p>For the angle at the first town, use the Law of Sines: \(\dfrac{\sin\theta}{7}=\dfrac{\sin60^{\circ}}{6.245}\), giving \(\sin\theta=0.9707\) and \(\theta=76.1^{\circ}\) (the obtuse alternative \(103.9^{\circ}\) is impossible here, since the remaining angles must sum to \(120^{\circ}\)).</p>
+<p>Note how much shorter the direct road is than going back through the junction: 6.2 km against 12. That saving is the triangle inequality, and it is the same fact that made the diagonal across the park worth taking in Lecture 1.</p>
+<figure>
+<svg viewBox="0 0 620 270" width="620" height="270" role="img" aria-labelledby="rdst rdsd">
+<title id="rdst">Two roads from a junction and the direct link between the towns</title><desc id="rdsd">A triangle with a 60 degree angle at the junction, sides of 5 and 7 kilometres along the two roads, and the third side, 6.245 kilometres, joining the two towns directly.</desc>
+<path d="M 96.0 202.2 L 276.0 202.2 L 222.0 46.1 Z" fill="var(--sky)" fill-opacity="0.14" stroke="var(--sky)" stroke-width="2.5"/><path d="M 136.0 202.2 A 40 40 0 0 0 116.0 167.6" fill="none" stroke="var(--amber)" stroke-width="2"/><text x="142" y="180" class="axtext" fill="var(--amber)">60°</text><circle cx="96.0" cy="202.2" r="5.5" fill="var(--ink)"/><text x="66.0" y="224.2" class="axtext">junction</text><circle cx="276.0" cy="202.2" r="5.5" fill="var(--rose)"/><text x="252.0" y="226.2" class="axtext">town A, 5 km</text><circle cx="222.0" cy="46.1" r="5.5" fill="var(--rose)"/><text x="230.0" y="36.1" class="axtext">town B, 7 km</text><text x="186" y="215" class="lbltext" text-anchor="middle">5</text><text x="146" y="115" class="lbltext">7</text><text x="265" y="115" class="lbltext" fill="var(--moss)">6.245</text><line x1="276.0" y1="202.2" x2="222.0" y2="46.1" stroke="var(--moss)" stroke-width="3"/><text x="450" y="90" class="axtext">going back through the</text><text x="450" y="114" class="axtext">junction: 12 km</text><text x="450" y="152" class="axtext" fill="var(--moss)">direct: 6.245 km</text><text x="450" y="190" class="axtext" fill="var(--cap)">the saving is the triangle</text><text x="450" y="214" class="axtext" fill="var(--cap)">inequality, in kilometres</text>
+</svg>
+<figcaption>The Law of Cosines is the tool because the known angle sits <em>between</em> the two known sides. And the answer makes the geometry vivid: the direct road is barely half the length of going back through the junction.</figcaption>
+</figure>
+
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 5.13 &mdash; three sides, no angles</span>
+<p>A triangular plot has sides 8, 11 and 14 m. Find all three angles and the area.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Rearrange the Law of Cosines to find the angle opposite the side of length 8:
+$$\cos A=\frac{11^{2}+14^{2}-8^{2}}{2(11)(14)}=\frac{253}{308}=0.8214,\qquad A=34.8^{\circ}.$$</p>
+<p>Similarly \(\cos B=\dfrac{8^{2}+14^{2}-11^{2}}{2(8)(14)}=0.6206\), so \(B=51.6^{\circ}\), and \(C=180-34.8-51.6=93.6^{\circ}\).</p>
+<p>Area \(=\tfrac12ab\sin C=\tfrac12(8)(11)\sin93.6^{\circ}=43.9\) m&#178;.</p>
+<p>Always find the <em>largest</em> angle with the cosine rule, not the sine rule. Cosine distinguishes acute from obtuse by its sign; sine does not, and here \(C\) is obtuse by a hair &mdash; the sine rule would have quietly offered you \(86.4^{\circ}\).</p>
+</div>
+</div>
+
+<h3>Why a triangle is the unit of area</h3>
+
+<p>There is only one area anybody really knows how to find, and it is the rectangle: lay out \(b\) columns of \(h\) unit squares and count them. Every other area in mathematics is obtained by reducing it to that one, and the tool for the reduction is the triangle.</p>
+
+<figure>
+<svg viewBox="0 0 620 240" width="620" height="240" role="img" aria-labelledby="arT arD">
+<title id="arT">Why the area of a triangle is half the base times the height</title>
+<desc id="arD">On the left, a rectangle of base b and height h filled with a grid of unit squares. On the right, the same rectangle with a triangle drawn inside it; the two leftover pieces together are congruent to the triangle, so the triangle is exactly half the rectangle.</desc>
+<g>
+<rect x="40" y="60" width="200" height="120" fill="var(--sky)" fill-opacity="0.16" stroke="var(--sky)" stroke-width="2.5"/>
+<line x1="80" y1="60" x2="80" y2="180" stroke="var(--sky)" stroke-width="1" opacity="0.6"/><line x1="120" y1="60" x2="120" y2="180" stroke="var(--sky)" stroke-width="1" opacity="0.6"/><line x1="160" y1="60" x2="160" y2="180" stroke="var(--sky)" stroke-width="1" opacity="0.6"/><line x1="200" y1="60" x2="200" y2="180" stroke="var(--sky)" stroke-width="1" opacity="0.6"/><line x1="40" y1="100" x2="240" y2="100" stroke="var(--sky)" stroke-width="1" opacity="0.6"/><line x1="40" y1="140" x2="240" y2="140" stroke="var(--sky)" stroke-width="1" opacity="0.6"/>
+<text class="lbltext" x="130" y="202">b</text><text class="lbltext" x="18" y="126">h</text>
+<text class="axtext" x="40" y="228">area = b &#215; h, by counting squares</text>
+<rect x="360" y="60" width="200" height="120" fill="none" stroke="var(--rule)" stroke-width="2" stroke-dasharray="5 4"/>
+<path d="M 360 180 L 560 180 L 470 60 Z" fill="var(--amber)" fill-opacity="0.30" stroke="var(--amber)" stroke-width="2.5"/>
+<path d="M 470 60 L 470 180" stroke="var(--rose)" stroke-width="2" stroke-dasharray="4 3"/>
+<text class="axtext" x="392" y="110">half</text><text class="axtext" x="500" y="110">half</text>
+<text class="axtext" x="360" y="228">area = &#189; b &#215; h, whatever the triangle&#8217;s shape</text>
+</g>
+</svg>
+<figcaption>The rectangle is the only area we really define: so many rows of so many unit squares. Everything else is reduced to it. Drop the height and each half of the rectangle is split by the triangle into two matching pieces, so the triangle takes exactly half &mdash; and this stays true when the apex slides sideways, even past the ends of the base.</figcaption>
+</figure>
+<figure>
+<svg viewBox="0 0 620 230" width="620" height="230" role="img" aria-labelledby="pgT pgD">
+<title id="pgT">Cutting a polygon into triangles</title>
+<desc id="pgD">An irregular six-sided polygon with straight lines drawn from one vertex to every non-adjacent vertex, dividing it into four triangles.</desc>
+<g transform="translate(40,20)"><path d="M 70 40 L 190 20 L 250 110 L 200 190 L 90 170 L 30 110 Z" fill="var(--moss)" fill-opacity="0.18" stroke="var(--moss)" stroke-width="2.5"/><line x1="70" y1="40" x2="250" y2="110" stroke="var(--rose)" stroke-width="2"/><line x1="70" y1="40" x2="200" y2="190" stroke="var(--rose)" stroke-width="2"/><line x1="70" y1="40" x2="90" y2="170" stroke="var(--rose)" stroke-width="2"/></g>
+<text class="axtext" x="330" y="80">any polygon with n sides splits</text>
+<text class="axtext" x="330" y="104">into n &minus; 2 triangles</text>
+<text class="axtext" x="330" y="142">so its area is a sum of</text>
+<text class="axtext" x="330" y="166">n &minus; 2 numbers of the form &#189;bh</text>
+</svg>
+<figcaption>Fan out from any one corner and the polygon falls apart into triangles. No new idea is needed and no new formula &mdash; which is why the triangle, not the square, is the real unit of area.</figcaption>
+</figure>
+
+<div class="box thm">
+<span class="lbl">areas, in order of difficulty</span>
+<ul>
+<li><strong>Rectangle:</strong> \(A=bh\). This is the definition, not a theorem.</li>
+<li><strong>Triangle:</strong> \(A=\tfrac12bh\). Half a rectangle, always.</li>
+<li><strong>Any polygon:</strong> cut it into triangles from one corner and add. An \(n\)-sided polygon becomes \(n-2\) triangles.</li>
+<li><strong>Anything with a curved edge:</strong> not exactly possible &mdash; but you can get as close as you like.</li>
+</ul>
+</div>
+<div class="box spot" data-type="num" data-ans="4.0" role="group" aria-labelledby="sp5_11q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp5_11q">Cutting a hexagon into triangles from one corner gives how many triangles?</p>
+<div class="spot-row"><label for="sp5_11i">your answer</label><input id="sp5_11i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp5_11q sp5_11h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp5_11h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(6-2=4\). Draw it: three diagonals from one corner, four pieces.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> An \(n\)-sided polygon becomes \(n-2\) triangles.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<p>That last line is the interesting one, and the circle is the case everybody wants.</p>
+
+<h3>The circle, cut into triangles</h3>
+
+<p>Slice a circle into \(n\) equal wedges from the centre. Each wedge is <em>nearly</em> a triangle: two straight sides of length \(r\), and a third side that is very slightly curved. Pretend it is straight and you can find its area exactly. Add up all \(n\) of them and you have an estimate of the circle's area &mdash; an underestimate, because each chord cuts off a thin sliver of the circle that you left out.</p>
+
+<div class="box thm">
+<span class="lbl">the inscribed polygon</span>
+<p>Joining the \(n\) points around a circle of radius \(r\) makes a polygon of \(n\) triangles, each with two sides \(r\) and an included angle \(\dfrac{2\pi}{n}\). By the area formula of this lecture,
+$$A_n=n\cdot\frac12 r^{2}\sin\!\left(\frac{2\pi}{n}\right).$$
+Since the true area is \(\pi r^{2}\), the quantity \(\dfrac{n}{2}\sin\!\left(\dfrac{2\pi}{n}\right)\) is an estimate of \(\pi\) &mdash; one you can compute with nothing but the sine of a small angle.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="2.0" role="group" aria-labelledby="sp5_12q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp5_12q">Use \(n=4\) wedges (an inscribed square). What estimate of \(\pi\) does \(\dfrac{n}{2}\sin\!\left(\dfrac{2\pi}{n}\right)\) give?</p>
+<div class="spot-row"><label for="sp5_12i">your answer</label><input id="sp5_12i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp5_12q sp5_12h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp5_12h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\tfrac42\cdot1=2\). A square inside a unit circle has area 2 &mdash; a poor estimate, which is why we need more wedges.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> With \(n=4\) the angle is \(\tfrac{2\pi}{4}=\tfrac{\pi}{2}\), and \(\sin\tfrac{\pi}{2}=1\).</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<div class="widget">
+<h4>Estimating &#960; with triangles</h4>
+<p style="font-size:.95rem;margin:.2em 0 .6em">Slide the number of wedges. The shaded triangles are what you can measure; the pale slivers between them and the circle are what you are missing. Watch the missing part shrink.</p>
+<svg id="piSvg" viewBox="0 0 620 300" width="620" height="300" role="img" aria-label="A circle cut into wedges, with the inscribed polygon shaded and the leftover slivers visible">
+  <circle cx="170" cy="150" r="125" fill="var(--rose)" fill-opacity="0.16" stroke="var(--rule)" stroke-width="1.5"/>
+  <polygon id="piPoly" points="" fill="var(--moss)" fill-opacity="0.30" stroke="var(--moss)" stroke-width="2"/>
+  <g id="piSpokes"></g>
+  <g id="piBar"></g>
+</svg>
+<div class="ctrls"><label for="piN">wedges: <span id="piNv" class="mono">6</span>
+<input type="range" id="piN" min="3" max="60" step="1" value="6"></label></div>
+<p class="readout" id="piOut"></p>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 5.14 &mdash; Archimedes’ estimate</span>
+<p>Compute the inscribed estimate of \(\pi\) for \(n=6\), \(12\), \(24\) and \(96\), and compare with Archimedes’ published bounds of \(3\tfrac{10}{71}\) and \(3\tfrac17\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<div class="tscroll" tabindex="0" role="region" aria-label="table (scrolls sideways on small screens)"><table>
+<tr><th>\(n\)</th><th>\(\tfrac{n}{2}\sin(2\pi/n)\)</th><th>error</th></tr>
+<tr><td>6</td><td>2.59808</td><td>&minus;0.543</td></tr>
+<tr><td>12</td><td>3.00000</td><td>&minus;0.142</td></tr>
+<tr><td>24</td><td>3.10583</td><td>&minus;0.036</td></tr>
+<tr><td>96</td><td>3.13935</td><td>&minus;0.0022</td></tr>
+</table></div>
+<p>Archimedes did exactly this around 250 BCE, starting from a hexagon and doubling four times to reach 96 sides. He also did the same with polygons drawn <em>outside</em> the circle, which overestimate, and so trapped \(\pi\) between two numbers:
+$$3\tfrac{10}{71}=3.1408\ &lt;\ \pi\ &lt;\ 3\tfrac17=3.1429.$$</p>
+<p>He had no decimals, no trigonometric tables and no algebra. The doubling was done with square roots computed by hand. And notice what the method gives that a single estimate never can: a guarantee, with the answer caught between a number known to be too small and a number known to be too big.</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; the missing slivers</span>
+<p>Look at what the estimate is doing. Each wedge has area \(\tfrac12r^{2}\sin\theta\) where \(\theta=2\pi/n\), and we saw in Lecture 15 that \(\sin\theta\approx\theta\) for small angles. So for large \(n\),
+$$A_n\approx n\cdot\tfrac12 r^{2}\cdot\frac{2\pi}{n}=\pi r^{2}.$$
+The \(n\) cancels. The formula for the area of a circle is not a separate fact to memorise &mdash; it is what the triangle formula turns into when the wedges get thin.</p>
+<p>But it is only exactly \(\pi r^{2}\) in the limit. For any finite \(n\), however large, the slivers are still there and the answer is still too small. This is the fourth time this course has run the same argument: shrink the pieces, watch the estimate settle, and name the destination. Rectangles under a curve in Lecture 10 did it, polynomial approximations in Lecture 11 did it, secant lines in Lecture 8 did it, and here it is again with triangles in a circle. Calculus is the subject that makes the last step legal.</p>
+</div>
+
+<h3>The ambiguous case</h3>
+
+<p>Given two sides and an angle <em>not</em> between them, the triangle may not be determined at all. Sine cannot distinguish \(\theta\) from \(180^{\circ}-\theta\), and sometimes both genuinely work.</p>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp5_13q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp5_13q">Which set of measurements can produce <em>two</em> different triangles?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp5_13r" value="0" data-right> <span>two sides and an angle not between them</span></label>
+<label class="spot-opt"><input type="radio" name="sp5_13r" value="1"> <span>three sides</span></label>
+<label class="spot-opt"><input type="radio" name="sp5_13r" value="2"> <span>two sides and the angle between them</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> Side-side-angle is the ambiguous case, because sine cannot tell \(\theta\) from \(180^{\circ}-\theta\).</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> Three sides always fix the triangle: a triangle is rigid.</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> With the included angle the third side is forced by the Law of Cosines, so there is exactly one triangle.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<div class="widget">
+<h4>Two triangles from the same three measurements</h4>
+<p style="font-size:.95rem;margin:.2em 0 .6em">Angle \(A\) and side \(c\) are fixed. Slide the length of side \(a\) &mdash; the one opposite the known angle &mdash; and watch how many triangles can be built from it: none, one, or two.</p>
+<svg id="ambSvg" viewBox="0 0 620 290" width="620" height="290" role="img" aria-label="How many triangles fit two sides and a non-included angle">
+  <line class="axis" x1="60" y1="230" x2="580" y2="230"/>
+  <line id="ambRay" x1="60" y1="230" x2="0" y2="0" stroke="var(--rule)" stroke-width="2"/>
+  <line id="ambC" x1="60" y1="230" x2="0" y2="0" stroke="var(--moss)" stroke-width="3"/>
+  <circle id="ambCirc" cx="0" cy="0" r="0" fill="none" stroke="var(--rose)" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <polyline id="ambT1" points="" fill="var(--sky)" fill-opacity="0.18" stroke="var(--sky)" stroke-width="2.5"/>
+  <polyline id="ambT2" points="" fill="var(--amber)" fill-opacity="0.16" stroke="var(--amber)" stroke-width="2.5"/>
+  <text class="axtext" x="46" y="252">A = 35&deg;</text>
+</svg>
+<div class="ctrls"><label for="ambA">a = <span id="ambAv" class="mono">6.0</span>
+<input type="range" id="ambA" min="2" max="11" step="0.1" value="6"></label></div>
+<p class="readout" role="status" aria-live="polite" id="ambOut"></p>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 5.15 &mdash; both answers are right</span>
+<p>A triangle has \(A=35^{\circ}\), \(a=6\) and \(b=8\). Solve it.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(\sin B=\dfrac{b\sin A}{a}=\dfrac{8(0.5736)}{6}=0.7648\).</p>
+<p>That gives \(B=49.9^{\circ}\) or \(B=130.1^{\circ}\), and both leave room for a third angle:</p>
+<div class="tscroll" tabindex="0" role="region" aria-label="table (scrolls sideways on small screens)"><table>
+<tr><th></th><th>\(B\)</th><th>\(C\)</th><th>\(c\)</th></tr>
+<tr><td>first triangle</td><td>49.9&deg;</td><td>95.1&deg;</td><td>10.42</td></tr>
+<tr><td>second triangle</td><td>130.1&deg;</td><td>14.9&deg;</td><td>2.69</td></tr>
+</table></div>
+<p>Two different triangles, both with a \(35^{\circ}\) angle, a side of 6 opposite it, and a side of 8. The data does not determine the shape, and no amount of care with the algebra will make it.</p>
+<p>This is why surveyors prefer to measure the angle <em>between</em> two known sides. Three sides, or two sides with the included angle, always give exactly one triangle. Two sides and a stray angle may give two &mdash; the same ambiguity that makes SSA useless as a congruence rule in geometry class.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 5.16 &mdash; finding yourself from three towers</span>
+<p>A phone is 4.0 km from tower P and 6.5 km from tower Q, which are 8.0 km apart. Find the angle at P, and explain why two towers are not enough to locate the phone.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Three sides are known, so use the Law of Cosines at P:
+$$\cos P=\frac{4.0^{2}+8.0^{2}-6.5^{2}}{2(4.0)(8.0)}=\frac{37.75}{64}=0.5898,\qquad P=53.8^{\circ}.$$</p>
+<p>But the angle could open to either side of the line PQ: the phone might be 53.8&deg; above it or 53.8&deg; below it. Two distances place you on a circle around each tower, and two circles meet in two points.</p>
+<p>A third tower breaks the tie, because a third circle passes through only one of them. That is the whole principle of trilateration, and it is what GPS does with satellites instead of towers &mdash; using four rather than three, because the clock in your phone is not accurate enough and the fourth measurement is spent working out what time it actually is.</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea</span>
+<p>Triangulation is how large distances have been measured for four hundred years. Pick two points you can reach, measure the distance between them precisely once &mdash; this is the hard part, and the one measurement everything else rests on &mdash; then measure angles to a distant landmark from both ends. The Law of Sines gives the distance. Now use that landmark as one end of a new baseline and repeat, chaining triangles across a country.</p>
+<p>The Great Trigonometrical Survey of India ran this from 1802 for seventy years, measured the subcontinent, and in the process found that a peak catalogued as XV was the highest in the world. The same idea, with the Earth's orbit as the baseline, gives the distance to nearby stars. One measured length plus a pile of angles is enough to map anything.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 5.2</span>
+<ol>
+<li>Solve the triangle with \(A=52^{\circ}\), \(C=74^{\circ}\), \(b=9\) cm.</li>
+<li>Two sides of a triangle are 11 and 16 with an included angle of \(43^{\circ}\). Find the third side and the remaining angles.</li>
+<li>Find all angles of the triangle with sides 6, 9, 13, and its area.</li>
+<li>Decide how many triangles satisfy \(A=42^{\circ}\), \(a=9\), \(b=12\), and solve each one you find.</li>
+<li>Show that if \(a\ge b\) in the previous set-up, there can never be two triangles. Explain the result in terms of the picture in the widget.</li>
+<li>A ship sails 24 km on a bearing of \(035^{\circ}\), then 31 km on a bearing of \(120^{\circ}\). How far is it from port, and on what bearing?</li>
+<li>Two observers 500 m apart on level ground measure the angle of elevation to a balloon between them as \(58^{\circ}\) and \(47^{\circ}\). Find the balloon's height.</li>
+<li>Prove the Law of Cosines for an acute triangle by dropping a height and using Pythagoras twice. Then check that setting \(C=90^{\circ}\) recovers Pythagoras exactly.</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>\(B=54^{\circ}\). Then \(a=\dfrac{9\sin52^{\circ}}{\sin54^{\circ}}=8.77\) cm and \(c=\dfrac{9\sin74^{\circ}}{\sin54^{\circ}}=10.69\) cm.</li>
+<li>\(c^{2}=121+256-2(11)(16)\cos43^{\circ}=377-257.4=119.6\), so \(c=10.94\). Then \(\cos A=\dfrac{256+119.6-121}{2(16)(10.94)}=0.7268\), giving \(A=43.4^{\circ}\) and \(B=93.6^{\circ}\).</li>
+<li>The largest angle faces 13: \(\cos C=\dfrac{36+81-169}{2(6)(9)}=-0.4815\), so \(C=118.8^{\circ}\). Then \(\sin A=\dfrac{6\sin118.8^{\circ}}{13}=0.4045\), \(A=23.9^{\circ}\), \(B=37.3^{\circ}\). Area \(=\tfrac12(6)(9)\sin118.8^{\circ}=23.7\).</li>
+<li>\(\sin B=\dfrac{12\sin42^{\circ}}{9}=0.8921\), so \(B=63.1^{\circ}\) or \(116.9^{\circ}\); both leave a positive third angle, so there are two triangles. First: \(C=74.9^{\circ}\), \(c=12.98\). Second: \(C=21.1^{\circ}\), \(c=4.85\).</li>
+<li>If \(a\ge b\) then \(\sin B=\dfrac{b\sin A}{a}\le\sin A\), so \(B\le A\), and the obtuse alternative \(180^{\circ}-B\) would make the angles exceed \(180^{\circ}\). In the picture: when the swinging side is long enough to reach past the foot of the perpendicular, the circle cuts the ray only once.</li>
+<li>The turn between the two legs is \(120-35=85^{\circ}\), so the interior angle of the triangle is \(95^{\circ}\). Then \(d^{2}=24^{2}+31^{2}-2(24)(31)\cos95^{\circ}=1537+129.7=1666.7\), giving \(d=40.8\) km. The angle at port satisfies \(\sin\theta=\dfrac{31\sin95^{\circ}}{40.8}=0.7569\), so \(\theta=49.2^{\circ}\) and the bearing is \(035+049=084^{\circ}\).</li>
+<li>The angle at the balloon is \(180-58-47=75^{\circ}\). The distance from the first observer is \(\dfrac{500\sin47^{\circ}}{\sin75^{\circ}}=378.6\) m, so the height is \(378.6\sin58^{\circ}=321\) m.</li>
+<li>Drop the height \(h\) from \(B\) to side \(b\), splitting it into \(x=a\cos C\) and \(b-x\). Then \(h^{2}=a^{2}-x^{2}\), and Pythagoras on the other piece gives \(c^{2}=h^{2}+(b-x)^{2}=a^{2}-x^{2}+b^{2}-2bx+x^{2}=a^{2}+b^{2}-2ab\cos C\). At \(C=90^{\circ}\), \(\cos C=0\) and the correction term vanishes.</li>
+</ol>
+</div>
+</div>
+<hr>
+<!-- ================= LECTURE 21 ================= -->
+<h2 id="L21">Lecture 21 &mdash; Triangles on a sphere, and what curvature means</h2>
+
+<figure class="toon">
+<svg viewBox="0 0 560 200" width="560" height="200" role="img" aria-labelledby="L21t L21d">
+<title id="L21t">Cartoon: a triangle whose angles add to 270 degrees</title><desc id="L21d">A stick figure shrugs beside a sphere on which a triangle with three right angles has been drawn.</desc>
+<defs><filter id="rough79" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="79" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough79)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="110.0" cy="124.0" r="11.0" /><path d="M 110.0 135.0 L 110.0 160.0" /><path d="M 110.0 140.0 L 95.0 140.0" /><path d="M 110.0 140.0 L 125.0 140.0" /><path d="M 110.0 160.0 L 99.0 184.0" /><path d="M 110.0 160.0 L 121.0 184.0" /><path d="M 30 170 L 540 170" stroke-width="1.6"/><circle cx="450" cy="112" r="70"/><ellipse cx="450" cy="112" rx="70" ry="21" stroke-dasharray="4 4" stroke-width="1.4"/><path d="M 450 42 Q 398 74 380 112"/><path d="M 450 42 Q 462 78 450 133"/><path d="M 380 112 A 70 21 0 0 0 450 133"/><circle cx="450" cy="42" r="4" fill="var(--ink)"/><circle cx="380" cy="112" r="4" fill="var(--ink)"/><circle cx="450" cy="133" r="4" fill="var(--ink)"/><rect x="250.0" y="14.0" width="160.5" height="52.0" rx="9" fill="var(--surface2)"/><path d="M 291.7 63.0 L 244.0 100.0 L 327.0 63.0" fill="var(--surface2)" stroke-width="1.6"/>
+</g>
+<text x="265.0" y="41.0" class="ctext">The angles add</text><text x="265.0" y="59.0" class="ctext">to 270 degrees.</text>
+</svg>
+<figcaption class="tooncap">“That is not allowed.”  “It is on a sphere.”</figcaption></figure>
+
+<p>Everything in the last two lectures assumed the triangle was drawn on a flat surface. Almost nothing important is. The Earth is round, and once the triangle gets large enough, every rule you have just learned becomes false &mdash; not slightly inaccurate, but false in an interesting and measurable way.</p>
+
+<h3>What counts as a straight line on a sphere?</h3>
+
+<p>You cannot draw a straight line on a sphere; nothing in the surface is straight. What you can do is ask for the <em>shortest path</em> between two points, staying on the surface, and that turns out to be a piece of a <strong>great circle</strong> &mdash; a circle whose centre is the centre of the sphere. The equator is one. Every line of longitude is one. Lines of latitude, apart from the equator, are not.</p>
+
+<div class="widget">
+<h4>Great circles on a turning globe</h4>
+<p style="font-size:.95rem;margin:.2em 0 .6em">Spin the globe with the slider. Three of the curves drawn on it are great circles &mdash; their centres are the centre of the sphere. The dashed one is a line of latitude, which is not. Watch how the flight path stays a great circle while the parallel does not.</p>
+<svg id="gcSvg" viewBox="0 0 620 320" width="620" height="320" role="img" aria-label="A rotating globe showing great circles and one line of latitude">
+  <circle cx="200" cy="160" r="130" fill="var(--surface2)" stroke="var(--rule)" stroke-width="1.5"/>
+  <g id="gcBack" opacity="0.28"></g>
+  <g id="gcFront"></g>
+  <g id="gcPts"></g>
+  <text class="lbltext" x="400" y="70" fill="var(--moss)">equator</text>
+  <text class="lbltext" x="400" y="100" fill="var(--sky)">a meridian</text>
+  <text class="lbltext" x="400" y="130" fill="var(--rose)">New York to Madrid</text>
+  <text class="lbltext" x="400" y="160" fill="var(--amber)">the 40&deg;N parallel</text>
+  <text class="axtext" x="400" y="196">the first three are great circles:</text>
+  <text class="axtext" x="400" y="218">each one cuts the sphere</text>
+  <text class="axtext" x="400" y="240">exactly in half</text>
+  <text class="axtext" x="400" y="272">the parallel does not, which is</text>
+  <text class="axtext" x="400" y="294">why it is not the shortest route</text>
+</svg>
+<div class="ctrls"><label for="gcR">rotate = <span id="gcRv" class="mono">0</span>&deg;
+<input type="range" id="gcR" min="0" max="360" step="2" value="20"></label>
+<label for="gcTilt">tilt = <span id="gcTiltv" class="mono">25</span>&deg;
+<input type="range" id="gcTilt" min="-60" max="75" step="2" value="25"></label></div>
+<p class="readout" id="gcOut"></p>
+</div>
+
+<div class="box def">
+<span class="lbl">definition</span>
+<p>A <strong>geodesic</strong> is the straightest available path in a curved space: the route you get by never turning left or right, only following the surface. On a plane the geodesics are straight lines; on a sphere they are great circles.</p>
+<p>Replacing "straight line" with "geodesic" is the move that lets all of geometry be rebuilt on curved surfaces.</p>
+</div>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp5_14q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp5_14q">On a globe, which of these is a geodesic?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp5_14r" value="0" data-right> <span>the equator</span></label>
+<label class="spot-opt"><input type="radio" name="sp5_14r" value="1"> <span>the line of latitude at \(40^{\circ}\)N</span></label>
+<label class="spot-opt"><input type="radio" name="sp5_14r" value="2"> <span>the Arctic Circle</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> The equator is a great circle: its centre is the centre of the sphere.</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> Its centre lies on the Earth&rsquo;s axis, north of the centre of the sphere, so it is not a great circle. A plane following it is constantly turning.</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> Despite the name, it is a small circle of latitude, centred on the axis far north of the centre of the Earth.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<figure>
+<svg viewBox="0 0 620 280" width="620" height="280" role="img" aria-labelledby="gcRouteT gcRouteD">
+<title id="gcRouteT">A great circle route compared with following a line of latitude</title>
+<desc id="gcRouteD">On a flattened world map, the straight route along the parallel of latitude between New York and Madrid, and the great circle route which bows northward and is shorter.</desc>
+<rect x="40" y="30" width="540" height="200" class="plot-bg" stroke="var(--rule)"/>
+<g class="gridline"><line x1="40" y1="130" x2="580" y2="130"/><line x1="40" y1="80" x2="580" y2="80"/><line x1="40" y1="180" x2="580" y2="180"/>
+<line x1="175" y1="30" x2="175" y2="230"/><line x1="310" y1="30" x2="310" y2="230"/><line x1="445" y1="30" x2="445" y2="230"/></g>
+<path d="M 150 110 L 500 110" stroke="var(--amber)" stroke-width="3"/>
+<path d="M 150 110 Q 325 68 500 110" stroke="var(--moss)" stroke-width="3" fill="none"/>
+<circle cx="150" cy="110" r="6" fill="var(--rose)"/><circle cx="500" cy="110" r="6" fill="var(--rose)"/>
+<text class="axtext" x="106" y="130">New York</text><text class="axtext" x="486" y="130">Madrid</text>
+<text class="axtext" x="270" y="126" fill="var(--amber)">along the parallel: 5,945 km</text>
+<text class="axtext" x="250" y="60" fill="var(--moss)">great circle: 5,769 km</text>
+<text class="axtext" x="44" y="252">on a flat map the shorter route looks longer, which is the map’s fault, not the route’s</text>
+</svg>
+<figcaption>Flying "straight east" along the line of latitude is not the shortest way. The great circle bows toward the pole and saves 176 km &mdash; which is why the moving map on a seat-back screen shows the plane apparently wandering north.</figcaption>
+</figure>
+
+<div class="box ex">
+<span class="lbl">example 5.17 &mdash; the law of cosines, on a sphere</span>
+<p>There is a spherical version of the Law of Cosines. For a triangle on a unit sphere with sides \(a,b,c\) measured as angles at the centre,
+$$\cos c=\cos a\cos b+\sin a\sin b\cos C.$$
+Use it to find the distance from New York (\(40.7^{\circ}\)N, \(74.0^{\circ}\)W) to Madrid (\(40.4^{\circ}\)N, \(3.7^{\circ}\)W), taking the Earth's radius as 6,371 km.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Use the North Pole as the third vertex. The two sides from the pole are the co-latitudes, \(90-40.7=49.3^{\circ}\) and \(90-40.4=49.6^{\circ}\), and the angle at the pole is the difference in longitude, \(74.0-3.7=70.3^{\circ}\).</p>
+$$\cos c=\cos49.3^{\circ}\cos49.6^{\circ}+\sin49.3^{\circ}\sin49.6^{\circ}\cos70.3^{\circ}=0.4225+0.1949=0.6174$$
+<p>So \(c=51.89^{\circ}=0.9056\) rad, and the distance is \(6371\times0.9056=5{,}769\) km.</p>
+<p>Compare the flat version: it had the same shape, \(c^{2}=a^{2}+b^{2}-2ab\cos C\), with sides multiplying instead of adding. That is a general pattern &mdash; spherical formulas look like flat ones with the sides wrapped in sines and cosines, and they collapse back to the flat versions when the triangle is small.</p>
+</div>
+</div>
+
+<h3>The angles do not add to 180</h3>
+
+<p>Start at the North Pole. Travel straight south to the equator. Turn left through a right angle and travel a quarter of the way round the equator. Turn left again through a right angle and travel straight north. You arrive back at the pole, having walked a triangle with three right angles.</p>
+
+<figure>
+<svg viewBox="0 0 620 290" width="620" height="290" role="img" aria-labelledby="octT octD">
+<title id="octT">A spherical triangle with three right angles</title>
+<desc id="octD">A sphere with a triangle drawn on it: one vertex at the north pole and two on the equator a quarter turn apart. All three of its angles are right angles, so they sum to 270 degrees.</desc>
+<circle cx="200" cy="145" r="115" fill="var(--surface2)" stroke="var(--rule)" stroke-width="1.5"/>
+<ellipse cx="200" cy="145" rx="115" ry="34" fill="none" stroke="var(--rule)" stroke-width="1.2" stroke-dasharray="4 4"/>
+<path d="M 200 30 L 200 145" stroke="var(--rule)" stroke-width="1" stroke-dasharray="3 3"/>
+<path d="M 200 30 Q 128 88 85 145" fill="none" stroke="var(--moss)" stroke-width="3"/>
+<path d="M 200 30 Q 214 90 200 179" fill="none" stroke="var(--moss)" stroke-width="3"/>
+<path d="M 85 145 A 115 34 0 0 0 200 179" fill="none" stroke="var(--moss)" stroke-width="3"/>
+<circle cx="200" cy="30" r="5" fill="var(--rose)"/><circle cx="85" cy="145" r="5" fill="var(--rose)"/><circle cx="200" cy="179" r="5" fill="var(--rose)"/>
+<text class="axtext" x="188" y="20">90&deg;</text><text class="axtext" x="52" y="140">90&deg;</text><text class="axtext" x="208" y="196">90&deg;</text>
+<text class="lbltext" x="360" y="80">three right angles</text>
+<text class="axtext" x="360" y="108">sum = 270&deg;, which is 90&deg; too many</text>
+<text class="axtext" x="360" y="140">the triangle covers one eighth</text>
+<text class="axtext" x="360" y="162">of the sphere — and one eighth of</text>
+<text class="axtext" x="360" y="184">4&#960;r&#178; is exactly &#960;r&#178;/2</text>
+<text class="axtext" x="360" y="216">excess (in radians) &#215; r&#178; = area</text>
+</svg>
+<figcaption>Not a trick and not a distortion. Each side is a genuine geodesic, each corner is a genuine right angle, and the angles add to \(270^{\circ}\). On a sphere, the familiar \(180^{\circ}\) is simply not true.</figcaption>
+</figure>
+
+<div class="box thm">
+<span class="lbl">the spherical excess</span>
+<p>On a sphere of radius \(r\), a triangle with angles \(A,B,C\) measured in radians has
+$$\text{area}=(A+B+C-\pi)\,r^{2}.$$
+<p>The quantity \(E=A+B+C-\pi\) is the <strong>excess</strong>. It is zero only for a triangle of zero area, so on a sphere <em>every</em> triangle has too much angle, and the bigger the triangle the worse it gets.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="1.5707963" role="group" aria-labelledby="sp5_15q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp5_15q">The pole-to-equator triangle has three right angles. What is its excess \(E\), in radians?</p>
+<div class="spot-row"><label for="sp5_15i">your answer</label><input id="sp5_15i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="e.g. pi/3" aria-describedby="sp5_15q sp5_15h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp5_15h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\tfrac{3\pi}{2}-\pi=\tfrac{\pi}{2}\). Its area is then \(\tfrac{\pi}{2}r^{2}\), exactly one eighth of the sphere&rsquo;s \(4\pi r^{2}\).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Add the three angles in radians and subtract \(\pi\).</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<div class="widget">
+<h4>Grow the triangle</h4>
+<p style="font-size:.95rem;margin:.2em 0 .6em">A triangle on the globe with one vertex at the pole, grown from tiny to an eighth of the sphere. Watch the angle sum climb away from 180&deg;.</p>
+<svg id="sphSvg" viewBox="0 0 620 300" width="620" height="300" role="img" aria-label="A spherical triangle that grows, with its angle sum reported">
+  <circle cx="210" cy="150" r="120" fill="var(--surface2)" stroke="var(--rule)" stroke-width="1.5"/>
+  <ellipse cx="210" cy="150" rx="120" ry="36" fill="none" stroke="var(--rule)" stroke-width="1.2" stroke-dasharray="4 4"/>
+  <path id="sphTri" d="" fill="var(--moss)" fill-opacity="0.22" stroke="var(--moss)" stroke-width="3"/>
+  <circle cx="210" cy="30" r="5" fill="var(--rose)"/>
+  <text class="axtext" x="196" y="22">pole</text>
+  <g id="sphBar"></g>
+</svg>
+<div class="ctrls"><label for="sphS">size = <span id="sphSv" class="mono">0.30</span>
+<input type="range" id="sphS" min="0.04" max="1" step="0.02" value="0.3"></label></div>
+<p class="readout" role="status" aria-live="polite" id="sphOut"></p>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 5.18 &mdash; when can a surveyor ignore this?</span>
+<p>Estimate the angle excess for an equilateral triangle on the Earth with sides of 100 km, 1,000 km and 5,000 km, using excess \(\approx\) area \(/\,r^{2}\) with \(r=6{,}371\) km.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>A flat equilateral triangle of side \(s\) has area \(\tfrac{\sqrt3}{4}s^{2}\).</p>
+<div class="tscroll" tabindex="0" role="region" aria-label="table (scrolls sideways on small screens)"><table>
+<tr><th>side</th><th>area (km&#178;)</th><th>excess (rad)</th><th>excess (degrees)</th></tr>
+<tr><td>100 km</td><td>4,330</td><td>0.00011</td><td>0.006&deg;</td></tr>
+<tr><td>1,000 km</td><td>433,000</td><td>0.0107</td><td>0.61&deg;</td></tr>
+<tr><td>5,000 km</td><td>10,825,000</td><td>0.267</td><td>15.3&deg;</td></tr>
+</table></div>
+<p>At 100 km the excess is a fiftieth of a degree &mdash; smaller than most surveying instruments of the nineteenth century could see, so plane trigonometry was fine. At 1,000 km it is over half a degree, which no serious survey can ignore. At 5,000 km it is enormous.</p>
+<p>So the flat rules are not wrong, they are <em>local</em>. They are the small-triangle approximation to the real thing, in exactly the way a tangent line is the small-interval approximation to a curve. You have seen this shape of statement several times now, and it is the same shape every time.</p>
+</div>
+</div>
+
+<h3>Curvature, measured from the inside</h3>
+
+<div class="box idea">
+<span class="lbl">idea</span>
+<p>Here is the thing that makes this more than a curiosity about globes. Imagine a creature living <em>in</em> a surface, unable to leave it or look at it from outside. It cannot see that its world is curved. But it can do experiments.</p>
+<p>It can walk a triangle and add up the angles. It can pace out a circle of radius \(r\) and measure the circumference, comparing it with the \(2\pi r\) that flatness demands &mdash; on a sphere it comes up short, on a saddle it comes out long. Every one of these tests is performed entirely inside the surface, with a ruler and a protractor, and every one of them detects curvature.</p>
+<p>That is what makes curvature <em>intrinsic</em>. It is not a statement about how the surface sits in space; it is a property of distances within the surface itself, and it can be measured by inhabitants who have no idea there is an outside.</p>
+</div>
+
+<figure>
+<svg viewBox="0 0 620 280" width="620" height="280" role="img" aria-labelledby="curT curD">
+<title id="curT">Three surfaces with different curvature</title>
+<desc id="curD">On the left a sphere with a triangle drawn on it, whose angles add to more than 180 degrees. In the middle a flat plane with an ordinary triangle, whose angles add to exactly 180. On the right a saddle drawn as a curved mesh, with a triangle whose sides bow inward and whose angles add to less than 180.</desc>
+<g>
+<circle cx="110" cy="120" r="68" fill="var(--sky)" fill-opacity="0.16" stroke="var(--sky)" stroke-width="2"/>
+<ellipse cx="110" cy="120" rx="68" ry="20" fill="none" stroke="var(--rule)" stroke-width="1" stroke-dasharray="4 4"/>
+<path d="M 72 88 Q 110 116 152 92 Q 124 166 72 88" fill="var(--moss)" fill-opacity="0.30" stroke="var(--moss)" stroke-width="2.5"/>
+<text class="axtext" x="76" y="216">sphere</text><text class="axtext" x="48" y="240">angles add to more than 180&#176;</text>
+<path d="M 250 66 L 372 54 L 386 168 L 264 182 Z" fill="var(--amber)" fill-opacity="0.10" stroke="var(--amber)" stroke-width="2"/>
+<path d="M 276 154 L 364 148 L 322 74 Z" fill="var(--moss)" fill-opacity="0.30" stroke="var(--moss)" stroke-width="2.5"/>
+<text class="axtext" x="294" y="216">plane</text><text class="axtext" x="252" y="240">angles add to exactly 180&#176;</text>
+<polyline points="403.2,86.2 406.8,89.8 410.4,93.1 414.0,96.3 417.6,99.2 421.2,102.0 424.8,104.5 428.4,106.9 432.0,109.0 435.6,110.9 439.2,112.7 442.8,114.2 446.4,115.5 450.0,116.6 453.6,117.6 457.2,118.3 460.8,118.8 464.4,119.1 468.0,119.2 471.6,119.1 475.2,118.8 478.8,118.3 482.4,117.6 486.0,116.6 489.6,115.5 493.2,114.2 496.8,112.7 500.4,110.9 504.0,109.0 507.6,106.9 511.2,104.5 514.8,102.0 518.4,99.2 522.0,96.3 525.6,93.1 529.2,89.8 532.8,86.2" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.9"/><polyline points="411.2,81.5 414.8,85.1 418.4,88.4 422.0,91.6 425.6,94.5 429.2,97.3 432.8,99.8 436.4,102.2 440.0,104.3 443.6,106.3 447.2,108.0 450.8,109.5 454.4,110.8 458.0,112.0 461.6,112.9 465.2,113.6 468.8,114.1 472.4,114.4 476.0,114.5 479.6,114.4 483.2,114.1 486.8,113.6 490.4,112.9 494.0,112.0 497.6,110.8 501.2,109.5 504.8,108.0 508.4,106.3 512.0,104.3 515.6,102.2 519.2,99.8 522.8,97.3 526.4,94.5 530.0,91.6 533.6,88.4 537.2,85.1 540.8,81.5" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.9"/><polyline points="419.2,80.1 422.8,83.7 426.4,87.0 430.0,90.2 433.6,93.1 437.2,95.9 440.8,98.4 444.4,100.8 448.0,102.9 451.6,104.8 455.2,106.6 458.8,108.1 462.4,109.4 466.0,110.5 469.6,111.4 473.2,112.2 476.8,112.7 480.4,113.0 484.0,113.1 487.6,113.0 491.2,112.7 494.8,112.2 498.4,111.4 502.0,110.5 505.6,109.4 509.2,108.1 512.8,106.6 516.4,104.8 520.0,102.9 523.6,100.8 527.2,98.4 530.8,95.9 534.4,93.1 538.0,90.2 541.6,87.0 545.2,83.7 548.8,80.1" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.9"/><polyline points="427.2,81.9 430.8,85.5 434.4,88.8 438.0,92.0 441.6,95.0 445.2,97.7 448.8,100.2 452.4,102.6 456.0,104.7 459.6,106.7 463.2,108.4 466.8,109.9 470.4,111.2 474.0,112.4 477.6,113.3 481.2,114.0 484.8,114.5 488.4,114.8 492.0,114.9 495.6,114.8 499.2,114.5 502.8,114.0 506.4,113.3 510.0,112.4 513.6,111.2 517.2,109.9 520.8,108.4 524.4,106.7 528.0,104.7 531.6,102.6 535.2,100.2 538.8,97.7 542.4,95.0 546.0,92.0 549.6,88.8 553.2,85.5 556.8,81.9" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.9"/><polyline points="435.2,87.0 438.8,90.6 442.4,93.9 446.0,97.1 449.6,100.0 453.2,102.8 456.8,105.3 460.4,107.7 464.0,109.8 467.6,111.8 471.2,113.5 474.8,115.0 478.4,116.3 482.0,117.5 485.6,118.4 489.2,119.1 492.8,119.6 496.4,119.9 500.0,120.0 503.6,119.9 507.2,119.6 510.8,119.1 514.4,118.4 518.0,117.5 521.6,116.3 525.2,115.0 528.8,113.5 532.4,111.8 536.0,109.8 539.6,107.7 543.2,105.3 546.8,102.8 550.4,100.0 554.0,97.1 557.6,93.9 561.2,90.6 564.8,87.0" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.9"/><polyline points="443.2,95.4 446.8,98.9 450.4,102.3 454.0,105.4 457.6,108.4 461.2,111.1 464.8,113.7 468.4,116.0 472.0,118.2 475.6,120.1 479.2,121.8 482.8,123.4 486.4,124.7 490.0,125.8 493.6,126.7 497.2,127.4 500.8,127.9 504.4,128.2 508.0,128.3 511.6,128.2 515.2,127.9 518.8,127.4 522.4,126.7 526.0,125.8 529.6,124.7 533.2,123.4 536.8,121.8 540.4,120.1 544.0,118.2 547.6,116.0 551.2,113.7 554.8,111.1 558.4,108.4 562.0,105.4 565.6,102.3 569.2,98.9 572.8,95.4" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.9"/><polyline points="451.2,107.0 454.8,110.5 458.4,113.9 462.0,117.0 465.6,120.0 469.2,122.7 472.8,125.3 476.4,127.6 480.0,129.8 483.6,131.7 487.2,133.4 490.8,135.0 494.4,136.3 498.0,137.4 501.6,138.3 505.2,139.0 508.8,139.5 512.4,139.9 516.0,140.0 519.6,139.9 523.2,139.5 526.8,139.0 530.4,138.3 534.0,137.4 537.6,136.3 541.2,135.0 544.8,133.4 548.4,131.7 552.0,129.8 555.6,127.6 559.2,125.3 562.8,122.7 566.4,120.0 570.0,117.0 573.6,113.9 577.2,110.5 580.8,107.0" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.9"/><polyline points="459.2,121.8 462.8,125.4 466.4,128.8 470.0,131.9 473.6,134.9 477.2,137.6 480.8,140.2 484.4,142.5 488.0,144.6 491.6,146.6 495.2,148.3 498.8,149.8 502.4,151.2 506.0,152.3 509.6,153.2 513.2,153.9 516.8,154.4 520.4,154.7 524.0,154.8 527.6,154.7 531.2,154.4 534.8,153.9 538.4,153.2 542.0,152.3 545.6,151.2 549.2,149.8 552.8,148.3 556.4,146.6 560.0,144.6 563.6,142.5 567.2,140.2 570.8,137.6 574.4,134.9 578.0,131.9 581.6,128.8 585.2,125.4 588.8,121.8" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.9"/><polyline points="467.2,140.0 470.8,143.5 474.4,146.9 478.0,150.0 481.6,153.0 485.2,155.7 488.8,158.3 492.4,160.6 496.0,162.8 499.6,164.7 503.2,166.4 506.8,168.0 510.4,169.3 514.0,170.4 517.6,171.3 521.2,172.0 524.8,172.5 528.4,172.8 532.0,172.9 535.6,172.8 539.2,172.5 542.8,172.0 546.4,171.3 550.0,170.4 553.6,169.3 557.2,168.0 560.8,166.4 564.4,164.7 568.0,162.8 571.6,160.6 575.2,158.3 578.8,155.7 582.4,153.0 586.0,150.0 589.6,146.9 593.2,143.5 596.8,140.0" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.9"/><polyline points="403.2,86.2 405.2,84.7 407.2,83.4 409.2,82.4 411.2,81.5 413.2,80.9 415.2,80.4 417.2,80.1 419.2,80.1 421.2,80.2 423.2,80.6 425.2,81.2 427.2,81.9 429.2,82.9 431.2,84.1 433.2,85.4 435.2,87.0 437.2,88.8 439.2,90.8 441.2,93.0 443.2,95.4 445.2,98.0 447.2,100.8 449.2,103.8 451.2,107.0 453.2,110.4 455.2,114.0 457.2,117.8 459.2,121.8 461.2,126.1 463.2,130.5 465.2,135.1 467.2,140.0" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.6"/><polyline points="419.4,100.6 421.4,99.2 423.4,97.9 425.4,96.8 427.4,95.9 429.4,95.3 431.4,94.8 433.4,94.6 435.4,94.5 437.4,94.7 439.4,95.0 441.4,95.6 443.4,96.4 445.4,97.3 447.4,98.5 449.4,99.9 451.4,101.4 453.4,103.2 455.4,105.2 457.4,107.4 459.4,109.8 461.4,112.4 463.4,115.2 465.4,118.2 467.4,121.4 469.4,124.8 471.4,128.4 473.4,132.2 475.4,136.3 477.4,140.5 479.4,144.9 481.4,149.6 483.4,154.4" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.6"/><polyline points="435.6,110.9 437.6,109.5 439.6,108.2 441.6,107.1 443.6,106.3 445.6,105.6 447.6,105.1 449.6,104.9 451.6,104.8 453.6,105.0 455.6,105.3 457.6,105.9 459.6,106.7 461.6,107.6 463.6,108.8 465.6,110.2 467.6,111.8 469.6,113.5 471.6,115.5 473.6,117.7 475.6,120.1 477.6,122.7 479.6,125.5 481.6,128.5 483.6,131.7 485.6,135.1 487.6,138.7 489.6,142.6 491.6,146.6 493.6,150.8 495.6,155.2 497.6,159.9 499.6,164.7" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.6"/><polyline points="451.8,117.1 453.8,115.6 455.8,114.4 457.8,113.3 459.8,112.4 461.8,111.8 463.8,111.3 465.8,111.1 467.8,111.0 469.8,111.2 471.8,111.5 473.8,112.1 475.8,112.8 477.8,113.8 479.8,115.0 481.8,116.4 483.8,117.9 485.8,119.7 487.8,121.7 489.8,123.9 491.8,126.3 493.8,128.9 495.8,131.7 497.8,134.7 499.8,137.9 501.8,141.3 503.8,144.9 505.8,148.7 507.8,152.8 509.8,157.0 511.8,161.4 513.8,166.0 515.8,170.9" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.6"/><polyline points="468.0,119.2 470.0,117.7 472.0,116.4 474.0,115.4 476.0,114.5 478.0,113.8 480.0,113.4 482.0,113.1 484.0,113.1 486.0,113.2 488.0,113.6 490.0,114.1 492.0,114.9 494.0,115.9 496.0,117.0 498.0,118.4 500.0,120.0 502.0,121.8 504.0,123.8 506.0,126.0 508.0,128.3 510.0,130.9 512.0,133.7 514.0,136.7 516.0,140.0 518.0,143.4 520.0,147.0 522.0,150.8 524.0,154.8 526.0,159.0 528.0,163.5 530.0,168.1 532.0,172.9" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.6"/><polyline points="484.2,117.1 486.2,115.6 488.2,114.4 490.2,113.3 492.2,112.4 494.2,111.8 496.2,111.3 498.2,111.1 500.2,111.0 502.2,111.2 504.2,111.5 506.2,112.1 508.2,112.8 510.2,113.8 512.2,115.0 514.2,116.4 516.2,117.9 518.2,119.7 520.2,121.7 522.2,123.9 524.2,126.3 526.2,128.9 528.2,131.7 530.2,134.7 532.2,137.9 534.2,141.3 536.2,144.9 538.2,148.7 540.2,152.8 542.2,157.0 544.2,161.4 546.2,166.0 548.2,170.9" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.6"/><polyline points="500.4,110.9 502.4,109.5 504.4,108.2 506.4,107.1 508.4,106.3 510.4,105.6 512.4,105.1 514.4,104.9 516.4,104.8 518.4,105.0 520.4,105.3 522.4,105.9 524.4,106.7 526.4,107.6 528.4,108.8 530.4,110.2 532.4,111.8 534.4,113.5 536.4,115.5 538.4,117.7 540.4,120.1 542.4,122.7 544.4,125.5 546.4,128.5 548.4,131.7 550.4,135.1 552.4,138.7 554.4,142.6 556.4,146.6 558.4,150.8 560.4,155.2 562.4,159.9 564.4,164.7" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.6"/><polyline points="516.6,100.6 518.6,99.2 520.6,97.9 522.6,96.8 524.6,95.9 526.6,95.3 528.6,94.8 530.6,94.6 532.6,94.5 534.6,94.7 536.6,95.0 538.6,95.6 540.6,96.4 542.6,97.3 544.6,98.5 546.6,99.9 548.6,101.4 550.6,103.2 552.6,105.2 554.6,107.4 556.6,109.8 558.6,112.4 560.6,115.2 562.6,118.2 564.6,121.4 566.6,124.8 568.6,128.4 570.6,132.2 572.6,136.3 574.6,140.5 576.6,144.9 578.6,149.6 580.6,154.4" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.6"/><polyline points="532.8,86.2 534.8,84.7 536.8,83.4 538.8,82.4 540.8,81.5 542.8,80.9 544.8,80.4 546.8,80.1 548.8,80.1 550.8,80.2 552.8,80.6 554.8,81.2 556.8,81.9 558.8,82.9 560.8,84.1 562.8,85.4 564.8,87.0 566.8,88.8 568.8,90.8 570.8,93.0 572.8,95.4 574.8,98.0 576.8,100.8 578.8,103.8 580.8,107.0 582.8,110.4 584.8,114.0 586.8,117.8 588.8,121.8 590.8,126.1 592.8,130.5 594.8,135.1 596.8,140.0" fill="none" stroke="var(--rose)" stroke-width="1.3" opacity="0.6"/><path d="M 429.6 93.4 Q 480.0 107.4 530.4 93.4 Q 538.2 130.5 528.0 163.5 Q 469.8 130.5 429.6 93.4 Z" fill="var(--moss)" fill-opacity="0.28" stroke="var(--moss)" stroke-width="2.5"/>
+<text class="axtext" x="474" y="216">saddle</text><text class="axtext" x="440" y="240">angles add to less than 180&#176;</text>
+</g>
+</svg>
+<figcaption>Three worlds, each with a triangle made of the straightest available paths. On the sphere the sides bow outward and the corners open up; on the saddle they bow inward and the corners pinch. An inhabitant who can only measure angles, and can never leave the surface, can still tell which world they are in.</figcaption>
+</figure>
+
+<div class="box thm">
+<span class="lbl">Gauss’s remarkable theorem</span>
+<p>The intrinsic curvature of a surface is unchanged by bending, as long as nothing is stretched, compressed or torn.</p>
+<p>Gauss proved this in 1827 and called it the <em>theorema egregium</em> &mdash; the remarkable theorem. He was not a man given to exclamation, and he named it that because it says something no one expected: curvature, which looks like a fact about how a surface sits in space, is really a fact about distances measured within it.</p>
+</div>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp5_16q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp5_16q">A flat sheet of paper is rolled into a tube without stretching. What is the tube&rsquo;s intrinsic curvature?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp5_16r" value="0" data-right> <span>zero, the same as the flat sheet</span></label>
+<label class="spot-opt"><input type="radio" name="sp5_16r" value="1"> <span>positive, like a sphere</span></label>
+<label class="spot-opt"><input type="radio" name="sp5_16r" value="2"> <span>negative, like a saddle</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> Bending without stretching preserves intrinsic curvature, so the tube is intrinsically flat.</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> It looks curved from outside, but bending alone cannot change intrinsic curvature &mdash; and the sheet started flat.</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> Nothing was stretched or compressed, so the curvature the sheet started with (zero) is the curvature it keeps.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<p>Three consequences, all of which you have already met or can check over lunch.</p>
+
+<ul>
+<li><strong>The pizza slice.</strong> A flat slice has curvature zero. Folding does not stretch it, so its curvature must stay zero &mdash; and a slice curving across <em>and</em> along would not have curvature zero. Fold it one way and the other way is forbidden. That is the widget in Lecture 7, and this is the theorem behind it.</li>
+<li><strong>Maps lie.</strong> A sphere has positive curvature, a flat sheet has zero, and no amount of bending can convert one into the other. So every flat map of the Earth distorts something, permanently and unavoidably. Mercator preserves angles and inflates Greenland to the size of Africa, which is fourteen times larger. Other projections make other sacrifices, and no projection escapes.</li>
+<li><strong>The orange peel.</strong> Try to flatten one and it tears. Try to flatten a cylinder of paper and it goes down perfectly &mdash; because a cylinder, despite looking curved, is intrinsically flat: it was made from a flat sheet by bending alone. An ant living on a cylinder would find that its triangles add to exactly \(180^{\circ}\).</li>
+</ul>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; where this goes</span>
+<p>A surface that looks flat if you stand close enough, but need not be flat overall, is called a <strong>manifold</strong>. You have been standing on one all your life and it took humanity a surprisingly long time to notice.</p>
+<p>The mathematics of these objects &mdash; geodesics instead of straight lines, curvature instead of flatness, a triangle's excess telling you how much space is bending underneath it &mdash; is differential geometry, and it is the language in which general relativity is written. In that theory gravity is not a force pulling planets into orbit; it is curvature in the geometry of space and time, and a planet moving "straight ahead" along a geodesic traces an ellipse for the same reason a plane flying straight from New York to Madrid bows north on the map.</p>
+<p>You are four ideas away from that: limits, derivatives, several variables, and tensors. But the picture &mdash; the actual conceptual content &mdash; is the octant triangle you just looked at. Nothing about it required anything beyond this chapter.</p>
+</div>
+
+<figure>
+<svg viewBox="0 0 620 320" width="620" height="320" role="img" aria-labelledby="stcT stcD">
+<title id="stcT">Mass curving space, and a planet following the curve</title>
+<desc id="stcD">A flat grid of lines drawn in perspective, sagging into a deep well around a heavy star at the centre. A planet travels a closed orbit that follows the shape of the sagging grid rather than being pulled by any visible string.</desc>
+<polyline points="2.4,73.2 7.4,73.3 12.4,73.4 17.4,73.5 22.4,73.6 27.4,73.7 32.4,73.8 37.4,73.9 42.4,73.9 47.4,74.0 52.4,74.1 57.4,74.2 62.4,74.4 67.4,74.5 72.4,74.6 77.4,74.7 82.4,74.8 87.4,74.9 92.4,75.0 97.4,75.2 102.4,75.3 107.4,75.4 112.4,75.5 117.4,75.7 122.4,75.8 127.4,75.9 132.4,76.1 137.4,76.2 142.4,76.3 147.4,76.5 152.4,76.6 157.4,76.7 162.4,76.8 167.4,77.0 172.4,77.1 177.4,77.2 182.4,77.3 187.4,77.4 192.4,77.5 197.4,77.6 202.4,77.7 207.4,77.7 212.4,77.8 217.4,77.8 222.4,77.8 227.4,77.9 232.4,77.9 237.4,77.9 242.4,77.8 247.4,77.8 252.4,77.8 257.4,77.7 262.4,77.7 267.4,77.6 272.4,77.5 277.4,77.4 282.4,77.3 287.4,77.2 292.4,77.1 297.4,77.0 302.4,76.8 307.4,76.7 312.4,76.6 317.4,76.5 322.4,76.3 327.4,76.2 332.4,76.1 337.4,75.9 342.4,75.8 347.4,75.7 352.4,75.5 357.4,75.4 362.4,75.3 367.4,75.2 372.4,75.0 377.4,74.9 382.4,74.8 387.4,74.7 392.4,74.6 397.4,74.5 402.4,74.4 407.4,74.2 412.4,74.1 417.4,74.0 422.4,73.9 427.4,73.9 432.4,73.8 437.4,73.7 442.4,73.6 447.4,73.5 452.4,73.4 457.4,73.3 462.4,73.2" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.8"/><polyline points="15.9,83.9 20.9,84.0 25.9,84.1 30.9,84.2 35.9,84.3 40.9,84.4 45.9,84.5 50.9,84.6 55.9,84.7 60.9,84.8 65.9,84.9 70.9,85.0 75.9,85.2 80.9,85.3 85.9,85.4 90.9,85.6 95.9,85.7 100.9,85.9 105.9,86.0 110.9,86.2 115.9,86.4 120.9,86.5 125.9,86.7 130.9,86.9 135.9,87.1 140.9,87.2 145.9,87.4 150.9,87.6 155.9,87.8 160.9,88.0 165.9,88.2 170.9,88.4 175.9,88.6 180.9,88.8 185.9,89.0 190.9,89.1 195.9,89.3 200.9,89.5 205.9,89.6 210.9,89.8 215.9,89.9 220.9,90.0 225.9,90.1 230.9,90.2 235.9,90.3 240.9,90.3 245.9,90.3 250.9,90.3 255.9,90.3 260.9,90.2 265.9,90.1 270.9,90.0 275.9,89.9 280.9,89.8 285.9,89.6 290.9,89.5 295.9,89.3 300.9,89.1 305.9,89.0 310.9,88.8 315.9,88.6 320.9,88.4 325.9,88.2 330.9,88.0 335.9,87.8 340.9,87.6 345.9,87.4 350.9,87.2 355.9,87.1 360.9,86.9 365.9,86.7 370.9,86.5 375.9,86.4 380.9,86.2 385.9,86.0 390.9,85.9 395.9,85.7 400.9,85.6 405.9,85.4 410.9,85.3 415.9,85.2 420.9,85.0 425.9,84.9 430.9,84.8 435.9,84.7 440.9,84.6 445.9,84.5 450.9,84.4 455.9,84.3 460.9,84.2 465.9,84.1 470.9,84.0 475.9,83.9" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.8"/><polyline points="29.4,94.5 34.4,94.6 39.4,94.7 44.4,94.8 49.4,94.9 54.4,95.0 59.4,95.1 64.4,95.3 69.4,95.4 74.4,95.5 79.4,95.7 84.4,95.8 89.4,96.0 94.4,96.1 99.4,96.3 104.4,96.5 109.4,96.7 114.4,96.8 119.4,97.0 124.4,97.2 129.4,97.4 134.4,97.7 139.4,97.9 144.4,98.1 149.4,98.4 154.4,98.6 159.4,98.9 164.4,99.2 169.4,99.4 174.4,99.7 179.4,100.0 184.4,100.3 189.4,100.6 194.4,100.9 199.4,101.3 204.4,101.6 209.4,101.9 214.4,102.2 219.4,102.5 224.4,102.8 229.4,103.0 234.4,103.2 239.4,103.4 244.4,103.6 249.4,103.7 254.4,103.8 259.4,103.8 264.4,103.8 269.4,103.7 274.4,103.6 279.4,103.4 284.4,103.2 289.4,103.0 294.4,102.8 299.4,102.5 304.4,102.2 309.4,101.9 314.4,101.6 319.4,101.3 324.4,100.9 329.4,100.6 334.4,100.3 339.4,100.0 344.4,99.7 349.4,99.4 354.4,99.2 359.4,98.9 364.4,98.6 369.4,98.4 374.4,98.1 379.4,97.9 384.4,97.7 389.4,97.4 394.4,97.2 399.4,97.0 404.4,96.8 409.4,96.7 414.4,96.5 419.4,96.3 424.4,96.1 429.4,96.0 434.4,95.8 439.4,95.7 444.4,95.5 449.4,95.4 454.4,95.3 459.4,95.1 464.4,95.0 469.4,94.9 474.4,94.8 479.4,94.7 484.4,94.6 489.4,94.5" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.8"/><polyline points="43.0,105.0 48.0,105.1 53.0,105.2 58.0,105.4 63.0,105.5 68.0,105.6 73.0,105.8 78.0,105.9 83.0,106.0 88.0,106.2 93.0,106.4 98.0,106.5 103.0,106.7 108.0,106.9 113.0,107.1 118.0,107.3 123.0,107.5 128.0,107.7 133.0,108.0 138.0,108.2 143.0,108.5 148.0,108.7 153.0,109.0 158.0,109.3 163.0,109.6 168.0,110.0 173.0,110.3 178.0,110.7 183.0,111.1 188.0,111.5 193.0,112.0 198.0,112.4 203.0,112.9 208.0,113.5 213.0,114.0 218.0,114.6 223.0,115.1 228.0,115.7 233.0,116.3 238.0,116.9 243.0,117.5 248.0,118.0 253.0,118.5 258.0,118.9 263.0,119.2 268.0,119.4 273.0,119.5 278.0,119.4 283.0,119.2 288.0,118.9 293.0,118.5 298.0,118.0 303.0,117.5 308.0,116.9 313.0,116.3 318.0,115.7 323.0,115.1 328.0,114.6 333.0,114.0 338.0,113.5 343.0,112.9 348.0,112.4 353.0,112.0 358.0,111.5 363.0,111.1 368.0,110.7 373.0,110.3 378.0,110.0 383.0,109.6 388.0,109.3 393.0,109.0 398.0,108.7 403.0,108.5 408.0,108.2 413.0,108.0 418.0,107.7 423.0,107.5 428.0,107.3 433.0,107.1 438.0,106.9 443.0,106.7 448.0,106.5 453.0,106.4 458.0,106.2 463.0,106.0 468.0,105.9 473.0,105.8 478.0,105.6 483.0,105.5 488.0,105.4 493.0,105.2 498.0,105.1 503.0,105.0" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.8"/><polyline points="56.5,115.5 61.5,115.6 66.5,115.8 71.5,115.9 76.5,116.0 81.5,116.2 86.5,116.3 91.5,116.5 96.5,116.6 101.5,116.8 106.5,117.0 111.5,117.1 116.5,117.3 121.5,117.5 126.5,117.7 131.5,118.0 136.5,118.2 141.5,118.5 146.5,118.7 151.5,119.0 156.5,119.3 161.5,119.6 166.5,120.0 171.5,120.3 176.5,120.7 181.5,121.1 186.5,121.6 191.5,122.0 196.5,122.6 201.5,123.1 206.5,123.7 211.5,124.4 216.5,125.1 221.5,125.9 226.5,126.8 231.5,127.7 236.5,128.7 241.5,129.9 246.5,131.1 251.5,132.5 256.5,133.9 261.5,135.4 266.5,137.0 271.5,138.4 276.5,139.7 281.5,140.5 286.5,140.8 291.5,140.5 296.5,139.7 301.5,138.4 306.5,137.0 311.5,135.4 316.5,133.9 321.5,132.5 326.5,131.1 331.5,129.9 336.5,128.7 341.5,127.7 346.5,126.8 351.5,125.9 356.5,125.1 361.5,124.4 366.5,123.7 371.5,123.1 376.5,122.6 381.5,122.0 386.5,121.6 391.5,121.1 396.5,120.7 401.5,120.3 406.5,120.0 411.5,119.6 416.5,119.3 421.5,119.0 426.5,118.7 431.5,118.5 436.5,118.2 441.5,118.0 446.5,117.7 451.5,117.5 456.5,117.3 461.5,117.1 466.5,117.0 471.5,116.8 476.5,116.6 481.5,116.5 486.5,116.3 491.5,116.2 496.5,116.0 501.5,115.9 506.5,115.8 511.5,115.6 516.5,115.5" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.8"/><polyline points="70.0,126.0 75.0,126.1 80.0,126.2 85.0,126.3 90.0,126.5 95.0,126.6 100.0,126.8 105.0,126.9 110.0,127.1 115.0,127.2 120.0,127.4 125.0,127.6 130.0,127.8 135.0,128.0 140.0,128.2 145.0,128.5 150.0,128.7 155.0,129.0 160.0,129.3 165.0,129.6 170.0,129.9 175.0,130.2 180.0,130.6 185.0,130.9 190.0,131.4 195.0,131.8 200.0,132.3 205.0,132.8 210.0,133.4 215.0,134.0 220.0,134.7 225.0,135.5 230.0,136.3 235.0,137.2 240.0,138.3 245.0,139.5 250.0,140.8 255.0,142.4 260.0,144.2 265.0,146.3 270.0,148.8 275.0,151.9 280.0,155.7 285.0,160.5 290.0,166.9 295.0,175.6 300.0,188.2 305.0,175.6 310.0,166.9 315.0,160.5 320.0,155.7 325.0,151.9 330.0,148.8 335.0,146.3 340.0,144.2 345.0,142.4 350.0,140.8 355.0,139.5 360.0,138.3 365.0,137.2 370.0,136.3 375.0,135.5 380.0,134.7 385.0,134.0 390.0,133.4 395.0,132.8 400.0,132.3 405.0,131.8 410.0,131.4 415.0,130.9 420.0,130.6 425.0,130.2 430.0,129.9 435.0,129.6 440.0,129.3 445.0,129.0 450.0,128.7 455.0,128.5 460.0,128.2 465.0,128.0 470.0,127.8 475.0,127.6 480.0,127.4 485.0,127.2 490.0,127.1 495.0,126.9 500.0,126.8 505.0,126.6 510.0,126.5 515.0,126.3 520.0,126.2 525.0,126.1 530.0,126.0" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.8"/><polyline points="83.5,136.3 88.5,136.4 93.5,136.6 98.5,136.7 103.5,136.8 108.5,137.0 113.5,137.1 118.5,137.3 123.5,137.4 128.5,137.6 133.5,137.8 138.5,137.9 143.5,138.1 148.5,138.3 153.5,138.5 158.5,138.8 163.5,139.0 168.5,139.3 173.5,139.5 178.5,139.8 183.5,140.1 188.5,140.4 193.5,140.8 198.5,141.1 203.5,141.5 208.5,141.9 213.5,142.4 218.5,142.8 223.5,143.4 228.5,143.9 233.5,144.5 238.5,145.2 243.5,145.9 248.5,146.7 253.5,147.6 258.5,148.5 263.5,149.5 268.5,150.7 273.5,151.9 278.5,153.3 283.5,154.7 288.5,156.2 293.5,157.8 298.5,159.2 303.5,160.5 308.5,161.3 313.5,161.7 318.5,161.3 323.5,160.5 328.5,159.2 333.5,157.8 338.5,156.2 343.5,154.7 348.5,153.3 353.5,151.9 358.5,150.7 363.5,149.5 368.5,148.5 373.5,147.6 378.5,146.7 383.5,145.9 388.5,145.2 393.5,144.5 398.5,143.9 403.5,143.4 408.5,142.8 413.5,142.4 418.5,141.9 423.5,141.5 428.5,141.1 433.5,140.8 438.5,140.4 443.5,140.1 448.5,139.8 453.5,139.5 458.5,139.3 463.5,139.0 468.5,138.8 473.5,138.5 478.5,138.3 483.5,138.1 488.5,137.9 493.5,137.8 498.5,137.6 503.5,137.4 508.5,137.3 513.5,137.1 518.5,137.0 523.5,136.8 528.5,136.7 533.5,136.6 538.5,136.4 543.5,136.3" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.8"/><polyline points="97.0,146.6 102.0,146.7 107.0,146.8 112.0,147.0 117.0,147.1 122.0,147.2 127.0,147.4 132.0,147.5 137.0,147.6 142.0,147.8 147.0,148.0 152.0,148.1 157.0,148.3 162.0,148.5 167.0,148.7 172.0,148.9 177.0,149.1 182.0,149.3 187.0,149.6 192.0,149.8 197.0,150.1 202.0,150.3 207.0,150.6 212.0,150.9 217.0,151.2 222.0,151.6 227.0,151.9 232.0,152.3 237.0,152.7 242.0,153.1 247.0,153.6 252.0,154.0 257.0,154.5 262.0,155.1 267.0,155.6 272.0,156.2 277.0,156.7 282.0,157.3 287.0,157.9 292.0,158.5 297.0,159.1 302.0,159.6 307.0,160.1 312.0,160.5 317.0,160.8 322.0,161.0 327.0,161.1 332.0,161.0 337.0,160.8 342.0,160.5 347.0,160.1 352.0,159.6 357.0,159.1 362.0,158.5 367.0,157.9 372.0,157.3 377.0,156.7 382.0,156.2 387.0,155.6 392.0,155.1 397.0,154.5 402.0,154.0 407.0,153.6 412.0,153.1 417.0,152.7 422.0,152.3 427.0,151.9 432.0,151.6 437.0,151.2 442.0,150.9 447.0,150.6 452.0,150.3 457.0,150.1 462.0,149.8 467.0,149.6 472.0,149.3 477.0,149.1 482.0,148.9 487.0,148.7 492.0,148.5 497.0,148.3 502.0,148.1 507.0,148.0 512.0,147.8 517.0,147.6 522.0,147.5 527.0,147.4 532.0,147.2 537.0,147.1 542.0,147.0 547.0,146.8 552.0,146.7 557.0,146.6" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.8"/><polyline points="110.6,156.9 115.6,157.0 120.6,157.1 125.6,157.2 130.6,157.3 135.6,157.4 140.6,157.5 145.6,157.7 150.6,157.8 155.6,157.9 160.6,158.1 165.6,158.2 170.6,158.4 175.6,158.5 180.6,158.7 185.6,158.9 190.6,159.1 195.6,159.2 200.6,159.4 205.6,159.6 210.6,159.8 215.6,160.1 220.6,160.3 225.6,160.5 230.6,160.8 235.6,161.0 240.6,161.3 245.6,161.6 250.6,161.8 255.6,162.1 260.6,162.4 265.6,162.7 270.6,163.0 275.6,163.3 280.6,163.7 285.6,164.0 290.6,164.3 295.6,164.6 300.6,164.9 305.6,165.2 310.6,165.4 315.6,165.6 320.6,165.8 325.6,166.0 330.6,166.1 335.6,166.2 340.6,166.2 345.6,166.2 350.6,166.1 355.6,166.0 360.6,165.8 365.6,165.6 370.6,165.4 375.6,165.2 380.6,164.9 385.6,164.6 390.6,164.3 395.6,164.0 400.6,163.7 405.6,163.3 410.6,163.0 415.6,162.7 420.6,162.4 425.6,162.1 430.6,161.8 435.6,161.6 440.6,161.3 445.6,161.0 450.6,160.8 455.6,160.5 460.6,160.3 465.6,160.1 470.6,159.8 475.6,159.6 480.6,159.4 485.6,159.2 490.6,159.1 495.6,158.9 500.6,158.7 505.6,158.5 510.6,158.4 515.6,158.2 520.6,158.1 525.6,157.9 530.6,157.8 535.6,157.7 540.6,157.5 545.6,157.4 550.6,157.3 555.6,157.2 560.6,157.1 565.6,157.0 570.6,156.9" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.8"/><polyline points="124.1,167.1 129.1,167.2 134.1,167.3 139.1,167.4 144.1,167.5 149.1,167.6 154.1,167.7 159.1,167.8 164.1,167.9 169.1,168.0 174.1,168.1 179.1,168.2 184.1,168.4 189.1,168.5 194.1,168.6 199.1,168.8 204.1,168.9 209.1,169.1 214.1,169.2 219.1,169.4 224.1,169.6 229.1,169.7 234.1,169.9 239.1,170.1 244.1,170.3 249.1,170.4 254.1,170.6 259.1,170.8 264.1,171.0 269.1,171.2 274.1,171.4 279.1,171.6 284.1,171.8 289.1,172.0 294.1,172.2 299.1,172.3 304.1,172.5 309.1,172.7 314.1,172.8 319.1,173.0 324.1,173.1 329.1,173.2 334.1,173.3 339.1,173.4 344.1,173.5 349.1,173.5 354.1,173.5 359.1,173.5 364.1,173.5 369.1,173.4 374.1,173.3 379.1,173.2 384.1,173.1 389.1,173.0 394.1,172.8 399.1,172.7 404.1,172.5 409.1,172.3 414.1,172.2 419.1,172.0 424.1,171.8 429.1,171.6 434.1,171.4 439.1,171.2 444.1,171.0 449.1,170.8 454.1,170.6 459.1,170.4 464.1,170.3 469.1,170.1 474.1,169.9 479.1,169.7 484.1,169.6 489.1,169.4 494.1,169.2 499.1,169.1 504.1,168.9 509.1,168.8 514.1,168.6 519.1,168.5 524.1,168.4 529.1,168.2 534.1,168.1 539.1,168.0 544.1,167.9 549.1,167.8 554.1,167.7 559.1,167.6 564.1,167.5 569.1,167.4 574.1,167.3 579.1,167.2 584.1,167.1" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.8"/><polyline points="137.6,177.2 142.6,177.3 147.6,177.4 152.6,177.5 157.6,177.6 162.6,177.7 167.6,177.8 172.6,177.9 177.6,177.9 182.6,178.0 187.6,178.1 192.6,178.2 197.6,178.4 202.6,178.5 207.6,178.6 212.6,178.7 217.6,178.8 222.6,178.9 227.6,179.0 232.6,179.2 237.6,179.3 242.6,179.4 247.6,179.5 252.6,179.7 257.6,179.8 262.6,179.9 267.6,180.1 272.6,180.2 277.6,180.3 282.6,180.5 287.6,180.6 292.6,180.7 297.6,180.8 302.6,181.0 307.6,181.1 312.6,181.2 317.6,181.3 322.6,181.4 327.6,181.5 332.6,181.6 337.6,181.7 342.6,181.7 347.6,181.8 352.6,181.8 357.6,181.8 362.6,181.9 367.6,181.9 372.6,181.9 377.6,181.8 382.6,181.8 387.6,181.8 392.6,181.7 397.6,181.7 402.6,181.6 407.6,181.5 412.6,181.4 417.6,181.3 422.6,181.2 427.6,181.1 432.6,181.0 437.6,180.8 442.6,180.7 447.6,180.6 452.6,180.5 457.6,180.3 462.6,180.2 467.6,180.1 472.6,179.9 477.6,179.8 482.6,179.7 487.6,179.5 492.6,179.4 497.6,179.3 502.6,179.2 507.6,179.0 512.6,178.9 517.6,178.8 522.6,178.7 527.6,178.6 532.6,178.5 537.6,178.4 542.6,178.2 547.6,178.1 552.6,178.0 557.6,177.9 562.6,177.9 567.6,177.8 572.6,177.7 577.6,177.6 582.6,177.5 587.6,177.4 592.6,177.3 597.6,177.2" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.8"/><polyline points="2.4,73.2 5.0,75.3 7.6,77.3 10.2,79.4 12.8,81.4 15.4,83.5 18.0,85.5 20.6,87.5 23.2,89.6 25.8,91.6 28.4,93.6 31.0,95.7 33.6,97.7 36.2,99.7 38.8,101.8 41.4,103.8 44.0,105.8 46.6,107.9 49.2,109.9 51.8,111.9 54.4,113.9 57.0,115.9 59.6,117.9 62.2,119.9 64.8,121.9 67.4,124.0 70.0,126.0 72.6,128.0 75.2,129.9 77.8,131.9 80.4,133.9 83.0,135.9 85.6,137.9 88.2,139.9 90.8,141.9 93.4,143.9 96.0,145.8 98.6,147.8 101.2,149.8 103.8,151.7 106.4,153.7 109.0,155.7 111.6,157.6 114.2,159.6 116.8,161.6 119.4,163.5 122.0,165.5 124.6,167.5 127.2,169.4 129.8,171.4 132.4,173.3 135.0,175.3 137.6,177.2" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="25.4,73.6 28.0,75.7 30.6,77.7 33.2,79.8 35.8,81.8 38.4,83.9 41.0,86.0 43.6,88.0 46.2,90.1 48.8,92.1 51.4,94.1 54.0,96.2 56.6,98.2 59.2,100.3 61.8,102.3 64.4,104.4 67.0,106.4 69.6,108.4 72.2,110.4 74.8,112.5 77.4,114.5 80.0,116.5 82.6,118.5 85.2,120.5 87.8,122.5 90.4,124.5 93.0,126.6 95.6,128.5 98.2,130.5 100.8,132.5 103.4,134.5 106.0,136.5 108.6,138.5 111.2,140.5 113.8,142.4 116.4,144.4 119.0,146.4 121.6,148.4 124.2,150.3 126.8,152.3 129.4,154.2 132.0,156.2 134.6,158.1 137.2,160.1 139.8,162.1 142.4,164.0 145.0,166.0 147.6,167.9 150.2,169.8 152.8,171.8 155.4,173.7 158.0,175.7 160.6,177.6" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="48.4,74.1 51.0,76.1 53.6,78.2 56.2,80.3 58.8,82.3 61.4,84.4 64.0,86.5 66.6,88.5 69.2,90.6 71.8,92.7 74.4,94.7 77.0,96.8 79.6,98.9 82.2,100.9 84.8,103.0 87.4,105.0 90.0,107.1 92.6,109.1 95.2,111.1 97.8,113.2 100.4,115.2 103.0,117.2 105.6,119.2 108.2,121.3 110.8,123.3 113.4,125.3 116.0,127.3 118.6,129.3 121.2,131.3 123.8,133.3 126.4,135.2 129.0,137.2 131.6,139.2 134.2,141.2 136.8,143.1 139.4,145.1 142.0,147.1 144.6,149.0 147.2,151.0 149.8,152.9 152.4,154.9 155.0,156.8 157.6,158.7 160.2,160.7 162.8,162.6 165.4,164.5 168.0,166.5 170.6,168.4 173.2,170.3 175.8,172.3 178.4,174.2 181.0,176.1 183.6,178.1" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="71.4,74.6 74.0,76.6 76.6,78.7 79.2,80.8 81.8,82.9 84.4,85.0 87.0,87.1 89.6,89.2 92.2,91.3 94.8,93.4 97.4,95.4 100.0,97.5 102.6,99.6 105.2,101.7 107.8,103.7 110.4,105.8 113.0,107.9 115.6,109.9 118.2,112.0 120.8,114.0 123.4,116.1 126.0,118.1 128.6,120.1 131.2,122.2 133.8,124.2 136.4,126.2 139.0,128.2 141.6,130.2 144.2,132.2 146.8,134.2 149.4,136.1 152.0,138.1 154.6,140.1 157.2,142.0 159.8,144.0 162.4,145.9 165.0,147.9 167.6,149.8 170.2,151.7 172.8,153.7 175.4,155.6 178.0,157.5 180.6,159.4 183.2,161.4 185.8,163.3 188.4,165.2 191.0,167.1 193.6,169.0 196.2,170.9 198.8,172.8 201.4,174.7 204.0,176.6 206.6,178.6" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="94.4,75.1 97.0,77.2 99.6,79.3 102.2,81.4 104.8,83.6 107.4,85.7 110.0,87.8 112.6,89.9 115.2,92.0 117.8,94.1 120.4,96.3 123.0,98.4 125.6,100.5 128.2,102.6 130.8,104.7 133.4,106.8 136.0,108.9 138.6,111.0 141.2,113.1 143.8,115.1 146.4,117.2 149.0,119.2 151.6,121.3 154.2,123.3 156.8,125.4 159.4,127.4 162.0,129.4 164.6,131.4 167.2,133.4 169.8,135.3 172.4,137.3 175.0,139.2 177.6,141.2 180.2,143.1 182.8,145.1 185.4,147.0 188.0,148.9 190.6,150.8 193.2,152.7 195.8,154.6 198.4,156.5 201.0,158.4 203.6,160.3 206.2,162.1 208.8,164.0 211.4,165.9 214.0,167.8 216.6,169.7 219.2,171.6 221.8,173.4 224.4,175.3 227.0,177.2 229.6,179.1" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="117.4,75.7 120.0,77.8 122.6,80.0 125.2,82.1 127.8,84.3 130.4,86.4 133.0,88.6 135.6,90.8 138.2,92.9 140.8,95.1 143.4,97.3 146.0,99.4 148.6,101.6 151.2,103.7 153.8,105.9 156.4,108.0 159.0,110.2 161.6,112.3 164.2,114.4 166.8,116.5 169.4,118.6 172.0,120.7 174.6,122.8 177.2,124.9 179.8,126.9 182.4,128.9 185.0,130.9 187.6,132.9 190.2,134.9 192.8,136.9 195.4,138.8 198.0,140.7 200.6,142.6 203.2,144.5 205.8,146.4 208.4,148.3 211.0,150.2 213.6,152.0 216.2,153.9 218.8,155.7 221.4,157.6 224.0,159.4 226.6,161.3 229.2,163.1 231.8,164.9 234.4,166.8 237.0,168.6 239.6,170.4 242.2,172.3 244.8,174.1 247.4,176.0 250.0,177.8 252.6,179.7" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="140.4,76.3 143.0,78.5 145.6,80.7 148.2,82.9 150.8,85.1 153.4,87.3 156.0,89.5 158.6,91.7 161.2,94.0 163.8,96.2 166.4,98.4 169.0,100.7 171.6,102.9 174.2,105.1 176.8,107.4 179.4,109.6 182.0,111.8 184.6,114.1 187.2,116.3 189.8,118.5 192.4,120.6 195.0,122.8 197.6,124.9 200.2,127.0 202.8,129.1 205.4,131.1 208.0,133.2 210.6,135.1 213.2,137.1 215.8,139.0 218.4,140.9 221.0,142.8 223.6,144.6 226.2,146.5 228.8,148.3 231.4,150.1 234.0,151.8 236.6,153.6 239.2,155.4 241.8,157.1 244.4,158.9 247.0,160.7 249.6,162.4 252.2,164.2 254.8,166.0 257.4,167.7 260.0,169.5 262.6,171.3 265.2,173.1 267.8,174.9 270.4,176.7 273.0,178.5 275.6,180.3" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="163.4,76.9 166.0,79.1 168.6,81.4 171.2,83.6 173.8,85.9 176.4,88.2 179.0,90.5 181.6,92.8 184.2,95.1 186.8,97.4 189.4,99.8 192.0,102.1 194.6,104.5 197.2,106.8 199.8,109.2 202.4,111.6 205.0,114.0 207.6,116.4 210.2,118.7 212.8,121.1 215.4,123.4 218.0,125.7 220.6,128.0 223.2,130.2 225.8,132.4 228.4,134.5 231.0,136.5 233.6,138.5 236.2,140.4 238.8,142.2 241.4,144.0 244.0,145.7 246.6,147.4 249.2,149.1 251.8,150.7 254.4,152.4 257.0,154.0 259.6,155.6 262.2,157.2 264.8,158.8 267.4,160.5 270.0,162.1 272.6,163.8 275.2,165.4 277.8,167.1 280.4,168.8 283.0,170.5 285.6,172.2 288.2,173.9 290.8,175.6 293.4,177.4 296.0,179.1 298.6,180.9" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="186.4,77.4 189.0,79.7 191.6,82.0 194.2,84.3 196.8,86.6 199.4,89.0 202.0,91.4 204.6,93.8 207.2,96.2 209.8,98.6 212.4,101.1 215.0,103.6 217.6,106.2 220.2,108.8 222.8,111.4 225.4,114.0 228.0,116.7 230.6,119.4 233.2,122.1 235.8,124.8 238.4,127.5 241.0,130.2 243.6,132.8 246.2,135.3 248.8,137.7 251.4,140.0 254.0,142.1 256.6,144.0 259.2,145.7 261.8,147.3 264.4,148.8 267.0,150.2 269.6,151.5 272.2,152.8 274.8,154.1 277.4,155.4 280.0,156.7 282.6,158.0 285.2,159.4 287.8,160.8 290.4,162.2 293.0,163.6 295.6,165.1 298.2,166.6 300.8,168.2 303.4,169.8 306.0,171.4 308.6,173.0 311.2,174.6 313.8,176.3 316.4,178.0 319.0,179.7 321.6,181.4" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="209.4,77.7 212.0,80.1 214.6,82.4 217.2,84.8 219.8,87.2 222.4,89.6 225.0,92.0 227.6,94.5 230.2,97.1 232.8,99.6 235.4,102.3 238.0,104.9 240.6,107.7 243.2,110.5 245.8,113.4 248.4,116.4 251.0,119.5 253.6,122.7 256.2,126.0 258.8,129.5 261.4,133.1 264.0,136.8 266.6,140.6 269.2,144.3 271.8,147.9 274.4,150.9 277.0,153.3 279.6,154.9 282.2,155.9 284.8,156.3 287.4,156.6 290.0,156.8 292.6,157.1 295.2,157.5 297.8,158.0 300.4,158.7 303.0,159.5 305.6,160.4 308.2,161.4 310.8,162.5 313.4,163.7 316.0,164.9 318.6,166.3 321.2,167.6 323.8,169.1 326.4,170.5 329.0,172.0 331.6,173.6 334.2,175.2 336.8,176.8 339.4,178.4 342.0,180.1 344.6,181.7" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="232.4,77.9 235.0,80.2 237.6,82.6 240.2,84.9 242.8,87.4 245.4,89.8 248.0,92.3 250.6,94.8 253.2,97.4 255.8,100.0 258.4,102.7 261.0,105.5 263.6,108.3 266.2,111.2 268.8,114.3 271.4,117.5 274.0,120.8 276.6,124.4 279.2,128.2 281.8,132.3 284.4,136.8 287.0,141.9 289.6,147.7 292.2,154.5 294.8,162.9 297.4,173.6 300.0,188.2 302.6,177.6 305.2,170.9 307.8,166.5 310.4,163.7 313.0,161.9 315.6,160.8 318.2,160.3 320.8,160.2 323.4,160.4 326.0,160.8 328.6,161.5 331.2,162.3 333.8,163.2 336.4,164.3 339.0,165.5 341.6,166.7 344.2,168.0 346.8,169.4 349.4,170.8 352.0,172.3 354.6,173.8 357.2,175.4 359.8,176.9 362.4,178.6 365.0,180.2 367.6,181.9" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="255.4,77.7 258.0,80.1 260.6,82.4 263.2,84.8 265.8,87.2 268.4,89.6 271.0,92.0 273.6,94.5 276.2,97.1 278.8,99.6 281.4,102.3 284.0,104.9 286.6,107.7 289.2,110.5 291.8,113.4 294.4,116.4 297.0,119.5 299.6,122.7 302.2,126.0 304.8,129.5 307.4,133.1 310.0,136.8 312.6,140.6 315.2,144.3 317.8,147.9 320.4,150.9 323.0,153.3 325.6,154.9 328.2,155.9 330.8,156.3 333.4,156.6 336.0,156.8 338.6,157.1 341.2,157.5 343.8,158.0 346.4,158.7 349.0,159.5 351.6,160.4 354.2,161.4 356.8,162.5 359.4,163.7 362.0,164.9 364.6,166.3 367.2,167.6 369.8,169.1 372.4,170.5 375.0,172.0 377.6,173.6 380.2,175.2 382.8,176.8 385.4,178.4 388.0,180.1 390.6,181.7" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="278.4,77.4 281.0,79.7 283.6,82.0 286.2,84.3 288.8,86.6 291.4,89.0 294.0,91.4 296.6,93.8 299.2,96.2 301.8,98.6 304.4,101.1 307.0,103.6 309.6,106.2 312.2,108.8 314.8,111.4 317.4,114.0 320.0,116.7 322.6,119.4 325.2,122.1 327.8,124.8 330.4,127.5 333.0,130.2 335.6,132.8 338.2,135.3 340.8,137.7 343.4,140.0 346.0,142.1 348.6,144.0 351.2,145.7 353.8,147.3 356.4,148.8 359.0,150.2 361.6,151.5 364.2,152.8 366.8,154.1 369.4,155.4 372.0,156.7 374.6,158.0 377.2,159.4 379.8,160.8 382.4,162.2 385.0,163.6 387.6,165.1 390.2,166.6 392.8,168.2 395.4,169.8 398.0,171.4 400.6,173.0 403.2,174.6 405.8,176.3 408.4,178.0 411.0,179.7 413.6,181.4" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="301.4,76.9 304.0,79.1 306.6,81.4 309.2,83.6 311.8,85.9 314.4,88.2 317.0,90.5 319.6,92.8 322.2,95.1 324.8,97.4 327.4,99.8 330.0,102.1 332.6,104.5 335.2,106.8 337.8,109.2 340.4,111.6 343.0,114.0 345.6,116.4 348.2,118.7 350.8,121.1 353.4,123.4 356.0,125.7 358.6,128.0 361.2,130.2 363.8,132.4 366.4,134.5 369.0,136.5 371.6,138.5 374.2,140.4 376.8,142.2 379.4,144.0 382.0,145.7 384.6,147.4 387.2,149.1 389.8,150.7 392.4,152.4 395.0,154.0 397.6,155.6 400.2,157.2 402.8,158.8 405.4,160.5 408.0,162.1 410.6,163.8 413.2,165.4 415.8,167.1 418.4,168.8 421.0,170.5 423.6,172.2 426.2,173.9 428.8,175.6 431.4,177.4 434.0,179.1 436.6,180.9" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="324.4,76.3 327.0,78.5 329.6,80.7 332.2,82.9 334.8,85.1 337.4,87.3 340.0,89.5 342.6,91.7 345.2,94.0 347.8,96.2 350.4,98.4 353.0,100.7 355.6,102.9 358.2,105.1 360.8,107.4 363.4,109.6 366.0,111.8 368.6,114.1 371.2,116.3 373.8,118.5 376.4,120.6 379.0,122.8 381.6,124.9 384.2,127.0 386.8,129.1 389.4,131.1 392.0,133.2 394.6,135.1 397.2,137.1 399.8,139.0 402.4,140.9 405.0,142.8 407.6,144.6 410.2,146.5 412.8,148.3 415.4,150.1 418.0,151.8 420.6,153.6 423.2,155.4 425.8,157.1 428.4,158.9 431.0,160.7 433.6,162.4 436.2,164.2 438.8,166.0 441.4,167.7 444.0,169.5 446.6,171.3 449.2,173.1 451.8,174.9 454.4,176.7 457.0,178.5 459.6,180.3" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="347.4,75.7 350.0,77.8 352.6,80.0 355.2,82.1 357.8,84.3 360.4,86.4 363.0,88.6 365.6,90.8 368.2,92.9 370.8,95.1 373.4,97.3 376.0,99.4 378.6,101.6 381.2,103.7 383.8,105.9 386.4,108.0 389.0,110.2 391.6,112.3 394.2,114.4 396.8,116.5 399.4,118.6 402.0,120.7 404.6,122.8 407.2,124.9 409.8,126.9 412.4,128.9 415.0,130.9 417.6,132.9 420.2,134.9 422.8,136.9 425.4,138.8 428.0,140.7 430.6,142.6 433.2,144.5 435.8,146.4 438.4,148.3 441.0,150.2 443.6,152.0 446.2,153.9 448.8,155.7 451.4,157.6 454.0,159.4 456.6,161.3 459.2,163.1 461.8,164.9 464.4,166.8 467.0,168.6 469.6,170.4 472.2,172.3 474.8,174.1 477.4,176.0 480.0,177.8 482.6,179.7" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="370.4,75.1 373.0,77.2 375.6,79.3 378.2,81.4 380.8,83.6 383.4,85.7 386.0,87.8 388.6,89.9 391.2,92.0 393.8,94.1 396.4,96.3 399.0,98.4 401.6,100.5 404.2,102.6 406.8,104.7 409.4,106.8 412.0,108.9 414.6,111.0 417.2,113.1 419.8,115.1 422.4,117.2 425.0,119.2 427.6,121.3 430.2,123.3 432.8,125.4 435.4,127.4 438.0,129.4 440.6,131.4 443.2,133.4 445.8,135.3 448.4,137.3 451.0,139.2 453.6,141.2 456.2,143.1 458.8,145.1 461.4,147.0 464.0,148.9 466.6,150.8 469.2,152.7 471.8,154.6 474.4,156.5 477.0,158.4 479.6,160.3 482.2,162.1 484.8,164.0 487.4,165.9 490.0,167.8 492.6,169.7 495.2,171.6 497.8,173.4 500.4,175.3 503.0,177.2 505.6,179.1" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="393.4,74.6 396.0,76.6 398.6,78.7 401.2,80.8 403.8,82.9 406.4,85.0 409.0,87.1 411.6,89.2 414.2,91.3 416.8,93.4 419.4,95.4 422.0,97.5 424.6,99.6 427.2,101.7 429.8,103.7 432.4,105.8 435.0,107.9 437.6,109.9 440.2,112.0 442.8,114.0 445.4,116.1 448.0,118.1 450.6,120.1 453.2,122.2 455.8,124.2 458.4,126.2 461.0,128.2 463.6,130.2 466.2,132.2 468.8,134.2 471.4,136.1 474.0,138.1 476.6,140.1 479.2,142.0 481.8,144.0 484.4,145.9 487.0,147.9 489.6,149.8 492.2,151.7 494.8,153.7 497.4,155.6 500.0,157.5 502.6,159.4 505.2,161.4 507.8,163.3 510.4,165.2 513.0,167.1 515.6,169.0 518.2,170.9 520.8,172.8 523.4,174.7 526.0,176.6 528.6,178.6" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="416.4,74.1 419.0,76.1 421.6,78.2 424.2,80.3 426.8,82.3 429.4,84.4 432.0,86.5 434.6,88.5 437.2,90.6 439.8,92.7 442.4,94.7 445.0,96.8 447.6,98.9 450.2,100.9 452.8,103.0 455.4,105.0 458.0,107.1 460.6,109.1 463.2,111.1 465.8,113.2 468.4,115.2 471.0,117.2 473.6,119.2 476.2,121.3 478.8,123.3 481.4,125.3 484.0,127.3 486.6,129.3 489.2,131.3 491.8,133.3 494.4,135.2 497.0,137.2 499.6,139.2 502.2,141.2 504.8,143.1 507.4,145.1 510.0,147.1 512.6,149.0 515.2,151.0 517.8,152.9 520.4,154.9 523.0,156.8 525.6,158.7 528.2,160.7 530.8,162.6 533.4,164.5 536.0,166.5 538.6,168.4 541.2,170.3 543.8,172.3 546.4,174.2 549.0,176.1 551.6,178.1" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="439.4,73.6 442.0,75.7 444.6,77.7 447.2,79.8 449.8,81.8 452.4,83.9 455.0,86.0 457.6,88.0 460.2,90.1 462.8,92.1 465.4,94.1 468.0,96.2 470.6,98.2 473.2,100.3 475.8,102.3 478.4,104.4 481.0,106.4 483.6,108.4 486.2,110.4 488.8,112.5 491.4,114.5 494.0,116.5 496.6,118.5 499.2,120.5 501.8,122.5 504.4,124.5 507.0,126.6 509.6,128.5 512.2,130.5 514.8,132.5 517.4,134.5 520.0,136.5 522.6,138.5 525.2,140.5 527.8,142.4 530.4,144.4 533.0,146.4 535.6,148.4 538.2,150.3 540.8,152.3 543.4,154.2 546.0,156.2 548.6,158.1 551.2,160.1 553.8,162.1 556.4,164.0 559.0,166.0 561.6,167.9 564.2,169.8 566.8,171.8 569.4,173.7 572.0,175.7 574.6,177.6" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/><polyline points="462.4,73.2 465.0,75.3 467.6,77.3 470.2,79.4 472.8,81.4 475.4,83.5 478.0,85.5 480.6,87.5 483.2,89.6 485.8,91.6 488.4,93.6 491.0,95.7 493.6,97.7 496.2,99.7 498.8,101.8 501.4,103.8 504.0,105.8 506.6,107.9 509.2,109.9 511.8,111.9 514.4,113.9 517.0,115.9 519.6,117.9 522.2,119.9 524.8,121.9 527.4,124.0 530.0,126.0 532.6,128.0 535.2,129.9 537.8,131.9 540.4,133.9 543.0,135.9 545.6,137.9 548.2,139.9 550.8,141.9 553.4,143.9 556.0,145.8 558.6,147.8 561.2,149.8 563.8,151.7 566.4,153.7 569.0,155.7 571.6,157.6 574.2,159.6 576.8,161.6 579.4,163.5 582.0,165.5 584.6,167.5 587.2,169.4 589.8,171.4 592.4,173.3 595.0,175.3 597.6,177.2" fill="none" stroke="var(--sky)" stroke-width="1.2" opacity="0.55"/>
+<polyline points="450.0,120.7 452.4,122.7 454.3,124.7 455.9,126.7 457.0,128.7 457.7,130.7 457.9,132.7 457.7,134.6 457.1,136.6 456.1,138.5 454.6,140.4 452.7,142.2 450.4,144.0 447.7,145.7 444.5,147.4 441.0,149.0 437.1,150.6 432.8,152.1 428.1,153.5 423.1,154.9 417.8,156.2 412.1,157.3 406.1,158.4 399.9,159.4 393.3,160.3 386.5,161.0 379.5,161.7 372.3,162.2 364.8,162.5 357.2,162.7 349.4,162.8 341.5,162.7 333.5,162.5 325.3,162.2 317.1,161.7 308.9,161.0 300.6,160.3 292.4,159.4 284.1,158.4 275.9,157.3 267.8,156.2 259.7,154.9 251.8,153.5 244.0,152.1 236.3,150.6 228.9,149.0 221.6,147.4 214.5,145.7 207.7,144.0 201.1,142.2 194.8,140.4 188.8,138.5 183.1,136.6 177.7,134.6 172.6,132.7 167.9,130.7 163.5,128.7 159.6,126.7 156.0,124.7 152.8,122.7 150.0,120.7 147.6,118.7 145.7,116.8 144.1,114.8 143.0,112.9 142.3,111.0 142.1,109.2 142.3,107.4 142.9,105.7 143.9,104.0 145.4,102.4 147.3,100.8 149.6,99.3 152.3,97.9 155.5,96.6 159.0,95.3 162.9,94.1 167.2,93.0 171.9,92.1 176.9,91.2 182.2,90.3 187.9,89.6 193.9,89.0 200.1,88.5 206.7,88.0 213.5,87.6 220.5,87.3 227.7,87.1 235.2,86.9 242.8,86.9 250.6,86.8 258.5,86.9 266.5,86.9 274.7,87.1 282.9,87.3 291.1,87.6 299.4,88.0 307.6,88.5 315.9,89.0 324.1,89.6 332.2,90.3 340.3,91.2 348.2,92.1 356.0,93.0 363.7,94.1 371.1,95.3 378.4,96.6 385.5,97.9 392.3,99.3 398.9,100.8 405.2,102.4 411.2,104.0 416.9,105.7 422.3,107.4 427.4,109.2 432.1,111.0 436.5,112.9 440.4,114.8 444.0,116.8 447.2,118.7 450.0,120.7" fill="none" stroke="var(--amber)" stroke-width="2.5" stroke-dasharray="8 5"/>
+<circle cx="300.0" cy="158.2" r="15" fill="var(--rose)" fill-opacity="0.8" stroke="var(--rose)" stroke-width="2"/>
+<circle cx="417.8" cy="156.2" r="7" fill="var(--moss)" stroke="var(--moss)" stroke-width="2"/>
+<text class="axtext" x="20" y="300">the planet is not held by a string — it goes as straight as it can, on a surface that is not flat</text>
+<text class="axtext" x="392" y="34">mass tells space how to curve;</text>
+<text class="axtext" x="392" y="56">curved space tells mass how to move</text>
+</svg>
+<figcaption>A two-dimensional cartoon of what general relativity says. The grid is space, the star's mass makes it sag, and the planet simply follows the straightest available path across the sagged grid &mdash; a geodesic, exactly like the great-circle route of an aircraft. Nothing is pulling it sideways. The geometry is doing the work.</figcaption>
+</figure>
+
+<div class="box hist">
+<span class="lbl">history</span>
+<p>For two thousand years, mathematicians tried to prove Euclid's fifth postulate &mdash; essentially that parallel lines never meet &mdash; from the other four. The effort was enormous and it always failed. In the 1820s Bolyai in Hungary and Lobachevsky in Russia independently stopped trying to prove it and asked what happens if you assume it is false. What happens is: a complete, consistent geometry, describing a saddle-shaped world where triangles have too little angle.</p>
+<p>Gauss had reached the same conclusion years earlier and published nothing, fearing what he called the outcry of the Boeotians. Bolyai's father, who had spent his own life on the problem, wrote to his son begging him to abandon it: <em>it may take all your time, and deprive you of your health and peace of mind</em>. The son ignored him, and geometry stopped being one thing.</p>
+<p>Ninety years later Einstein needed a geometry in which space itself bends. It was already built and waiting.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 5.3</span>
+<ol>
+<li>A spherical triangle has angles \(100^{\circ}\), \(85^{\circ}\) and \(70^{\circ}\). Find its excess in radians and its area on the Earth (\(r=6{,}371\) km).</li>
+<li>What fraction of the Earth’s surface is covered by a triangle with three angles of \(120^{\circ}\)?</li>
+<li>Explain why a spherical triangle can have two right angles, and sketch one. Can a flat triangle?</li>
+<li>Using the spherical law of cosines, find the distance from Quito (\(0^{\circ}\)N, \(78.5^{\circ}\)W) to Nairobi (\(1.3^{\circ}\)S, \(36.8^{\circ}\)E).</li>
+<li>A circle of radius \(r\) drawn on a sphere has a circumference slightly less than \(2\pi r\). Explain why, using the fact that the circle’s radius must be measured along the surface.</li>
+<li>An ant on a cylinder measures the angles of a large triangle and gets exactly \(180^{\circ}\). What does it conclude, and is it right?</li>
+<li>Greenland appears about the same size as Africa on a Mercator map, but is about one fourteenth of its area. Which property does Mercator preserve, and what does it sacrifice? Why can no projection preserve both?</li>
+<li>A triangle with sides of 40 km is surveyed on the Earth. Estimate its angle excess in seconds of arc, and decide whether an instrument accurate to one second would detect it.</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>Sum \(=255^{\circ}\), excess \(=75^{\circ}=1.309\) rad. Area \(=1.309(6371)^{2}=5.31\times10^{7}\) km&#178; \(\approx\) 53 million km&#178;, roughly a tenth of the Earth.</li>
+<li>Sum \(=360^{\circ}\), excess \(=180^{\circ}=\pi\) rad, so area \(=\pi r^{2}\). The sphere has area \(4\pi r^{2}\), so the triangle covers exactly one quarter.</li>
+<li>Take both vertices on the equator and the third at the pole: the two lines of longitude meet the equator at right angles, whatever the angle at the pole. A flat triangle cannot &mdash; two right angles already use up the whole \(180^{\circ}\).</li>
+<li>Co-latitudes \(90^{\circ}\) and \(91.3^{\circ}\); longitude difference \(78.5+36.8=115.3^{\circ}\). Then \(\cos c=\cos90^{\circ}\cos91.3^{\circ}+\sin90^{\circ}\sin91.3^{\circ}\cos115.3^{\circ}=-0.4275\), so \(c=115.3^{\circ}=2.012\) rad and the distance is 12,820 km.</li>
+<li>The radius is measured along the curved surface, so it is longer than the straight-line radius of the flat circle it bounds. The circumference belongs to that smaller flat circle, so it falls short of \(2\pi r\) &mdash; and the shortfall is a measurement of curvature made entirely from inside.</li>
+<li>It concludes it is living in a flat world, and for the purposes of geometry it is right: a cylinder is intrinsically flat, because it was rolled from a flat sheet without stretching. Only by walking all the way round and returning to its starting point would it learn anything was unusual, and that is a fact about the shape’s connectivity, not its curvature.</li>
+<li>Mercator preserves angles, which is why it was invaluable for navigation &mdash; a constant compass bearing is a straight line on the map. It sacrifices area, increasingly badly toward the poles. No projection can preserve both, because that would make the sphere intrinsically flat, which Gauss’s theorem forbids.</li>
+<li>Area \(\approx\dfrac{\sqrt3}{4}(40)^{2}=693\) km&#178;. Excess \(\approx693/6371^{2}=1.71\times10^{-5}\) rad \(=3.5\) seconds of arc. An instrument good to one second would detect it comfortably &mdash; and nineteenth-century surveyors did exactly this, using the excess as a check on their own measurements.</li>
+</ol>
+</div>
+</div>
+
+<hr>
+<h2 id="wrap">Where this chapter leaves you</h2>
+<p>Similar triangles let you trade a measurement you can make for one you cannot, which is how a stick measures a building and a shadow measures a planet. The Law of Sines and the Law of Cosines finish the job for triangles with no right angle, with one honest warning about the case where the data does not determine the answer.</p>
+<p>And then the sphere, where the angles come out wrong, geodesics replace straight lines, and curvature turns out to be something the inhabitants of a surface can measure without ever leaving it. That is the door to the geometry of curved spaces, and you have walked up to it using nothing beyond a protractor and the contents of Chapter 4.</p>
+<p>Chapter 6 goes back inside the circle to collect the identities &mdash; the many different ways of writing the same quantity that the circle’s symmetry makes possible.</p>
+
+<p class="kicker">Next: Chapter 6 &mdash; Trigonometric identities.</p>
+<script>
+function sv(t,a){var e=document.createElementNS('http://www.w3.org/2000/svg',t);
+  for(var k in a)e.setAttribute(k,a[k]);return e;}
+
+/* ---------- L19: shadows and similar triangles ---------- */
+(function(){
+  var s=document.getElementById('shA'); if(!s) return;
+  var PPM=20, GY=250;                       // 20 pixels to the metre
+  var pH=1.8*PPM, bH=6.0*PPM;
+  var pX=250, bL=420, bR=500;
+  document.getElementById('shWin').innerHTML='';
+  [0,1,2].forEach(function(r){ [0,1].forEach(function(c){
+    document.getElementById('shWin').appendChild(
+      sv('rect',{x:bL+14+c*38,y:110+r*44,width:22,height:26,fill:'var(--sky)','fill-opacity':0.35,stroke:'none'}));});});
+  document.querySelector('#shSvg rect').setAttribute('y', GY-bH);
+  document.querySelector('#shSvg rect').setAttribute('height', bH);
+  document.querySelector('#shSvg rect').setAttribute('x', bL);
+  document.querySelector('#shSvg rect').setAttribute('width', bR-bL);
+  function upd(){
+    var deg=+s.value, th=deg*Math.PI/180, t=Math.tan(th);
+    document.getElementById('shAv').textContent=deg;
+    var pL=pH/t, bLen=bH/t;
+    document.getElementById('shS1').setAttribute('x1',pX-4);
+    document.getElementById('shS1').setAttribute('x2',pX-4-pL);
+    document.getElementById('shS1').setAttribute('y1',GY); document.getElementById('shS1').setAttribute('y2',GY);
+    document.getElementById('shS2').setAttribute('x1',bL);
+    document.getElementById('shS2').setAttribute('x2',bL-bLen);
+    document.getElementById('shS2').setAttribute('y1',GY); document.getElementById('shS2').setAttribute('y2',GY);
+    var sun=document.getElementById('shSun');
+    sun.setAttribute('cx',572); sun.setAttribute('cy',Math.max(26, GY-(572-bL)*t-bH));
+    var g=document.getElementById('shRays');
+    while(g.firstChild) g.removeChild(g.firstChild);
+    [pX-4,bL,bL+40].forEach(function(x0){
+      var h=(x0===pX-4)?pH:bH;
+      g.appendChild(sv('line',{x1:x0,y1:GY-h,x2:x0-h/t,y2:GY,
+        stroke:'var(--amber)','stroke-width':1.5,'stroke-dasharray':'6 4'}));
+    });
+    document.getElementById('shOut').textContent=
+      'sun at '+deg+'\u00B0:  the 1.8 m person casts '+(pL/PPM).toFixed(2)+' m,  the building casts '
+      +(bLen/PPM).toFixed(2)+' m.   height \u00F7 shadow = '+(pH/pL).toFixed(3)+' for the person and '
+      +(bH/bLen).toFixed(3)+' for the building \u2014 the same number, whatever the sun does.';
+  }
+  s.addEventListener('input',upd); upd();
+})();
+
+/* ---------- L20: the ambiguous case ---------- */
+(function(){
+  var s=document.getElementById('ambA'); if(!s) return;
+  var AX=60, AY=230, U=40, A=35*Math.PI/180, b=8;
+  var CX=AX+b*U*Math.cos(A), CY=AY-b*U*Math.sin(A), hgt=AY-CY;
+  document.getElementById('ambRay').setAttribute('x2',AX+560*Math.cos(A));
+  document.getElementById('ambRay').setAttribute('y2',AY-560*Math.sin(A));
+  document.getElementById('ambC').setAttribute('x2',CX);
+  document.getElementById('ambC').setAttribute('y2',CY);
+  function upd(){
+    var a=+s.value, R=a*U;
+    document.getElementById('ambAv').textContent=a.toFixed(1);
+    var c=document.getElementById('ambCirc');
+    c.setAttribute('cx',CX); c.setAttribute('cy',CY); c.setAttribute('r',R);
+    var T1=document.getElementById('ambT1'), T2=document.getElementById('ambT2'), msg;
+    function tri(el,x){ el.setAttribute('points',AX+','+AY+' '+x+','+AY+' '+CX+','+CY); }
+    if(R<hgt-0.5){
+      T1.setAttribute('points',''); T2.setAttribute('points','');
+      msg='a = '+a.toFixed(1)+' is shorter than the height '+(hgt/U).toFixed(2)
+          +', so the swinging side cannot reach the base at all. No triangle exists.';
+    } else {
+      var dx=Math.sqrt(Math.max(0,R*R-hgt*hgt));
+      var x1=CX+dx, x2=CX-dx;
+      if(a>=b){ tri(T1,x1); T2.setAttribute('points','');
+        msg='a = '+a.toFixed(1)+' is at least as long as b = 8, so the second crossing falls behind the vertex and is not a triangle. Exactly one triangle.';
+      } else if(Math.abs(R-hgt)<0.6){ tri(T1,CX); T2.setAttribute('points','');
+        msg='a is exactly the height: the side just reaches, meeting the base at a right angle. Exactly one triangle.';
+      } else { tri(T1,x1); tri(T2,x2);
+        msg='two triangles. Both have A = 35\u00B0, the same side b = 8, and the same a = '+a.toFixed(1)
+            +'. The measurements do not decide which one you have.';
+      }
+    }
+    document.getElementById('ambOut').textContent=msg;
+  }
+  s.addEventListener('input',upd); upd();
+})();
+
+/* ---------- L21: growing a spherical triangle ---------- */
+(function(){
+  var s=document.getElementById('sphS'); if(!s) return;
+  var CX=210, CY=150, R=120, TILT=0.30;
+  function P(th,ph){                       // th = colatitude, ph = longitude
+    return [CX + R*Math.sin(th)*Math.sin(ph),
+            CY - R*Math.cos(th) + R*TILT*Math.sin(th)*Math.cos(ph)];
+  }
+  function upd(){
+    var v=+s.value, D=v*Math.PI/2;          // angle at the pole, up to 90 degrees
+    document.getElementById('sphSv').textContent=v.toFixed(2);
+    var pts=[], i;
+    for(i=0;i<=30;i++) pts.push(P(i/30*Math.PI/2, -D/2));          // down one meridian
+    for(i=0;i<=30;i++) pts.push(P(Math.PI/2, -D/2 + i/30*D));      // along the equator
+    for(i=30;i>=0;i--) pts.push(P(i/30*Math.PI/2, D/2));           // back up the other
+    document.getElementById('sphTri').setAttribute('d',
+      'M '+pts.map(function(p){return p[0].toFixed(1)+' '+p[1].toFixed(1);}).join(' L ')+' Z');
+    var deg=D*180/Math.PI, sum=180+deg;
+    var g=document.getElementById('sphBar');
+    while(g.firstChild) g.removeChild(g.firstChild);
+    g.appendChild(sv('line',{x1:400,y1:200,x2:580,y2:200,stroke:'var(--rule)','stroke-width':2}));
+    g.appendChild(sv('line',{x1:400,y1:196,x2:400,y2:204,stroke:'var(--rule)','stroke-width':2}));
+    g.appendChild(sv('line',{x1:580,y1:196,x2:580,y2:204,stroke:'var(--rule)','stroke-width':2}));
+    g.appendChild(sv('rect',{x:400,y:190,width:180*(sum-180)/90,height:20,
+      fill:'var(--moss)','fill-opacity':0.45,stroke:'var(--moss)'}));
+    var t1=sv('text',{x:392,y:184,class:'axtext'}); t1.textContent='180\u00B0'; g.appendChild(t1);
+    var t2=sv('text',{x:560,y:184,class:'axtext'}); t2.textContent='270\u00B0'; g.appendChild(t2);
+    var t3=sv('text',{x:400,y:232,class:'lbltext'}); t3.textContent='angle sum '+sum.toFixed(1)+'\u00B0'; g.appendChild(t3);
+    var t4=sv('text',{x:400,y:256,class:'axtext'});
+    t4.textContent='excess '+deg.toFixed(1)+'\u00B0  \u2014  '+(deg/720*100).toFixed(1)+'% of the sphere';
+    g.appendChild(t4);
+    document.getElementById('sphOut').textContent=
+      'angles: '+deg.toFixed(1)+'\u00B0 at the pole, 90\u00B0 and 90\u00B0 where the meridians cross the equator.  '
+      +(v<0.1 ? 'A small triangle is almost flat \u2014 the sum is barely above 180\u00B0, which is why flat trigonometry works for a city.'
+              : 'The larger the triangle, the more excess angle it carries. Area = excess \u00D7 r\u00B2, exactly.');
+  }
+  s.addEventListener('input',upd); upd();
+})();
+
+/* ---------- L20: estimating pi with triangles ---------- */
+(function(){
+  var s=document.getElementById('piN'); if(!s) return;
+  var CX=170, CY=150, R=125;
+  function upd(){
+    var n=+s.value, pts=[], sp=document.getElementById('piSpokes');
+    while(sp.firstChild) sp.removeChild(sp.firstChild);
+    for(var i=0;i<n;i++){
+      var a=-Math.PI/2 + 2*Math.PI*i/n;
+      var x=CX+R*Math.cos(a), y=CY+R*Math.sin(a);
+      pts.push(x.toFixed(1)+','+y.toFixed(1));
+      sp.appendChild(sv('line',{x1:CX,y1:CY,x2:x,y2:y,stroke:'var(--moss)',
+        'stroke-width':n>30?0.6:1.2,opacity:0.85}));
+    }
+    document.getElementById('piPoly').setAttribute('points',pts.join(' '));
+    document.getElementById('piNv').textContent=n;
+    var est=n/2*Math.sin(2*Math.PI/n), err=Math.PI-est;
+    var g=document.getElementById('piBar');
+    while(g.firstChild) g.removeChild(g.firstChild);
+    var X=360, W=220, Y=120;
+    g.appendChild(sv('line',{x1:X,y1:Y,x2:X+W,y2:Y,stroke:'var(--rule)','stroke-width':2}));
+    g.appendChild(sv('rect',{x:X,y:Y-16,width:W*Math.min(1,est/Math.PI),height:32,
+      fill:'var(--moss)','fill-opacity':0.4,stroke:'var(--moss)'}));
+    g.appendChild(sv('line',{x1:X+W,y1:Y-24,x2:X+W,y2:Y+24,stroke:'var(--rose)','stroke-width':2.5}));
+    var t=sv('text',{x:X+W-26,y:Y-32,class:'axtext'}); t.textContent='\u03C0'; g.appendChild(t);
+    var t2=sv('text',{x:X,y:Y+50,class:'lbltext'});
+    t2.textContent='estimate '+est.toFixed(5); g.appendChild(t2);
+    var t3=sv('text',{x:X,y:Y+74,class:'axtext'});
+    t3.textContent='short by '+err.toFixed(5); g.appendChild(t3);
+    var t4=sv('text',{x:X,y:Y+104,class:'axtext'});
+    t4.textContent=(n<8?'the slivers are obvious':(n<20?'the slivers are thinning':'the polygon is hard to tell from the circle'));
+    g.appendChild(t4);
+    document.getElementById('piOut').textContent=
+      n+' triangles give \u03C0 \u2248 '+est.toFixed(5)+', short of the true 3.14159 by '+err.toFixed(5)
+      +'.  Every estimate is too small, because every sliver between a chord and the arc has been left out.';
+  }
+  s.addEventListener('input',upd); upd();
+})();
+
+/* ---------- L21: rotating globe with great circles ---------- */
+(function(){
+  var r=document.getElementById('gcR'); if(!r) return;
+  var CX=200, CY=160, R=130;
+  function rot3(p, a, t){
+    // spin about the polar axis, then tilt the viewer
+    var x=p[0]*Math.cos(a)-p[1]*Math.sin(a),
+        y=p[0]*Math.sin(a)+p[1]*Math.cos(a), z=p[2];
+    var yy=y*Math.cos(t)-z*Math.sin(t), zz=y*Math.sin(t)+z*Math.cos(t);
+    return [x, yy, zz];                    // yy is depth, zz is up
+  }
+  function curve(fn, a, t){
+    var front=[], back=[], cur=null, prevFront=null;
+    for(var i=0;i<=180;i++){
+      var q=rot3(fn(2*Math.PI*i/180), a, t);
+      var sx=CX+R*q[0], sy=CY-R*q[2], isFront=(q[1]<=0);
+      if(prevFront===null||isFront!==prevFront){ cur=[]; (isFront?front:back).push(cur); prevFront=isFront; }
+      cur.push(sx.toFixed(1)+','+sy.toFixed(1));
+    }
+    return [front,back];
+  }
+  var circles=[
+    {name:'equator', col:'var(--moss)', dash:null, f:function(u){return [Math.cos(u),Math.sin(u),0];}},
+    {name:'meridian', col:'var(--sky)', dash:null, f:function(u){return [Math.cos(u),0,Math.sin(u)];}},
+    {name:'route', col:'var(--rose)', dash:null, f:function(u){
+        // the great circle through New York and Madrid, tilted about 50 degrees
+        var i=50*Math.PI/180;
+        return [Math.cos(u), Math.sin(u)*Math.cos(i), Math.sin(u)*Math.sin(i)];}},
+    {name:'parallel', col:'var(--amber)', dash:'7 5', f:function(u){
+        var la=40*Math.PI/180, c=Math.cos(la), s=Math.sin(la);
+        return [c*Math.cos(u), c*Math.sin(u), s];}}
+  ];
+  function upd(){
+    var a=+r.value*Math.PI/180, t=+document.getElementById('gcTilt').value*Math.PI/180;
+    document.getElementById('gcRv').textContent=r.value;
+    document.getElementById('gcTiltv').textContent=document.getElementById('gcTilt').value;
+    var F=document.getElementById('gcFront'), B=document.getElementById('gcBack');
+    while(F.firstChild) F.removeChild(F.firstChild);
+    while(B.firstChild) B.removeChild(B.firstChild);
+    circles.forEach(function(c){
+      var parts=curve(c.f,a,t);
+      parts[0].forEach(function(seg){ if(seg.length>1)
+        F.appendChild(sv('polyline',{points:seg.join(' '),fill:'none',stroke:c.col,
+          'stroke-width':c.dash?2.4:3,'stroke-dasharray':c.dash||'none'})); });
+      parts[1].forEach(function(seg){ if(seg.length>1)
+        B.appendChild(sv('polyline',{points:seg.join(' '),fill:'none',stroke:c.col,
+          'stroke-width':2,'stroke-dasharray':c.dash||'none'})); });
+    });
+    // New York and Madrid, both at about 40 degrees north
+    var P=document.getElementById('gcPts');
+    while(P.firstChild) P.removeChild(P.firstChild);
+    [[40.7,-74.0,'NY'],[40.4,-3.7,'MD']].forEach(function(c){
+      var la=c[0]*Math.PI/180, lo=c[1]*Math.PI/180;
+      var q=rot3([Math.cos(la)*Math.cos(lo),Math.cos(la)*Math.sin(lo),Math.sin(la)],a,t);
+      if(q[1]>0) return;
+      P.appendChild(sv('circle',{cx:CX+R*q[0],cy:CY-R*q[2],r:5,fill:'var(--ink)'}));
+    });
+    document.getElementById('gcOut').textContent=
+      'A great circle is any circle on the sphere whose centre is the centre of the sphere. '
+      +'Spin the globe and the three great circles keep passing behind the exact middle of the disc; '
+      +'the 40\u00B0 parallel never does, because its centre sits above the middle \u2014 which is precisely why it is not a shortest path.';
+  }
+  r.addEventListener('input',upd);
+  document.getElementById('gcTilt').addEventListener('input',upd);
+  upd();
+})();
+</script>
+</div>
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    b.textContent=open?'hide solution':'show solution';
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+<script>
+/* ===== spot checks: quick, self-marking questions ===== */
+(function(){
+  /* --- a small, safe arithmetic reader: 3/4, -2.5, 2pi/3, sqrt(3)/2, √2, 1e3, pi --- */
+  function tokens(s){
+    var t=[], re=/\s*(\d*\.\d+|\d+\.?\d*(?:e[+-]?\d+)?|[a-z]+|[-+*\/^()])/gy, m, i=0;
+    re.lastIndex=0;
+    while(re.lastIndex<s.length){
+      var at=re.lastIndex; m=re.exec(s);
+      if(!m||m.index!==at){ if(/^\s*$/.test(s.slice(at))) break; return null; }
+      t.push(m[1]);
+    }
+    return t;
+  }
+  function evaluate(src){
+    var s=String(src).toLowerCase()
+      .replace(/[−–—]/g,'-').replace(/[×·]/g,'*').replace(/÷/g,'/')
+      .replace(/π/g,'pi').replace(/√/g,'sqrt').replace(/[° ]/g,' ')
+      .replace(/^\s*[a-z]\w*\s*=\s*/,'').replace(/(\d),(?=\d{3}\b)/g,'$1');
+    var t=tokens(s); if(!t||!t.length) return NaN;
+    var k=0;
+    function peek(){return t[k];}
+    function next(){return t[k++];}
+    function starts(x){return x!==undefined&&(/^[a-z]/.test(x)||x==='(');}   /* 2pi, 3(2) — never 4 5 */
+    function expr(){var v=term(); while(peek()==='+'||peek()==='-'){var o=next(),w=term(); v=o==='+'?v+w:v-w;} return v;}
+    function term(){
+      var v=unary();
+      for(;;){
+        if(peek()==='*'){next(); v*=unary();}
+        else if(peek()==='/'){next(); v/=unary();}
+        else if(starts(peek())){ v*=power(); }        /* implicit: 2pi, 3sqrt(2) */
+        else return v;
+      }
+    }
+    function unary(){ if(peek()==='-'){next(); return -unary();} if(peek()==='+'){next(); return unary();} return power(); }
+    function power(){ var b=primary(); if(peek()==='^'){next(); return Math.pow(b,unary());} return b; }
+    function primary(){
+      var x=next();
+      if(x===undefined) throw 0;
+      if(x==='('){var v=expr(); if(next()!==')') throw 0; return v;}
+      if(/^[\d.]/.test(x)) return parseFloat(x);
+      if(x==='pi') return Math.PI;
+      if(x==='e') return Math.E;
+      if(x==='sqrt') return Math.sqrt(power());
+      throw 0;
+    }
+    try{ var v=expr(); return (k===t.length&&isFinite(v))?v:NaN; }catch(e){ return NaN; }
+  }
+  function close(a,b,tol){ return Math.abs(a-b)<=tol; }
+  function defaultTol(a){ return Math.max(0.005*Math.abs(a),0.005); }
+  function splitList(s){
+    return String(s).replace(/^[\s(\[⟨<{]+|[\s)\]⟩>}]+$/g,'')
+      .split(/\s*(?:,|;|\band\b|\bor\b)\s*/i).filter(function(x){return x.trim()!=='';});
+  }
+
+  /* exactly one message is visible at a time: ok, bad (generic or per option), read, count, pick, ans */
+  function show(box, which, opt){
+    var msgs=box.querySelectorAll('.spot-msg');
+    var specific=(which==='bad'&&opt!==undefined)?
+      box.querySelector('.spot-msg[data-kind="bad"][data-opt="'+opt+'"]'):null;
+    for(var i=0;i<msgs.length;i++){
+      var m=msgs[i];
+      m.hidden = !(m===specific || (!specific && m.getAttribute('data-kind')===which && !m.hasAttribute('data-opt')));
+    }
+    box.classList.toggle('is-ok', which==='ok');
+    box.classList.toggle('is-bad', which!=='ok' && which!=='ans');
+  }
+
+  function judge(box){
+    var type=box.getAttribute('data-type');
+    if(type==='mc'){
+      var picked=box.querySelector('input[type=radio]:checked');
+      if(!picked){ show(box,'pick'); return null; }
+      var opts=box.querySelectorAll('.spot-opt');
+      for(var i=0;i<opts.length;i++) opts[i].classList.remove('right','wrong');
+      var lab=picked.closest('.spot-opt'), ok=picked.hasAttribute('data-right');
+      lab.classList.add(ok?'right':'wrong');
+      show(box, ok?'ok':'bad', ok?undefined:picked.value);
+      return ok;
+    }
+    if(type==='sel'){
+      var sels=box.querySelectorAll('select'), all=true, any=false;
+      for(var j=0;j<sels.length;j++){
+        if(sels[j].value===''){ any=true; continue; }
+        var good=sels[j].value===sels[j].getAttribute('data-ans');
+        sels[j].setAttribute('aria-invalid', good?'false':'true');
+        if(!good) all=false;
+      }
+      if(any){ show(box,'pick'); return null; }
+      show(box, all?'ok':'bad'); return all;
+    }
+    var inp=box.querySelector('.spot-in'), raw=inp.value;
+    if(raw.trim()===''){ show(box,'read'); return null; }
+    if(type==='text'){
+      var norm=function(z){return String(z).toLowerCase().replace(/[\s.]/g,'');};
+      var ok2=box.getAttribute('data-ans').split('|').some(function(a){return norm(a)===norm(raw);});
+      inp.setAttribute('aria-invalid', ok2?'false':'true');
+      show(box, ok2?'ok':'bad'); return ok2;
+    }
+    var want=box.getAttribute('data-ans').split('|').map(Number);
+    var tol=box.hasAttribute('data-tol')?Number(box.getAttribute('data-tol')):null;
+    var got;
+    if(type==='list'){
+      got=splitList(raw).map(evaluate);
+      if(got.some(isNaN)){ inp.setAttribute('aria-invalid','true'); show(box,'read'); return null; }
+      if(got.length!==want.length){ inp.setAttribute('aria-invalid','true'); show(box,'count'); return false; }
+      var ordered=box.hasAttribute('data-ordered'), used=[], ok3=true;
+      for(var a=0;a<want.length;a++){
+        var tl=tol===null?defaultTol(want[a]):tol, hit=-1;
+        if(ordered){ if(close(got[a],want[a],tl)) hit=a; }
+        else for(var b=0;b<got.length;b++){ if(used.indexOf(b)<0&&close(got[b],want[a],tl)){hit=b;break;} }
+        if(hit<0){ok3=false;break;} used.push(hit);
+      }
+      inp.setAttribute('aria-invalid', ok3?'false':'true');
+      show(box, ok3?'ok':'bad'); return ok3;
+    }
+    var v=evaluate(raw);
+    if(isNaN(v)){ inp.setAttribute('aria-invalid','true'); show(box,'read'); return null; }
+    var ok4=close(v,want[0],tol===null?defaultTol(want[0]):tol);
+    inp.setAttribute('aria-invalid', ok4?'false':'true');
+    show(box, ok4?'ok':'bad'); return ok4;
+  }
+
+  var spots=document.querySelectorAll('.spot');
+  for(var n=0;n<spots.length;n++)(function(box){
+    var misses=0, go=box.querySelector('.spot-go'), reveal=box.querySelector('.spot-show');
+    function run(){
+      var r=judge(box);
+      if(r===false){ misses++; if(misses>=2&&reveal) reveal.hidden=false; }
+      if(r===true&&reveal) reveal.hidden=true;
+    }
+    go.addEventListener('click',run);
+    var inp=box.querySelector('.spot-in');
+    if(inp){
+      inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();run();} });
+      inp.addEventListener('input',function(){ inp.removeAttribute('aria-invalid'); box.classList.remove('is-ok','is-bad'); });
+    }
+    var radios=box.querySelectorAll('input[type=radio]');
+    for(var i=0;i<radios.length;i++) radios[i].addEventListener('change',function(){
+      var ls=box.querySelectorAll('.spot-opt');
+      for(var j=0;j<ls.length;j++) ls[j].classList.remove('chosen','right','wrong');
+      this.closest('.spot-opt').classList.add('chosen');
+      box.classList.remove('is-ok','is-bad');
+    });
+    var sels=box.querySelectorAll('select');
+    for(var s=0;s<sels.length;s++) sels[s].addEventListener('change',function(){
+      this.removeAttribute('aria-invalid'); box.classList.remove('is-ok','is-bad'); });
+    if(reveal) reveal.addEventListener('click',function(){
+      var a=box.querySelector('.spot-msg[data-kind="ans"]');
+      var msgs=box.querySelectorAll('.spot-msg'); for(var i=0;i<msgs.length;i++) msgs[i].hidden=true;
+      if(a) a.hidden=false; reveal.hidden=true;
+    });
+  })(spots[n]);
+})();
+</script>
+</body>
+</html>

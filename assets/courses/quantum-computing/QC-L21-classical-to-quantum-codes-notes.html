@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Lecture 21 — From Classical Codes to Quantum Codes</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+  /* course additions, same family */
+  .crypto{border-left-color:var(--moss);background:var(--surface2)} .crypto .lbl{color:var(--moss)}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  dl.gloss dt{font-family:var(--mono);color:var(--sky);font-size:.95rem;margin-top:.9em}
+  dl.gloss dd{margin:.1em 0 0 1.1em}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<style id="spot-css">
+.spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+  border-radius:6px;padding:12px 16px;margin:1.3em 0;transition:background .25s,border-color .25s}
+.spot .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em;color:var(--sky)}
+.spot > p{margin:.35em 0}
+.spot .hint,.spot .why,.spot .oh{display:none}
+.spot .fb{display:none;margin:.55em 0 0;font-size:.97rem}
+.spot .fb > :first-child{margin-top:0}.spot .fb > :last-child{margin-bottom:0}
+.spot.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 13%,var(--surface))}
+.spot.ok .lbl{color:var(--moss)}
+.spot.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 13%,var(--surface))}
+.spot.bad .lbl{color:var(--amber)}
+.spot.ok .fb{display:block;color:var(--ink)} .spot.bad .fb{display:block;color:var(--ink)}
+.spot .fb .tag{font-family:var(--mono);font-size:.85rem;margin-right:.4em}
+.spot.ok .fb .tag{color:var(--moss)} .spot.bad .fb .tag{color:var(--amber)}
+.spot ul.opts{list-style:none;padding:0;margin:.5em 0}
+.spot ul.opts li{display:flex;gap:.6em;align-items:baseline;padding:4px 8px;margin:3px 0;border-radius:5px;cursor:pointer;
+  border:1px solid transparent}
+.spot ul.opts li:hover{border-color:var(--rule)}
+.spot ul.opts li input{accent-color:var(--sky);flex:none;margin:0;transform:translateY(1px)}
+.spot ul.opts li.right{border-color:var(--moss)}
+.spot .row{display:flex;flex-wrap:wrap;gap:.6em 1em;align-items:center;margin:.55em 0 .2em}
+.spot .row label{font-family:var(--mono);font-size:.88rem;color:var(--muted);display:flex;gap:.45em;align-items:center}
+.spot input.ans{font-family:var(--mono);font-size:.95rem;width:9.5em;max-width:100%;padding:5px 8px;border-radius:5px;
+  border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.spot input.ans:focus,.spot select:focus{outline:2px solid var(--sky);outline-offset:1px}
+.spot select{font-family:var(--mono);font-size:.9rem;padding:3px 6px;border-radius:5px;border:1px solid var(--rule);
+  background:var(--bg);color:var(--ink);max-width:100%}
+.spot .btns{display:flex;gap:.5em;flex-wrap:wrap;margin-top:.5em}
+.spot .btns button{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--sky);border:1px solid var(--sky);
+  padding:5px 12px;border-radius:999px;cursor:pointer}
+.spot .btns button:hover{background:var(--sky);color:var(--bg)}
+.spot .btns button.reveal{color:var(--muted);border-color:var(--rule)}
+.spot .btns button.reveal:hover{background:var(--rule);color:var(--ink)}
+.spot .fmt{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+@media print{.spot .btns,.spot .fmt{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Quantum Computation &amp; Cryptography · Lecture 21</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Lecture 21<br>From Classical Codes to Quantum Codes</h1>
+<p class="kicker">Week 11 &nbsp;|&nbsp; redundancy, parity checks, and how to check a qubit without looking at it &nbsp;|&nbsp; project proposals due this week &nbsp;|&nbsp; reading: Watrous Ch. 13; Roffe, <em>Quantum Error Correction: An Introductory Guide</em>, §1&ndash;3</p>
+
+<figure class="toon">
+<svg viewBox="0 0 600 210" width="600" height="210" role="img" aria-labelledby="c21t c21d">
+<title id="c21t">Cartoon: asking the right question</title><desc id="c21d">Three boxes, each containing a qubit, sit in a row. A stick figure holds a clipboard and points at the gap between the first two boxes. A speech bubble says: I don't ask what you are, only whether you two agree.</desc>
+<defs><filter id="rough2121" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="21" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough2121)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<rect x="40" y="110" width="56" height="56" rx="6" fill="var(--surface2)"/><rect x="120" y="110" width="56" height="56" rx="6" fill="var(--surface2)"/><rect x="200" y="110" width="56" height="56" rx="6" fill="var(--surface2)"/>
+<path d="M 100 100 L 116 100" stroke="var(--amber)" stroke-width="2.6"/><path d="M 96 92 C 104 80, 112 80, 120 92" stroke="var(--amber)"/>
+<circle cx="320" cy="118" r="11"/><path d="M 320 129 L 320 160"/><path d="M 320 138 L 276 112"/><path d="M 320 138 L 334 156"/><path d="M 320 160 L 310 190"/><path d="M 320 160 L 330 190"/>
+<rect x="334" y="140" width="22" height="28" rx="2" fill="var(--surface2)"/>
+<rect x="340" y="10" width="242" height="78" rx="9" fill="var(--surface2)"/><path d="M 360 86 L 334 104 L 386 86" fill="var(--surface2)" stroke-width="1.6"/>
+<path d="M 20 196 L 580 196" stroke-width="1.6"/>
+</g>
+<text x="58" y="143" class="ctext">?</text><text x="138" y="143" class="ctext">?</text><text x="218" y="143" class="ctext">?</text>
+<text x="352" y="34" class="ctext">I don't ask what you</text><text x="352" y="56" class="ctext">are, only whether you</text><text x="352" y="78" class="ctext">two agree</text>
+</svg>
+<figcaption class="tooncap">a syndrome measurement asks only about parities, which is why it can find an error without destroying the encoded state</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">Repetition and majority vote</a></li>
+<li><a href="#s2">Linear codes and the Hamming code</a></li>
+<li><a href="#s3">Why quantum error correction looks impossible</a></li>
+<li><a href="#s4">The 3-qubit codes</a></li>
+<li><a href="#s5">Continuous errors become discrete</a></li>
+<li><a href="#s6">Shor's 9-qubit code</a></li>
+<li><a href="#s7">Try it in code</a></li>
+<li><a href="#s8">Summary and exercises</a></li>
+</ol>
+</div>
+
+<p>Lecture 19 showed that mitigation cannot scale: it estimates, at exponentially growing cost, what an error-free run would have given. Error correction instead keeps the quantum state itself close to the intended one, for as long as needed, at a cost that grows slowly. This lecture builds the first quantum codes from classical ideas. By the end you should be able to compute the failure probability of a repetition code, encode and decode with the Hamming code, explain the three obstacles to quantum error correction and how syndromes get around them, find the syndromes of the 3-qubit phase-flip code, and explain why correcting a few discrete Pauli errors corrects every error.</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; Repetition and majority vote</h2>
+
+<p>The oldest error-correcting code: say everything several times.</p>
+
+<div class="box def">
+<span class="lbl">definition 21.1 &mdash; repetition code; the binary symmetric channel</span>
+<p>The <strong>length-\(n\) repetition code</strong> (\(n\) odd) encodes \(0\mapsto0\cdots0\) and \(1\mapsto1\cdots1\) and decodes by <strong>majority vote</strong>. On the <strong>binary symmetric channel</strong> with error rate \(p\), each bit is flipped independently with probability \(p\).</p>
+</div>
+
+<div class="spot" data-kind="select">
+<p>Three copies are sent and decoded by majority vote. The decoded bit is wrong exactly when at least
+<select><option data-hint="One flip is outvoted by the two good copies.">1</option><option data-ok>2</option><option data-hint="Two flips already outvote the one good copy.">3</option></select> of the three copies are flipped.</p>
+<div class="hint">Majority vote goes wrong when the flipped copies outnumber the good ones.</div>
+<div class="why">Two flipped copies outvote the one good copy, so majority vote fails on 2 or 3 flips: "more than half" of \(n=3\).</div>
+</div>
+
+<div class="box thm">
+<span class="lbl">proposition 21.1 &mdash; failure probability of majority vote</span>
+<p>Majority vote fails exactly when more than half the bits flip, so the logical error probability is</p>
+$$P_L(n,p)=\sum_{k=(n+1)/2}^{n}\binom nk p^k(1-p)^{n-k},$$
+$$P_L(n,p)\approx\binom{n}{(n+1)/2}\,p^{(n+1)/2}\quad\text{for small }p.$$
+<p>\(P_L(n,\tfrac12)=\tfrac12\) for every odd \(n\), and \(P_L(n,p)\lt p\) for \(p\lt\tfrac12\) when \(n\ge3\).</p>
+<p><em>Proof.</em> The number of flips is \(\mathrm{Bin}(n,p)\), which gives the sum; for small \(p\) its first term dominates. At \(p=\tfrac12\) the distribution is symmetric, so "more than half" has probability exactly \(\tfrac12\). For the last claim, \(P_L(1,p)=p\) and \(P_L(n,p)\) is decreasing in odd \(n\) when \(p\lt\tfrac12\), so \(P_L(n,p)\lt p\) for \(n\ge3\) (verify_L21.py checks this for \(n\le9\) on a grid of \(p\)).</p>
+</div>
+
+<div class="spot" data-kind="num" data-ans="35|4" data-labels="c|m" data-show="c = C(7,4) = 35, m = 4">
+<p>For small \(p\), the seven-copy code has \(P_L(7,p)\approx c\,p^m\). Find \(c\) and \(m\).</p>
+<div class="hint">Use the small-\(p\) form of Proposition 21.1: the smallest failing number of flips is \((n+1)/2\), and \(c\) counts the ways to choose which bits flip.</div>
+<div class="why">Failure needs at least 4 of the 7 bits to flip, so \(m=4\) and \(c=\binom74=35\): \(P_L(7,p)\approx35p^4\).</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 21.1 &mdash; five copies</span>
+<p>Expand \(P_L(5,p)\) and evaluate it at \(p=0.01\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(P_L(5,p)=10p^3(1-p)^2+5p^4(1-p)+p^5=10p^3-15p^4+6p^5\). At \(p=0.01\): \(10^{-5}-1.5\times10^{-7}+6\times10^{-10}\approx9.85\times10^{-6}\), a thousand times smaller than \(p\). Each added pair of copies raises the exponent by one, another factor of about \(p\): the failure rate falls like \(p^{(n+1)/2}\).</p>
+</div>
+</div>
+
+<figure>
+<svg viewBox="0 0 720 340" width="720" height="340" role="img" aria-labelledby="rpt rpd"><title id="rpt">Logical error rate of repetition codes with majority vote</title><desc id="rpd">Two panels. Left, linear axes from 0 to 1: the logical error probability of the length-n repetition code under majority vote, for n = 1 (the diagonal), 3, 5 and 7. Every curve passes through the point (1/2, 1/2); below p = 1/2 longer codes are better, above it they are worse. Right, log-log axes for p from 0.001 to 0.5: the curves are straight lines of slope 1, 2, 3 and 4, since the logical error rate is proportional to p to the power (n+1)/2; at p = 0.01 the 5-bit code fails with probability about 1e-5 and the 7-bit code about 3e-7.</desc><rect x="0" y="0" width="720" height="340" rx="8" class="plot-bg"/><text class="axtext" x="189.0" y="22.0" text-anchor="middle">linear scale</text><line class="gridline" x1="64" y1="290.0" x2="314" y2="290.0"/><text class="axtext" x="57.0" y="294.0" text-anchor="end">0</text><line class="gridline" x1="64.0" y1="40" x2="64.0" y2="290"/><text class="axtext" x="64.0" y="308.0" text-anchor="middle">0</text><line class="gridline" x1="64" y1="227.5" x2="314" y2="227.5"/><text class="axtext" x="57.0" y="231.5" text-anchor="end">0.25</text><line class="gridline" x1="126.5" y1="40" x2="126.5" y2="290"/><text class="axtext" x="126.5" y="308.0" text-anchor="middle">0.25</text><line class="gridline" x1="64" y1="165.0" x2="314" y2="165.0"/><text class="axtext" x="57.0" y="169.0" text-anchor="end">0.5</text><line class="gridline" x1="189.0" y1="40" x2="189.0" y2="290"/><text class="axtext" x="189.0" y="308.0" text-anchor="middle">0.5</text><line class="gridline" x1="64" y1="102.5" x2="314" y2="102.5"/><text class="axtext" x="57.0" y="106.5" text-anchor="end">0.75</text><line class="gridline" x1="251.5" y1="40" x2="251.5" y2="290"/><text class="axtext" x="251.5" y="308.0" text-anchor="middle">0.75</text><line class="gridline" x1="64" y1="40.0" x2="314" y2="40.0"/><text class="axtext" x="57.0" y="44.0" text-anchor="end">1</text><line class="gridline" x1="314.0" y1="40" x2="314.0" y2="290"/><text class="axtext" x="314.0" y="308.0" text-anchor="middle">1</text><path d="M64.0,290.0 L65.2,288.8 L66.5,287.5 L67.8,286.2 L69.0,285.0 L70.2,283.8 L71.5,282.5 L72.8,281.2 L74.0,280.0 L75.2,278.8 L76.5,277.5 L77.8,276.2 L79.0,275.0 L80.2,273.8 L81.5,272.5 L82.8,271.2 L84.0,270.0 L85.2,268.8 L86.5,267.5 L87.8,266.2 L89.0,265.0 L90.2,263.8 L91.5,262.5 L92.8,261.2 L94.0,260.0 L95.2,258.8 L96.5,257.5 L97.8,256.2 L99.0,255.0 L100.2,253.8 L101.5,252.5 L102.8,251.2 L104.0,250.0 L105.2,248.8 L106.5,247.5 L107.8,246.2 L109.0,245.0 L110.2,243.8 L111.5,242.5 L112.8,241.2 L114.0,240.0 L115.2,238.7 L116.5,237.5 L117.8,236.2 L119.0,235.0 L120.2,233.8 L121.5,232.5 L122.8,231.2 L124.0,230.0 L125.2,228.8 L126.5,227.5 L127.8,226.2 L129.0,225.0 L130.2,223.8 L131.5,222.5 L132.8,221.2 L134.0,220.0 L135.2,218.8 L136.5,217.5 L137.8,216.3 L139.0,215.0 L140.2,213.8 L141.5,212.5 L142.8,211.2 L144.0,210.0 L145.2,208.8 L146.5,207.5 L147.8,206.2 L149.0,205.0 L150.2,203.8 L151.5,202.5 L152.8,201.2 L154.0,200.0 L155.2,198.8 L156.5,197.5 L157.8,196.2 L159.0,195.0 L160.2,193.8 L161.5,192.5 L162.8,191.2 L164.0,190.0 L165.2,188.8 L166.5,187.5 L167.8,186.2 L169.0,185.0 L170.2,183.8 L171.5,182.5 L172.8,181.2 L174.0,180.0 L175.2,178.7 L176.5,177.5 L177.8,176.2 L179.0,175.0 L180.2,173.7 L181.5,172.5 L182.8,171.2 L184.0,170.0 L185.2,168.8 L186.5,167.5 L187.8,166.2 L189.0,165.0 L190.2,163.8 L191.5,162.5 L192.8,161.2 L194.0,160.0 L195.2,158.8 L196.5,157.5 L197.8,156.2 L199.0,155.0 L200.2,153.8 L201.5,152.5 L202.8,151.2 L204.0,150.0 L205.3,148.8 L206.5,147.5 L207.8,146.2 L209.0,145.0 L210.2,143.8 L211.5,142.5 L212.8,141.2 L214.0,140.0 L215.2,138.8 L216.5,137.5 L217.8,136.2 L219.0,135.0 L220.2,133.8 L221.5,132.5 L222.8,131.2 L224.0,130.0 L225.2,128.8 L226.5,127.5 L227.8,126.2 L229.0,125.0 L230.2,123.7 L231.5,122.5 L232.8,121.2 L234.0,120.0 L235.2,118.7 L236.5,117.5 L237.8,116.2 L239.0,115.0 L240.2,113.8 L241.5,112.5 L242.8,111.3 L244.0,110.0 L245.2,108.8 L246.5,107.5 L247.8,106.2 L249.0,105.0 L250.2,103.8 L251.5,102.5 L252.8,101.2 L254.0,100.0 L255.2,98.8 L256.5,97.5 L257.8,96.2 L259.0,95.0 L260.2,93.8 L261.5,92.5 L262.8,91.2 L264.0,90.0 L265.2,88.7 L266.5,87.5 L267.8,86.2 L269.0,85.0 L270.2,83.7 L271.5,82.5 L272.8,81.2 L274.0,80.0 L275.2,78.8 L276.5,77.5 L277.8,76.2 L279.0,75.0 L280.2,73.8 L281.5,72.5 L282.8,71.2 L284.0,70.0 L285.2,68.8 L286.5,67.5 L287.8,66.2 L289.0,65.0 L290.2,63.7 L291.5,62.5 L292.8,61.2 L294.0,60.0 L295.2,58.7 L296.5,57.5 L297.8,56.2 L299.0,55.0 L300.2,53.7 L301.5,52.5 L302.8,51.2 L304.0,50.0 L305.2,48.8 L306.5,47.5 L307.8,46.3 L309.0,45.0 L310.2,43.8 L311.5,42.5 L312.8,41.2 L314.0,40.0" fill="none" stroke="var(--axis)" stroke-width="2.4"/><path d="M64.0,290.0 L65.2,290.0 L66.5,289.9 L67.8,289.8 L69.0,289.7 L70.2,289.5 L71.5,289.3 L72.8,289.1 L74.0,288.8 L75.2,288.5 L76.5,288.2 L77.8,287.8 L79.0,287.4 L80.2,287.0 L81.5,286.5 L82.8,286.0 L84.0,285.5 L85.2,284.9 L86.5,284.3 L87.8,283.7 L89.0,283.0 L90.2,282.3 L91.5,281.6 L92.8,280.8 L94.0,280.1 L95.2,279.3 L96.5,278.4 L97.8,277.6 L99.0,276.7 L100.2,275.8 L101.5,274.8 L102.8,273.8 L104.0,272.8 L105.2,271.8 L106.5,270.8 L107.8,269.7 L109.0,268.6 L110.2,267.5 L111.5,266.4 L112.8,265.2 L114.0,264.0 L115.2,262.8 L116.5,261.6 L117.8,260.3 L119.0,259.0 L120.2,257.7 L121.5,256.4 L122.8,255.1 L124.0,253.7 L125.2,252.3 L126.5,250.9 L127.8,249.5 L129.0,248.1 L130.2,246.6 L131.5,245.2 L132.8,243.7 L134.0,242.2 L135.2,240.7 L136.5,239.1 L137.8,237.6 L139.0,236.0 L140.2,234.4 L141.5,232.8 L142.8,231.2 L144.0,229.6 L145.2,227.9 L146.5,226.3 L147.8,224.6 L149.0,223.0 L150.2,221.3 L151.5,219.6 L152.8,217.9 L154.0,216.1 L155.2,214.4 L156.5,212.7 L157.8,210.9 L159.0,209.1 L160.2,207.4 L161.5,205.6 L162.8,203.8 L164.0,202.0 L165.2,200.2 L166.5,198.4 L167.8,196.6 L169.0,194.7 L170.2,192.9 L171.5,191.1 L172.8,189.2 L174.0,187.4 L175.2,185.5 L176.5,183.7 L177.8,181.8 L179.0,180.0 L180.2,178.1 L181.5,176.2 L182.8,174.4 L184.0,172.5 L185.2,170.6 L186.5,168.7 L187.8,166.9 L189.0,165.0 L190.2,163.1 L191.5,161.3 L192.8,159.4 L194.0,157.5 L195.2,155.6 L196.5,153.8 L197.8,151.9 L199.0,150.0 L200.2,148.2 L201.5,146.3 L202.8,144.5 L204.0,142.6 L205.3,140.8 L206.5,138.9 L207.8,137.1 L209.0,135.3 L210.2,133.4 L211.5,131.6 L212.8,129.8 L214.0,128.0 L215.2,126.2 L216.5,124.4 L217.8,122.6 L219.0,120.9 L220.2,119.1 L221.5,117.3 L222.8,115.6 L224.0,113.9 L225.2,112.1 L226.5,110.4 L227.8,108.7 L229.0,107.0 L230.2,105.4 L231.5,103.7 L232.8,102.1 L234.0,100.4 L235.2,98.8 L236.5,97.2 L237.8,95.6 L239.0,94.0 L240.2,92.4 L241.5,90.9 L242.8,89.3 L244.0,87.8 L245.2,86.3 L246.5,84.8 L247.8,83.4 L249.0,81.9 L250.2,80.5 L251.5,79.1 L252.8,77.7 L254.0,76.3 L255.2,74.9 L256.5,73.6 L257.8,72.3 L259.0,71.0 L260.2,69.7 L261.5,68.4 L262.8,67.2 L264.0,66.0 L265.2,64.8 L266.5,63.6 L267.8,62.5 L269.0,61.4 L270.2,60.3 L271.5,59.2 L272.8,58.2 L274.0,57.2 L275.2,56.2 L276.5,55.2 L277.8,54.2 L279.0,53.3 L280.2,52.4 L281.5,51.6 L282.8,50.7 L284.0,49.9 L285.2,49.2 L286.5,48.4 L287.8,47.7 L289.0,47.0 L290.2,46.3 L291.5,45.7 L292.8,45.1 L294.0,44.5 L295.2,44.0 L296.5,43.5 L297.8,43.0 L299.0,42.6 L300.2,42.2 L301.5,41.8 L302.8,41.5 L304.0,41.2 L305.2,40.9 L306.5,40.7 L307.8,40.5 L309.0,40.3 L310.2,40.2 L311.5,40.1 L312.8,40.0 L314.0,40.0" fill="none" stroke="var(--sky)" stroke-width="2.4"/><path d="M64.0,290.0 L65.2,290.0 L66.5,290.0 L67.8,290.0 L69.0,290.0 L70.2,290.0 L71.5,289.9 L72.8,289.9 L74.0,289.8 L75.2,289.8 L76.5,289.7 L77.8,289.6 L79.0,289.5 L80.2,289.4 L81.5,289.2 L82.8,289.1 L84.0,288.9 L85.2,288.7 L86.5,288.4 L87.8,288.2 L89.0,287.9 L90.2,287.5 L91.5,287.2 L92.8,286.8 L94.0,286.4 L95.2,286.0 L96.5,285.5 L97.8,285.0 L99.0,284.5 L100.2,283.9 L101.5,283.3 L102.8,282.7 L104.0,282.1 L105.2,281.4 L106.5,280.6 L107.8,279.9 L109.0,279.1 L110.2,278.2 L111.5,277.4 L112.8,276.5 L114.0,275.5 L115.2,274.5 L116.5,273.5 L117.8,272.5 L119.0,271.4 L120.2,270.3 L121.5,269.1 L122.8,267.9 L124.0,266.7 L125.2,265.4 L126.5,264.1 L127.8,262.8 L129.0,261.4 L130.2,260.0 L131.5,258.6 L132.8,257.1 L134.0,255.6 L135.2,254.0 L136.5,252.5 L137.8,250.9 L139.0,249.2 L140.2,247.6 L141.5,245.9 L142.8,244.1 L144.0,242.4 L145.2,240.6 L146.5,238.8 L147.8,236.9 L149.0,235.0 L150.2,233.1 L151.5,231.2 L152.8,229.3 L154.0,227.3 L155.2,225.3 L156.5,223.2 L157.8,221.2 L159.0,219.1 L160.2,217.0 L161.5,214.9 L162.8,212.8 L164.0,210.6 L165.2,208.5 L166.5,206.3 L167.8,204.1 L169.0,201.9 L170.2,199.6 L171.5,197.4 L172.8,195.1 L174.0,192.9 L175.2,190.6 L176.5,188.3 L177.8,186.0 L179.0,183.7 L180.2,181.4 L181.5,179.0 L182.8,176.7 L184.0,174.4 L185.2,172.0 L186.5,169.7 L187.8,167.3 L189.0,165.0 L190.2,162.7 L191.5,160.3 L192.8,158.0 L194.0,155.6 L195.2,153.3 L196.5,151.0 L197.8,148.6 L199.0,146.3 L200.2,144.0 L201.5,141.7 L202.8,139.4 L204.0,137.1 L205.3,134.9 L206.5,132.6 L207.8,130.4 L209.0,128.1 L210.2,125.9 L211.5,123.7 L212.8,121.5 L214.0,119.4 L215.2,117.2 L216.5,115.1 L217.8,113.0 L219.0,110.9 L220.2,108.8 L221.5,106.8 L222.8,104.7 L224.0,102.7 L225.2,100.7 L226.5,98.8 L227.8,96.9 L229.0,95.0 L230.2,93.1 L231.5,91.2 L232.8,89.4 L234.0,87.6 L235.2,85.9 L236.5,84.1 L237.8,82.4 L239.0,80.8 L240.2,79.1 L241.5,77.5 L242.8,76.0 L244.0,74.4 L245.2,72.9 L246.5,71.4 L247.8,70.0 L249.0,68.6 L250.2,67.2 L251.5,65.9 L252.8,64.6 L254.0,63.3 L255.2,62.1 L256.5,60.9 L257.8,59.7 L259.0,58.6 L260.2,57.5 L261.5,56.5 L262.8,55.5 L264.0,54.5 L265.2,53.5 L266.5,52.6 L267.8,51.8 L269.0,50.9 L270.2,50.1 L271.5,49.4 L272.8,48.6 L274.0,47.9 L275.2,47.3 L276.5,46.7 L277.8,46.1 L279.0,45.5 L280.2,45.0 L281.5,44.5 L282.8,44.0 L284.0,43.6 L285.2,43.2 L286.5,42.8 L287.8,42.5 L289.0,42.1 L290.2,41.8 L291.5,41.6 L292.8,41.3 L294.0,41.1 L295.2,40.9 L296.5,40.8 L297.8,40.6 L299.0,40.5 L300.2,40.4 L301.5,40.3 L302.8,40.2 L304.0,40.2 L305.2,40.1 L306.5,40.1 L307.8,40.0 L309.0,40.0 L310.2,40.0 L311.5,40.0 L312.8,40.0 L314.0,40.0" fill="none" stroke="var(--moss)" stroke-width="2.4"/><path d="M64.0,290.0 L65.2,290.0 L66.5,290.0 L67.8,290.0 L69.0,290.0 L70.2,290.0 L71.5,290.0 L72.8,290.0 L74.0,290.0 L75.2,290.0 L76.5,290.0 L77.8,289.9 L79.0,289.9 L80.2,289.9 L81.5,289.8 L82.8,289.8 L84.0,289.7 L85.2,289.6 L86.5,289.5 L87.8,289.4 L89.0,289.3 L90.2,289.2 L91.5,289.0 L92.8,288.9 L94.0,288.7 L95.2,288.4 L96.5,288.2 L97.8,287.9 L99.0,287.6 L100.2,287.3 L101.5,287.0 L102.8,286.6 L104.0,286.2 L105.2,285.7 L106.5,285.3 L107.8,284.8 L109.0,284.2 L110.2,283.6 L111.5,283.0 L112.8,282.4 L114.0,281.7 L115.2,280.9 L116.5,280.1 L117.8,279.3 L119.0,278.5 L120.2,277.6 L121.5,276.6 L122.8,275.6 L124.0,274.6 L125.2,273.5 L126.5,272.4 L127.8,271.2 L129.0,270.0 L130.2,268.7 L131.5,267.4 L132.8,266.0 L134.0,264.6 L135.2,263.1 L136.5,261.6 L137.8,260.1 L139.0,258.5 L140.2,256.8 L141.5,255.2 L142.8,253.4 L144.0,251.6 L145.2,249.8 L146.5,247.9 L147.8,246.0 L149.0,244.1 L150.2,242.1 L151.5,240.0 L152.8,238.0 L154.0,235.8 L155.2,233.7 L156.5,231.5 L157.8,229.2 L159.0,227.0 L160.2,224.7 L161.5,222.3 L162.8,220.0 L164.0,217.6 L165.2,215.1 L166.5,212.7 L167.8,210.2 L169.0,207.6 L170.2,205.1 L171.5,202.5 L172.8,200.0 L174.0,197.3 L175.2,194.7 L176.5,192.1 L177.8,189.4 L179.0,186.7 L180.2,184.0 L181.5,181.3 L182.8,178.6 L184.0,175.9 L185.2,173.2 L186.5,170.5 L187.8,167.7 L189.0,165.0 L190.2,162.3 L191.5,159.5 L192.8,156.8 L194.0,154.1 L195.2,151.4 L196.5,148.7 L197.8,146.0 L199.0,143.3 L200.2,140.6 L201.5,137.9 L202.8,135.3 L204.0,132.7 L205.3,130.0 L206.5,127.5 L207.8,124.9 L209.0,122.4 L210.2,119.8 L211.5,117.3 L212.8,114.9 L214.0,112.4 L215.2,110.0 L216.5,107.7 L217.8,105.3 L219.0,103.0 L220.2,100.8 L221.5,98.5 L222.8,96.3 L224.0,94.2 L225.2,92.0 L226.5,90.0 L227.8,87.9 L229.0,85.9 L230.2,84.0 L231.5,82.1 L232.8,80.2 L234.0,78.4 L235.2,76.6 L236.5,74.8 L237.8,73.2 L239.0,71.5 L240.2,69.9 L241.5,68.4 L242.8,66.9 L244.0,65.4 L245.2,64.0 L246.5,62.6 L247.8,61.3 L249.0,60.0 L250.2,58.8 L251.5,57.6 L252.8,56.5 L254.0,55.4 L255.2,54.4 L256.5,53.4 L257.8,52.4 L259.0,51.5 L260.2,50.7 L261.5,49.9 L262.8,49.1 L264.0,48.3 L265.2,47.6 L266.5,47.0 L267.8,46.4 L269.0,45.8 L270.2,45.2 L271.5,44.7 L272.8,44.3 L274.0,43.8 L275.2,43.4 L276.5,43.0 L277.8,42.7 L279.0,42.4 L280.2,42.1 L281.5,41.8 L282.8,41.6 L284.0,41.3 L285.2,41.1 L286.5,41.0 L287.8,40.8 L289.0,40.7 L290.2,40.6 L291.5,40.5 L292.8,40.4 L294.0,40.3 L295.2,40.2 L296.5,40.2 L297.8,40.1 L299.0,40.1 L300.2,40.1 L301.5,40.0 L302.8,40.0 L304.0,40.0 L305.2,40.0 L306.5,40.0 L307.8,40.0 L309.0,40.0 L310.2,40.0 L311.5,40.0 L312.8,40.0 L314.0,40.0" fill="none" stroke="var(--amber)" stroke-width="2.4"/><circle cx="189.0" cy="165.0" r="5" fill="var(--rose)"/><text class="axtext" x="199.0" y="183.0" text-anchor="start" style="fill:var(--rose)">break-even 1/2</text><text class="axtext" x="189.0" y="328.0" text-anchor="middle">physical error p</text><text class="axtext" x="24.0" y="30.0" text-anchor="start">P_L</text><text class="axtext" x="550.0" y="22.0" text-anchor="middle">log-log scale</text><line class="gridline" x1="420" y1="290.0" x2="680" y2="290.0"/><text class="axtext" x="413.0" y="294.0" text-anchor="end">1e-10</text><line class="gridline" x1="420" y1="240.0" x2="680" y2="240.0"/><text class="axtext" x="413.0" y="244.0" text-anchor="end">1e-8</text><line class="gridline" x1="420" y1="190.0" x2="680" y2="190.0"/><text class="axtext" x="413.0" y="194.0" text-anchor="end">1e-6</text><line class="gridline" x1="420" y1="140.0" x2="680" y2="140.0"/><text class="axtext" x="413.0" y="144.0" text-anchor="end">1e-4</text><line class="gridline" x1="420" y1="90.0" x2="680" y2="90.0"/><text class="axtext" x="413.0" y="94.0" text-anchor="end">1e-2</text><line class="gridline" x1="420" y1="40.0" x2="680" y2="40.0"/><text class="axtext" x="413.0" y="44.0" text-anchor="end">1</text><line class="gridline" x1="420.0" y1="40" x2="420.0" y2="290"/><text class="axtext" x="420.0" y="308.0" text-anchor="middle">0.001</text><line class="gridline" x1="516.3" y1="40" x2="516.3" y2="290"/><text class="axtext" x="516.3" y="308.0" text-anchor="middle">0.01</text><line class="gridline" x1="612.7" y1="40" x2="612.7" y2="290"/><text class="axtext" x="612.7" y="308.0" text-anchor="middle">0.1</text><line class="gridline" x1="680.0" y1="40" x2="680.0" y2="290"/><text class="axtext" x="680.0" y="308.0" text-anchor="middle">0.5</text><path d="M420.0,115.0 L422.2,114.4 L424.4,113.9 L426.6,113.3 L428.7,112.7 L430.9,112.2 L433.1,111.6 L435.3,111.0 L437.5,110.5 L439.7,109.9 L441.8,109.3 L444.0,108.8 L446.2,108.2 L448.4,107.6 L450.6,107.1 L452.8,106.5 L455.0,105.9 L457.1,105.4 L459.3,104.8 L461.5,104.2 L463.7,103.7 L465.9,103.1 L468.1,102.5 L470.3,102.0 L472.4,101.4 L474.6,100.8 L476.8,100.3 L479.0,99.7 L481.2,99.1 L483.4,98.6 L485.5,98.0 L487.7,97.4 L489.9,96.9 L492.1,96.3 L494.3,95.7 L496.5,95.2 L498.7,94.6 L500.8,94.0 L503.0,93.5 L505.2,92.9 L507.4,92.3 L509.6,91.8 L511.8,91.2 L513.9,90.6 L516.1,90.1 L518.3,89.5 L520.5,88.9 L522.7,88.4 L524.9,87.8 L527.1,87.2 L529.2,86.6 L531.4,86.1 L533.6,85.5 L535.8,84.9 L538.0,84.4 L540.2,83.8 L542.4,83.2 L544.5,82.7 L546.7,82.1 L548.9,81.5 L551.1,81.0 L553.3,80.4 L555.5,79.8 L557.6,79.3 L559.8,78.7 L562.0,78.1 L564.2,77.6 L566.4,77.0 L568.6,76.4 L570.8,75.9 L572.9,75.3 L575.1,74.7 L577.3,74.2 L579.5,73.6 L581.7,73.0 L583.9,72.5 L586.1,71.9 L588.2,71.3 L590.4,70.8 L592.6,70.2 L594.8,69.6 L597.0,69.1 L599.2,68.5 L601.3,67.9 L603.5,67.4 L605.7,66.8 L607.9,66.2 L610.1,65.7 L612.3,65.1 L614.5,64.5 L616.6,64.0 L618.8,63.4 L621.0,62.8 L623.2,62.3 L625.4,61.7 L627.6,61.1 L629.7,60.6 L631.9,60.0 L634.1,59.4 L636.3,58.9 L638.5,58.3 L640.7,57.7 L642.9,57.2 L645.0,56.6 L647.2,56.0 L649.4,55.5 L651.6,54.9 L653.8,54.3 L656.0,53.8 L658.2,53.2 L660.3,52.6 L662.5,52.1 L664.7,51.5 L666.9,50.9 L669.1,50.4 L671.3,49.8 L673.4,49.2 L675.6,48.7 L677.8,48.1 L680.0,47.5" fill="none" stroke="var(--axis)" stroke-width="2.4"/><path d="M420.0,178.1 L422.2,176.9 L424.4,175.8 L426.6,174.7 L428.7,173.5 L430.9,172.4 L433.1,171.3 L435.3,170.1 L437.5,169.0 L439.7,167.9 L441.8,166.7 L444.0,165.6 L446.2,164.5 L448.4,163.3 L450.6,162.2 L452.8,161.1 L455.0,159.9 L457.1,158.8 L459.3,157.7 L461.5,156.5 L463.7,155.4 L465.9,154.3 L468.1,153.1 L470.3,152.0 L472.4,150.9 L474.6,149.7 L476.8,148.6 L479.0,147.5 L481.2,146.4 L483.4,145.2 L485.5,144.1 L487.7,143.0 L489.9,141.8 L492.1,140.7 L494.3,139.6 L496.5,138.4 L498.7,137.3 L500.8,136.2 L503.0,135.0 L505.2,133.9 L507.4,132.8 L509.6,131.6 L511.8,130.5 L513.9,129.4 L516.1,128.2 L518.3,127.1 L520.5,126.0 L522.7,124.9 L524.9,123.7 L527.1,122.6 L529.2,121.5 L531.4,120.3 L533.6,119.2 L535.8,118.1 L538.0,117.0 L540.2,115.8 L542.4,114.7 L544.5,113.6 L546.7,112.4 L548.9,111.3 L551.1,110.2 L553.3,109.1 L555.5,107.9 L557.6,106.8 L559.8,105.7 L562.0,104.6 L564.2,103.5 L566.4,102.3 L568.6,101.2 L570.8,100.1 L572.9,99.0 L575.1,97.9 L577.3,96.7 L579.5,95.6 L581.7,94.5 L583.9,93.4 L586.1,92.3 L588.2,91.2 L590.4,90.1 L592.6,88.9 L594.8,87.8 L597.0,86.7 L599.2,85.6 L601.3,84.5 L603.5,83.4 L605.7,82.3 L607.9,81.2 L610.1,80.1 L612.3,79.0 L614.5,77.9 L616.6,76.8 L618.8,75.7 L621.0,74.7 L623.2,73.6 L625.4,72.5 L627.6,71.4 L629.7,70.4 L631.9,69.3 L634.1,68.2 L636.3,67.2 L638.5,66.1 L640.7,65.1 L642.9,64.0 L645.0,63.0 L647.2,61.9 L649.4,60.9 L651.6,59.9 L653.8,58.9 L656.0,57.9 L658.2,56.9 L660.3,55.9 L662.5,54.9 L664.7,53.9 L666.9,53.0 L669.1,52.0 L671.3,51.1 L673.4,50.2 L675.6,49.3 L677.8,48.4 L680.0,47.5" fill="none" stroke="var(--sky)" stroke-width="2.4"/><path d="M420.0,240.0 L422.2,238.3 L424.4,236.6 L426.6,234.9 L428.7,233.2 L430.9,231.5 L433.1,229.8 L435.3,228.1 L437.5,226.4 L439.7,224.7 L441.8,223.0 L444.0,221.3 L446.2,219.6 L448.4,217.9 L450.6,216.2 L452.8,214.5 L455.0,212.8 L457.1,211.1 L459.3,209.4 L461.5,207.7 L463.7,206.0 L465.9,204.3 L468.1,202.6 L470.3,200.9 L472.4,199.2 L474.6,197.5 L476.8,195.8 L479.0,194.1 L481.2,192.4 L483.4,190.7 L485.5,189.0 L487.7,187.4 L489.9,185.7 L492.1,184.0 L494.3,182.3 L496.5,180.6 L498.7,178.9 L500.8,177.2 L503.0,175.5 L505.2,173.8 L507.4,172.1 L509.6,170.4 L511.8,168.7 L513.9,167.0 L516.1,165.3 L518.3,163.6 L520.5,161.9 L522.7,160.2 L524.9,158.6 L527.1,156.9 L529.2,155.2 L531.4,153.5 L533.6,151.8 L535.8,150.1 L538.0,148.4 L540.2,146.7 L542.4,145.0 L544.5,143.4 L546.7,141.7 L548.9,140.0 L551.1,138.3 L553.3,136.6 L555.5,135.0 L557.6,133.3 L559.8,131.6 L562.0,129.9 L564.2,128.2 L566.4,126.6 L568.6,124.9 L570.8,123.2 L572.9,121.6 L575.1,119.9 L577.3,118.2 L579.5,116.6 L581.7,114.9 L583.9,113.3 L586.1,111.6 L588.2,109.9 L590.4,108.3 L592.6,106.6 L594.8,105.0 L597.0,103.4 L599.2,101.7 L601.3,100.1 L603.5,98.5 L605.7,96.8 L607.9,95.2 L610.1,93.6 L612.3,92.0 L614.5,90.4 L616.6,88.8 L618.8,87.2 L621.0,85.6 L623.2,84.0 L625.4,82.4 L627.6,80.9 L629.7,79.3 L631.9,77.7 L634.1,76.2 L636.3,74.7 L638.5,73.1 L640.7,71.6 L642.9,70.1 L645.0,68.6 L647.2,67.1 L649.4,65.7 L651.6,64.2 L653.8,62.8 L656.0,61.4 L658.2,60.0 L660.3,58.6 L662.5,57.3 L664.7,55.9 L666.9,54.6 L669.1,53.4 L671.3,52.1 L673.4,50.9 L675.6,49.7 L677.8,48.6 L680.0,47.5" fill="none" stroke="var(--moss)" stroke-width="2.4"/><path d="M433.1,287.8 L435.3,285.6 L437.5,283.3 L439.7,281.0 L441.8,278.8 L444.0,276.5 L446.2,274.2 L448.4,272.0 L450.6,269.7 L452.8,267.4 L455.0,265.2 L457.1,262.9 L459.3,260.6 L461.5,258.4 L463.7,256.1 L465.9,253.8 L468.1,251.6 L470.3,249.3 L472.4,247.1 L474.6,244.8 L476.8,242.5 L479.0,240.3 L481.2,238.0 L483.4,235.7 L485.5,233.5 L487.7,231.2 L489.9,229.0 L492.1,226.7 L494.3,224.4 L496.5,222.2 L498.7,219.9 L500.8,217.7 L503.0,215.4 L505.2,213.1 L507.4,210.9 L509.6,208.6 L511.8,206.4 L513.9,204.1 L516.1,201.9 L518.3,199.6 L520.5,197.4 L522.7,195.1 L524.9,192.9 L527.1,190.6 L529.2,188.4 L531.4,186.1 L533.6,183.9 L535.8,181.6 L538.0,179.4 L540.2,177.1 L542.4,174.9 L544.5,172.6 L546.7,170.4 L548.9,168.2 L551.1,165.9 L553.3,163.7 L555.5,161.4 L557.6,159.2 L559.8,157.0 L562.0,154.8 L564.2,152.5 L566.4,150.3 L568.6,148.1 L570.8,145.9 L572.9,143.7 L575.1,141.4 L577.3,139.2 L579.5,137.0 L581.7,134.8 L583.9,132.6 L586.1,130.4 L588.2,128.2 L590.4,126.1 L592.6,123.9 L594.8,121.7 L597.0,119.5 L599.2,117.4 L601.3,115.2 L603.5,113.0 L605.7,110.9 L607.9,108.8 L610.1,106.6 L612.3,104.5 L614.5,102.4 L616.6,100.3 L618.8,98.2 L621.0,96.1 L623.2,94.0 L625.4,91.9 L627.6,89.9 L629.7,87.8 L631.9,85.8 L634.1,83.8 L636.3,81.8 L638.5,79.8 L640.7,77.8 L642.9,75.9 L645.0,73.9 L647.2,72.0 L649.4,70.1 L651.6,68.3 L653.8,66.4 L656.0,64.6 L658.2,62.9 L660.3,61.1 L662.5,59.4 L664.7,57.8 L666.9,56.1 L669.1,54.6 L671.3,53.0 L673.4,51.6 L675.6,50.2 L677.8,48.8 L680.0,47.5" fill="none" stroke="var(--amber)" stroke-width="2.4"/><text class="axtext" x="550.0" y="328.0" text-anchor="middle">physical error p</text><line x1="80" y1="54" x2="104" y2="54" stroke="var(--axis)" stroke-width="3"/><text class="axtext" x="110.0" y="59.0" text-anchor="start">n = 1</text><line x1="80" y1="74" x2="104" y2="74" stroke="var(--sky)" stroke-width="3"/><text class="axtext" x="110.0" y="79.0" text-anchor="start">n = 3</text><line x1="80" y1="94" x2="104" y2="94" stroke="var(--moss)" stroke-width="3"/><text class="axtext" x="110.0" y="99.0" text-anchor="start">n = 5</text><line x1="80" y1="114" x2="104" y2="114" stroke="var(--amber)" stroke-width="3"/><text class="axtext" x="110.0" y="119.0" text-anchor="start">n = 7</text></svg>
+<figcaption>Logical error rate under majority vote for \(n=1,3,5,7\) (computed exactly, figs_L21.py). Left: every curve passes through the break-even point \((\tfrac12,\tfrac12)\), where the \(n=1\) curve is the diagonal; below it, longer codes win. Right: on log-log axes the curves are straight with slope \((n+1)/2\). This "below a threshold, bigger is better" shape is the one the surface code shows in Lecture 23, with a threshold near 1% instead of 50%.</figcaption>
+</figure>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; Linear codes and the Hamming code</h2>
+
+<p>Repetition is wasteful: one bit of information in \(n\). Linear codes do much better.</p>
+
+<div class="box def">
+<span class="lbl">definition 21.2 &mdash; linear codes, generator and parity-check matrices</span>
+<p>An \([n,k,d]\) <strong>linear code</strong> \(C\) is a \(k\)-dimensional subspace of \(\mathbb F_2^n\) whose nonzero words all have weight at least \(d\) (the <strong>distance</strong>). It can be given by a \(k\times n\) <strong>generator matrix</strong> \(G\) (the rows span \(C\); a message \(m\) is encoded as \(mG\)) or by an \((n-k)\times n\) <strong>parity-check matrix</strong> \(H\) with \(C=\{c:Hc=0\}\). For a received word \(r=c+e\), the <strong>syndrome</strong> \(Hr=He\) depends only on the error. A code of distance \(d\) corrects any \(\lfloor(d-1)/2\rfloor\) errors.</p>
+</div>
+
+<div class="spot" data-kind="select">
+<p>A linear code with distance \(d=5\) is guaranteed to correct any pattern of up to
+<select><option data-hint="That is what a distance-3 code corrects.">1</option><option data-ok>2</option><option data-hint="Four flips can carry a codeword to within distance 1 of another codeword.">4</option><option data-hint="Five flips can turn one codeword into another one, which no decoder can notice.">5</option></select> bit flips.</p>
+<div class="hint">Use \(\lfloor(d-1)/2\rfloor\): a received word must stay strictly closer to the codeword it came from than to any other.</div>
+<div class="why">\(\lfloor(5-1)/2\rfloor=2\). Codewords are at least 5 apart, so a word with at most 2 flips is still nearer its own codeword than any other.</div>
+</div>
+
+<p>The repetition code is \([n,1,n]\). The <strong>Hamming code</strong> is \([7,4,3]\): four data bits in seven, correcting one error. Its parity-check matrix has as columns the numbers 1 to 7 in binary:</p>
+$$H=\begin{pmatrix}0&0&0&1&1&1&1\\0&1&1&0&0&1&1\\1&0&1&0&1&0&1\end{pmatrix}.$$
+
+<div class="box thm">
+<span class="lbl">proposition 21.2 &mdash; the Hamming syndrome is the error's address</span>
+<p>If a codeword of the Hamming code suffers a single bit flip at position \(j\), the syndrome \(Hr\) is \(j\) written in binary. Hence the code corrects every single error, and its distance is 3.</p>
+<p><em>Proof.</em> \(Hr=He_j\) is the \(j\)th column of \(H\), which is \(j\) in binary. Distinct nonzero columns mean every single error has a distinct nonzero syndrome; no two columns are equal and none is zero, so no word of weight 1 or 2 is in \(C\), while \(1110000\) (columns 1, 2, 3 sum to zero) shows \(d=3\).</p>
+</div>
+
+<div class="spot" data-kind="num" data-ans="5" data-tol="0.01" data-labels="position">
+<p>The Hamming word \(0101110\) is received. Which bit position should the decoder flip?</p>
+<div class="hint">Compute the three parities over positions \(\{4,5,6,7\}\), \(\{2,3,6,7\}\), \(\{1,3,5,7\}\) and read the three bits as a binary number.</div>
+<div class="why">The parities are 1, 0, 1, so the syndrome is \(101=5\). Flipping bit 5 gives \(0101010\), which passes all three checks.</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 21.2 &mdash; decoding one Hamming word</span>
+<p>The word \(r=1010111\) is received. Find the syndrome, the error, and the codeword.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The rows of \(H\) check positions \(\{4,5,6,7\}\), \(\{2,3,6,7\}\), \(\{1,3,5,7\}\). The bits of \(r\) there are \(0,1,1,1\) (parity 1), \(0,1,1,1\) (parity 1), \(1,1,1,1\) (parity 0). The syndrome \(110\) is 6: flip bit 6 to get \(1010101\), which passes all three checks.</p>
+</div>
+</div>
+
+<div class="box crypto">
+<span class="lbl">crypto connection &mdash; codes as hard problems</span>
+<p>Decoding is easy for codes with structure, like Hamming's; for a <em>random</em> linear code it is NP-hard in general, and the best known algorithms, classical or quantum, take exponential time. Code-based cryptography hides a structured, efficiently decodable code behind a random-looking generator matrix: McEliece (1978) uses Goppa codes, and HQC, selected by NIST in March 2025 for standardization as a backup key-encapsulation method alongside ML-KEM (the standard was still in draft in 2026), uses quasi-cyclic codes. The same parity-check algebra protects quantum computers and resists them.</p>
+</div>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; Why quantum error correction looks impossible</h2>
+
+<p>Three obstacles stand in the way of copying this to qubits:</p>
+<ol>
+<li><strong>No cloning.</strong> We cannot encode \(|\psi\rangle\) as \(|\psi\rangle|\psi\rangle|\psi\rangle\) (Lecture 8).</li>
+<li><strong>Errors are continuous.</strong> A bit is either flipped or not; a qubit can be rotated by any small angle, dephased a little, or damped a little (Lectures 18&ndash;19). There seem to be infinitely many errors to correct.</li>
+<li><strong>Measurement destroys.</strong> Majority vote reads every bit. Reading every qubit collapses the superposition we are trying to protect.</li>
+</ol>
+<p>The answers, in the next two sections: encode into an entangled state (redundancy without copying); measure only <em>parities</em>, which carry information about the error but none about the encoded state; and show that correcting a finite set of errors corrects all their linear combinations.</p>
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; The 3-qubit codes</h2>
+
+<div class="box def">
+<span class="lbl">definition 21.3 &mdash; the bit-flip and phase-flip codes</span>
+<p>The <strong>bit-flip code</strong> encodes \(\alpha|0\rangle+\beta|1\rangle\mapsto\alpha|000\rangle+\beta|111\rangle\) (two CNOTs from the data qubit onto two fresh qubits). Its <strong>checks</strong> are the parities \(Z_1Z_2\) and \(Z_2Z_3\). The <strong>phase-flip code</strong> is the same code in the Hadamard basis: \(\alpha|0\rangle+\beta|1\rangle\mapsto\alpha|{+}{+}{+}\rangle+\beta|{-}{-}{-}\rangle\), with checks \(X_1X_2\) and \(X_2X_3\). Qubits are numbered 1, 2, 3 from the left.</p>
+</div>
+
+<div class="spot" data-kind="mc">
+<p>For \(\alpha\beta\ne0\), the encoded state \(\alpha|000\rangle+\beta|111\rangle\) is</p>
+<ul class="opts">
+<li>three copies of the data, \((\alpha|0\rangle+\beta|1\rangle)^{\otimes3}\)<span class="oh">Expand the product: it contains terms like \(\alpha^2\beta|001\rangle\), which the code state does not have. Three copies would violate no-cloning.</span></li>
+<li data-ok>a single entangled state of three qubits, not a product of one-qubit states</li>
+<li>a classical mixture of \(|000\rangle\) (probability \(|\alpha|^2\)) and \(|111\rangle\) (probability \(|\beta|^2\))<span class="oh">A mixture forgets the relative phase between \(\alpha\) and \(\beta\); the code state is a superposition and keeps it.</span></li>
+</ul>
+<div class="hint">Compare with \((\alpha|0\rangle+\beta|1\rangle)^{\otimes3}\) written out in full: how many basis states appear?</div>
+<div class="why">Only \(|000\rangle\) and \(|111\rangle\) appear, with the original amplitudes: the redundancy is in the entanglement, not in copies, so no-cloning is not violated.</div>
+</div>
+
+<p>Note that \(\alpha|000\rangle+\beta|111\rangle\) is not three copies of anything: it is one entangled state, and no-cloning is not violated. The encoded state is a \(+1\) eigenvector of both checks, for every \(\alpha,\beta\). A check is measured with an ancilla qubit that collects the parity through CNOTs and is then read (figure below). The data qubits are never measured.</p>
+
+<p>The phase-flip code protects against \(Z\) errors. \(Z\) maps \(|+\rangle\leftrightarrow|-\rangle\), and \(Z_j\) anticommutes with exactly the \(X\) checks that act on qubit \(j\), flipping their outcomes from \(+1\) to \(-1\).</p>
+
+<div class="spot" data-kind="select">
+<p>A \(Z\) error hits the <em>middle</em> qubit of a phase-flip code state. The syndrome \((s_1,s_2)\) of the checks \(X_1X_2\), \(X_2X_3\) is
+<select><option data-hint="Z2 does change something: it anticommutes with an X check that contains qubit 2.">00</option><option data-hint="Check 2, X2X3, also contains qubit 2.">10</option><option data-hint="Check 1, X1X2, also contains qubit 2.">01</option><option data-ok>11</option></select>.</p>
+<div class="hint">\(Z_j\) flips exactly the \(X\) checks that act on qubit \(j\). Which checks contain qubit 2?</div>
+<div class="why">Qubit 2 is in both checks, so both fire: syndrome 11, the one syndrome that points to the middle qubit.</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 21.3 &mdash; the phase-flip syndrome table</span>
+<p>Write the syndrome \((s_1,s_2)\) of the phase-flip code, \(s_i=1\) meaning check \(i\) returned \(-1\), for the errors \(I,Z_1,Z_2,Z_3\), and the decoder's correction for each.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(Z_1\) anticommutes with \(X_1X_2\) only; \(Z_2\) with both; \(Z_3\) with \(X_2X_3\) only.</p>
+<table style="width:auto"><tr><th>error</th><td>\(I\)</td><td>\(Z_1\)</td><td>\(Z_2\)</td><td>\(Z_3\)</td></tr><tr><th>\((s_1,s_2)\)</th><td>00</td><td>10</td><td>11</td><td>01</td></tr><tr><th>correction</th><td>none</td><td>\(Z_1\)</td><td>\(Z_2\)</td><td>\(Z_3\)</td></tr></table>
+<p>The four syndromes are distinct, so each single \(Z\) error is identified and undone. Why the syndrome cannot depend on the encoded \(\alpha,\beta\), and why that matters, is part of HW11 Problem 1.</p>
+</div>
+</div>
+
+<p>The bit-flip code works the same way with \(X\) errors and \(Z\) checks; HW11 asks you to write its table and to compute its logical error rate.</p>
+
+<figure>
+<svg viewBox="0 0 720 320" width="720" height="320" role="img" aria-labelledby="syt syd"><title id="syt">Syndrome extraction for the 3-qubit phase-flip code</title><desc id="syd">Five wires: data qubits d1, d2, d3 and ancillas a1, a2 starting in |0>. Hadamards on the data turn X-parities into Z-parities. CNOTs from d1 and d2 onto a1 compute the parity of X1X2; CNOTs from d2 and d3 onto a2 compute the parity of X2X3. Hadamards on the data undo the basis change. The ancillas are measured, giving the two syndrome bits s1 and s2, which feed a classical decoder that applies Z to at most one data qubit. The data qubits are never measured.</desc><rect x="0" y="0" width="720" height="320" rx="8" class="plot-bg"/><text class="axtext" x="14.0" y="55.0" text-anchor="start" style="fill:var(--sky)">d1</text><text class="axtext" x="44.0" y="55.0" text-anchor="start"></text><line x1="80" y1="50" x2="690" y2="50" stroke="var(--ink)" stroke-width="2"/><text class="axtext" x="14.0" y="105.0" text-anchor="start" style="fill:var(--sky)">d2</text><text class="axtext" x="44.0" y="105.0" text-anchor="start"></text><line x1="80" y1="100" x2="690" y2="100" stroke="var(--ink)" stroke-width="2"/><text class="axtext" x="14.0" y="155.0" text-anchor="start" style="fill:var(--sky)">d3</text><text class="axtext" x="44.0" y="155.0" text-anchor="start"></text><line x1="80" y1="150" x2="690" y2="150" stroke="var(--ink)" stroke-width="2"/><text class="axtext" x="14.0" y="215.0" text-anchor="start" style="fill:var(--amber)">a1</text><text class="axtext" x="44.0" y="215.0" text-anchor="start">|0&gt;</text><line x1="80" y1="210" x2="520" y2="210" stroke="var(--ink)" stroke-width="2"/><text class="axtext" x="14.0" y="265.0" text-anchor="start" style="fill:var(--amber)">a2</text><text class="axtext" x="44.0" y="265.0" text-anchor="start">|0&gt;</text><line x1="80" y1="260" x2="520" y2="260" stroke="var(--ink)" stroke-width="2"/><rect x="92.0" y="33.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="110.0" y="55.0" text-anchor="middle" style="fill:var(--amber)">H</text><rect x="92.0" y="83.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="110.0" y="105.0" text-anchor="middle" style="fill:var(--amber)">H</text><rect x="92.0" y="133.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="110.0" y="155.0" text-anchor="middle" style="fill:var(--amber)">H</text><rect x="402.0" y="33.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="420.0" y="55.0" text-anchor="middle" style="fill:var(--amber)">H</text><rect x="402.0" y="83.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="420.0" y="105.0" text-anchor="middle" style="fill:var(--amber)">H</text><rect x="402.0" y="133.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="420.0" y="155.0" text-anchor="middle" style="fill:var(--amber)">H</text><line x1="170" y1="50" x2="170" y2="210" stroke="var(--rose)" stroke-width="2"/><circle cx="170" cy="50" r="6" fill="var(--rose)"/><circle cx="170" cy="210" r="13" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><line x1="157" y1="210" x2="183" y2="210" stroke="var(--amber)" stroke-width="2"/><line x1="170" y1="197" x2="170" y2="223" stroke="var(--amber)" stroke-width="2"/><line x1="220" y1="100" x2="220" y2="210" stroke="var(--rose)" stroke-width="2"/><circle cx="220" cy="100" r="6" fill="var(--rose)"/><circle cx="220" cy="210" r="13" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><line x1="207" y1="210" x2="233" y2="210" stroke="var(--amber)" stroke-width="2"/><line x1="220" y1="197" x2="220" y2="223" stroke="var(--amber)" stroke-width="2"/><line x1="290" y1="100" x2="290" y2="260" stroke="var(--rose)" stroke-width="2"/><circle cx="290" cy="100" r="6" fill="var(--rose)"/><circle cx="290" cy="260" r="13" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><line x1="277" y1="260" x2="303" y2="260" stroke="var(--amber)" stroke-width="2"/><line x1="290" y1="247" x2="290" y2="273" stroke="var(--amber)" stroke-width="2"/><line x1="340" y1="150" x2="340" y2="260" stroke="var(--rose)" stroke-width="2"/><circle cx="340" cy="150" r="6" fill="var(--rose)"/><circle cx="340" cy="260" r="13" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><line x1="327" y1="260" x2="353" y2="260" stroke="var(--amber)" stroke-width="2"/><line x1="340" y1="247" x2="340" y2="273" stroke="var(--amber)" stroke-width="2"/><rect x="503" y="193" width="34" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><path d="M510,217 Q520,201 530,217" fill="none" stroke="var(--amber)" stroke-width="1.8"/><line x1="520" y1="217" x2="528" y2="202" stroke="var(--amber)" stroke-width="1.8"/><rect x="503" y="243" width="34" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><path d="M510,267 Q520,251 530,267" fill="none" stroke="var(--amber)" stroke-width="1.8"/><line x1="520" y1="267" x2="528" y2="252" stroke="var(--amber)" stroke-width="1.8"/><line x1="537" y1="207.5" x2="600" y2="207.5" stroke="var(--axis)" stroke-width="1.6"/><line x1="537" y1="212.5" x2="600" y2="212.5" stroke="var(--axis)" stroke-width="1.6"/><line x1="537" y1="257.5" x2="600" y2="257.5" stroke="var(--axis)" stroke-width="1.6"/><line x1="537" y1="262.5" x2="600" y2="262.5" stroke="var(--axis)" stroke-width="1.6"/><rect x="600" y="188" width="96" height="94" rx="6" fill="var(--surface2)" stroke="var(--moss)" stroke-width="2"/><text class="axtext" x="648.0" y="220.0" text-anchor="middle" style="fill:var(--moss)">decoder</text><text class="axtext" x="648.0" y="242.0" text-anchor="middle" style="fill:var(--moss)">s1 s2</text><line x1="645.5" y1="188" x2="645.5" y2="167" stroke="var(--moss)" stroke-width="1.6"/><line x1="650.5" y1="188" x2="650.5" y2="167" stroke="var(--moss)" stroke-width="1.6"/><rect x="627.0" y="133.0" width="42" height="34" rx="4" fill="var(--surface2)" stroke="var(--moss)" stroke-width="2"/><text class="lbltext" x="648.0" y="155.0" text-anchor="middle" style="fill:var(--moss)">Z?</text><text class="axtext" x="195.0" y="300.0" text-anchor="middle" style="fill:var(--muted)">a1: X1 X2</text><text class="axtext" x="315.0" y="300.0" text-anchor="middle" style="fill:var(--muted)">a2: X2 X3</text><text class="axtext" x="560.0" y="200.0" text-anchor="start" style="fill:var(--rose)">s1</text><text class="axtext" x="560.0" y="250.0" text-anchor="start" style="fill:var(--rose)">s2</text></svg>
+<figcaption>Syndrome extraction for the phase-flip code: Hadamards turn the \(X\) parities into \(Z\) parities, CNOTs copy the parities into two ancillas, and the Hadamards are undone. Only the ancillas are measured. This is the circuit run in Section 7, with the corrections applied by mid-circuit classical control.</figcaption>
+</figure>
+
+<div class="widget">
+<h4>Syndrome explorer: the phase-flip repetition code</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Click a data qubit to toggle a \(Z\) error on it. Each check \(X_iX_{i+1}\) between two neighbours lights up when it returns \(-1\). The decoder chooses the fewest errors consistent with the lit checks; the readout says whether the correction restores the code state or completes a logical error. Try a single error on each qubit, then several errors on the 5-qubit code.</p>
+<svg id="syn21" viewBox="0 0 600 170" width="600" height="170" role="img" aria-label="Data qubits, checks and the decoder's correction"></svg>
+<div class="ctrls" id="syn21len"></div>
+<div class="ctrls" id="syn21run"></div>
+<p class="readout" role="status" aria-live="polite" id="syn21out"></p>
+</div>
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; Continuous errors become discrete</h2>
+
+<p>The phase-flip code corrects \(Z_1\). Does it correct a <em>small</em> phase rotation, \(R_Z(\varepsilon)\) on qubit 1? It does, and the reason is the most important idea of the lecture.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 21.3 &mdash; discretization of errors</span>
+<p>If a code corrects each of the errors \(E_1,\dots,E_m\) (by a syndrome measurement followed by a correction), then it corrects every linear combination \(E=\sum_kc_kE_k\) acting on a code state. In particular, a code that corrects \(X_j\), \(Y_j\) and \(Z_j\) for every qubit \(j\) corrects every single-qubit error whatsoever, since every \(2\times2\) matrix is a combination of \(I,X,Y,Z\).</p>
+<p><em>Idea of the proof.</em> \(E|\psi_L\rangle=\sum_kc_kE_k|\psi_L\rangle\) is a superposition of correctable errors, and the syndrome measurement is a measurement like any other. Example 21.4 below shows what happens in the simplest case; HW11 Problem 2 carries out the general argument for Shor's code.</p>
+</div>
+
+<div class="spot" data-kind="num" data-ans="1/4" data-labels="P(error)">
+<p>A phase-flip code state suffers \(e^{-i\theta Z_1}=\cos\theta\,I-i\sin\theta\,Z_1\) with \(\theta=\pi/6\). What is the probability that the syndrome measurement reports "\(Z_1\)"?</p>
+<div class="hint">The two terms have different syndromes, so they are orthogonal; the probability of each syndrome is the squared size of its coefficient.</div>
+<div class="why">\(\sin^2(\pi/6)=\tfrac14\). With probability \(\tfrac34\) the state is projected back onto the code state, and with probability \(\tfrac14\) onto \(Z_1|\psi_L\rangle\), which the decoder undoes: the final state is exact either way.</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 21.4 &mdash; a coherent over-rotation on the bit-flip code</span>
+<p>The bit-flip code state \(\sqrt{0.8}\,|000\rangle+\sqrt{0.2}\,|111\rangle\) suffers \(e^{-i\theta X_1}=\cos\theta\,I-i\sin\theta\,X_1\) with \(\theta=0.1\). Find the syndrome probabilities and the state after correction.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(e^{-i\theta X_1}|\psi_L\rangle=\cos\theta\,|\psi_L\rangle-i\sin\theta\,X_1|\psi_L\rangle\). The first term has syndrome 00 and the second has the syndrome of \(X_1\), so the two are orthogonal. The syndrome measurement gives "no error" with probability \(\cos^2\theta\approx0.990\), leaving \(|\psi_L\rangle\); or "\(X_1\)" with probability \(\sin^2\theta\approx0.00997\), leaving \(X_1|\psi_L\rangle\) (up to a phase), which the decoder corrects. Either way the final state is exactly \(|\psi_L\rangle\). For comparison, the same rotation on an unencoded qubit in the state \(\sqrt{0.8}|0\rangle+\sqrt{0.2}|1\rangle\) leaves fidelity 0.996 (verify_L21.py): small, but it would accumulate, and the code removes it completely.</p>
+</div>
+</div>
+
+<p>This is why error correction is possible at all, and why the Pauli errors of Lecture 19's twirling are not a simplification but the general case: <strong>correcting Paulis is correcting everything</strong>, provided only a few qubits are affected at once.</p>
+
+<!-- =================== 6 =================== -->
+<h2 id="s6">6 &mdash; Shor's 9-qubit code</h2>
+
+<p>The bit-flip code corrects \(X\) but not \(Z\) (a \(Z\) on any qubit changes \(\alpha|000\rangle+\beta|111\rangle\) to \(\alpha|000\rangle-\beta|111\rangle\), a logical error the checks cannot see); the phase-flip code corrects \(Z\) but not \(X\). Shor (1995) <strong>concatenated</strong> them: encode with the phase-flip code, then encode each of its three qubits with the bit-flip code.</p>
+$$|0_L\rangle=\tfrac1{2\sqrt2}\big(|000\rangle+|111\rangle\big)^{\otimes3},\qquad|1_L\rangle=\tfrac1{2\sqrt2}\big(|000\rangle-|111\rangle\big)^{\otimes3}.$$
+
+<div class="spot" data-kind="num" data-ans="8" data-tol="0.01" data-labels="basis states">
+<p>Multiply out \(|0_L\rangle=\tfrac1{2\sqrt2}(|000\rangle+|111\rangle)^{\otimes3}\). How many nine-bit computational basis states appear with a nonzero amplitude?</p>
+<div class="hint">Each of the three blocks independently contributes \(|000\rangle\) or \(|111\rangle\).</div>
+<div class="why">\(2^3=8\) states, from \(|000\,000\,000\rangle\) to \(|111\,111\,111\rangle\), each with amplitude \(\tfrac1{2\sqrt2}\); and \(8\cdot\tfrac18=1\), so the state is normalised.</div>
+</div>
+<p>Within each block of three, \(Z\)-parity checks find an \(X\) error. Across blocks, checks of the form \(X^{\otimes6}\) compare the signs of neighbouring blocks and find a \(Z\) error (up to which qubit in the block it hit, which turns out not to matter). HW11 Problem 2 shows how the two kinds of check together deal with every single-qubit Pauli error, and so, by Theorem 21.3, with every single-qubit error. Nine qubits for one is expensive; Lecture 22 builds a 7-qubit code with the same power from the Hamming code, and Lecture 23 the codes actually used in hardware.</p>
+
+<!-- =================== 7 =================== -->
+<h2 id="s7">7 &mdash; Try it in code</h2>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; the phase-flip code with mid-circuit syndrome measurement (qiskit 2.5, aer 0.17)</span>
+<pre>import numpy as np
+from qiskit import QuantumCircuit, QuantumRegister, ClassicalRegister
+from qiskit_aer import AerSimulator
+from qiskit.quantum_info import Statevector, state_fidelity
+
+theta = 2 * np.arccos(np.sqrt(0.8))<span class="cm">                  # data qubit: sqrt(0.8)|0&gt; + sqrt(0.2)|1&gt;</span>
+def phase_flip_code(err_angle):
+    d, a, s = QuantumRegister(3, "d"), QuantumRegister(2, "a"), ClassicalRegister(2, "s")
+    qc = QuantumCircuit(d, a, s)
+    qc.ry(theta, d[0]); qc.cx(d[0], d[1]); qc.cx(d[0], d[2]); qc.h(d)<span class="cm">      # encode: |0&gt; -&gt; |+++&gt;, |1&gt; -&gt; |---&gt;</span>
+    qc.rz(err_angle, d[0])<span class="cm">                                                  # a coherent phase error on the first qubit</span>
+    qc.h(d)<span class="cm">                                                                 # measure X1X2 and X2X3 as Z-parities</span>
+    qc.cx(d[0], a[0]); qc.cx(d[1], a[0]); qc.cx(d[1], a[1]); qc.cx(d[2], a[1])
+    qc.h(d)
+    qc.measure(a, s)
+    with qc.if_test((s, 0b01)): qc.z(d[0])<span class="cm">          # s[0] = X1X2 check, s[1] = X2X3 check; Qiskit's value is little-endian, so the text's (s1,s2) = 10 is 0b01</span>
+    with qc.if_test((s, 0b11)): qc.z(d[1])
+    with qc.if_test((s, 0b10)): qc.z(d[2])
+    qc.h(d); qc.cx(d[0], d[2]); qc.cx(d[0], d[1])<span class="cm">                          # decode back onto d[0]</span>
+    qc.save_density_matrix([d[0]])
+    return qc
+
+target = Statevector([np.sqrt(0.8), np.sqrt(0.2)])
+sim = AerSimulator(method="density_matrix", seed_simulator=21)
+for ang in (0.0, 0.6, np.pi):
+    rho = sim.run(phase_flip_code(ang), shots=2000).result().data()["density_matrix"]
+    q = QuantumCircuit(1); q.ry(theta, 0); q.h(0); q.rz(ang, 0); q.h(0)<span class="cm">     # no code: one qubit stored as H|psi&gt;, same error</span>
+    print(f"error RZ({ang:.2f}) on qubit 1:  fidelity with code {state_fidelity(rho, target):.4f},  without code {state_fidelity(Statevector(q), target):.4f}")</pre>
+<pre class="out">error RZ(0.00) on qubit 1:  fidelity with code 1.0000,  without code 1.0000
+error RZ(0.60) on qubit 1:  fidelity with code 1.0000,  without code 0.9686
+error RZ(3.14) on qubit 1:  fidelity with code 1.0000,  without code 0.6400</pre>
+<p>The circuit encodes, applies a coherent phase rotation to the first qubit, measures the two checks into ancillas, applies the correction with <code>if_test</code>, and decodes. The density-matrix simulator averages over the 2,000 shots' syndrome outcomes. With the code the fidelity is 1 for every rotation angle, including a full \(Z\) error (\(\pi\)); the unprotected qubit is damaged. (Errors on the ancillas or during the checks are not modelled here: that is fault tolerance, Lecture 23.)</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; the Hamming code: syndrome decoding and its failure rate</span>
+<pre>import numpy as np, itertools
+
+H = np.array([[0, 0, 0, 1, 1, 1, 1],<span class="cm">                 # Hamming [7,4,3]: column j is j in binary</span>
+              [0, 1, 1, 0, 0, 1, 1],
+              [1, 0, 1, 0, 1, 0, 1]])
+G = np.array([[1, 1, 1, 0, 0, 0, 0], [1, 0, 0, 1, 1, 0, 0],
+              [0, 1, 0, 1, 0, 1, 0], [1, 1, 0, 1, 0, 0, 1]])
+print("H G^T = 0 mod 2:", not (H @ G.T % 2).any())
+codewords = [np.array(m) @ G % 2 for m in itertools.product((0, 1), repeat=4)]
+print("16 codewords, minimum weight", min(c.sum() for c in codewords if c.any()))
+
+def decode(r):
+    s = H @ r % 2
+    pos = int("".join(map(str, s)), 2)<span class="cm">                # the syndrome IS the position of a single error</span>
+    r = r.copy()
+    if pos: r[pos - 1] ^= 1
+    return pos, r
+
+r = np.array([1, 0, 1, 0, 1, 1, 1])<span class="cm">                   # codeword 1010101 with position 6 flipped</span>
+print("received", r, "-&gt; error at", *decode(r))
+rng = np.random.default_rng(21); p, trials, fails = 0.05, 200_000, 0
+for _ in range(trials):
+    e = (rng.random(7) &lt; p).astype(int)
+    fails += decode(e)[1].any()<span class="cm">                       # starting from the all-zero codeword, by linearity</span>
+print(f"p = {p}: block failure rate {fails / trials:.4f}  vs  P(2 or more errors) = {1 - (1-p)**7 - 7*p*(1-p)**6:.4f}")</pre>
+<pre class="out">H G^T = 0 mod 2: True
+16 codewords, minimum weight 3
+received [1 0 1 0 1 1 1] -&gt; error at 6 [1 0 1 0 1 0 1]
+p = 0.05: block failure rate 0.0441  vs  P(2 or more errors) = 0.0444</pre>
+<p>Example 21.2, then a Monte Carlo check: the decoder fails exactly when two or more of the seven bits flip. By linearity it suffices to simulate errors on the all-zero codeword.</p>
+</div>
+
+<!-- =================== 8 =================== -->
+<h2 id="s8">8 &mdash; Summary and exercises</h2>
+
+<div class="box thm">
+<span class="lbl">summary</span>
+<ul>
+<li>Repetition with majority vote fails with probability \(\sum_{k\gt n/2}\binom nkp^k(1-p)^{n-k}\sim p^{(n+1)/2}\); for \(n\ge3\) it beats a single bit when \(p\lt\tfrac12\).</li>
+<li>Linear codes are given by generator and parity-check matrices; the syndrome \(Hr=He\) sees only the error. The Hamming \([7,4,3]\) code's syndrome is the binary position of a single error.</li>
+<li>Quantum obstacles: no cloning, continuous errors, destructive measurement. Answers: entangled encodings, parity (syndrome) measurements that ignore the encoded state, and discretization.</li>
+<li>The 3-qubit bit-flip code (\(|000\rangle,|111\rangle\); checks \(Z_1Z_2,Z_2Z_3\)) and phase-flip code (\(|{+}{+}{+}\rangle,|{-}{-}{-}\rangle\); checks \(X_1X_2,X_2X_3\)) each correct one kind of single-qubit Pauli error.</li>
+<li>Correcting a set of errors corrects all their linear combinations; hence correcting \(X,Y,Z\) on each qubit corrects every single-qubit error. Shor's 9-qubit code does this by concatenation.</li>
+</ul>
+<p><strong>Next time:</strong> the stabilizer formalism, a compact language for all of these codes, and the Steane code. <strong>HW10</strong> is due at the start of Week 12; <strong>project proposals</strong> are due this week (see the Lab 7 handout for the checklist).</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 21</span>
+<ol>
+<li>Compute \(P_L(5,0.3)\) and \(P_L(7,0.3)\) for the classical repetition codes. Is it worth using 7 copies instead of 5 at \(p=0.3\)?</li>
+<li>Decode the Hamming word \(0100011\).</li>
+<li>Show that two bit flips in a Hamming codeword always lead the decoder to a wrong codeword. (Hint: what is the syndrome of \(e_i+e_j\)?)</li>
+<li>In Example 21.4, take \(\theta=0.05\). What is the probability that the syndrome reports an error? Is the final state different?</li>
+<li>Explain why the phase-flip code cannot correct an \(X\) error on qubit 1. What does \(X_1\) do to \(|{+}{+}{+}\rangle\) and \(|{-}{-}{-}\rangle\)?</li>
+<li>A code space is spanned by \(|000\rangle\) and \(|111\rangle\). Which of these operators can be measured without disturbing every encoded state: \(Z_1\), \(Z_1Z_2\), \(X_1X_2X_3\), \(Z_1Z_3\)? Which of them would destroy the encoded information?</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>\(P_L(5,0.3)=10(0.027)(0.49)+5(0.0081)(0.7)+0.00243\approx0.163\); \(P_L(7,0.3)\approx0.126\). Two more bits buy only a factor of about 1.3 here: at \(p=0.3\) the code is far from the small-\(p\) regime where each pair of copies gains a factor of about \(p\). It still helps, since \(p\lt\tfrac12\).</li>
+<li>The checks on \(\{4,5,6,7\}\), \(\{2,3,6,7\}\), \(\{1,3,5,7\}\) see \(0,0,1,1\) (parity 0), \(1,0,1,1\) (parity 1), \(0,0,0,1\) (parity 1): syndrome \(011=3\). Flip bit 3: \(0110011\), the codeword of the message 1011 (with the generator matrix of Section 7).</li>
+<li>The syndrome of \(e_i+e_j\) is \(\mathrm{col}_i+\mathrm{col}_j\), the binary of \(i\oplus j\) (bitwise XOR), which is nonzero and equal to some third position \(k\ne i,j\). The decoder flips \(k\), leaving \(e_i+e_j+e_k\) with \(\mathrm{col}_i+\mathrm{col}_j+\mathrm{col}_k=0\): a nonzero codeword. The result is a wrong codeword.</li>
+<li>\(\sin^2(0.05)\approx0.0025\). The final state is exactly the original code state in either case.</li>
+<li>\(X\) fixes \(|+\rangle\) and negates \(|-\rangle\), so \(X_1(\alpha|{+}{+}{+}\rangle+\beta|{-}{-}{-}\rangle)=\alpha|{+}{+}{+}\rangle-\beta|{-}{-}{-}\rangle\): another valid code state (a logical \(Z\)), with syndrome 00. The checks see nothing, and the error goes uncorrected.</li>
+<li>\(Z_1Z_2\) and \(Z_1Z_3\) have the same value (+1) on both \(|000\rangle\) and \(|111\rangle\), so they can be measured freely; they are checks. \(Z_1\) distinguishes \(|000\rangle\) (+1) from \(|111\rangle\) (&minus;1): measuring it collapses \(\alpha|000\rangle+\beta|111\rangle\), destroying the information. \(X_1X_2X_3\) swaps \(|000\rangle\leftrightarrow|111\rangle\); its eigenstates are \(|000\rangle\pm|111\rangle\), so measuring it destroys the relative weights of \(\alpha\) and \(\beta\) too. It is the logical \(X\).</li>
+</ol>
+</div>
+</div>
+
+<h3>Reading and sources</h3>
+<ul>
+<li>J. Watrous, <em>Understanding Quantum Information and Computation</em>, Ch. 13 (<a href="https://arxiv.org/abs/2507.11536">arXiv:2507.11536</a>; IBM course <a href="https://quantum.cloud.ibm.com/learning/en/courses/foundations-of-quantum-error-correction">Foundations of Quantum Error Correction</a>).</li>
+<li>J. Roffe, "Quantum error correction: an introductory guide", <em>Contemporary Physics</em> 60, 226 (2019) (<a href="https://arxiv.org/abs/1907.11157">arXiv:1907.11157</a>), §1&ndash;3.</li>
+<li>P. W. Shor, "Scheme for reducing decoherence in quantum computer memory", <em>Phys. Rev. A</em> 52, R2493 (1995).</li>
+<li>NIST, "NIST selects HQC as fifth algorithm for post-quantum encryption" (March 2025), and the <a href="https://csrc.nist.gov/projects/post-quantum-cryptography">PQC project page</a>.</li>
+</ul>
+<p class="kicker" style="margin-top:2.4em">all numbers and figures in these notes are computed in python (verify_L21.py) and follow the page theme</p>
+</div>
+
+<script>
+var NS='http://www.w3.org/2000/svg';
+function mk(tag,at,parent,txt){var e=document.createElementNS(NS,tag);for(var k in at)e.setAttribute(k,at[k]);if(txt!==undefined)e.textContent=txt;if(parent)parent.appendChild(e);return e;}
+function clr(s){while(s.firstChild)s.removeChild(s.firstChild);}
+function fx(x,d){d=(d===undefined?3:d);var v=Number(x).toFixed(d);return /^-0\.?0*$/.test(v)?v.slice(1):v;}
+function btn(parent,label,fn){var b=document.createElement('button');b.className='ctl';b.type='button';b.textContent=label;b.addEventListener('click',fn);parent.appendChild(b);return b;}
+
+/* ---------- syndrome explorer (phase-flip repetition code) ---------- */
+(function(){
+  var svg=document.getElementById('syn21'); if(!svg) return;
+  var n=3, e=[0,0,0], out=document.getElementById('syn21out'), lb=[];
+  [3,5].forEach(function(k){ lb.push(btn(document.getElementById('syn21len'),k+' qubits',function(){n=k;e=new Array(k).fill(0);draw();})); });
+  btn(document.getElementById('syn21run'),'clear errors',function(){e=new Array(n).fill(0);draw();});
+  function draw(){
+    lb.forEach(function(b){b.classList.toggle('on',b.textContent===n+' qubits');});
+    var s=[]; for(var i=0;i<n-1;i++) s.push(e[i]^e[i+1]);
+    // decoder: the two error patterns with this syndrome are complements; take the lighter one
+    var c=[0]; for(i=0;i<n-1;i++) c.push(c[i]^s[i]);
+    var w=c.reduce(function(a,b){return a+b;},0); if(w>n-w) c=c.map(function(x){return 1-x;});
+    var res=e.map(function(x,i){return x^c[i];}), logical=res.some(function(x){return x;});
+    clr(svg); mk('rect',{x:0,y:0,width:600,height:170,rx:8,class:'plot-bg'},svg);
+    var dx=520/(n-1+1e-9), x0=n===3?150:60, step=n===3?150:120;
+    for(i=0;i<n-1;i++){ var xm=x0+(i+0.5)*step;
+      mk('line',{x1:x0+i*step,y1:70,x2:x0+(i+1)*step,y2:70,stroke:'var(--axis)','stroke-width':2},svg);
+      mk('rect',{x:xm-20,y:52,width:40,height:36,rx:5,fill:s[i]?'var(--rose)':'var(--surface2)','fill-opacity':s[i]?0.8:1,stroke:'var(--rose)','stroke-width':2},svg);
+      mk('text',{x:xm,y:75,'text-anchor':'middle',class:'axtext',fill:s[i]?'var(--surface)':'var(--cap)'},svg,'X'+(i+1)+'X'+(i+2));
+      mk('text',{x:xm,y:108,'text-anchor':'middle',class:'axtext'},svg,s[i]?'-1':'+1'); }
+    for(i=0;i<n;i++){ (function(i){ var x=x0+i*step;
+      var g=mk('g',{style:'cursor:pointer',tabindex:0,role:'button','aria-label':'toggle Z error on qubit '+(i+1)},svg);
+      mk('circle',{cx:x,cy:70,r:19,fill:'var(--surface)'},g);
+      mk('circle',{cx:x,cy:70,r:19,fill:e[i]?'var(--amber)':'var(--sky)','fill-opacity':e[i]?0.85:0.3,stroke:'var(--ink)','stroke-width':1.6},g);
+      mk('text',{x:x,y:75,'text-anchor':'middle',class:'lbltext'},g,e[i]?'Z':String(i+1));
+      if(c[i]) mk('text',{x:x,y:140,'text-anchor':'middle',class:'axtext',fill:'var(--moss)'},svg,'fix Z'+(i+1));
+      function tog(){ e[i]^=1; draw(); }
+      g.addEventListener('click',tog); g.addEventListener('keydown',function(ev){ if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();tog();} }); })(i); }
+    mk('text',{x:20,y:24,class:'axtext',fill:'var(--muted)'},svg,'click a qubit to toggle a Z error');
+    var nerr=e.reduce(function(a,b){return a+b;},0), syn=s.join('');
+    out.textContent='Errors on '+nerr+' qubit'+(nerr===1?'':'s')+'; syndrome '+syn+'. '+(c.some(function(x){return x;})?'Decoder applies Z on qubit'+(c.filter(function(x){return x;}).length>1?'s ':' ')+c.map(function(x,i){return x?i+1:null;}).filter(function(x){return x;}).join(', ')+'. ':'Decoder does nothing. ')+
+      (logical?'The errors plus the correction make Z on every qubit, which turns |+...+> into |-...-> and back: a logical error the code cannot see.':(nerr?'The correction cancels the error: the code state is restored.':'No error.'));
+  }
+  draw();
+})();
+</script>
+
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    var lab=b.getAttribute('data-lab')||b.textContent.replace(/^(show|hide) /,''); b.setAttribute('data-lab',lab);
+    b.textContent=(open?'hide ':'show ')+lab;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+
+<script id="spot-js">
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×/g,'*').replace(/π/g,'pi').replace(/,/g,'');
+    var pct=/%$/.test(s); if(pct) s=s.slice(0,-1);
+    s=s.replace(/√\s*\(/g,'sqrt(').replace(/√\s*([0-9.]+)/g,'sqrt($1)');
+    if(!s||!/^[0-9a-z+\-*\/^().\s]*$/.test(s)) return NaN;
+    var ok=s.replace(/sqrt|pi|ln|log|exp|sin|cos|tan|e(?![a-z])/g,'').replace(/[0-9+\-*\/^().\s]/g,'');
+    if(ok.length) return NaN;
+    s=s.replace(/\^/g,'**').replace(/(\d)\s*(pi|sqrt|\()/g,'$1*$2').replace(/\)\s*(\d|pi|sqrt|\()/g,')*$1')
+       .replace(/sqrt/g,'Math.sqrt').replace(/pi/g,'Math.PI').replace(/\blog\b/g,'Math.log10').replace(/\bln\b/g,'Math.log')
+       .replace(/exp/g,'Math.exp').replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos').replace(/tan/g,'Math.tan')
+       .replace(/(^|[^a-z.0-9])e(?![a-z0-9(])/g,'$1Math.E');
+    try{ var v=Function('"use strict";return ('+s+')')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function typeset(el){ if(window.MathJax&&MathJax.typesetPromise){ MathJax.typesetPromise([el]).catch(function(){}); } }
+  function fb(spot,ok,html){
+    var f=spot.querySelector('.fb'); spot.classList.toggle('ok',ok); spot.classList.toggle('bad',!ok);
+    f.innerHTML='<p><span class="tag">'+(ok?'correct.':'not yet.')+'</span>'+(html||'')+'</p>'; typeset(f);
+  }
+  function part(spot,sel){ var e=spot.querySelector(sel); return e? e.innerHTML : ''; }
+  var n=0, lec=(document.title.match(/^Lecture (\d+)/)||[])[1];
+  document.querySelectorAll('.spot').forEach(function(spot){
+    n++; var kind=spot.getAttribute('data-kind')||'num', tries=0;
+    var lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent='spot check '+(lec?lec+'.':'')+n+(spot.getAttribute('data-tag')?' — '+spot.getAttribute('data-tag'):'');
+    spot.insertBefore(lbl,spot.firstChild);
+    var area=document.createElement('div'), btns=document.createElement('div'), f=document.createElement('div');
+    btns.className='btns'; f.className='fb'; f.setAttribute('role','status'); f.setAttribute('aria-live','polite');
+    var check=document.createElement('button'); check.type='button'; check.textContent='check';
+    var reveal=document.createElement('button'); reveal.type='button'; reveal.className='reveal'; reveal.textContent='show answer'; reveal.style.display='none';
+    btns.appendChild(check); btns.appendChild(reveal);
+    var grade, show;
+    if(kind==='num'){
+      var ans=spot.getAttribute('data-ans').split('|').map(evalNum), labs=(spot.getAttribute('data-labels')||'').split('|');
+      var tol=spot.getAttribute('data-tol'), row=document.createElement('div'); row.className='row'; area.appendChild(row);
+      var ins=ans.map(function(a,i){ var lab=document.createElement('label'), inp=document.createElement('input');
+        inp.className='ans'; inp.type='text'; inp.setAttribute('inputmode','text'); inp.setAttribute('autocomplete','off');
+        inp.setAttribute('aria-label',labs[i]||'answer'); if(labs[i]){ lab.appendChild(document.createTextNode(labs[i]+' =')); }
+        lab.appendChild(inp); row.appendChild(lab);
+        inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); check.click(); } }); return inp; });
+      var fmt=document.createElement('div'); fmt.className='fmt'; fmt.textContent='decimals, fractions, sqrt(2)/2, pi/4 or 2^-3 all work';
+      area.appendChild(fmt);
+      grade=function(){ var bad=[]; ins.forEach(function(inp,i){ var v=evalNum(inp.value), a=ans[i];
+          var t= tol!==null? Number(tol) : Math.max(0.005, 0.005*Math.abs(a)); if(!(Math.abs(v-a)<=t)) bad.push(i); });
+        var empty=ins.some(function(inp){return !inp.value.trim();});
+        if(empty) return {ok:false,msg:'Fill in '+(ins.length>1?'every box':'the box')+' first.',soft:true};
+        var unparsed=ins.some(function(inp){return isNaN(evalNum(inp.value));});
+        if(unparsed) return {ok:false,msg:'I could not read that as a number. Try a decimal or a fraction such as 3/8.',soft:true};
+        return {ok:!bad.length, which:bad}; };
+      show=function(){ var s=spot.getAttribute('data-show'); if(!s){ s=spot.getAttribute('data-ans').split('|').map(function(a,i){return (labs[i]?labs[i]+' = ':'')+a;}).join(', '); } return 'The answer is '+s+'.'; };
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=spot.querySelector('ul.opts'), name='spot'+n, lis=[].slice.call(ul.querySelectorAll(':scope > li'));
+      lis.forEach(function(li,i){ var inp=document.createElement('input'); inp.type= kind==='mc'?'radio':'checkbox'; inp.name=name; inp.value=i;
+        inp.setAttribute('aria-label','option '+(i+1)); li.insertBefore(inp,li.firstChild);
+        li.addEventListener('click',function(e){ if(e.target!==inp&&e.target.tagName!=='A'){ if(kind==='mc') inp.checked=true; else inp.checked=!inp.checked; } }); });
+      grade=function(){ var picked=lis.filter(function(li){return li.querySelector('input').checked;});
+        if(!picked.length) return {ok:false,msg:'Pick '+(kind==='mc'?'an answer':'at least one option')+' first.',soft:true};
+        var ok= lis.every(function(li){ return li.hasAttribute('data-ok')===li.querySelector('input').checked; });
+        var oh=''; picked.forEach(function(li){ if(!li.hasAttribute('data-ok')){ var h=li.querySelector('.oh'); if(h) oh+=' '+h.innerHTML; } });
+        if(kind==='multi'&&!ok&&!oh){ var miss=lis.filter(function(li){return li.hasAttribute('data-ok')&&!li.querySelector('input').checked;});
+          if(miss.length&&picked.every(function(li){return li.hasAttribute('data-ok');})) oh=' Everything you ticked is right, but something is missing.'; }
+        return {ok:ok, extra:oh}; };
+      show=function(){ lis.forEach(function(li){ li.classList.toggle('right',li.hasAttribute('data-ok')); }); return 'The right '+(kind==='mc'?'option is':'options are')+' outlined.'; };
+    } else if(kind==='select'){
+      var sels=[].slice.call(spot.querySelectorAll('select'));
+      sels.forEach(function(s){ var o=document.createElement('option'); o.textContent='choose…'; o.value=''; o.selected=true; s.insertBefore(o,s.firstChild);
+        s.setAttribute('aria-label', s.getAttribute('aria-label')||'choose an answer'); });
+      grade=function(){ if(sels.some(function(s){return !s.value;})) return {ok:false,msg:'Make a choice in '+(sels.length>1?'every menu':'the menu')+' first.',soft:true};
+        var oh=''; var ok=sels.every(function(s){ var o=s.options[s.selectedIndex]; if(!o.hasAttribute('data-ok')&&o.getAttribute('data-hint')) oh+=' '+o.getAttribute('data-hint'); return o.hasAttribute('data-ok'); });
+        return {ok:ok, extra:oh}; };
+      show=function(){ sels.forEach(function(s){ [].forEach.call(s.options,function(o,i){ if(o.hasAttribute('data-ok')) s.selectedIndex=i; }); }); return 'The right choices are now selected.'; };
+    }
+    var anchor=null;
+    [].forEach.call(spot.children,function(c){ if(!anchor&&(c.classList.contains('hint')||c.classList.contains('why'))) anchor=c; });
+    if(kind==='select'){ spot.insertBefore(btns,anchor); } else { spot.insertBefore(area,anchor); spot.insertBefore(btns,anchor); }
+    spot.appendChild(f);
+    check.addEventListener('click',function(){ var r=grade();
+      if(r.soft){ spot.classList.remove('ok'); spot.classList.add('bad'); f.innerHTML='<p><span class="tag">hold on.</span>'+r.msg+'</p>'; return; }
+      if(r.ok){ fb(spot,true,part(spot,'.why')); reveal.style.display='none'; }
+      else { tries++; var h=part(spot,'.hint'); var extra=r.extra||'';
+        if(r.which&&r.which.length&&ans.length>1){ extra=' Check '+r.which.map(function(i){return labs[i]||('box '+(i+1));}).join(' and ')+'.'+extra; }
+        fb(spot,false,(extra?extra+' ':'')+h); if(tries>=2) reveal.style.display=''; } });
+    reveal.addEventListener('click',function(){ var msg=show(); spot.classList.remove('ok'); spot.classList.add('bad');
+      f.innerHTML='<p><span class="tag">answer.</span>'+msg+' '+part(spot,'.why')+'</p>'; typeset(f); });
+  });
+})();
+</script>
+</body>
+</html>

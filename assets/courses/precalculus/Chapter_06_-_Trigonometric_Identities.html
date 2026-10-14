@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Chapter 6 — Trigonometric Identities</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  /* ---- spot checks ---- */
+  .spot{border:1px dashed var(--sky);border-left:3px solid var(--sky);background:var(--surface)}
+  .spot .lbl{color:var(--sky)}
+  .spot.is-ok{border-color:var(--moss)} .spot.is-ok .lbl{color:var(--moss)}
+  .spot.is-bad{border-color:var(--amber)} .spot.is-bad .lbl{color:var(--amber)}
+  .spot-q,.spot legend{margin:.15em 0 .75em;padding:0;color:var(--ink);font-size:1rem;line-height:1.7}
+  .spot fieldset{border:0;margin:0;padding:0;min-width:0}
+  .spot-opts{display:grid;gap:8px;margin:0 0 .8em}
+  .spot-opt{display:flex;gap:12px;align-items:flex-start;padding:9px 13px;min-height:44px;
+    border:1px solid var(--rule);border-radius:8px;background:var(--surface2);cursor:pointer;line-height:1.6}
+  .spot-opt:hover{border-color:var(--sky)}
+  .spot-opt input{margin:.42em 0 0;accent-color:var(--sky);flex:none;width:18px;height:18px}
+  .spot-opt.chosen{border-color:var(--sky);border-width:2px;padding:8px 12px}
+  .spot-opt.chosen.right{border-color:var(--moss)}
+  .spot-opt.chosen.wrong{border-color:var(--amber)}
+  .spot-row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+  .spot-row label{font-family:var(--mono);font-size:.86rem;color:var(--cap)}
+  .spot-in,.spot select{font-family:var(--mono);font-size:1rem;color:var(--ink);background:var(--surface2);
+    border:1px solid var(--rule);border-radius:6px;padding:8px 10px;min-height:44px}
+  .spot-in{width:13em;max-width:100%}
+  .spot select{max-width:100%;margin:.15em .2em}
+  .spot-in[aria-invalid="true"],.spot select[aria-invalid="true"]{border:2px solid var(--amber)}
+  .spot-in[aria-invalid="false"],.spot select[aria-invalid="false"]{border:2px solid var(--moss)}
+  .spot-go,.spot-show{font-family:var(--mono);font-size:.88rem;background:transparent;border-radius:999px;
+    padding:8px 18px;min-height:44px;cursor:pointer}
+  .spot-go{color:var(--sky);border:1px solid var(--sky)}
+  .spot-go:hover{background:var(--sky);color:var(--bg)}
+  .spot-show{color:var(--cap);border:1px dashed var(--rule);margin-top:.7em}
+  .spot-show:hover{border-color:var(--sky);color:var(--ink)}
+  .spot-msg{margin-top:.85em;padding:10px 14px;border-left:3px solid var(--rule);border-radius:0 6px 6px 0;
+    background:var(--surface2);color:var(--ink);line-height:1.65}
+  .spot-msg.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 11%,var(--surface))}
+  .spot-msg.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 11%,var(--surface))}
+  .spot-msg.ans{border-left-color:var(--sky)}
+  .spot-msg > :last-child{margin-bottom:0}
+  .spot-tag{font-family:var(--mono);font-size:.86rem;font-weight:700;margin-right:.35em}
+  .spot-msg.ok .spot-tag{color:var(--moss)} .spot-msg.bad .spot-tag{color:var(--amber)}
+  .spot-msg.ans .spot-tag{color:var(--sky)}
+  .spot-help{font-family:var(--mono);font-size:.8rem;color:var(--cap);margin:.55em 0 0}
+  .vh{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  /* narrow screens: wide tables and long equations scroll sideways ---- */
+  .tscroll{overflow-x:auto;max-width:100%;margin:1.2em 0;-webkit-overflow-scrolling:touch}
+  .tscroll:focus-visible{outline:2px solid var(--sky);outline-offset:2px}
+  .tscroll>table{margin:0}
+  mjx-container[display="true"]{overflow-x:auto;overflow-y:hidden;max-width:100%;padding:2px 0}
+  mjx-container[jax] > mjx-assistive-mml{width:1px !important;max-width:1px !important;height:1px !important;overflow:hidden !important}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Precalculus · Chapter 6</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Chapter 6<br>Trigonometric identities</h1>
+<p class="kicker">Lectures 22&ndash;23 &nbsp;|&nbsp; many names for the same quantity</p>
+
+<div class="toc">
+<strong class="mono">In this chapter</strong>
+<ol start="22">
+<li><a href="#L22">Pythagorean identities and the symmetry of the circle</a></li>
+<li><a href="#L23">Addition formulas, double angles, and substitution</a></li>
+</ol>
+</div>
+
+<p>An <strong>identity</strong> is an equation that is true for every value of the variable. \(x^{2}-1=(x-1)(x+1)\) is one; \(x^{2}-1=0\) is not, since it only holds at two particular values. The distinction matters: an equation is something you solve, an identity is something you use.</p>
+<div class="box spot" data-type="mc" role="group" aria-labelledby="sp6_1q">
+<span class="lbl">spot check</span>
+<fieldset><legend id="sp6_1q">Which of these is an <em>identity</em>?</legend>
+<div class="spot-opts"><label class="spot-opt"><input type="radio" name="sp6_1r" value="0" data-right> <span>\((x+1)^{2}=x^{2}+2x+1\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp6_1r" value="1"> <span>\(x^{2}=4\)</span></label>
+<label class="spot-opt"><input type="radio" name="sp6_1r" value="2"> <span>\(2x+1=7\)</span></label></div>
+<button type="button" class="spot-go">check</button></fieldset>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> Expanding the left side gives the right side whatever \(x\) is &mdash; true everywhere, so it is an identity.</div><div class="spot-msg bad" data-kind="bad" data-opt="1" hidden><span class="spot-tag">Not quite.</span> True only at \(x=2\) and \(x=-2\). That is an equation to solve.</div><div class="spot-msg bad" data-kind="bad" data-opt="2" hidden><span class="spot-tag">Not quite.</span> True only at \(x=3\). An identity must hold for <em>every</em> value of \(x\).</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Pick one.</span> Choose an option, then check.</div></div>
+</div>
+
+
+<p>Trigonometry has an unusual number of identities, and there is a reason. Sine and cosine are the coordinates of a point on a circle, and a circle is an extremely symmetric object &mdash; you can reflect it in either axis, rotate it, or turn it inside out, and it lands on itself. Every one of those symmetries becomes an equation. That is all an identity is: a symmetry of the circle, written in algebra.</p>
+
+<hr>
+<!-- ================= LECTURE 22 ================= -->
+<h2 id="L22">Lecture 22 &mdash; Pythagorean identities and the symmetry of the circle</h2>
+
+<figure class="toon">
+<svg viewBox="0 0 560 200" width="560" height="200" role="img" aria-labelledby="L22t L22d">
+<title id="L22t">Cartoon: the same quantity written several ways</title><desc id="L22d">One stick figure points at a board showing the same quantity written two different ways. Another asks which one is the answer.</desc>
+<defs><filter id="rough54" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="54" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough54)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="100.0" cy="124.0" r="11.0" /><path d="M 100.0 135.0 L 100.0 160.0" /><path d="M 100.0 140.0 L 87.0 158.0" /><path d="M 100.0 140.0 L 120.0 140.0" /><path d="M 100.0 160.0 L 89.0 184.0" /><path d="M 100.0 160.0 L 111.0 184.0" /><circle cx="470.0" cy="124.0" r="11.0" /><path d="M 470.0 135.0 L 470.0 160.0" /><path d="M 470.0 140.0 L 485.0 140.0" /><path d="M 470.0 140.0 L 455.0 140.0" /><path d="M 470.0 160.0 L 481.0 184.0" /><path d="M 470.0 160.0 L 459.0 184.0" /><path d="M 30 170 L 540 170" stroke-width="1.6"/><rect x="168" y="110" width="200" height="56" rx="6"/><rect x="250.0" y="14.0" width="134.4" height="52.0" rx="9" fill="var(--surface2)"/><path d="M 284.9 63.0 L 244.0 100.0 L 314.5 63.0" fill="var(--surface2)" stroke-width="1.6"/>
+</g>
+<text x="265.0" y="41.0" class="ctext">Which one is</text><text x="265.0" y="59.0" class="ctext">the answer?</text><text x="180" y="134" class="ctext">sin² = 1 − cos²</text><text x="180" y="156" class="ctext">= (1−cos)(1+cos)</text>
+</svg>
+<figcaption class="tooncap">“All of them. That is the point.”</figcaption></figure>
+
+<h3>The identity you already have</h3>
+
+<p>The point \((\cos t,\sin t)\) lies on the unit circle, whose equation is \(x^{2}+y^{2}=1\). Substituting immediately gives the most-used identity in mathematics.</p>
+
+<div class="box thm">
+<span class="lbl">the Pythagorean identities</span>
+$$\cos^{2}t+\sin^{2}t=1$$
+<p>Dividing through by \(\cos^{2}t\) gives \(1+\tan^{2}t=\sec^{2}t\); dividing instead by \(\sin^{2}t\) gives \(1+\cot^{2}t=\csc^{2}t\). The three are one fact in three costumes, and the second two are not worth memorising separately &mdash; derive them in the margin when you need them.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="0.8" role="group" aria-labelledby="sp6_2q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp6_2q">If \(\sin t=0.6\) and \(\cos t\) is positive, what is \(\cos t\)?</p>
+<div class="spot-row"><label for="sp6_2i">your answer</label><input id="sp6_2i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp6_2q sp6_2h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp6_2h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\cos^{2}t=0.64\), so \(\cos t=0.8\). (If \(t\) were in quadrant II it would be \(-0.8\).)</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> \(\cos^{2}t=1-\sin^{2}t=1-0.36\). Then take the positive square root.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<p>The notation \(\cos^{2}t\) means \((\cos t)^{2}\), not \(\cos(t^{2})\). It is a bad convention and it is universal.</p>
+
+<div class="box thm">
+<span class="lbl">the relations that come free</span>
+<p><strong>Reciprocal:</strong> \(\csc t=\dfrac{1}{\sin t}\), \(\sec t=\dfrac{1}{\cos t}\), \(\cot t=\dfrac{1}{\tan t}\).</p>
+<p><strong>Quotient:</strong> \(\tan t=\dfrac{\sin t}{\cos t}\), \(\cot t=\dfrac{\cos t}{\sin t}\).</p>
+<p><strong>Even and odd:</strong> \(\cos(-t)=\cos t\) and \(\sin(-t)=-\sin t\), so \(\tan(-t)=-\tan t\).</p>
+<p><strong>Cofunction:</strong> \(\sin\!\left(\tfrac{\pi}{2}-t\right)=\cos t\) and \(\cos\!\left(\tfrac{\pi}{2}-t\right)=\sin t\).</p>
+</div>
+<div class="box spot" data-type="sel" role="group" aria-labelledby="sp6_3q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp6_3q">\(\sin(-0.3)\) equals <select aria-label="sin(−0.3) equals" data-ans="1"><option value="">choose&hellip;</option><option value="0">sin 0.3</option><option value="1">−sin 0.3</option><option value="2">cos 0.3</option></select>, and \(\cos\!\left(\tfrac{\pi}{2}-t\right)\) equals <select aria-label="cos(π/2 − t) equals" data-ans="1"><option value="">choose&hellip;</option><option value="0">cos t</option><option value="1">sin t</option><option value="2">−sin t</option></select>.</p>
+<div class="spot-row"><button type="button" class="spot-go">check</button></div>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\sin(-0.3)=-\sin0.3\) (odd), and \(\cos\!\left(\tfrac{\pi}{2}-t\right)=\sin t\) (cofunction).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Sine is odd: reflecting across the horizontal axis flips the height. And the cofunction relation swaps sine and cosine for complementary angles.</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Fill every blank.</span> Choose something in each box, then check.</div></div>
+</div>
+
+
+<p>The cofunction relations are the two acute angles of a right triangle talking to each other: they add to \(\tfrac{\pi}{2}\), and what is opposite one is adjacent to the other. That is the whole proof, and it is why "co" appears in cosine, cotangent and cosecant &mdash; each is the function of the <em>complementary</em> angle.</p>
+
+<h3>Where the rest come from</h3>
+
+<figure>
+<svg viewBox="0 0 620 320" width="620" height="320" role="img" aria-labelledby="rfT rfD">
+<title id="rfT">The four points the circle&#8217;s symmetry relates</title>
+<desc id="rfD">A unit circle with a point at 40 degrees and its three mirror images: reflected in the vertical axis at 140 degrees, through the origin at 220 degrees, and in the horizontal axis at 320 degrees. Each reflection changes the sign of one or both coordinates, which is where the identities come from.</desc>
+<circle cx="190" cy="160" r="120" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+<line class="axis" x1="40" y1="160" x2="340" y2="160"/><line class="axis" x1="190" y1="20" x2="190" y2="300"/>
+<line x1="281.9" y1="82.9" x2="98.1" y2="82.9" stroke="var(--rose)" stroke-width="1.5" stroke-dasharray="5 4"/>
+<line x1="281.9" y1="82.9" x2="281.9" y2="237.1" stroke="var(--rose)" stroke-width="1.5" stroke-dasharray="5 4"/>
+<line x1="281.9" y1="82.9" x2="98.1" y2="237.1" stroke="var(--rose)" stroke-width="1.5" stroke-dasharray="5 4"/>
+<circle cx="281.9" cy="82.9" r="6" fill="var(--sky)"/>
+<circle cx="98.1" cy="82.9" r="6" fill="var(--moss)"/>
+<circle cx="98.1" cy="237.1" r="6" fill="var(--amber)"/>
+<circle cx="281.9" cy="237.1" r="6" fill="var(--rose)"/>
+<text class="axtext" x="291.9" y="74.9">t</text>
+<text class="axtext" x="52.1" y="74.9">&#960; &minus; t</text>
+<text class="axtext" x="52.1" y="257.1">&#960; + t</text>
+<text class="axtext" x="291.9" y="257.1">&minus;t</text>
+<text class="axtext" x="380" y="76">(cos t, sin t)</text>
+<text class="axtext" x="380" y="110">(&minus;cos t, sin t)</text>
+<text class="axtext" x="380" y="144">(&minus;cos t, &minus;sin t)</text>
+<text class="axtext" x="380" y="178">(cos t, &minus;sin t)</text>
+<text class="axtext" x="380" y="222">one picture, four identities:</text>
+<text class="axtext" x="380" y="246">sin(&#960; &minus; t) = sin t,</text>
+<text class="axtext" x="380" y="270">cos(&#960; &minus; t) = &minus;cos t,</text>
+<text class="axtext" x="380" y="294">sin(&minus;t) = &minus;sin t, and so on</text>
+</svg>
+<figcaption>Every identity in this lecture is a statement about one of these reflections. The circle is symmetric in both axes and about the origin, so each point has three companions, and each companion differs only in the signs of its coordinates &mdash; which is to say, in the signs of a cosine and a sine.</figcaption>
+</figure>
+<div class="box spot" data-type="sel" role="group" aria-labelledby="sp6_4q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp6_4q">Reflecting the point \((\cos t,\sin t)\) across the \(y\)-axis gives the terminal point of <select aria-label="reflected angle" data-ans="1"><option value="">choose&hellip;</option><option value="0">−t</option><option value="1">π − t</option><option value="2">π + t</option></select>. So \(\cos(\pi-t)=\) <select aria-label="cos(π − t) equals" data-ans="1"><option value="">choose&hellip;</option><option value="0">cos t</option><option value="1">−cos t</option><option value="2">sin t</option></select>.</p>
+<div class="spot-row"><button type="button" class="spot-go">check</button></div>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> The reflected point is at angle \(\pi-t\), with coordinates \((-\cos t,\sin t)\). So \(\cos(\pi-t)=-\cos t\).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> A reflection across the vertical axis keeps the height and flips the horizontal coordinate. Which angle lands there?</div><div class="spot-msg bad" data-kind="pick" hidden><span class="spot-tag">Fill every blank.</span> Choose something in each box, then check.</div></div>
+</div>
+
+
+<div class="widget">
+<h4>Reflect the point, read the identity</h4>
+<p style="font-size:.95rem;margin:.2em 0 .6em">Move the point, then choose a reflection. The identity it produces is written underneath &mdash; and it is nothing more than a statement about which coordinate changed sign.</p>
+<svg id="idSvg" viewBox="0 0 620 300" width="620" height="300" role="img" aria-label="A point on the unit circle and its mirror image, with the identity that relates them">
+  <circle cx="190" cy="150" r="120" fill="none" stroke="var(--rule)" stroke-width="1.5"/>
+  <line class="axis" x1="40" y1="150" x2="340" y2="150"/><line class="axis" x1="190" y1="10" x2="190" y2="290"/>
+  <line id="idMirror" x1="0" y1="0" x2="0" y2="0" stroke="var(--rule)" stroke-width="2" stroke-dasharray="7 5"/>
+  <line id="idLink" x1="0" y1="0" x2="0" y2="0" stroke="var(--rose)" stroke-width="1.5" stroke-dasharray="4 3"/>
+  <circle id="idP" r="7" fill="var(--sky)"/>
+  <circle id="idQ" r="7" fill="var(--rose)"/>
+  <g id="idText"></g>
+</svg>
+<div class="ctrls">
+  <label for="idT">t = <span id="idTv" class="mono">40</span>&deg;
+  <input type="range" id="idT" min="5" max="85" step="1" value="40"></label>
+  <button class="ctl" id="idMode">reflection: across the y-axis</button>
+</div>
+<p class="readout" id="idOut"></p>
+</div>
+
+<h3>Simplifying, and proving</h3>
+
+<p>Two different jobs use these identities, and it helps to know which one you are doing.</p>
+
+<div class="box ex">
+<span class="lbl">example 6.1 &mdash; simplifying</span>
+<p>Simplify \(\dfrac{\sin t}{\csc t}+\dfrac{\cos t}{\sec t}\) and \(\dfrac{\sec t-\cos t}{\tan t}\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>For the first, the reciprocals collapse: \(\dfrac{\sin t}{1/\sin t}=\sin^{2}t\), and likewise the second term is \(\cos^{2}t\). So the whole thing is \(\sin^{2}t+\cos^{2}t=1\).</p>
+<p>For the second, put the numerator over a common denominator:
+$$\frac{\frac{1}{\cos t}-\cos t}{\tan t}=\frac{\frac{1-\cos^{2}t}{\cos t}}{\frac{\sin t}{\cos t}}=\frac{\sin^{2}t}{\cos t}\cdot\frac{\cos t}{\sin t}=\sin t.$$</p>
+<p>The working rule when an expression looks hopeless: <strong>write everything in terms of sine and cosine</strong>. Almost every simplification in this lecture yields to that one move followed by ordinary fraction algebra from Chapter 0.</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 6.2 &mdash; proving an identity</span>
+<p>Prove that \(\dfrac{\cos t}{1-\sin t}=\dfrac{1+\sin t}{\cos t}\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Start on the left and multiply top and bottom by \(1+\sin t\) &mdash; the conjugate trick from Chapter 0, chosen because it will create a difference of squares:
+$$\frac{\cos t}{1-\sin t}\cdot\frac{1+\sin t}{1+\sin t}=\frac{\cos t(1+\sin t)}{1-\sin^{2}t}=\frac{\cos t(1+\sin t)}{\cos^{2}t}=\frac{1+\sin t}{\cos t}.$$</p>
+<p>Two rules of etiquette for proofs like this. Work on <em>one side only</em> and transform it until it becomes the other; do not treat the identity as an equation and operate on both sides, since that assumes what you are trying to show. And when stuck, look for the move that manufactures \(1-\sin^{2}t\) or \(1-\cos^{2}t\), because that is the doorway to the Pythagorean identity.</p>
+</div>
+</div>
+
+<h3>Solving trigonometric equations</h3>
+
+<p>Now the other job. Here the equation is <em>not</em> an identity, and the question is which values of \(t\) make it true. Two things go wrong for students, and both are avoidable.</p>
+
+<div class="box thm">
+<span class="lbl">the two-step method</span>
+<ol>
+<li>Use identities and algebra to reduce to something of the form \(\sin t=k\), \(\cos t=k\) or \(\tan t=k\) &mdash; factoring if necessary.</li>
+<li>Find <em>all</em> solutions in one full turn, using the symmetry of the circle, then add multiples of the period.</li>
+</ol>
+<p>Your calculator's \(\sin^{-1}\) returns one answer. The circle has two points at most heights, and the second one is the one everybody forgets.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="2.0" role="group" aria-labelledby="sp6_5q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp6_5q">How many solutions does \(\sin t=0.3\) have in \([0,2\pi)\)?</p>
+<div class="spot-row"><label for="sp6_5i">your answer</label><input id="sp6_5i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp6_5q sp6_5h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp6_5h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> Two: one in quadrant I and its mirror image in quadrant II. The calculator only reports the first.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> Draw the horizontal line \(y=0.3\) across the unit circle and count where it crosses.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 6.3 &mdash; find every solution</span>
+<p>Solve \(2\sin^{2}t-\sin t-1=0\) for \(0\le t&lt;2\pi\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>It is a quadratic in \(\sin t\). Writing \(u=\sin t\): \(2u^{2}-u-1=(2u+1)(u-1)=0\), so \(\sin t=-\tfrac12\) or \(\sin t=1\).</p>
+<p>\(\sin t=1\) at \(t=\tfrac{\pi}{2}\) only &mdash; the top of the circle is a single point.</p>
+<p>\(\sin t=-\tfrac12\) means a height of \(-\tfrac12\), which happens at two points, in the third and fourth quadrants: \(t=\tfrac{7\pi}{6}\) and \(t=\tfrac{11\pi}{6}\).</p>
+<p>So there are three solutions: \(\tfrac{\pi}{2},\ \tfrac{7\pi}{6},\ \tfrac{11\pi}{6}\). Drawing the horizontal line \(y=-\tfrac12\) across the circle and counting crossings is the reliable way to be sure you have them all.</p>
+<figure>
+<svg viewBox="0 0 620 300" width="620" height="300" role="img" aria-labelledby="slt sld">
+<title id="slt">Reading the solutions off the unit circle</title><desc id="sld">A unit circle with a horizontal dashed line at height minus one half, cutting the circle at two points in the lower half, and a radius drawn straight up to the single point at the top where the height is one.</desc>
+<circle cx="170" cy="150" r="112" fill="none" stroke="var(--rule)" stroke-width="1.5"/><line class="axis" x1="30" y1="150" x2="310" y2="150"/><line class="axis" x1="170" y1="10" x2="170" y2="290"/><line x1="30" y1="206.0" x2="310" y2="206.0" stroke="var(--rose)" stroke-width="2.5" stroke-dasharray="7 5"/><text x="34" y="198.0" class="axtext" fill="var(--rose)">y = −1/2</text><line x1="170" y1="150" x2="73.0" y2="206.0" stroke="var(--amber)" stroke-width="2.5"/><circle cx="73.0" cy="206.0" r="6" fill="var(--amber)"/><text x="61.0" y="226.0" class="axtext" fill="var(--amber)" text-anchor="end">7π/6</text><line x1="170" y1="150" x2="267.0" y2="206.0" stroke="var(--amber)" stroke-width="2.5"/><circle cx="267.0" cy="206.0" r="6" fill="var(--amber)"/><text x="279.0" y="226.0" class="axtext" fill="var(--amber)" text-anchor="start">11π/6</text><line x1="170" y1="150" x2="170" y2="38" stroke="var(--moss)" stroke-width="2.5"/><circle cx="170" cy="38" r="6" fill="var(--moss)"/><text x="182" y="28" class="axtext" fill="var(--moss)">π/2, where sin t = 1</text><text x="330" y="86" class="axtext">sin t = 1 touches the circle</text><text x="330" y="110" class="axtext">at one point only</text><text x="330" y="150" class="axtext">sin t = −1/2 cuts it at two,</text><text x="330" y="174" class="axtext">in quadrants III and IV</text><text x="330" y="214" class="axtext" fill="var(--cap)">three solutions in one turn</text>
+</svg>
+<figcaption>Drawing the horizontal line at the required height and counting crossings is the reliable way to be sure you have every solution. A height strictly between \(-1\) and \(1\) always cuts twice; a height of exactly \(\pm1\) touches once; anything beyond misses entirely.</figcaption>
+</figure>
+
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 6.4 &mdash; a modelling equation</span>
+<p>The depth of water in a harbour is \(h(t)=2.4\cos\!\left(\tfrac{\pi}{6}t\right)+5.6\) metres, \(t\) hours after midnight. A ship needs 4.5 m of water. Between what times is it safe to enter, in the first twelve hours?</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Safe when \(2.4\cos\!\left(\tfrac{\pi}{6}t\right)+5.6\ge4.5\), that is \(\cos\!\left(\tfrac{\pi}{6}t\right)\ge-0.4583\).</p>
+<p>The cosine drops below \(-0.4583\) between the two angles whose cosine equals it. \(\cos^{-1}(-0.4583)=2.0466\) rad, and by symmetry the other is \(2\pi-2.0466=4.2366\) rad.</p>
+<p>So the unsafe stretch is \(2.0466\le\tfrac{\pi}{6}t\le4.2366\), giving \(3.91\le t\le8.09\) hours.</p>
+<p>The ship can enter before about 3:55 a.m. or after about 8:05 a.m. Notice that the answer came out as an interval, and that the symmetry of the circle &mdash; not the calculator &mdash; supplied the second endpoint.</p>
+<figure>
+<svg viewBox="0 0 620 270" width="620" height="270" role="img" aria-labelledby="hbrt hbrd">
+<title id="hbrt">Harbour depth against time, with the unsafe window shaded</title><desc id="hbrd">A wave falling from 8 metres at midnight to a minimum of 3.2 metres at six in the morning and back. A dashed line at 4.5 metres cuts it at about 3.9 and 8.1 hours, and the stretch between those two times is shaded as too shallow.</desc>
+<rect x="64" y="22" width="536" height="206" class="plot-bg" stroke="var(--rule)"/><line x1="153.3" y1="22" x2="153.3" y2="228" class="gridline"/><line x1="242.7" y1="22" x2="242.7" y2="228" class="gridline"/><line x1="332.0" y1="22" x2="332.0" y2="228" class="gridline"/><line x1="421.3" y1="22" x2="421.3" y2="228" class="gridline"/><line x1="510.7" y1="22" x2="510.7" y2="228" class="gridline"/><line x1="64" y1="190.5" x2="600" y2="190.5" class="gridline"/><line x1="64" y1="153.1" x2="600" y2="153.1" class="gridline"/><line x1="64" y1="115.6" x2="600" y2="115.6" class="gridline"/><line x1="64" y1="78.2" x2="600" y2="78.2" class="gridline"/><line x1="64" y1="40.7" x2="600" y2="40.7" class="gridline"/><rect x="238.6" y="22" width="186.7" height="206" fill="var(--rose)" fill-opacity="0.14"/><line x1="64" y1="171.8" x2="600" y2="171.8" stroke="var(--rose)" stroke-width="2.5" stroke-dasharray="7 5"/><text x="72" y="164.8" class="axtext" fill="var(--rose)">the ship needs 4.5 m</text><polyline points="64.0,40.7 64.7,40.7 65.3,40.7 66.0,40.8 66.7,40.8 67.3,40.8 68.0,40.8 68.7,40.9 69.4,40.9 70.0,41.0 70.7,41.0 71.4,41.1 72.0,41.1 72.7,41.2 73.4,41.3 74.0,41.4 74.7,41.4 75.4,41.5 76.1,41.6 76.7,41.7 77.4,41.8 78.1,41.9 78.7,42.1 79.4,42.2 80.1,42.3 80.8,42.5 81.4,42.6 82.1,42.7 82.8,42.9 83.4,43.0 84.1,43.2 84.8,43.4 85.4,43.6 86.1,43.7 86.8,43.9 87.5,44.1 88.1,44.3 88.8,44.5 89.5,44.7 90.1,44.9 90.8,45.1 91.5,45.3 92.1,45.6 92.8,45.8 93.5,46.0 94.2,46.3 94.8,46.5 95.5,46.8 96.2,47.0 96.8,47.3 97.5,47.6 98.2,47.8 98.8,48.1 99.5,48.4 100.2,48.7 100.8,49.0 101.5,49.3 102.2,49.6 102.9,49.9 103.5,50.2 104.2,50.5 104.9,50.8 105.5,51.2 106.2,51.5 106.9,51.8 107.6,52.2 108.2,52.5 108.9,52.9 109.6,53.2 110.2,53.6 110.9,54.0 111.6,54.3 112.2,54.7 112.9,55.1 113.6,55.5 114.2,55.9 114.9,56.3 115.6,56.7 116.3,57.1 116.9,57.5 117.6,57.9 118.3,58.3 118.9,58.7 119.6,59.2 120.3,59.6 120.9,60.0 121.6,60.5 122.3,60.9 123.0,61.4 123.6,61.8 124.3,62.3 125.0,62.7 125.6,63.2 126.3,63.7 127.0,64.1 127.7,64.6 128.3,65.1 129.0,65.6 129.7,66.1 130.3,66.6 131.0,67.1 131.7,67.6 132.3,68.1 133.0,68.6 133.7,69.1 134.4,69.6 135.0,70.1 135.7,70.6 136.4,71.2 137.0,71.7 137.7,72.2 138.4,72.8 139.0,73.3 139.7,73.9 140.4,74.4 141.1,75.0 141.7,75.5 142.4,76.1 143.1,76.6 143.7,77.2 144.4,77.8 145.1,78.4 145.7,78.9 146.4,79.5 147.1,80.1 147.8,80.7 148.4,81.3 149.1,81.9 149.8,82.5 150.4,83.0 151.1,83.7 151.8,84.3 152.4,84.9 153.1,85.5 153.8,86.1 154.4,86.7 155.1,87.3 155.8,87.9 156.5,88.6 157.1,89.2 157.8,89.8 158.5,90.4 159.1,91.1 159.8,91.7 160.5,92.3 161.1,93.0 161.8,93.6 162.5,94.3 163.2,94.9 163.8,95.6 164.5,96.2 165.2,96.9 165.8,97.5 166.5,98.2 167.2,98.8 167.9,99.5 168.5,100.2 169.2,100.8 169.9,101.5 170.5,102.2 171.2,102.8 171.9,103.5 172.5,104.2 173.2,104.9 173.9,105.5 174.6,106.2 175.2,106.9 175.9,107.6 176.6,108.3 177.2,108.9 177.9,109.6 178.6,110.3 179.2,111.0 179.9,111.7 180.6,112.4 181.2,113.1 181.9,113.8 182.6,114.5 183.3,115.2 183.9,115.9 184.6,116.6 185.3,117.3 185.9,118.0 186.6,118.7 187.3,119.4 187.9,120.1 188.6,120.8 189.3,121.5 190.0,122.2 190.6,122.9 191.3,123.6 192.0,124.3 192.6,125.0 193.3,125.7 194.0,126.4 194.7,127.1 195.3,127.8 196.0,128.5 196.7,129.2 197.3,129.9 198.0,130.6 198.7,131.3 199.3,132.0 200.0,132.7 200.7,133.4 201.4,134.1 202.0,134.9 202.7,135.6 203.4,136.3 204.0,137.0 204.7,137.7 205.4,138.4 206.0,139.1 206.7,139.8 207.4,140.5 208.0,141.2 208.7,141.9 209.4,142.6 210.1,143.3 210.7,144.0 211.4,144.7 212.1,145.4 212.7,146.1 213.4,146.8 214.1,147.5 214.8,148.2 215.4,148.8 216.1,149.5 216.8,150.2 217.4,150.9 218.1,151.6 218.8,152.3 219.4,153.0 220.1,153.7 220.8,154.3 221.5,155.0 222.1,155.7 222.8,156.4 223.5,157.0 224.1,157.7 224.8,158.4 225.5,159.1 226.1,159.7 226.8,160.4 227.5,161.1 228.1,161.7 228.8,162.4 229.5,163.1 230.2,163.7 230.8,164.4 231.5,165.0 232.2,165.7 232.8,166.3 233.5,167.0 234.2,167.6 234.9,168.3 235.5,168.9 236.2,169.5 236.9,170.2 237.5,170.8 238.2,171.4 238.9,172.1 239.5,172.7 240.2,173.3 240.9,173.9 241.5,174.5 242.2,175.2 242.9,175.8 243.6,176.4 244.2,177.0 244.9,177.6 245.6,178.2 246.2,178.8 246.9,179.4 247.6,180.0 248.2,180.6 248.9,181.1 249.6,181.7 250.3,182.3 250.9,182.9 251.6,183.5 252.3,184.0 252.9,184.6 253.6,185.2 254.3,185.7 255.0,186.3 255.6,186.8 256.3,187.4 257.0,187.9 257.6,188.5 258.3,189.0 259.0,189.5 259.6,190.1 260.3,190.6 261.0,191.1 261.6,191.6 262.3,192.2 263.0,192.7 263.7,193.2 264.3,193.7 265.0,194.2 265.7,194.7 266.3,195.2 267.0,195.7 267.7,196.1 268.4,196.6 269.0,197.1 269.7,197.6 270.4,198.0 271.0,198.5 271.7,199.0 272.4,199.4 273.0,199.9 273.7,200.3 274.4,200.8 275.0,201.2 275.7,201.6 276.4,202.1 277.1,202.5 277.7,202.9 278.4,203.3 279.1,203.8 279.7,204.2 280.4,204.6 281.1,205.0 281.8,205.4 282.4,205.7 283.1,206.1 283.8,206.5 284.4,206.9 285.1,207.3 285.8,207.6 286.4,208.0 287.1,208.3 287.8,208.7 288.5,209.0 289.1,209.4 289.8,209.7 290.5,210.1 291.1,210.4 291.8,210.7 292.5,211.0 293.1,211.3 293.8,211.7 294.5,212.0 295.1,212.3 295.8,212.5 296.5,212.8 297.2,213.1 297.8,213.4 298.5,213.7 299.2,213.9 299.8,214.2 300.5,214.5 301.2,214.7 301.9,215.0 302.5,215.2 303.2,215.4 303.9,215.7 304.5,215.9 305.2,216.1 305.9,216.3 306.5,216.5 307.2,216.7 307.9,216.9 308.5,217.1 309.2,217.3 309.9,217.5 310.6,217.7 311.2,217.9 311.9,218.0 312.6,218.2 313.2,218.3 313.9,218.5 314.6,218.6 315.2,218.8 315.9,218.9 316.6,219.0 317.3,219.2 317.9,219.3 318.6,219.4 319.3,219.5 319.9,219.6 320.6,219.7 321.3,219.8 321.9,219.9 322.6,220.0 323.3,220.0 324.0,220.1 324.6,220.2 325.3,220.2 326.0,220.3 326.6,220.3 327.3,220.4 328.0,220.4 328.6,220.4 329.3,220.5 330.0,220.5 330.7,220.5 331.3,220.5 332.0,220.5 332.7,220.5 333.3,220.5 334.0,220.5 334.7,220.5 335.3,220.4 336.0,220.4 336.7,220.4 337.4,220.3 338.0,220.3 338.7,220.2 339.4,220.2 340.0,220.1 340.7,220.0 341.4,220.0 342.0,219.9 342.7,219.8 343.4,219.7 344.1,219.6 344.7,219.5 345.4,219.4 346.1,219.3 346.7,219.2 347.4,219.0 348.1,218.9 348.8,218.8 349.4,218.6 350.1,218.5 350.8,218.3 351.4,218.2 352.1,218.0 352.8,217.9 353.4,217.7 354.1,217.5 354.8,217.3 355.5,217.1 356.1,216.9 356.8,216.7 357.5,216.5 358.1,216.3 358.8,216.1 359.5,215.9 360.1,215.7 360.8,215.4 361.5,215.2 362.2,215.0 362.8,214.7 363.5,214.5 364.2,214.2 364.8,213.9 365.5,213.7 366.2,213.4 366.8,213.1 367.5,212.8 368.2,212.5 368.8,212.3 369.5,212.0 370.2,211.7 370.9,211.3 371.5,211.0 372.2,210.7 372.9,210.4 373.5,210.1 374.2,209.7 374.9,209.4 375.5,209.0 376.2,208.7 376.9,208.3 377.6,208.0 378.2,207.6 378.9,207.3 379.6,206.9 380.2,206.5 380.9,206.1 381.6,205.7 382.2,205.4 382.9,205.0 383.6,204.6 384.3,204.2 384.9,203.8 385.6,203.3 386.3,202.9 386.9,202.5 387.6,202.1 388.3,201.6 389.0,201.2 389.6,200.8 390.3,200.3 391.0,199.9 391.6,199.4 392.3,199.0 393.0,198.5 393.6,198.0 394.3,197.6 395.0,197.1 395.7,196.6 396.3,196.1 397.0,195.7 397.7,195.2 398.3,194.7 399.0,194.2 399.7,193.7 400.3,193.2 401.0,192.7 401.7,192.2 402.3,191.6 403.0,191.1 403.7,190.6 404.4,190.1 405.0,189.5 405.7,189.0 406.4,188.5 407.0,187.9 407.7,187.4 408.4,186.8 409.0,186.3 409.7,185.7 410.4,185.2 411.1,184.6 411.7,184.0 412.4,183.5 413.1,182.9 413.7,182.3 414.4,181.7 415.1,181.1 415.8,180.6 416.4,180.0 417.1,179.4 417.8,178.8 418.4,178.2 419.1,177.6 419.8,177.0 420.4,176.4 421.1,175.8 421.8,175.2 422.5,174.5 423.1,173.9 423.8,173.3 424.5,172.7 425.1,172.1 425.8,171.4 426.5,170.8 427.1,170.2 427.8,169.5 428.5,168.9 429.2,168.3 429.8,167.6 430.5,167.0 431.2,166.3 431.8,165.7 432.5,165.0 433.2,164.4 433.8,163.7 434.5,163.1 435.2,162.4 435.8,161.7 436.5,161.1 437.2,160.4 437.9,159.7 438.5,159.1 439.2,158.4 439.9,157.7 440.5,157.0 441.2,156.4 441.9,155.7 442.5,155.0 443.2,154.3 443.9,153.7 444.6,153.0 445.2,152.3 445.9,151.6 446.6,150.9 447.2,150.2 447.9,149.5 448.6,148.8 449.2,148.2 449.9,147.5 450.6,146.8 451.3,146.1 451.9,145.4 452.6,144.7 453.3,144.0 453.9,143.3 454.6,142.6 455.3,141.9 456.0,141.2 456.6,140.5 457.3,139.8 458.0,139.1 458.6,138.4 459.3,137.7 460.0,137.0 460.6,136.3 461.3,135.6 462.0,134.9 462.7,134.1 463.3,133.4 464.0,132.7 464.7,132.0 465.3,131.3 466.0,130.6 466.7,129.9 467.3,129.2 468.0,128.5 468.7,127.8 469.3,127.1 470.0,126.4 470.7,125.7 471.4,125.0 472.0,124.3 472.7,123.6 473.4,122.9 474.0,122.2 474.7,121.5 475.4,120.8 476.0,120.1 476.7,119.4 477.4,118.7 478.1,118.0 478.7,117.3 479.4,116.6 480.1,115.9 480.7,115.2 481.4,114.5 482.1,113.8 482.8,113.1 483.4,112.4 484.1,111.7 484.8,111.0 485.4,110.3 486.1,109.6 486.8,108.9 487.4,108.3 488.1,107.6 488.8,106.9 489.5,106.2 490.1,105.5 490.8,104.9 491.5,104.2 492.1,103.5 492.8,102.8 493.5,102.2 494.1,101.5 494.8,100.8 495.5,100.2 496.2,99.5 496.8,98.8 497.5,98.2 498.2,97.5 498.8,96.9 499.5,96.2 500.2,95.6 500.8,94.9 501.5,94.3 502.2,93.6 502.8,93.0 503.5,92.3 504.2,91.7 504.9,91.1 505.5,90.4 506.2,89.8 506.9,89.2 507.5,88.6 508.2,87.9 508.9,87.3 509.5,86.7 510.2,86.1 510.9,85.5 511.6,84.9 512.2,84.3 512.9,83.7 513.6,83.0 514.2,82.5 514.9,81.9 515.6,81.3 516.2,80.7 516.9,80.1 517.6,79.5 518.3,78.9 518.9,78.4 519.6,77.8 520.3,77.2 520.9,76.6 521.6,76.1 522.3,75.5 523.0,75.0 523.6,74.4 524.3,73.9 525.0,73.3 525.6,72.8 526.3,72.2 527.0,71.7 527.6,71.2 528.3,70.6 529.0,70.1 529.7,69.6 530.3,69.1 531.0,68.6 531.7,68.1 532.3,67.6 533.0,67.1 533.7,66.6 534.3,66.1 535.0,65.6 535.7,65.1 536.3,64.6 537.0,64.1 537.7,63.7 538.4,63.2 539.0,62.7 539.7,62.3 540.4,61.8 541.0,61.4 541.7,60.9 542.4,60.5 543.0,60.0 543.7,59.6 544.4,59.2 545.1,58.7 545.7,58.3 546.4,57.9 547.1,57.5 547.7,57.1 548.4,56.7 549.1,56.3 549.8,55.9 550.4,55.5 551.1,55.1 551.8,54.7 552.4,54.3 553.1,54.0 553.8,53.6 554.4,53.2 555.1,52.9 555.8,52.5 556.5,52.2 557.1,51.8 557.8,51.5 558.5,51.2 559.1,50.8 559.8,50.5 560.5,50.2 561.1,49.9 561.8,49.6 562.5,49.3 563.2,49.0 563.8,48.7 564.5,48.4 565.2,48.1 565.8,47.8 566.5,47.6 567.2,47.3 567.8,47.0 568.5,46.8 569.2,46.5 569.8,46.3 570.5,46.0 571.2,45.8 571.9,45.6 572.5,45.3 573.2,45.1 573.9,44.9 574.5,44.7 575.2,44.5 575.9,44.3 576.5,44.1 577.2,43.9 577.9,43.7 578.6,43.6 579.2,43.4 579.9,43.2 580.6,43.0 581.2,42.9 581.9,42.7 582.6,42.6 583.2,42.5 583.9,42.3 584.6,42.2 585.3,42.1 585.9,41.9 586.6,41.8 587.3,41.7 587.9,41.6 588.6,41.5 589.3,41.4 590.0,41.4 590.6,41.3 591.3,41.2 592.0,41.1 592.6,41.1 593.3,41.0 594.0,41.0 594.6,40.9 595.3,40.9 596.0,40.8 596.6,40.8 597.3,40.8 598.0,40.8 598.7,40.7 599.3,40.7 600.0,40.7" fill="none" stroke="var(--sky)" stroke-width="3"/><circle cx="238.6" cy="171.8" r="5.5" fill="var(--rose)"/><text x="198.6" y="159.8" class="axtext">3:55</text><circle cx="425.4" cy="171.8" r="5.5" fill="var(--rose)"/><text x="433.4" y="159.8" class="axtext">8:05</text><text x="332" y="56" class="axtext" fill="var(--rose)" text-anchor="middle">too shallow to enter</text><text x="153.3" y="250" class="axtext" text-anchor="middle">2</text><text x="242.7" y="250" class="axtext" text-anchor="middle">4</text><text x="332.0" y="250" class="axtext" text-anchor="middle">6</text><text x="421.3" y="250" class="axtext" text-anchor="middle">8</text><text x="510.7" y="250" class="axtext" text-anchor="middle">10</text><text x="56" y="194.5" class="axtext" text-anchor="end">4</text><text x="56" y="119.6" class="axtext" text-anchor="end">6</text><text x="56" y="44.7" class="axtext" text-anchor="end">8</text><text x="300" y="264" class="axtext" fill="var(--cap)" text-anchor="middle">hours after midnight</text>
+</svg>
+<figcaption>The inequality becomes a picture: the curve is below the line exactly between the two crossing times. The second crossing came from the symmetry of the circle, not from the calculator, which only ever reports the first.</figcaption>
+</figure>
+
+</div>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 6.1</span>
+<ol>
+<li>Simplify: (a) \(\cos t\tan t\); (b) \(\dfrac{1-\cos^{2}t}{\sin t}\); (c) \(\sec t-\sec t\sin^{2}t\); (d) \(\dfrac{\cot t}{\csc t}\).</li>
+<li>If \(\sin t=\tfrac35\) and \(t\) is in the second quadrant, find \(\cos t\), \(\tan t\) and \(\sec t\) exactly.</li>
+<li>Prove \(\tan t+\cot t=\sec t\csc t\).</li>
+<li>Prove \(\dfrac{1+\sin t}{\cos t}+\dfrac{\cos t}{1+\sin t}=2\sec t\).</li>
+<li>Solve for \(0\le t&lt;2\pi\): (a) \(2\cos t+\sqrt3=0\); (b) \(\tan^{2}t=3\); (c) \(2\sin^{2}t=\sin t\).</li>
+<li>Explain why \(\sin t=1.4\) has no solutions, without a calculator.</li>
+<li>A wheel-mounted reflector has height \(h(t)=0.4\cos(3.9t)+0.5\) metres. Find the first two times it is exactly 0.7 m above the ground.</li>
+<li>Use the circle to explain why \(\cos t=k\) has two solutions in one turn when \(-1&lt;k&lt;1\), one solution when \(k=\pm1\), and none otherwise.</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>(a) \(\sin t\); (b) \(\sin t\); (c) \(\sec t(1-\sin^{2}t)=\sec t\cos^{2}t=\cos t\); (d) \(\dfrac{\cos t/\sin t}{1/\sin t}=\cos t\).</li>
+<li>\(\cos^{2}t=1-\tfrac{9}{25}=\tfrac{16}{25}\), and cosine is negative in the second quadrant, so \(\cos t=-\tfrac45\). Then \(\tan t=-\tfrac34\) and \(\sec t=-\tfrac54\).</li>
+<li>\(\dfrac{\sin t}{\cos t}+\dfrac{\cos t}{\sin t}=\dfrac{\sin^{2}t+\cos^{2}t}{\sin t\cos t}=\dfrac{1}{\sin t\cos t}=\sec t\csc t\).</li>
+<li>Common denominator \(\cos t(1+\sin t)\): the numerator is \((1+\sin t)^{2}+\cos^{2}t=1+2\sin t+\sin^{2}t+\cos^{2}t=2+2\sin t\). So the sum is \(\dfrac{2(1+\sin t)}{\cos t(1+\sin t)}=\dfrac{2}{\cos t}\).</li>
+<li>(a) \(\cos t=-\tfrac{\sqrt3}{2}\) at \(t=\tfrac{5\pi}{6},\tfrac{7\pi}{6}\). (b) \(\tan t=\pm\sqrt3\) at \(t=\tfrac{\pi}{3},\tfrac{2\pi}{3},\tfrac{4\pi}{3},\tfrac{5\pi}{3}\). (c) \(\sin t(2\sin t-1)=0\), giving \(t=0,\pi,\tfrac{\pi}{6},\tfrac{5\pi}{6}\). Do not divide by \(\sin t\) &mdash; that would throw away two of the four answers.</li>
+<li>\(\sin t\) is the height of a point on a circle of radius 1, so it can never exceed 1. There is no point at height 1.4 to find.</li>
+<li>\(\cos(3.9t)=0.5\), so \(3.9t=\tfrac{\pi}{3}\) or \(3.9t=2\pi-\tfrac{\pi}{3}=\tfrac{5\pi}{3}\), giving \(t=0.268\) s and \(t=1.342\) s.</li>
+<li>A <em>vertical</em> line at \(x=k\) cuts the circle twice when \(-1&lt;k&lt;1\), because the circle has two points at every such horizontal position; it touches once at \(k=\pm1\), the extreme left and right points; and misses entirely when \(|k|&gt;1\), since no point of the circle is that far from the vertical axis.</li>
+</ol>
+</div>
+</div>
+<hr>
+<!-- ================= LECTURE 23 ================= -->
+<h2 id="L23">Lecture 23 &mdash; Addition formulas, double angles, and substitution</h2>
+
+<figure class="toon">
+<svg viewBox="0 0 560 200" width="560" height="200" role="img" aria-labelledby="L23t L23d">
+<title id="L23t">Cartoon: two speakers and a quiet spot in the room</title><desc id="L23d">Two speakers face a room. A stick figure stands between them at a spot where the sound cancels, arms raised.</desc>
+<defs><filter id="rough57" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="57" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough57)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="300.0" cy="124.0" r="11.0" /><path d="M 300.0 135.0 L 300.0 160.0" /><path d="M 300.0 140.0 L 284.0 134.0" /><path d="M 300.0 140.0 L 316.0 134.0" /><path d="M 300.0 160.0 L 289.0 184.0" /><path d="M 300.0 160.0 L 311.0 184.0" /><path d="M 30 170 L 540 170" stroke-width="1.6"/><rect x="60" y="96" width="42" height="74" rx="5"/><circle cx="81" cy="126" r="12"/><rect x="470" y="96" width="42" height="74" rx="5"/><circle cx="491" cy="126" r="12"/><path d="M 110 118 a 22 22 0 0 1 0 26"/><path d="M 124 112 a 22 22 0 0 1 0 38"/><path d="M 138 106 a 22 22 0 0 1 0 50"/><path d="M 462 118 a 22 22 0 0 0 0 26"/><path d="M 448 112 a 22 22 0 0 0 0 38"/><path d="M 434 106 a 22 22 0 0 0 0 50"/><rect x="50.0" y="14.0" width="151.8" height="52.0" rx="9" fill="var(--surface2)"/><path d="M 89.5 63.0 L 110.0 96.0 L 122.9 63.0" fill="var(--surface2)" stroke-width="1.6"/>
+</g>
+<text x="65.0" y="41.0" class="ctext">I can’t hear</text><text x="65.0" y="59.0" class="ctext">anything here.</text>
+</svg>
+<figcaption class="tooncap">the two waves arrive exactly out of step</figcaption></figure>
+
+<p>Everything so far has related one angle to itself. The formulas in this lecture relate <em>two</em> angles, and they are what makes the whole subject usable: they are why a mixture of waves can be rewritten as a single wave, why two speakers can cancel each other in a particular seat of a room, and why the Fourier method of Lecture 18 works at all.</p>
+
+<p>The first thing to be clear about is what is <em>not</em> true. \(\sin(\alpha+\beta)\) is not \(\sin\alpha+\sin\beta\). Test it with \(\alpha=\beta=\tfrac{\pi}{2}\): the left side is \(\sin\pi=0\) and the right side is \(2\). Sine is not a function that distributes over addition, and neither is any other interesting function.</p>
+
+<div class="box thm">
+<span class="lbl">the addition and subtraction formulas</span>
+$$\sin(\alpha+\beta)=\sin\alpha\cos\beta+\cos\alpha\sin\beta$$
+$$\cos(\alpha+\beta)=\cos\alpha\cos\beta-\sin\alpha\sin\beta$$
+<p>Replacing \(\beta\) by \(-\beta\) and using the even-odd relations flips the middle signs:</p>
+$$\sin(\alpha-\beta)=\sin\alpha\cos\beta-\cos\alpha\sin\beta,\qquad
+\cos(\alpha-\beta)=\cos\alpha\cos\beta+\sin\alpha\sin\beta$$
+<p>Note the cosine formulas carry the <em>opposite</em> sign to the one in the bracket. That trap is worth a moment's care every single time.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="0.0" role="group" aria-labelledby="sp6_6q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp6_6q">Suppose \(\cos\alpha=0.8\), \(\sin\alpha=0.6\), \(\cos\beta=0.6\), \(\sin\beta=0.8\). What is \(\cos(\alpha+\beta)\)?</p>
+<div class="spot-row"><label for="sp6_6i">your answer</label><input id="sp6_6i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp6_6q sp6_6h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp6_6h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(0.48-0.48=0\). The two angles are complementary, so \(\alpha+\beta=\tfrac{\pi}{2}\) and its cosine is zero.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> \(\cos(\alpha+\beta)=\cos\alpha\cos\beta-\sin\alpha\sin\beta\). Watch the minus sign.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<figure>
+<svg viewBox="0 0 620 300" width="620" height="300" role="img" aria-labelledby="adT adD">
+<title id="adT">Where the addition formula comes from</title>
+<desc id="adD">Two right triangles stacked: one with angle alpha resting on the horizontal axis, and a second with angle beta built on the hypotenuse of the first. Dropping heights from the far corner splits the total height into two pieces, which are sin alpha cos beta and cos alpha sin beta.</desc>
+<line class="axis" x1="50" y1="250" x2="560" y2="250"/>
+<path d="M 60 250 L 330 130 L 330 250 Z" fill="var(--sky)" fill-opacity="0.16" stroke="var(--sky)" stroke-width="2"/>
+<path d="M 60 250 L 330 130 L 246 40 Z" fill="var(--amber)" fill-opacity="0.16" stroke="var(--amber)" stroke-width="2"/>
+<path d="M 246 40 L 246 250" stroke="var(--rose)" stroke-width="2" stroke-dasharray="5 4"/>
+<path d="M 246 130 L 330 130" stroke="var(--rose)" stroke-width="2" stroke-dasharray="5 4"/>
+<path d="M 100 250 A 40 40 0 0 0 88.6 231.6" fill="none" stroke="var(--sky)" stroke-width="2"/>
+<path d="M 300 146 A 36 36 0 0 0 288 118" fill="none" stroke="var(--amber)" stroke-width="2"/>
+<text class="axtext" x="96" y="240" fill="var(--sky)">&#945;</text>
+<text class="axtext" x="296" y="140" fill="var(--amber)">&#946;</text>
+<text class="axtext" x="252" y="90" fill="var(--rose)">cos &#945; sin &#946;</text>
+<text class="axtext" x="252" y="196" fill="var(--rose)">sin &#945; cos &#946;</text>
+<text class="axtext" x="150" y="176">1</text>
+<text class="axtext" x="380" y="90">the total height above the axis is</text>
+<text class="axtext" x="380" y="114">sin(&#945; + &#946;)</text>
+<text class="axtext" x="380" y="152">and the dashed line cuts it into</text>
+<text class="axtext" x="380" y="176">exactly two pieces</text>
+<text class="axtext" x="380" y="214">sin &#945; cos &#946; + cos &#945; sin &#946;</text>
+</svg>
+<figcaption>The addition formula is not an algebraic accident; it is a picture. Build a second right triangle on the hypotenuse of the first, drop a vertical from the far corner, and the height splits into two pieces whose lengths are exactly the two terms of the formula.</figcaption>
+</figure>
+
+<div class="box ex">
+<span class="lbl">example 6.5 &mdash; exact values for new angles</span>
+<p>Find the exact value of \(\cos15^{\circ}\) and of \(\sin75^{\circ}\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(15^{\circ}=45^{\circ}-30^{\circ}\), and both of those come from the special triangles:
+$$\cos15^{\circ}=\cos45^{\circ}\cos30^{\circ}+\sin45^{\circ}\sin30^{\circ}
+=\frac{\sqrt2}{2}\cdot\frac{\sqrt3}{2}+\frac{\sqrt2}{2}\cdot\frac12=\frac{\sqrt6+\sqrt2}{4}.$$
+That is \(0.9659\), which a calculator confirms.</p>
+<p>For \(75^{\circ}=45^{\circ}+30^{\circ}\): \(\sin75^{\circ}=\dfrac{\sqrt2}{2}\cdot\dfrac{\sqrt3}{2}+\dfrac{\sqrt2}{2}\cdot\dfrac12=\dfrac{\sqrt6+\sqrt2}{4}\) as well &mdash; the same number, as the cofunction relation promised, since \(75^{\circ}\) and \(15^{\circ}\) are complementary.</p>
+</div>
+</div>
+
+<h3>Double angles, from nothing new</h3>
+
+<p>Set \(\beta=\alpha\) in the addition formulas and three more identities fall out for free.</p>
+
+<div class="box thm">
+<span class="lbl">double-angle formulas</span>
+$$\sin2\alpha=2\sin\alpha\cos\alpha$$
+$$\cos2\alpha=\cos^{2}\alpha-\sin^{2}\alpha=2\cos^{2}\alpha-1=1-2\sin^{2}\alpha$$
+<p>The three versions of the cosine formula come from substituting \(\sin^{2}=1-\cos^{2}\) or the other way round. Which one to use depends on what you want left standing at the end.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="0.96" role="group" aria-labelledby="sp6_7q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp6_7q">If \(\sin\alpha=0.6\) and \(\cos\alpha=0.8\), what is \(\sin2\alpha\)?</p>
+<div class="spot-row"><label for="sp6_7i">your answer</label><input id="sp6_7i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp6_7q sp6_7h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp6_7h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(2(0.6)(0.8)=0.96\).</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> \(\sin2\alpha=2\sin\alpha\cos\alpha\) &mdash; not \(2\sin\alpha\).</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 6.6 &mdash; the best angle to throw at</span>
+<p>A projectile launched at speed \(v\) and angle \(\theta\) travels a horizontal distance \(R=\dfrac{v^{2}}{g}\,2\sin\theta\cos\theta\). Rewrite this with a double angle and find the angle that throws farthest.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(2\sin\theta\cos\theta\) is exactly \(\sin2\theta\), so
+$$R=\frac{v^{2}}{g}\sin2\theta.$$</p>
+<p>Now the answer is visible without any calculation at all. \(\sin\) is largest when its input is \(90^{\circ}\), so \(2\theta=90^{\circ}\) and \(\theta=45^{\circ}\).</p>
+<p>It also shows something less obvious: since \(\sin2\theta=\sin(180^{\circ}-2\theta)\), the angles \(\theta\) and \(90^{\circ}-\theta\) give the <em>same</em> range. A throw at \(30^{\circ}\) and a throw at \(60^{\circ}\) land in the same place, one flat and fast, the other high and slow. Rewriting the formula did the work that optimisation would otherwise have had to do.</p>
+</div>
+</div>
+
+<h3>Sums into products, and why rooms have quiet spots</h3>
+
+<div class="box thm">
+<span class="lbl">sum to product</span>
+$$\sin A+\sin B=2\sin\!\left(\frac{A+B}{2}\right)\cos\!\left(\frac{A-B}{2}\right)$$
+$$\cos A+\cos B=2\cos\!\left(\frac{A+B}{2}\right)\cos\!\left(\frac{A-B}{2}\right)$$
+<p>Each follows by writing \(A=\tfrac{A+B}{2}+\tfrac{A-B}{2}\) and \(B=\tfrac{A+B}{2}-\tfrac{A-B}{2}\), applying the addition formulas, and adding.</p>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; this is what a beat is</span>
+<p>Lecture 16 showed two nearby frequencies producing a throb and left the explanation for later. Here it is. Adding two waves of frequencies \(f_1\) and \(f_2\) gives, by the first formula above, a wave at the <em>average</em> frequency \(\tfrac{f_1+f_2}{2}\) multiplied by a slow cosine at <em>half the difference</em>.</p>
+<p>So the ear hears a single tone at the average pitch, whose loudness is being swelled and squashed by the slow factor. When the difference is small, that factor takes seconds to complete a cycle &mdash; and the beat is audible. The guitar tuner of Lecture 16 is listening to an identity.</p>
+<p>The same formula explains the cartoon at the top of this lecture. Two speakers playing the same note reach a given seat with different delays, which is to say different phases. Where the phases differ by half a cycle, the sum-to-product factor is zero, and the seat is silent. Concert halls are designed to avoid this and noise-cancelling headphones are designed to cause it.</p>
+</div>
+<div class="box spot" data-type="num" data-ans="302.0" role="group" aria-labelledby="sp6_8q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp6_8q">Two tones of 300 Hz and 304 Hz sound together. At what pitch (in Hz) do you hear the single tone?</p>
+<div class="spot-row"><label for="sp6_8i">your answer</label><input id="sp6_8i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp6_8q sp6_8h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp6_8h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\tfrac{300+304}{2}=302\) Hz, swelling and fading 4 times a second.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> The sum-to-product formula gives a wave at the <em>average</em> of the two frequencies, multiplied by a slow factor.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 6.7 &mdash; one wave instead of two</span>
+<p>Write \(3\sin x+4\cos x\) as a single sine wave \(A\sin(x+\varphi)\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Expanding the target with the addition formula gives \(A\sin x\cos\varphi+A\cos x\sin\varphi\). Matching coefficients:
+$$A\cos\varphi=3,\qquad A\sin\varphi=4.$$</p>
+<p>Squaring and adding kills \(\varphi\): \(A^{2}(\cos^{2}\varphi+\sin^{2}\varphi)=9+16=25\), so \(A=5\). Dividing gives \(\tan\varphi=\tfrac43\), so \(\varphi=0.927\) rad.</p>
+$$3\sin x+4\cos x=5\sin(x+0.927).$$
+<p>This is worth more than it looks. The left side is a sum of two things and its maximum is not obvious; the right side is a single wave, so its amplitude is 5, its maximum is 5, and you can see the whole of its behaviour at a glance. Note also that \(A\) came from \(\sqrt{3^{2}+4^{2}}\) &mdash; the same Pythagorean combination that gave the amplitude of a Fourier component in Lecture 18, for exactly the same reason.</p>
+</div>
+</div>
+
+<h3>Substitution: making a root disappear</h3>
+
+<p>One last use, and it is a preview. Expressions containing \(\sqrt{1-x^{2}}\) are awkward; the root refuses to simplify and the algebra goes nowhere. But the Pythagorean identity says \(1-\sin^{2}\theta=\cos^{2}\theta\), which <em>is</em> a perfect square. So substitute \(x=\sin\theta\) and the root evaporates:
+$$\sqrt{1-x^{2}}=\sqrt{1-\sin^{2}\theta}=\cos\theta.$$</p>
+<div class="box spot" data-type="num" data-ans="0.8" role="group" aria-labelledby="sp6_9q">
+<span class="lbl">spot check</span>
+<p class="spot-q" id="sp6_9q">With \(x=\sin\theta\) and \(\theta\) between \(-\tfrac{\pi}{2}\) and \(\tfrac{\pi}{2}\): if \(x=0.6\), what is \(\sqrt{1-x^{2}}\)?</p>
+<div class="spot-row"><label for="sp6_9i">your answer</label><input id="sp6_9i" class="spot-in" type="text" inputmode="text" autocomplete="off" spellcheck="false" placeholder="" aria-describedby="sp6_9q sp6_9h"><button type="button" class="spot-go">check</button></div>
+<p class="spot-help" id="sp6_9h">decimals, fractions, pi and sqrt( ) are all fine</p>
+<div class="spot-fb" role="status" aria-live="polite"><div class="spot-msg ok" data-kind="ok" hidden><span class="spot-tag">&#10003; Correct.</span> \(\sqrt{1-0.36}=0.8\): the point \((0.8,0.6)\) is on the circle.</div><div class="spot-msg bad" data-kind="bad" hidden><span class="spot-tag">Not quite.</span> It equals \(\cos\theta\), the width of the point at height 0.6 on the unit circle.</div><div class="spot-msg bad" data-kind="read" hidden><span class="spot-tag">Hmm.</span> That doesn&rsquo;t look like a number I can read. A decimal like <span class="mono">0.75</span>, a fraction like <span class="mono">3/4</span>, or forms like <span class="mono">2pi/3</span> and <span class="mono">sqrt(2)</span> all work.</div></div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 6.8 &mdash; the root evaporates</span>
+<p>Simplify \(\dfrac{x}{\sqrt{1-x^{2}}}\) using the substitution \(x=\sin\theta\), and say what geometric object the substitution corresponds to.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>With \(x=\sin\theta\) the expression becomes \(\dfrac{\sin\theta}{\cos\theta}=\tan\theta\).</p>
+<p>Geometrically the substitution puts \(x\) on the unit circle: it says "let \(x\) be the height of a point at angle \(\theta\)", and then \(\sqrt{1-x^{2}}\) is automatically the width. The awkward root was only awkward because we were insisting on coordinates when the natural description was an angle.</p>
+<p>In calculus this move is called trigonometric substitution, and it turns a whole family of otherwise impossible problems into routine ones. You will recognise it when it arrives: it is this, with one extra step.</p>
+</div>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 6.2</span>
+<ol>
+<li>Find exact values for \(\sin105^{\circ}\) and \(\tan75^{\circ}\), using \(105=60+45\) and \(75=45+30\).</li>
+<li>Given \(\sin\alpha=\tfrac35\) with \(\alpha\) acute and \(\cos\beta=-\tfrac{5}{13}\) with \(\beta\) in the second quadrant, find \(\sin(\alpha+\beta)\) and \(\cos(\alpha-\beta)\).</li>
+<li>Prove \(\sin(\pi-t)=\sin t\) from the addition formula, and check it against the reflection picture of Lecture 22.</li>
+<li>If \(\cos\theta=\tfrac13\), find \(\cos2\theta\) and \(\sin2\theta\) (taking \(\theta\) acute). Which version of the double-angle formula was least work?</li>
+<li>Write \(\sin x-\sqrt3\cos x\) as a single sine wave, and state its amplitude and phase shift.</li>
+<li>Two tuning forks at 440 Hz and 446 Hz sound together. Use the sum-to-product formula to state the frequency you hear and the rate at which the loudness swells.</li>
+<li>Simplify \(\sqrt{9-x^{2}}\) using \(x=3\sin\theta\). What restriction on \(\theta\) keeps the answer positive?</li>
+<li>Show that \(\cos3\theta=4\cos^{3}\theta-3\cos\theta\), by writing \(3\theta=2\theta+\theta\).</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>\(\sin105^{\circ}=\sin60\cos45+\cos60\sin45=\dfrac{\sqrt6+\sqrt2}{4}=0.9659\). \(\tan75^{\circ}=\dfrac{\sin75}{\cos75}=2+\sqrt3=3.732\).</li>
+<li>\(\cos\alpha=\tfrac45\), \(\sin\beta=\tfrac{12}{13}\). Then \(\sin(\alpha+\beta)=\tfrac35\cdot\left(-\tfrac{5}{13}\right)+\tfrac45\cdot\tfrac{12}{13}=\tfrac{33}{65}\), and \(\cos(\alpha-\beta)=\tfrac45\left(-\tfrac{5}{13}\right)+\tfrac35\cdot\tfrac{12}{13}=\tfrac{16}{65}\).</li>
+<li>\(\sin(\pi-t)=\sin\pi\cos t-\cos\pi\sin t=0-(-1)\sin t=\sin t\). The picture says the same thing: reflecting across the vertical axis leaves the height alone.</li>
+<li>\(\cos2\theta=2\left(\tfrac19\right)-1=-\tfrac79\), using the version written in cosines only, which needed nothing else. For the sine, \(\sin\theta=\tfrac{2\sqrt2}{3}\), so \(\sin2\theta=2\cdot\tfrac{2\sqrt2}{3}\cdot\tfrac13=\tfrac{4\sqrt2}{9}\).</li>
+<li>\(A=\sqrt{1+3}=2\) and \(\tan\varphi=-\sqrt3\) with the cosine part positive, so \(\varphi=-\tfrac{\pi}{3}\): the expression is \(2\sin\!\left(x-\tfrac{\pi}{3}\right)\), amplitude 2, shifted \(\tfrac{\pi}{3}\) right.</li>
+<li>The tone heard is the average, 443 Hz. The slow factor has frequency \(\tfrac{446-440}{2}=3\) Hz, and since loudness peaks twice per cycle of that factor, the beat is heard 6 times a second &mdash; the difference of the two frequencies.</li>
+<li>\(\sqrt{9-9\sin^{2}\theta}=3\sqrt{\cos^{2}\theta}=3|\cos\theta|\), which is \(3\cos\theta\) provided \(-\tfrac{\pi}{2}\le\theta\le\tfrac{\pi}{2}\), where the cosine is not negative.</li>
+<li>\(\cos(2\theta+\theta)=\cos2\theta\cos\theta-\sin2\theta\sin\theta=(2\cos^{2}\theta-1)\cos\theta-2\sin^{2}\theta\cos\theta\). Replacing \(\sin^{2}\theta\) with \(1-\cos^{2}\theta\) gives \(2\cos^{3}\theta-\cos\theta-2\cos\theta+2\cos^{3}\theta=4\cos^{3}\theta-3\cos\theta\).</li>
+</ol>
+</div>
+</div>
+
+<hr>
+<h2 id="wrap">Where this chapter leaves you</h2>
+<p>Identities are the circle's symmetry written down. Reflecting a point in an axis changes the sign of one coordinate, and that is a whole family of them; the equation of the circle itself is the Pythagorean identity; and building one triangle on another gives the addition formulas, from which double angles, sums-to-products and the single-wave form all follow without further ideas.</p>
+<p>What they buy you is freedom of expression: the same quantity can be written in whichever form makes the next step easy. That is why a beat has an explanation, why the best throwing angle is obvious once the formula is rewritten, and why a root that blocked all progress can be made to vanish by choosing to describe a number as an angle.</p>
+<p>Chapter 7 leaves the circle for the plane itself, where a vector is a journey, a matrix is a function that moves every point at once, and the rotation you have been doing by hand all chapter becomes a single object you can multiply.</p>
+
+<p class="kicker">Next: Chapter 7 &mdash; Plane vectors and matrix algebra.</p>
+
+<script>
+/* ---------- L22: reflect the point, read the identity ---------- */
+(function(){
+  var s=document.getElementById('idT'); if(!s) return;
+  var CX=190, CY=150, R=120, mode=0;
+  var modes=[
+    {label:'across the y-axis', at:function(t){return Math.PI-t;},
+     sin:'sin(\u03C0 \u2212 t) = sin t', cos:'cos(\u03C0 \u2212 t) = \u2212cos t',
+     mirror:[CX,10,CX,290]},
+    {label:'across the x-axis', at:function(t){return -t;},
+     sin:'sin(\u2212t) = \u2212sin t', cos:'cos(\u2212t) = cos t',
+     mirror:[40,CY,340,CY]},
+    {label:'through the origin', at:function(t){return Math.PI+t;},
+     sin:'sin(\u03C0 + t) = \u2212sin t', cos:'cos(\u03C0 + t) = \u2212cos t',
+     mirror:[CX,CY,CX,CY]}
+  ];
+  function el(t,a){var e=document.createElementNS('http://www.w3.org/2000/svg',t);
+    for(var k in a)e.setAttribute(k,a[k]);return e;}
+  function upd(){
+    var deg=+s.value, t=deg*Math.PI/180, m=modes[mode], u=m.at(t);
+    document.getElementById('idTv').textContent=deg;
+    document.getElementById('idMode').textContent='reflection: '+m.label;
+    var px=CX+R*Math.cos(t), py=CY-R*Math.sin(t);
+    var qx=CX+R*Math.cos(u), qy=CY-R*Math.sin(u);
+    document.getElementById('idP').setAttribute('cx',px);
+    document.getElementById('idP').setAttribute('cy',py);
+    document.getElementById('idQ').setAttribute('cx',qx);
+    document.getElementById('idQ').setAttribute('cy',qy);
+    var mir=document.getElementById('idMirror');
+    mir.setAttribute('x1',m.mirror[0]); mir.setAttribute('y1',m.mirror[1]);
+    mir.setAttribute('x2',m.mirror[2]); mir.setAttribute('y2',m.mirror[3]);
+    var lk=document.getElementById('idLink');
+    lk.setAttribute('x1',px); lk.setAttribute('y1',py);
+    lk.setAttribute('x2',qx); lk.setAttribute('y2',qy);
+    var g=document.getElementById('idText');
+    while(g.firstChild) g.removeChild(g.firstChild);
+    var rows=[['the point t','('+Math.cos(t).toFixed(3)+', '+Math.sin(t).toFixed(3)+')'],
+              ['its image','('+Math.cos(u).toFixed(3)+', '+Math.sin(u).toFixed(3)+')'],
+              ['',''],[m.cos,''],[m.sin,'']];
+    rows.forEach(function(r,i){
+      var a=el('text',{x:370,y:70+i*30,class:(i>2?'lbltext':'axtext')});
+      a.textContent=r[0]; g.appendChild(a);
+      var b=el('text',{x:480,y:70+i*30,class:'axtext'});
+      b.textContent=r[1]; g.appendChild(b);
+    });
+    document.getElementById('idOut').textContent=
+      'Reflecting '+m.label+' sends the point to its image, and the only thing that changed is the sign of a coordinate \u2014 which is exactly what the two identities on the right say.';
+  }
+  s.addEventListener('input',upd);
+  document.getElementById('idMode').addEventListener('click',function(){mode=(mode+1)%3;upd();});
+  upd();
+})();
+</script>
+</div>
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    b.textContent=open?'hide solution':'show solution';
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+<script>
+/* ===== spot checks: quick, self-marking questions ===== */
+(function(){
+  /* --- a small, safe arithmetic reader: 3/4, -2.5, 2pi/3, sqrt(3)/2, √2, 1e3, pi --- */
+  function tokens(s){
+    var t=[], re=/\s*(\d*\.\d+|\d+\.?\d*(?:e[+-]?\d+)?|[a-z]+|[-+*\/^()])/gy, m, i=0;
+    re.lastIndex=0;
+    while(re.lastIndex<s.length){
+      var at=re.lastIndex; m=re.exec(s);
+      if(!m||m.index!==at){ if(/^\s*$/.test(s.slice(at))) break; return null; }
+      t.push(m[1]);
+    }
+    return t;
+  }
+  function evaluate(src){
+    var s=String(src).toLowerCase()
+      .replace(/[−–—]/g,'-').replace(/[×·]/g,'*').replace(/÷/g,'/')
+      .replace(/π/g,'pi').replace(/√/g,'sqrt').replace(/[° ]/g,' ')
+      .replace(/^\s*[a-z]\w*\s*=\s*/,'').replace(/(\d),(?=\d{3}\b)/g,'$1');
+    var t=tokens(s); if(!t||!t.length) return NaN;
+    var k=0;
+    function peek(){return t[k];}
+    function next(){return t[k++];}
+    function starts(x){return x!==undefined&&(/^[a-z]/.test(x)||x==='(');}   /* 2pi, 3(2) — never 4 5 */
+    function expr(){var v=term(); while(peek()==='+'||peek()==='-'){var o=next(),w=term(); v=o==='+'?v+w:v-w;} return v;}
+    function term(){
+      var v=unary();
+      for(;;){
+        if(peek()==='*'){next(); v*=unary();}
+        else if(peek()==='/'){next(); v/=unary();}
+        else if(starts(peek())){ v*=power(); }        /* implicit: 2pi, 3sqrt(2) */
+        else return v;
+      }
+    }
+    function unary(){ if(peek()==='-'){next(); return -unary();} if(peek()==='+'){next(); return unary();} return power(); }
+    function power(){ var b=primary(); if(peek()==='^'){next(); return Math.pow(b,unary());} return b; }
+    function primary(){
+      var x=next();
+      if(x===undefined) throw 0;
+      if(x==='('){var v=expr(); if(next()!==')') throw 0; return v;}
+      if(/^[\d.]/.test(x)) return parseFloat(x);
+      if(x==='pi') return Math.PI;
+      if(x==='e') return Math.E;
+      if(x==='sqrt') return Math.sqrt(power());
+      throw 0;
+    }
+    try{ var v=expr(); return (k===t.length&&isFinite(v))?v:NaN; }catch(e){ return NaN; }
+  }
+  function close(a,b,tol){ return Math.abs(a-b)<=tol; }
+  function defaultTol(a){ return Math.max(0.005*Math.abs(a),0.005); }
+  function splitList(s){
+    return String(s).replace(/^[\s(\[⟨<{]+|[\s)\]⟩>}]+$/g,'')
+      .split(/\s*(?:,|;|\band\b|\bor\b)\s*/i).filter(function(x){return x.trim()!=='';});
+  }
+
+  /* exactly one message is visible at a time: ok, bad (generic or per option), read, count, pick, ans */
+  function show(box, which, opt){
+    var msgs=box.querySelectorAll('.spot-msg');
+    var specific=(which==='bad'&&opt!==undefined)?
+      box.querySelector('.spot-msg[data-kind="bad"][data-opt="'+opt+'"]'):null;
+    for(var i=0;i<msgs.length;i++){
+      var m=msgs[i];
+      m.hidden = !(m===specific || (!specific && m.getAttribute('data-kind')===which && !m.hasAttribute('data-opt')));
+    }
+    box.classList.toggle('is-ok', which==='ok');
+    box.classList.toggle('is-bad', which!=='ok' && which!=='ans');
+  }
+
+  function judge(box){
+    var type=box.getAttribute('data-type');
+    if(type==='mc'){
+      var picked=box.querySelector('input[type=radio]:checked');
+      if(!picked){ show(box,'pick'); return null; }
+      var opts=box.querySelectorAll('.spot-opt');
+      for(var i=0;i<opts.length;i++) opts[i].classList.remove('right','wrong');
+      var lab=picked.closest('.spot-opt'), ok=picked.hasAttribute('data-right');
+      lab.classList.add(ok?'right':'wrong');
+      show(box, ok?'ok':'bad', ok?undefined:picked.value);
+      return ok;
+    }
+    if(type==='sel'){
+      var sels=box.querySelectorAll('select'), all=true, any=false;
+      for(var j=0;j<sels.length;j++){
+        if(sels[j].value===''){ any=true; continue; }
+        var good=sels[j].value===sels[j].getAttribute('data-ans');
+        sels[j].setAttribute('aria-invalid', good?'false':'true');
+        if(!good) all=false;
+      }
+      if(any){ show(box,'pick'); return null; }
+      show(box, all?'ok':'bad'); return all;
+    }
+    var inp=box.querySelector('.spot-in'), raw=inp.value;
+    if(raw.trim()===''){ show(box,'read'); return null; }
+    if(type==='text'){
+      var norm=function(z){return String(z).toLowerCase().replace(/[\s.]/g,'');};
+      var ok2=box.getAttribute('data-ans').split('|').some(function(a){return norm(a)===norm(raw);});
+      inp.setAttribute('aria-invalid', ok2?'false':'true');
+      show(box, ok2?'ok':'bad'); return ok2;
+    }
+    var want=box.getAttribute('data-ans').split('|').map(Number);
+    var tol=box.hasAttribute('data-tol')?Number(box.getAttribute('data-tol')):null;
+    var got;
+    if(type==='list'){
+      got=splitList(raw).map(evaluate);
+      if(got.some(isNaN)){ inp.setAttribute('aria-invalid','true'); show(box,'read'); return null; }
+      if(got.length!==want.length){ inp.setAttribute('aria-invalid','true'); show(box,'count'); return false; }
+      var ordered=box.hasAttribute('data-ordered'), used=[], ok3=true;
+      for(var a=0;a<want.length;a++){
+        var tl=tol===null?defaultTol(want[a]):tol, hit=-1;
+        if(ordered){ if(close(got[a],want[a],tl)) hit=a; }
+        else for(var b=0;b<got.length;b++){ if(used.indexOf(b)<0&&close(got[b],want[a],tl)){hit=b;break;} }
+        if(hit<0){ok3=false;break;} used.push(hit);
+      }
+      inp.setAttribute('aria-invalid', ok3?'false':'true');
+      show(box, ok3?'ok':'bad'); return ok3;
+    }
+    var v=evaluate(raw);
+    if(isNaN(v)){ inp.setAttribute('aria-invalid','true'); show(box,'read'); return null; }
+    var ok4=close(v,want[0],tol===null?defaultTol(want[0]):tol);
+    inp.setAttribute('aria-invalid', ok4?'false':'true');
+    show(box, ok4?'ok':'bad'); return ok4;
+  }
+
+  var spots=document.querySelectorAll('.spot');
+  for(var n=0;n<spots.length;n++)(function(box){
+    var misses=0, go=box.querySelector('.spot-go'), reveal=box.querySelector('.spot-show');
+    function run(){
+      var r=judge(box);
+      if(r===false){ misses++; if(misses>=2&&reveal) reveal.hidden=false; }
+      if(r===true&&reveal) reveal.hidden=true;
+    }
+    go.addEventListener('click',run);
+    var inp=box.querySelector('.spot-in');
+    if(inp){
+      inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){e.preventDefault();run();} });
+      inp.addEventListener('input',function(){ inp.removeAttribute('aria-invalid'); box.classList.remove('is-ok','is-bad'); });
+    }
+    var radios=box.querySelectorAll('input[type=radio]');
+    for(var i=0;i<radios.length;i++) radios[i].addEventListener('change',function(){
+      var ls=box.querySelectorAll('.spot-opt');
+      for(var j=0;j<ls.length;j++) ls[j].classList.remove('chosen','right','wrong');
+      this.closest('.spot-opt').classList.add('chosen');
+      box.classList.remove('is-ok','is-bad');
+    });
+    var sels=box.querySelectorAll('select');
+    for(var s=0;s<sels.length;s++) sels[s].addEventListener('change',function(){
+      this.removeAttribute('aria-invalid'); box.classList.remove('is-ok','is-bad'); });
+    if(reveal) reveal.addEventListener('click',function(){
+      var a=box.querySelector('.spot-msg[data-kind="ans"]');
+      var msgs=box.querySelectorAll('.spot-msg'); for(var i=0;i<msgs.length;i++) msgs[i].hidden=true;
+      if(a) a.hidden=false; reveal.hidden=true;
+    });
+  })(spots[n]);
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,841 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Lecture 8 — No-Cloning, Teleportation and Superdense Coding</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+  /* course additions, same family */
+  .crypto{border-left-color:var(--moss);background:var(--surface2)} .crypto .lbl{color:var(--moss)}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  dl.gloss dt{font-family:var(--mono);color:var(--sky);font-size:.95rem;margin-top:.9em}
+  dl.gloss dd{margin:.1em 0 0 1.1em}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<style id="spot-css">
+.spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+  border-radius:6px;padding:12px 16px;margin:1.3em 0;transition:background .25s,border-color .25s}
+.spot .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em;color:var(--sky)}
+.spot > p{margin:.35em 0}
+.spot .hint,.spot .why,.spot .oh{display:none}
+.spot .fb{display:none;margin:.55em 0 0;font-size:.97rem}
+.spot .fb > :first-child{margin-top:0}.spot .fb > :last-child{margin-bottom:0}
+.spot.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 13%,var(--surface))}
+.spot.ok .lbl{color:var(--moss)}
+.spot.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 13%,var(--surface))}
+.spot.bad .lbl{color:var(--amber)}
+.spot.ok .fb{display:block;color:var(--ink)} .spot.bad .fb{display:block;color:var(--ink)}
+.spot .fb .tag{font-family:var(--mono);font-size:.85rem;margin-right:.4em}
+.spot.ok .fb .tag{color:var(--moss)} .spot.bad .fb .tag{color:var(--amber)}
+.spot ul.opts{list-style:none;padding:0;margin:.5em 0}
+.spot ul.opts li{display:flex;gap:.6em;align-items:baseline;padding:4px 8px;margin:3px 0;border-radius:5px;cursor:pointer;
+  border:1px solid transparent}
+.spot ul.opts li:hover{border-color:var(--rule)}
+.spot ul.opts li input{accent-color:var(--sky);flex:none;margin:0;transform:translateY(1px)}
+.spot ul.opts li.right{border-color:var(--moss)}
+.spot .row{display:flex;flex-wrap:wrap;gap:.6em 1em;align-items:center;margin:.55em 0 .2em}
+.spot .row label{font-family:var(--mono);font-size:.88rem;color:var(--muted);display:flex;gap:.45em;align-items:center}
+.spot input.ans{font-family:var(--mono);font-size:.95rem;width:9.5em;max-width:100%;padding:5px 8px;border-radius:5px;
+  border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.spot input.ans:focus,.spot select:focus{outline:2px solid var(--sky);outline-offset:1px}
+.spot select{font-family:var(--mono);font-size:.9rem;padding:3px 6px;border-radius:5px;border:1px solid var(--rule);
+  background:var(--bg);color:var(--ink);max-width:100%}
+.spot .btns{display:flex;gap:.5em;flex-wrap:wrap;margin-top:.5em}
+.spot .btns button{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--sky);border:1px solid var(--sky);
+  padding:5px 12px;border-radius:999px;cursor:pointer}
+.spot .btns button:hover{background:var(--sky);color:var(--bg)}
+.spot .btns button.reveal{color:var(--muted);border-color:var(--rule)}
+.spot .btns button.reveal:hover{background:var(--rule);color:var(--ink)}
+.spot .fmt{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+@media print{.spot .btns,.spot .fmt{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Quantum Computation &amp; Cryptography · Lecture 8</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Lecture 8<br>No-Cloning, Teleportation and Superdense Coding</h1>
+<p class="kicker">Week 4 &nbsp;|&nbsp; what quantum information cannot do, and what entanglement lets it do anyway; Lab 2 launches &nbsp;|&nbsp; reading: Watrous §3.3 and Ch. 4</p>
+
+<figure class="toon">
+<svg viewBox="0 0 600 210" width="600" height="210" role="img" aria-labelledby="c8t c8d">
+<title id="c8t">Cartoon: a photocopier that refuses a qubit</title><desc id="c8d">A stick figure feeds a sheet marked with a ket into a photocopier. The copier's output tray holds a sheet marked with a question mark. A speech bubble from the copier says: paper, yes. Qubits, no.</desc>
+<defs><filter id="rough88" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="88" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough88)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="110" cy="112" r="11"/><path d="M 110 123 L 110 154"/><path d="M 110 130 L 96 150"/><path d="M 110 130 L 168 120"/><path d="M 110 154 L 99 186"/><path d="M 110 154 L 121 186"/>
+<rect x="168" y="104" width="40" height="30" rx="2" fill="var(--surface2)" stroke="var(--sky)"/>
+<rect x="210" y="100" width="150" height="86" rx="6" fill="var(--surface2)"/><path d="M 220 100 L 230 80 L 340 80 L 350 100"/><rect x="240" y="120" width="90" height="12" rx="3"/>
+<path d="M 360 160 L 410 168 L 410 180 L 360 176" fill="var(--surface2)"/><rect x="376" y="146" width="34" height="24" rx="2" fill="var(--surface2)" stroke="var(--rose)"/>
+<rect x="392" y="14" width="190" height="56" rx="9" fill="var(--surface2)"/><path d="M 410 68 L 340 90 L 436 68" fill="var(--surface2)" stroke-width="1.6"/>
+<path d="M 20 196 L 580 196" stroke-width="1.6"/>
+</g>
+<text x="406" y="38" class="ctext">paper, yes.</text><text x="406" y="58" class="ctext">qubits, no.</text>
+<text x="188" y="124" class="ctext" text-anchor="middle">|&#968;&gt;</text><text x="393" y="163" class="ctext" text-anchor="middle">?</text>
+</svg>
+<figcaption class="tooncap">an unknown quantum state cannot be copied, but with a Bell pair and two bits it can be moved</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">No-cloning</a></li>
+<li><a href="#s2">Teleportation</a></li>
+<li><a href="#s3">Superdense coding</a></li>
+<li><a href="#s4">The CHSH game</a></li>
+<li><a href="#s5">Try it in code</a></li>
+<li><a href="#s6">Lab 2 launch</a></li>
+<li><a href="#s7">Summary and exercises</a></li>
+</ol>
+</div>
+
+<p>Lectures 5 to 7 built multi-qubit states, gates and circuits. This lecture uses them for the first genuinely quantum information-processing tasks. By the end you should be able to explain why an unknown quantum state cannot be copied, carry out teleportation and superdense coding step by step, write the teleportation circuit with mid-circuit measurement and classical feed-forward in Qiskit, and explain why the CHSH game can be won 85% of the time with entanglement but only 75% without it.</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; No-cloning</h2>
+
+<p>Copying is the most basic operation on classical data. A CNOT copies a classical bit into a fresh \(|0\rangle\): on basis states, <code>cx(0, 1)</code> sends \(|b\rangle_0|0\rangle_1\) to \(|b\rangle_0|b\rangle_1\). Does the same gate copy qubits?</p>
+
+<div class="box ex">
+<span class="lbl">example 8.1 &mdash; CNOT copies bits but not qubits</span>
+<p>Apply <code>cx(0, 1)</code> to \(|0\rangle_1\otimes|+\rangle_0\), qubit 0 carrying the "original" and qubit 1 the blank. Compare the result with the two copies \(|+\rangle|+\rangle\) we wanted.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>By linearity the CNOT copies each basis term separately:</p>
+$$\mathrm{CX}_{0\to1}\,\frac{|00\rangle+|01\rangle}{\sqrt2}=\frac{|00\rangle+|11\rangle}{\sqrt2}=|\Phi^+\rangle ,$$
+<p>whereas</p>
+$$|+\rangle|+\rangle=\tfrac12\big(|00\rangle+|01\rangle+|10\rangle+|11\rangle\big).$$
+<p>These are different states. Measuring both qubits of \(|+\rangle|+\rangle\) gives all four outcomes with probability \(\tfrac14\); measuring \(|\Phi^+\rangle\) never gives \(01\) or \(10\). Their overlap is \(|\langle{+}{+}|\Phi^+\rangle|^2=\tfrac12\). The CNOT copied the <em>basis label</em> in each branch of the superposition, which entangled the two qubits instead of producing two independent copies.</p>
+</div>
+</div>
+
+<p>Example 8.1 is not a failure of one particular gate. No gate at all can do better.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 8.1 &mdash; no-cloning (Wootters–Zurek, Dieks, 1982)</span>
+<p>Let \(U\) be a unitary on two qubits and \(|e\rangle\) a fixed "blank" state. If \(U\big(|\psi\rangle|e\rangle\big)=|\psi\rangle|\psi\rangle\) and \(U\big(|\varphi\rangle|e\rangle\big)=|\varphi\rangle|\varphi\rangle\) for two states \(|\psi\rangle,|\varphi\rangle\), then \(\langle\psi|\varphi\rangle\) is 0 or 1: the two states are orthogonal or identical. In particular, no unitary copies every single-qubit state. The same holds if the copier is allowed extra work qubits in any fixed starting state.</p>
+<p><em>Proof.</em> HW4 asks you to prove this in two ways: once using linearity, and once using inner products.</p>
+</div>
+
+<p>What the theorem allows is just as important. A known orthonormal basis can be copied (CNOT does it), so classical information, which is information about which basis state you have, copies freely. What cannot be copied is an <em>unknown</em> superposition. The best possible universal copier makes two imperfect copies, each with fidelity \(\tfrac56\) to the original (Bužek and Hillery, 1996). A consequence: from a single copy of an unknown state you cannot learn its amplitudes, since otherwise you could prepare as many copies as you liked.</p>
+<div class="spot" data-kind="multi">
+<p>For which pairs of states could a single unitary (with a fixed blank state) copy <em>both</em> members of the pair? Tick every one.</p>
+<ul class="opts">
+<li data-ok>\(|{+i}\rangle\) and \(|{-i}\rangle\)</li>
+<li data-ok>\(0.6|0\rangle+0.8|1\rangle\) and \(0.8|0\rangle-0.6|1\rangle\)</li>
+<li>\(|1\rangle\) and \(|-\rangle\)<span class="oh">\(\langle1|-\rangle=-\tfrac1{\sqrt2}\): neither 0 nor of size 1, so Theorem 8.1 rules this pair out.</span></li>
+<li>\(|+\rangle\) and \(|{+i}\rangle\)<span class="oh">\(|\langle+|{+i}\rangle|=\tfrac1{\sqrt2}\). Two different points of the equator that are not antipodal are neither orthogonal nor identical.</span></li>
+</ul>
+<div class="hint">Theorem 8.1: a copier for both states needs \(\langle\psi|\varphi\rangle\) to be 0 (orthogonal) or the two states to be the same. Compute each inner product.</div>
+<div class="why">The first two pairs are orthogonal (\(0.6\cdot0.8-0.8\cdot0.6=0\) for the second), so each is <em>some</em> orthonormal basis, and a basis can be copied. The other two overlaps have size \(\tfrac1{\sqrt2}\).</div>
+</div>
+
+
+<div class="box crypto">
+<span class="lbl">crypto connection &mdash; why an eavesdropper cannot keep a copy</span>
+<p>In BB84 (Lecture 20) Alice sends single qubits in states chosen from \(\{|0\rangle,|1\rangle\}\) or \(\{|+\rangle,|-\rangle\}\). An eavesdropper would like to copy each qubit, forward the original, and measure the copy later once the bases are announced. Theorem 8.1 forbids exactly this: \(|0\rangle\) and \(|+\rangle\) are neither orthogonal nor identical (\(\langle0|+\rangle=\tfrac{1}{\sqrt2}\)), so no device copies both. Any attempt to learn which state was sent must disturb some of the forwarded qubits, and that disturbance is what Alice and Bob detect. Classical key distribution has no such guarantee, because classical signals can always be copied.</p>
+</div>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; Teleportation</h2>
+
+<p>Alice holds a qubit in an unknown state \(|\psi\rangle=\alpha|0\rangle+\beta|1\rangle\) and wants Bob, far away, to have it. She cannot measure it and phone him the amplitudes (one measurement reveals one bit and destroys the rest), and she cannot copy it. If they share a Bell pair in advance, two classical bits are enough.</p>
+
+<figure>
+<svg viewBox="0 0 720 290" width="720" height="290" role="img" aria-labelledby="tpt tpd"><title id="tpt">The teleportation circuit</title><desc id="tpd">Three wires, q0 on top. q0 starts in |psi>, held by Alice. q1 (Alice) and q2 (Bob) start in |0>; an H on q1 and a CNOT from q1 to q2 make the Bell pair. Alice applies a CNOT from q0 to q1 and an H on q0, then measures q0 and q1, giving bits m0 and m1. Double lines carry m1 to an X gate and m0 to a Z gate on q2. Bob's qubit ends in |psi>. Dashed lines mark four stages.</desc><rect x="0" y="0" width="720" height="290" rx="8" class="plot-bg"/><text class="axtext" x="14.0" y="65.0" text-anchor="start" style="fill:var(--sky)">q0</text><text class="lbltext" x="46.0" y="65.0" text-anchor="start">|psi&gt;</text><text class="axtext" x="14.0" y="82.0" text-anchor="start" style="fill:var(--muted)">Alice</text><text class="axtext" x="14.0" y="125.0" text-anchor="start" style="fill:var(--sky)">q1</text><text class="lbltext" x="46.0" y="125.0" text-anchor="start">|0&gt;</text><text class="axtext" x="14.0" y="142.0" text-anchor="start" style="fill:var(--muted)">Alice</text><text class="axtext" x="14.0" y="205.0" text-anchor="start" style="fill:var(--sky)">q2</text><text class="lbltext" x="46.0" y="205.0" text-anchor="start">|0&gt;</text><text class="axtext" x="14.0" y="222.0" text-anchor="start" style="fill:var(--muted)">Bob</text><line x1="90" y1="60" x2="470" y2="60" stroke="var(--ink)" stroke-width="2"/><line x1="90" y1="120" x2="470" y2="120" stroke="var(--ink)" stroke-width="2"/><line x1="90" y1="200" x2="690" y2="200" stroke="var(--ink)" stroke-width="2"/><line x1="70" y1="160.0" x2="700" y2="160.0" stroke="var(--rule)" stroke-dasharray="2 6"/><rect x="112.0" y="103.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="130.0" y="125.0" text-anchor="middle" style="fill:var(--amber)">H</text><line x1="190" y1="120" x2="190" y2="200" stroke="var(--rose)" stroke-width="2"/><circle cx="190" cy="120" r="6" fill="var(--rose)"/><circle cx="190" cy="200" r="13" fill="var(--surface2)" stroke="var(--rose)" stroke-width="2"/><line x1="177" y1="200" x2="203" y2="200" stroke="var(--rose)" stroke-width="2"/><line x1="190" y1="187" x2="190" y2="213" stroke="var(--rose)" stroke-width="2"/><line x1="280" y1="60" x2="280" y2="120" stroke="var(--rose)" stroke-width="2"/><circle cx="280" cy="60" r="6" fill="var(--rose)"/><circle cx="280" cy="120" r="13" fill="var(--surface2)" stroke="var(--rose)" stroke-width="2"/><line x1="267" y1="120" x2="293" y2="120" stroke="var(--rose)" stroke-width="2"/><line x1="280" y1="107" x2="280" y2="133" stroke="var(--rose)" stroke-width="2"/><rect x="327.0" y="43.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="345.0" y="65.0" text-anchor="middle" style="fill:var(--amber)">H</text><rect x="453" y="43" width="34" height="34" rx="4" fill="var(--surface2)" stroke="var(--sky)" stroke-width="2"/><path d="M460,67 Q470,51 480,67" fill="none" stroke="var(--sky)" stroke-width="1.8"/><line x1="470" y1="67" x2="478" y2="52" stroke="var(--sky)" stroke-width="1.8"/><rect x="453" y="103" width="34" height="34" rx="4" fill="var(--surface2)" stroke="var(--sky)" stroke-width="2"/><path d="M460,127 Q470,111 480,127" fill="none" stroke="var(--sky)" stroke-width="1.8"/><line x1="470" y1="127" x2="478" y2="112" stroke="var(--sky)" stroke-width="1.8"/><line x1="487" y1="57.5" x2="640" y2="57.5" stroke="var(--axis)" stroke-width="1.6"/><line x1="487" y1="62.5" x2="640" y2="62.5" stroke="var(--axis)" stroke-width="1.6"/><line x1="487" y1="117.5" x2="570" y2="117.5" stroke="var(--axis)" stroke-width="1.6"/><line x1="487" y1="122.5" x2="570" y2="122.5" stroke="var(--axis)" stroke-width="1.6"/><text class="axtext" x="500.0" y="50.0" text-anchor="start" style="fill:var(--rose)">m0</text><text class="axtext" x="500.0" y="110.0" text-anchor="start" style="fill:var(--rose)">m1</text><line x1="567.5" y1="120" x2="567.5" y2="183" stroke="var(--axis)" stroke-width="1.6"/><line x1="572.5" y1="120" x2="572.5" y2="183" stroke="var(--axis)" stroke-width="1.6"/><line x1="637.5" y1="60" x2="637.5" y2="183" stroke="var(--axis)" stroke-width="1.6"/><line x1="642.5" y1="60" x2="642.5" y2="183" stroke="var(--axis)" stroke-width="1.6"/><rect x="552.0" y="183.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--moss)" stroke-width="2"/><text class="lbltext" x="570.0" y="205.0" text-anchor="middle" style="fill:var(--moss)">X</text><rect x="622.0" y="183.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--moss)" stroke-width="2"/><text class="lbltext" x="640.0" y="205.0" text-anchor="middle" style="fill:var(--moss)">Z</text><text class="lbltext" x="698.0" y="178.0" text-anchor="end" style="fill:var(--moss)">|psi&gt;</text><line x1="95" y1="34" x2="95" y2="236" stroke="var(--axis)" stroke-dasharray="3 5"/><text class="axtext" x="95.0" y="254.0" text-anchor="middle">1</text><line x1="232" y1="34" x2="232" y2="236" stroke="var(--axis)" stroke-dasharray="3 5"/><text class="axtext" x="232.0" y="254.0" text-anchor="middle">2</text><line x1="405" y1="34" x2="405" y2="236" stroke="var(--axis)" stroke-dasharray="3 5"/><text class="axtext" x="405.0" y="254.0" text-anchor="middle">3</text><line x1="535" y1="34" x2="535" y2="236" stroke="var(--axis)" stroke-dasharray="3 5"/><text class="axtext" x="535.0" y="254.0" text-anchor="middle">4</text><text class="axtext" x="95.0" y="276.0" text-anchor="middle" style="fill:var(--muted)">start</text><text class="axtext" x="232.0" y="276.0" text-anchor="middle" style="fill:var(--muted)">pair shared</text><text class="axtext" x="405.0" y="276.0" text-anchor="middle" style="fill:var(--muted)">rotated</text><text class="axtext" x="535.0" y="276.0" text-anchor="middle" style="fill:var(--muted)">measured</text><text class="axtext" x="160.0" y="30.0" text-anchor="middle">make a Bell pair</text><text class="axtext" x="312.0" y="30.0" text-anchor="middle">Alice</text><text class="axtext" x="605.0" y="30.0" text-anchor="middle">Bob corrects</text></svg>
+<figcaption>Teleportation in Qiskit's drawing convention. Alice holds \(q_0\) (the state to send) and \(q_1\); Bob holds \(q_2\). The double lines are classical bits: \(m_1\) controls an \(X\) and \(m_0\) controls a \(Z\) on Bob's qubit.</figcaption>
+</figure>
+
+<div class="box def">
+<span class="lbl">definition 8.1 &mdash; the teleportation protocol</span>
+<ol>
+<li><strong>Share.</strong> Prepare \(|\Phi^+\rangle\) on \(q_1,q_2\) (Lecture 6) and give \(q_1\) to Alice, \(q_2\) to Bob.</li>
+<li><strong>Rotate.</strong> Alice applies <code>cx(0, 1)</code> and then \(H\) to \(q_0\).</li>
+<li><strong>Measure and send.</strong> Alice measures \(q_0\) and \(q_1\), getting bits \(m_0,m_1\), and sends them to Bob over an ordinary channel.</li>
+<li><strong>Correct.</strong> Bob applies \(X\) if \(m_1=1\) and then \(Z\) if \(m_0=1\). His qubit is now \(|\psi\rangle\).</li>
+</ol>
+</div>
+
+<p>Steps 2 and 3 together amount to measuring Alice's two qubits in the Bell basis, which is why the protocol is often described as "Alice makes a Bell measurement". The algebra below makes the whole protocol concrete. In this section we label each ket with its qubit and write the factors in the order \(q_0,q_1,q_2\) of the circuit diagram, which is easier to follow here than the right-to-left order.</p>
+<div class="spot" data-kind="select">
+<p>Alice's outcomes are \(m_0=0\) and \(m_1=1\). By Definition 8.1, Bob applies
+<select><option data-hint="m0 = 0 here. The Z correction is controlled by m0, and the X correction by m1.">Z</option><option data-ok>X</option><option data-hint="Both corrections are needed only when both bits are 1.">X, then Z</option><option data-hint="Nothing is right only for m0 m1 = 00.">nothing</option></select>
+to his qubit.</p>
+<div class="hint">Step 4: \(X\) if \(m_1=1\), then \(Z\) if \(m_0=1\). Which bit controls which gate?</div>
+<div class="why">\(m_1=1\) calls for \(X\); \(m_0=0\) calls for no \(Z\). In the circuit diagram, \(m_1\) (from \(q_1\)) drives the \(X\) and \(m_0\) (from \(q_0\)) drives the \(Z\).</div>
+</div>
+
+
+<div class="box ex">
+<span class="lbl">example 8.2 &mdash; teleporting a specific state, all four branches</span>
+<p>Teleport \(|\psi\rangle=\tfrac15\big(3|0\rangle+4i|1\rangle\big)\). Find each of Alice's four measurement outcomes, its probability, and the state Bob holds before and after his correction.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p><strong>Start.</strong> Alice's qubit times the shared pair:</p>
+$$\frac{1}{5\sqrt2}\big(3|0\rangle_0+4i|1\rangle_0\big)\big(|0\rangle_1|0\rangle_2+|1\rangle_1|1\rangle_2\big).$$
+<p><strong>CNOT from \(q_0\) to \(q_1\).</strong> It flips \(q_1\) in the terms where \(q_0=1\):</p>
+$$\frac{1}{5\sqrt2}\Big(3|0\rangle_0\big(|00\rangle+|11\rangle\big)_{12}+4i|1\rangle_0\big(|10\rangle+|01\rangle\big)_{12}\Big).$$
+<p><strong>\(H\) on \(q_0\).</strong> Replace \(|0\rangle_0\) by \(\tfrac{1}{\sqrt2}(|0\rangle+|1\rangle)_0\) and \(|1\rangle_0\) by \(\tfrac{1}{\sqrt2}(|0\rangle-|1\rangle)_0\):</p>
+$$\frac{1}{10}\Big(3\big(|0\rangle+|1\rangle\big)_0\big(|00\rangle+|11\rangle\big)_{12}+4i\big(|0\rangle-|1\rangle\big)_0\big(|10\rangle+|01\rangle\big)_{12}\Big).$$
+<p><strong>Regroup by Alice's two qubits.</strong> Multiply out and collect the terms with each value of \(|m_0m_1\rangle_{01}\); Bob's qubit \(q_2\) is the last factor in each term:</p>
+$$\begin{aligned}\frac{1}{10}\Big(&|00\rangle_{01}\big(3|0\rangle+4i|1\rangle\big)_2+|01\rangle_{01}\big(4i|0\rangle+3|1\rangle\big)_2\\[2pt] +\;&|10\rangle_{01}\big(3|0\rangle-4i|1\rangle\big)_2+|11\rangle_{01}\big({-4i}|0\rangle+3|1\rangle\big)_2\Big).\end{aligned}$$
+<p>Each bracket has length 5, so each term has squared length \((5/10)^2=\tfrac14\). By the partial-measurement rule (Rule 6.2), each outcome \(m_0m_1\) occurs with probability \(\tfrac14\), and leaves Bob with the normalised bracket:</p>
+<table>
+<tr><th>\(m_0\,m_1\)</th><th>Bob holds</th><th>which is</th><th>Bob applies</th></tr>
+<tr><td>0 0</td><td>\(\tfrac15(3|0\rangle+4i|1\rangle)\)</td><td>\(|\psi\rangle\)</td><td>nothing</td></tr>
+<tr><td>0 1</td><td>\(\tfrac15(4i|0\rangle+3|1\rangle)\)</td><td>\(X|\psi\rangle\)</td><td>\(X\)</td></tr>
+<tr><td>1 0</td><td>\(\tfrac15(3|0\rangle-4i|1\rangle)\)</td><td>\(Z|\psi\rangle\)</td><td>\(Z\)</td></tr>
+<tr><td>1 1</td><td>\(\tfrac15(-4i|0\rangle+3|1\rangle)\)</td><td>\(XZ|\psi\rangle\)</td><td>\(X\), then \(Z\)</td></tr>
+</table>
+<p>In every row the correction undoes the Pauli, since \(X^2=Z^2=I\) and \(Z\,X\,(XZ)=I\). Bob ends with \(|\psi\rangle\) exactly, global phase included.</p>
+</div>
+</div>
+
+<p>Nothing in Example 8.2 used the particular numbers 3 and \(4i\): the same regrouping works for any \(\alpha,\beta\), which is HW4's teleportation problem.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 8.2 &mdash; teleportation works</span>
+<p>For every \(|\psi\rangle\), Alice's outcomes \(m_0m_1\) are uniformly random, each with probability \(\tfrac14\), and before his correction Bob holds \(X^{m_1}Z^{m_0}|\psi\rangle\). After applying \(X^{m_1}\) and then \(Z^{m_0}\) he holds \(|\psi\rangle\).</p>
+</div>
+<div class="spot" data-kind="num" data-ans="4/5" data-labels="P(0)">
+<p>Alice teleports \(|\psi\rangle=\tfrac1{\sqrt5}\big(|0\rangle+2|1\rangle\big)\) and gets \(m_0m_1=11\). Before receiving her bits, Bob measures his qubit in the standard basis. Given this branch, what is the probability that he sees 0?</p>
+<div class="hint">By Theorem 8.2 Bob holds \(X^{m_1}Z^{m_0}|\psi\rangle=XZ|\psi\rangle\). Apply \(Z\) first, then \(X\).</div>
+<div class="why">\(Z|\psi\rangle=\tfrac1{\sqrt5}(|0\rangle-2|1\rangle)\) and \(X\) swaps the amplitudes, giving \(\tfrac1{\sqrt5}(-2|0\rangle+|1\rangle)\): \(P(0)=\tfrac45\). Bob does not know which branch he is in, though; averaged over all four he sees \(\tfrac12\).</div>
+</div>
+
+
+<p>Three remarks keep teleportation in proportion.</p>
+<ul>
+<li><strong>No copying.</strong> After the protocol Alice's qubits are in the basis state \(|m_0m_1\rangle\); the original is gone. Teleportation <em>moves</em> a state, consistent with Theorem 8.1.</li>
+<li><strong>No faster-than-light signalling.</strong> Until the two bits arrive, Bob holds one of \(|\psi\rangle,X|\psi\rangle,Z|\psi\rangle,XZ|\psi\rangle\), each with probability \(\tfrac14\), and he cannot tell which. In Example 8.2, the chance that he measures 0 is \(\tfrac14\big(\tfrac{9}{25}+\tfrac{16}{25}+\tfrac{9}{25}+\tfrac{16}{25}\big)=\tfrac12\), the same as for any other \(|\psi\rangle\). Lecture 18 shows that this mixture is the "maximally mixed state", which carries no information about \(|\psi\rangle\) at all.</li>
+<li><strong>Cost.</strong> One Bell pair and two classical bits buy one qubit. Superdense coding, next, runs the exchange the other way.</li>
+</ul>
+<div class="spot" data-kind="mc">
+<p>Immediately after a successful teleportation, which statement is true?</p>
+<ul class="opts">
+<li>Alice's qubit \(q_0\) still holds \(|\psi\rangle\), so the state has been copied to Bob.<span class="oh">That would violate Theorem 8.1. Alice measured \(q_0\): it is now the basis state \(|m_0\rangle\).</span></li>
+<li>The two classical bits encode \(\alpha\) and \(\beta\) approximately.<span class="oh">The bits are uniformly random whatever \(|\psi\rangle\) is (Theorem 8.2), so they carry no information about \(\alpha,\beta\).</span></li>
+<li data-ok>Alice holds the basis state \(|m_0m_1\rangle\) and Bob holds \(|\psi\rangle\); one Bell pair has been used up.</li>
+<li>Bob held \(|\psi\rangle\) the instant Alice measured, before her bits arrived.<span class="oh">Before the bits arrive he holds one of four Pauli-rotated versions of \(|\psi\rangle\), each with probability \(\tfrac14\), and cannot tell which.</span></li>
+</ul>
+<div class="hint">Teleportation moves a state; it neither copies it nor sends it faster than the two classical bits.</div>
+<div class="why">The original is destroyed by Alice's measurement, the bits are pure noise on their own, and the Bell pair is consumed. Only bits plus pair together rebuild \(|\psi\rangle\) at Bob's end.</div>
+</div>
+
+
+<div class="widget">
+<h4>Teleportation, step by step</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Choose the state to teleport with the sliders (\(\theta\) and \(\varphi\) as on the Bloch sphere), then step through the protocol. The bars show all eight amplitudes, labelled \(|q_0q_1q_2\rangle\) in circuit order. At the measurement step pick Alice's outcome yourself or draw it at random; the panel then shows Bob's qubit before and after his correction, and its overlap with \(|\psi\rangle\).</p>
+<svg id="tpSvg" viewBox="0 0 600 250" width="600" height="250" role="img" aria-label="Bars of the eight amplitudes of the three-qubit state at the current step"></svg>
+<div class="ctrls">
+<label><span>&theta; = <span id="tpThV">106</span>&deg;</span><input type="range" id="tpTh" min="0" max="180" step="1" value="106"></label>
+<label><span>&phi; = <span id="tpPhV">90</span>&deg;</span><input type="range" id="tpPh" min="0" max="360" step="5" value="90"></label>
+</div>
+<div class="ctrls" id="tpSteps"></div>
+<div class="ctrls" id="tpOutc"></div>
+<p class="readout" role="status" aria-live="polite" id="tpOut"></p>
+</div>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; Superdense coding</h2>
+
+<p>Can one qubit carry more than one classical bit? On its own, no: measuring a qubit yields one bit, and a theorem of Holevo (1973) shows that no cleverer decoding can extract more. With a shared Bell pair, one transmitted qubit carries <em>two</em> bits.</p>
+
+<figure>
+<svg viewBox="0 0 720 220" width="720" height="220" role="img" aria-labelledby="sdt sdd"><title id="sdt">Superdense coding</title><desc id="sdd">Two wires: q0 is Alice's half and q1 is Bob's half of a Bell pair made by H on q0 and a CNOT. Alice applies X if her bit b0 is 1, then Z if her bit b1 is 1, and sends q0 to Bob, shown by a dashed arrow. Bob performs a Bell measurement on both qubits and reads b1 b0.</desc><rect x="0" y="0" width="720" height="220" rx="8" class="plot-bg"/><text class="axtext" x="14.0" y="75.0" text-anchor="start" style="fill:var(--sky)">q0</text><text class="lbltext" x="46.0" y="75.0" text-anchor="start">|0&gt;</text><text class="axtext" x="14.0" y="155.0" text-anchor="start" style="fill:var(--sky)">q1</text><text class="lbltext" x="46.0" y="155.0" text-anchor="start">|0&gt;</text><line x1="90" y1="70" x2="560" y2="70" stroke="var(--ink)" stroke-width="2"/><line x1="90" y1="150" x2="560" y2="150" stroke="var(--ink)" stroke-width="2"/><rect x="112.0" y="53.0" width="36" height="34" rx="4" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2"/><text class="lbltext" x="130.0" y="75.0" text-anchor="middle" style="fill:var(--amber)">H</text><line x1="190" y1="70" x2="190" y2="150" stroke="var(--rose)" stroke-width="2"/><circle cx="190" cy="70" r="6" fill="var(--rose)"/><circle cx="190" cy="150" r="13" fill="var(--surface2)" stroke="var(--rose)" stroke-width="2"/><line x1="177" y1="150" x2="203" y2="150" stroke="var(--rose)" stroke-width="2"/><line x1="190" y1="137" x2="190" y2="163" stroke="var(--rose)" stroke-width="2"/><text class="axtext" x="160.0" y="30.0" text-anchor="middle">shared in advance</text><rect x="263.0" y="53.0" width="54" height="34" rx="4" fill="var(--surface2)" stroke="var(--moss)" stroke-width="2"/><text class="lbltext" x="290.0" y="75.0" text-anchor="middle" style="fill:var(--moss)">X</text><text class="axtext" x="290.0" y="104.0" text-anchor="middle">if b0=1</text><rect x="363.0" y="53.0" width="54" height="34" rx="4" fill="var(--surface2)" stroke="var(--moss)" stroke-width="2"/><text class="lbltext" x="390.0" y="75.0" text-anchor="middle" style="fill:var(--moss)">Z</text><text class="axtext" x="390.0" y="104.0" text-anchor="middle">if b1=1</text><text class="axtext" x="340.0" y="30.0" text-anchor="middle">Alice encodes</text><defs><marker id="sdArr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="var(--rose)"/></marker></defs><path d="M 430 46 Q 470 26 500 46" fill="none" stroke="var(--rose)" stroke-width="1.8" stroke-dasharray="5 4" marker-end="url(#sdArr)"/><text class="axtext" x="465.0" y="26.0" text-anchor="middle" style="fill:var(--rose)">q0 sent to Bob</text><rect x="500" y="48" width="110" height="124" rx="6" fill="var(--surface2)" stroke="var(--sky)" stroke-width="2"/><text class="lbltext" x="555.0" y="106.0" text-anchor="middle" style="fill:var(--sky)">Bell</text><text class="axtext" x="555.0" y="126.0" text-anchor="middle" style="fill:var(--sky)">measurement</text><line x1="610" y1="107.5" x2="650" y2="107.5" stroke="var(--axis)" stroke-width="1.6"/><line x1="610" y1="112.5" x2="650" y2="112.5" stroke="var(--axis)" stroke-width="1.6"/><text class="lbltext" x="656.0" y="115.0" text-anchor="start" style="fill:var(--rose)">b1 b0</text><text class="axtext" x="360.0" y="208.0" text-anchor="middle">one qubit sent + one shared Bell pair = two classical bits delivered</text></svg>
+<figcaption>Superdense coding. The Bell pair is shared in advance. To send bits \(b_1b_0\), Alice applies \(X^{b_0}\) and then \(Z^{b_1}\) to her half and sends it; Bob measures both qubits in the Bell basis.</figcaption>
+</figure>
+
+<div class="box thm">
+<span class="lbl">proposition 8.3 &mdash; superdense encoding</span>
+<p>Start from \(|\Phi^+\rangle\) made by <code>h(0)</code>, <code>cx(0, 1)</code>, with Alice holding \(q_0\). Applying \(Z^{b_1}X^{b_0}\) to \(q_0\) produces</p>
+$$00\mapsto|\Phi^+\rangle,\qquad 01\mapsto|\Psi^+\rangle,\qquad 10\mapsto|\Phi^-\rangle,\qquad 11\mapsto-|\Psi^-\rangle .$$
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Write \(|\Phi^+\rangle=\tfrac{1}{\sqrt2}(|00\rangle+|11\rangle)\) with kets \(|q_1q_0\rangle\), so Alice's gates act on the right-hand digit. \(X\) on \(q_0\) flips that digit: \(\tfrac{1}{\sqrt2}(|01\rangle+|10\rangle)=|\Psi^+\rangle\). \(Z\) on \(q_0\) negates the terms where it is 1: from \(|\Phi^+\rangle\) it gives \(\tfrac{1}{\sqrt2}(|00\rangle-|11\rangle)=|\Phi^-\rangle\), and from \(|\Psi^+\rangle\) it gives \(\tfrac{1}{\sqrt2}(-|01\rangle+|10\rangle)=-|\Psi^-\rangle\).</p>
+</div>
+</div>
+
+<p>The four Bell states form an orthonormal basis (Lecture 6), so a measurement in the Bell basis tells them apart with certainty, and Bob reads off both bits. HW4 asks you to give the decoding circuit. The two protocols are mirror images:</p>
+<table>
+<tr><th>protocol</th><th>uses</th><th>sends</th><th>delivers</th></tr>
+<tr><td>teleportation</td><td>1 Bell pair</td><td>2 classical bits</td><td>1 qubit</td></tr>
+<tr><td>superdense coding</td><td>1 Bell pair</td><td>1 qubit</td><td>2 classical bits</td></tr>
+</table>
+<p>In both, the shared entanglement is used up. Neither creates communication out of nothing: superdense coding still sends a physical qubit, and teleportation still needs the two bits.</p>
+<div class="spot" data-kind="num" data-ans="128|128" data-labels="qubits sent|Bell pairs used">
+<p>Alice uses superdense coding to send Bob a 256-bit key. How many qubits does she physically send, and how many shared Bell pairs are used up?</p>
+<div class="hint">Each round sends one qubit, carries two classical bits, and consumes one Bell pair.</div>
+<div class="why">\(256/2=128\) qubits, using 128 Bell pairs. The saving is only in what crosses the channel at the time; the other halves of the pairs had to reach Bob earlier.</div>
+</div>
+
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; The CHSH game</h2>
+
+<p>Lecture 6 left a promise: Bell pairs do something no pre-arranged classical scheme can, but only when the two sides measure along <em>different</em> directions. The cleanest way to see it is as a game.</p>
+
+<div class="box def">
+<span class="lbl">definition 8.2 &mdash; the CHSH game</span>
+<p>A referee picks two independent uniformly random bits \(x\) and \(y\), sends \(x\) to Alice and \(y\) to Bob, and they reply with bits \(a\) and \(b\). They may agree on a strategy beforehand but cannot communicate once the game starts. They <strong>win</strong> if</p>
+$$a\oplus b=x\wedge y ,$$
+<p>that is, their answers must agree unless \(x=y=1\), in which case they must disagree.</p>
+</div>
+<div class="spot" data-kind="select">
+<p>The referee sends \(x=1\) to Alice and \(y=0\) to Bob, and Alice answers \(a=1\). To win, Bob must answer
+<select><option data-hint="a XOR b would then be 1, but x AND y = 0 here: they must agree.">b = 0</option><option data-ok>b = 1</option></select>.</p>
+<div class="hint">Compute \(x\wedge y\) first; then pick \(b\) with \(a\oplus b=x\wedge y\).</div>
+<div class="why">\(x\wedge y=1\wedge0=0\), so the answers must agree: \(b=1\). Only the question pair \(x=y=1\) asks for disagreement.</div>
+</div>
+
+
+<div class="box thm">
+<span class="lbl">theorem 8.4 &mdash; the classical limit is 3/4</span>
+<p>Every classical strategy, deterministic or randomised, wins with probability at most \(\tfrac34\), and \(\tfrac34\) is achieved by always answering \(a=b=0\).</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p><strong>Deterministic strategies.</strong> Alice's strategy is a pair of answers \(a_0,a_1\) (for \(x=0,1\)), and Bob's is \(b_0,b_1\). Winning all four questions would need</p>
+$$a_0\oplus b_0=0,\qquad a_0\oplus b_1=0,\qquad a_1\oplus b_0=0,\qquad a_1\oplus b_1=1 .$$
+<p>Adding all four equations mod 2, each of \(a_0,a_1,b_0,b_1\) appears twice, so the left side is 0, while the right side is 1. So at most three of the four question pairs are won, and the win probability is at most \(\tfrac34\). Enumerating all 16 deterministic strategies confirms that 8 of them win exactly \(\tfrac34\) and the other 8 win \(\tfrac14\).</p>
+<p><strong>Randomised strategies.</strong> A randomised strategy is a random choice of a deterministic one (shared randomness included). Its win probability is an average of the win probabilities of deterministic strategies, each at most \(\tfrac34\), so it is at most \(\tfrac34\) too.</p>
+</div>
+</div>
+<div class="spot" data-kind="num" data-ans="1/4" data-labels="P(win)">
+<p>Alice always answers \(a=1\) and Bob always answers \(b=0\), whatever the questions. What is their win probability?</p>
+<div class="hint">Here \(a\oplus b=1\) on every round. For which of the four equally likely question pairs is \(x\wedge y=1\)?</div>
+<div class="why">They always disagree, which wins only when \(x=y=1\): probability \(\tfrac14\). This is one of the 8 deterministic strategies that win \(\tfrac14\).</div>
+</div>
+
+
+<p>Now give Alice and Bob a Bell pair \(|\Phi^+\rangle\). Each measures along a direction in the x–z plane of the Bloch sphere, chosen by their input. Measuring along the direction at angle \(a\) from the \(z\)-axis means rotating by \(R_y(-a)\) and then measuring in the standard basis; Lecture 6 showed that for \(|\Phi^+\rangle\) the two outcomes then agree with probability \(\cos^2\!\big(\tfrac{a-b}{2}\big)\).</p>
+<div class="spot" data-kind="num" data-ans="3/4" data-labels="P(win)">
+<p>On the question \(x=y=1\), Alice measures at angle \(\pi/2\) and Bob at \(-\pi/6\) (sharing \(|\Phi^+\rangle\)). What is the probability that they win this round?</p>
+<div class="hint">For \(x=y=1\) they win by <em>disagreeing</em>, so the answer is \(1-\cos^2\!\big(\tfrac{a-b}{2}\big)=\sin^2\!\big(\tfrac{a-b}{2}\big)\).</div>
+<div class="why">\(a-b=2\pi/3\), so \(P(\text{win})=\sin^2(\pi/3)=\tfrac34\). Directions far apart make disagreement likely, which is what this question rewards.</div>
+</div>
+
+
+<figure>
+<svg viewBox="0 0 680 330" width="680" height="330" role="img" aria-labelledby="cht chd"><title id="cht">Measurement directions for the optimal CHSH strategy</title><desc id="chd">A circle in the x-z plane of the Bloch sphere, z pointing up and x to the right. Alice's two directions are a0 = 0 (straight up, the z axis) and a1 = pi/2 (the x axis). Bob's are b0 = pi/4 and b1 = -pi/4, on either side of the z axis. Three of the four Alice-Bob pairs are pi/4 apart; the pair a1, b1 is 3 pi/4 apart. A table lists the agreement probability cos^2 of half the angle difference.</desc><rect x="0" y="0" width="680" height="330" rx="8" class="plot-bg"/><circle cx="190" cy="160" r="110" class="curve" fill="none" stroke-opacity="0.5"/><line class="gridline" x1="66" y1="160" x2="314" y2="160"/><line class="gridline" x1="190" y1="36" x2="190" y2="284"/><text class="axtext" x="318.0" y="164.0" text-anchor="start">x</text><text class="axtext" x="180.0" y="46.0" text-anchor="end">z</text><line x1="190" y1="160" x2="190.0" y2="50.0" stroke="var(--sky)" stroke-width="2.6"/><circle cx="190.0" cy="50.0" r="4" fill="var(--sky)"/><text class="axtext" x="198.0" y="42.0" text-anchor="start" style="fill:var(--sky)">a0 = 0</text><line x1="190" y1="160" x2="300.0" y2="160.0" stroke="var(--sky)" stroke-width="2.6"/><circle cx="300.0" cy="160.0" r="4" fill="var(--sky)"/><text class="axtext" x="310.0" y="148.0" text-anchor="end" style="fill:var(--sky)">a1 = pi/2</text><line x1="190" y1="160" x2="267.8" y2="82.2" stroke="var(--rose)" stroke-width="2.6"/><circle cx="267.8" cy="82.2" r="4" fill="var(--rose)"/><text class="axtext" x="277.8" y="82.2" text-anchor="start" style="fill:var(--rose)">b0 = pi/4</text><line x1="190" y1="160" x2="112.2" y2="82.2" stroke="var(--rose)" stroke-width="2.6"/><circle cx="112.2" cy="82.2" r="4" fill="var(--rose)"/><text class="axtext" x="102.2" y="82.2" text-anchor="end" style="fill:var(--rose)">b1 = -pi/4</text><text class="axtext" x="190.0" y="304.0" text-anchor="middle">angles from z, in the x-z plane</text><text class="axtext" x="370.0" y="50.0" text-anchor="start">x y</text><text class="axtext" x="420.0" y="50.0" text-anchor="start">Alice</text><text class="axtext" x="480.0" y="50.0" text-anchor="start">Bob</text><text class="axtext" x="530.0" y="50.0" text-anchor="start">want</text><text class="axtext" x="620.0" y="50.0" text-anchor="start">P(want)</text><line x1="370" y1="58" x2="660" y2="58" stroke="var(--rule)"/><text class="axtext" x="370.0" y="86.0" text-anchor="start">0 0</text><text class="axtext" x="420.0" y="86.0" text-anchor="start">a0</text><text class="axtext" x="480.0" y="86.0" text-anchor="start">b0</text><text class="axtext" x="530.0" y="86.0" text-anchor="start">agree</text><text class="axtext" x="620.0" y="86.0" text-anchor="start">0.854</text><text class="axtext" x="370.0" y="116.0" text-anchor="start">0 1</text><text class="axtext" x="420.0" y="116.0" text-anchor="start">a0</text><text class="axtext" x="480.0" y="116.0" text-anchor="start">b1</text><text class="axtext" x="530.0" y="116.0" text-anchor="start">agree</text><text class="axtext" x="620.0" y="116.0" text-anchor="start">0.854</text><text class="axtext" x="370.0" y="146.0" text-anchor="start">1 0</text><text class="axtext" x="420.0" y="146.0" text-anchor="start">a1</text><text class="axtext" x="480.0" y="146.0" text-anchor="start">b0</text><text class="axtext" x="530.0" y="146.0" text-anchor="start">agree</text><text class="axtext" x="620.0" y="146.0" text-anchor="start">0.854</text><text class="axtext" x="370.0" y="176.0" text-anchor="start" style="fill:var(--rose)">1 1</text><text class="axtext" x="420.0" y="176.0" text-anchor="start" style="fill:var(--rose)">a1</text><text class="axtext" x="480.0" y="176.0" text-anchor="start" style="fill:var(--rose)">b1</text><text class="axtext" x="530.0" y="176.0" text-anchor="start" style="fill:var(--rose)">disagree</text><text class="axtext" x="620.0" y="176.0" text-anchor="start" style="fill:var(--rose)">0.854</text><text class="axtext" x="370.0" y="222.0" text-anchor="start">P(agree) = cos^2((a - b)/2)</text><text class="lbltext" x="370.0" y="248.0" text-anchor="start" style="fill:var(--moss)">win rate = cos^2(pi/8) = 0.854</text><text class="lbltext" x="370.0" y="274.0" text-anchor="start" style="fill:var(--amber)">best classical strategy: 0.750</text></svg>
+<figcaption>The optimal quantum strategy. Alice measures at \(0\) or \(\pi/2\); Bob at \(\pi/4\) or \(-\pi/4\). Three question pairs put the two directions \(\pi/4\) apart, where agreement is likely; the pair \(x=y=1\) puts them \(3\pi/4\) apart, where disagreement is likely. Every question is won with probability \(\cos^2(\pi/8)\approx0.854\).</figcaption>
+</figure>
+
+<div class="box thm">
+<span class="lbl">theorem 8.5 &mdash; the quantum strategy wins with probability cos&sup2;(&pi;/8)</span>
+<p>With the angles in the figure, the CHSH game is won with probability \(\cos^2(\pi/8)=\tfrac{2+\sqrt2}{4}\approx0.854\) for every question pair, hence overall.</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>For \((x,y)=(0,0),(0,1),(1,0)\) the angle differences are \(-\pi/4\), \(\pi/4\), \(\pi/4\), so the answers agree, which is what wins, with probability \(\cos^2(\pi/8)\). For \((1,1)\) the difference is \(\pi/2-(-\pi/4)=3\pi/4\); they must disagree, which happens with probability \(1-\cos^2(3\pi/8)=\sin^2(3\pi/8)=\cos^2(\pi/8)\). Finally, \(\cos^2(\pi/8)=\tfrac12(1+\cos\tfrac\pi4)=\tfrac{2+\sqrt2}{4}\).</p>
+</div>
+</div>
+
+<p>Physicists usually state the same fact with <strong>correlators</strong>. Write the answers as \(\pm1\) instead of bits, and let \(E(x,y)=P(\text{agree})-P(\text{disagree})\) for questions \(x,y\). For the strategy above \(E=\cos(a-b)\). The CHSH quantity is</p>
+$$S=E(0,0)+E(0,1)+E(1,0)-E(1,1),$$
+<p>and the win probability is exactly \(\tfrac12+\tfrac S8\). The classical bound \(\tfrac34\) becomes \(|S|\le2\); the quantum strategy reaches \(S=4\cos\tfrac\pi4=2\sqrt2\approx2.828\). Tsirelson proved in 1980 that no quantum strategy does better: \(2\sqrt2\) is the quantum maximum, just as 2 is the classical one. Lab 2 measures \(S\) on real hardware.</p>
+<div class="spot" data-kind="num" data-ans="0.8" data-labels="P(win)">
+<p>An experiment estimates \(S=2.4\). What CHSH win probability does that correspond to?</p>
+<div class="hint">Use \(P(\text{win})=\tfrac12+\tfrac S8\). Check: \(S=2\) should give \(\tfrac34\).</div>
+<div class="why">\(\tfrac12+\tfrac{2.4}{8}=0.8\): above the classical \(0.75\), below the quantum maximum \(\approx0.854\).</div>
+</div>
+
+
+<div class="box idea">
+<span class="lbl">idea &mdash; what this does and does not show</span>
+<p>The game rules out every model in which the answers are fixed in advance, possibly at random, by information the two sides share ("local hidden variables"). It does <em>not</em> let Alice send Bob a message: each of their answers on its own is a fair coin whatever the other's question was. Experiments with the loopholes closed (2015, Delft, Vienna and Boulder) observed \(S>2\); the 2022 Nobel Prize in Physics recognised the experimental work that led to them. For cryptography the point is that a value of \(S\) near \(2\sqrt2\) certifies entanglement using only the observed statistics, which is the engine of the E91 protocol (Lecture 20).</p>
+</div>
+
+<div class="widget">
+<h4>Play the CHSH game</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Pick a strategy and play rounds. Classical strategies are the 16 deterministic ones, given as Alice's answers \((a_0,a_1)\) and Bob's \((b_0,b_1)\); the quantum strategy uses \(|\Phi^+\rangle\) and the four angles below. The bars show the win rate for each question pair; the dashed lines mark \(\tfrac34\) and \(\cos^2(\pi/8)\).</p>
+<svg id="chSvg" viewBox="0 0 600 230" width="600" height="230" role="img" aria-label="Win rates by question pair and overall, with reference lines at 0.75 and 0.854"></svg>
+<div class="ctrls" id="chMode"></div>
+<div class="ctrls">
+<label><span>a<sub>0</sub> = <span id="chA0v">0</span>&deg;</span><input type="range" id="chA0" min="-180" max="180" step="15" value="0"></label>
+<label><span>a<sub>1</sub> = <span id="chA1v">90</span>&deg;</span><input type="range" id="chA1" min="-180" max="180" step="15" value="90"></label>
+<label><span>b<sub>0</sub> = <span id="chB0v">45</span>&deg;</span><input type="range" id="chB0" min="-180" max="180" step="15" value="45"></label>
+<label><span>b<sub>1</sub> = <span id="chB1v">-45</span>&deg;</span><input type="range" id="chB1" min="-180" max="180" step="15" value="-45"></label>
+</div>
+<div class="ctrls"><label><span>classical strategy a<sub>0</sub>a<sub>1</sub> b<sub>0</sub>b<sub>1</sub></span><select id="chClass"></select></label><button class="ctl" id="chPlay">play 1000 rounds</button><button class="ctl" id="chReset">reset</button></div>
+<p class="readout" role="status" aria-live="polite" id="chOut"></p>
+</div>
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; Try it in code</h2>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; teleportation as a dynamic circuit (qiskit 2.5, qiskit-aer 0.17)</span>
+<pre>import numpy as np
+from qiskit import QuantumCircuit, ClassicalRegister, QuantumRegister
+from qiskit_aer import AerSimulator
+
+theta = 2 * np.arccos(3 / 5)                  <span class="cm"># R_y(theta)|0&gt; = (3|0&gt; + 4|1&gt;)/5</span>
+q = QuantumRegister(3, "q")                   <span class="cm"># q0 = |psi&gt;, q1 = Alice's half, q2 = Bob's half</span>
+m = ClassicalRegister(2, "m")                 <span class="cm"># Alice's two bits</span>
+check = ClassicalRegister(1, "check")         <span class="cm"># Bob's final test</span>
+qc = QuantumCircuit(q, m, check)
+
+qc.ry(theta, 0); qc.s(0)                      <span class="cm"># |psi&gt; = (3|0&gt; + 4i|1&gt;)/5 on q0</span>
+qc.h(1); qc.cx(1, 2)                          <span class="cm"># Bell pair on q1, q2</span>
+qc.barrier()
+qc.cx(0, 1); qc.h(0)                          <span class="cm"># Alice's Bell-basis rotation</span>
+qc.measure(0, m[0]); qc.measure(1, m[1])      <span class="cm"># mid-circuit measurements</span>
+with qc.if_test((m[1], 1)):                   <span class="cm"># feed-forward: Bob corrects</span>
+    qc.x(2)
+with qc.if_test((m[0], 1)):
+    qc.z(2)
+qc.barrier()
+qc.sdg(2); qc.ry(-theta, 2)                   <span class="cm"># undo the preparation on Bob's qubit</span>
+qc.measure(2, check[0])                       <span class="cm"># reads 0 every time iff Bob holds |psi&gt;</span>
+
+counts = AerSimulator(seed_simulator=3).run(qc, shots=4000).result().get_counts()
+print(dict(sorted(counts.items())))           <span class="cm"># keys are "check m1m0"</span></pre>
+<pre class="out">{'0 00': 975, '0 01': 1000, '0 10': 1020, '0 11': 1005}</pre>
+<p>The check bit is 0 in all 4000 shots, so Bob held exactly \(|\psi\rangle\), while Alice's two bits are spread evenly over the four values, as Theorem 8.2 says. Measuring Bob's qubit directly would only test \(|\alpha|^2\) and would miss a forgotten \(Z\) correction; undoing the preparation first tests the phase too. <code>if_test</code> makes a <em>dynamic circuit</em>: later gates depend on earlier measurement results. The basic <code>StatevectorSampler</code> does not run these, so we use the Aer simulator (<code>pip install qiskit-aer</code>); IBM hardware runs them natively.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; deferred measurement: the same protocol without classical bits</span>
+<pre>import numpy as np
+from qiskit import QuantumCircuit
+from qiskit.quantum_info import Statevector, partial_trace, state_fidelity
+
+psi = Statevector([3 / 5, 4j / 5])            <span class="cm"># the state to teleport, on q0</span>
+qc = QuantumCircuit(3)
+qc.h(1); qc.cx(1, 2)                          <span class="cm"># Bell pair on q1, q2</span>
+qc.cx(0, 1); qc.h(0)                          <span class="cm"># Alice's rotation</span>
+qc.cx(1, 2); qc.cz(0, 2)                      <span class="cm"># corrections controlled by qubits instead of bits</span>
+
+start = Statevector.from_label("00").tensor(psi)   <span class="cm"># |q2 q1&gt; = |00&gt;, q0 = |psi&gt;</span>
+bob = partial_trace(start.evolve(qc), [0, 1])      <span class="cm"># Bob's qubit on its own (Lecture 18)</span>
+print("fidelity of Bob's qubit with |psi&gt;:", round(state_fidelity(bob, psi), 10))</pre>
+<pre class="out">fidelity of Bob's qubit with |psi&gt;: 1.0</pre>
+<p>A measurement followed by a classically controlled gate can always be replaced by the corresponding <em>quantum</em>-controlled gate, with the measurement moved to the end (the <strong>principle of deferred measurement</strong>). That turns the protocol into a plain unitary circuit that <code>Statevector</code> can simulate. <code>partial_trace</code> extracts Bob's qubit as a density matrix, a preview of Lecture 18.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; superdense encoding and the CHSH value</span>
+<pre>from qiskit import QuantumCircuit
+from qiskit.quantum_info import Statevector
+
+for bits in ["00", "01", "10", "11"]:          <span class="cm"># the two bits b1 b0 Alice wants to send</span>
+    qc = QuantumCircuit(2)                      <span class="cm"># q0 = Alice's half, q1 = Bob's half</span>
+    qc.h(0); qc.cx(0, 1)                        <span class="cm"># shared |Phi+&gt;</span>
+    if bits[1] == "1": qc.x(0)                  <span class="cm"># b0 -&gt; X on Alice's qubit</span>
+    if bits[0] == "1": qc.z(0)                  <span class="cm"># b1 -&gt; Z on Alice's qubit</span>
+    print(bits, Statevector.from_instruction(qc).data.real.round(3) + 0.0)</pre>
+<pre class="out">00 [0.707 0.    0.    0.707]
+01 [0.    0.707 0.707 0.   ]
+10 [ 0.707  0.     0.    -0.707]
+11 [ 0.    -0.707  0.707  0.   ]</pre>
+<pre>import numpy as np
+from qiskit import QuantumCircuit
+from qiskit.quantum_info import Statevector
+
+def E(a, b):
+    """correlator &lt;A B&gt; for |Phi+&gt; measured along Bloch angles a (Alice, q1) and b (Bob, q0)"""
+    qc = QuantumCircuit(2)
+    qc.h(0); qc.cx(0, 1)                          <span class="cm"># |Phi+&gt;</span>
+    qc.ry(-a, 1); qc.ry(-b, 0)                    <span class="cm"># rotate each measurement axis onto z</span>
+    p = Statevector.from_instruction(qc).probabilities_dict()
+    return p.get("00", 0) + p.get("11", 0) - p.get("01", 0) - p.get("10", 0)
+
+a0, a1, b0, b1 = 0, np.pi / 2, np.pi / 4, -np.pi / 4
+S = E(a0, b0) + E(a0, b1) + E(a1, b0) - E(a1, b1)
+print("S =", round(S, 4), "  2*sqrt(2) =", round(2 * np.sqrt(2), 4), "  win rate =", round(0.5 + S / 8, 4))</pre>
+<pre class="out">S = 2.8284   2*sqrt(2) = 2.8284   win rate = 0.8536</pre>
+<p>The four encoded states are \(|\Phi^+\rangle,|\Psi^+\rangle,|\Phi^-\rangle,-|\Psi^-\rangle\) (amplitudes in the order 00, 01, 10, 11), as in Proposition 8.3. The <code>+ 0.0</code> turns any printed <code>-0.</code> into <code>0.</code>.</p>
+</div>
+
+<!-- =================== 6 =================== -->
+<h2 id="s6">6 &mdash; Lab 2 launch: entanglement you can measure</h2>
+
+<div class="box lab">
+<span class="lbl">lab 2 &mdash; Bell states, CHSH and teleportation (due in 10 days)</span>
+<p><strong>Goal.</strong> Verify entanglement experimentally, and use mid-circuit measurement.</p>
+<ol>
+<li><strong>Bell states.</strong> Prepare all four and check them by measuring both qubits in the Z basis and in the X basis. Compare the agreement rates with the table in Lecture 6.</li>
+<li><strong>CHSH.</strong> Estimate the four correlators \(E(x,y)\) at the angles of Theorem 8.5 from sampled counts, and compute \(S\) with a standard error. Each \(\hat E\) is \(2\hat p-1\) for an agreement frequency \(\hat p\), so \(\mathrm{Var}(\hat E)=4p(1-p)/N\), and the four estimates are independent, so their variances add.</li>
+<li><strong>Miscalibration.</strong> Add an \(R_y(\varepsilon)\) "tilt" to Bob's qubit before measurement, as if his measurement axis were misaligned, and plot \(S\) against \(\varepsilon\). For which \(\varepsilon\) does the violation disappear? (Genuine noise is Lecture 19's topic.)</li>
+<li><strong>Teleportation.</strong> Build the dynamic circuit of Section 5 and teleport \(R_y(\theta)|0\rangle\) for three values of \(\theta\). Check the result on the simulator by undoing the preparation, as in the code above.</li>
+<li><strong>Hardware.</strong> Run the CHSH experiment on an IBM backend. Do you violate \(S\le2\), and by how many standard errors?</li>
+</ol>
+<p><strong>Hardware budget:</strong> at most 30 seconds of machine time. Batch the four CHSH circuits into one job, and debug on the simulator first.</p>
+</div>
+
+<!-- =================== 7 =================== -->
+<h2 id="s7">7 &mdash; Summary and exercises</h2>
+
+<div class="box thm">
+<span class="lbl">summary</span>
+<ul>
+<li>No-cloning: a unitary that copies two states must copy states that are orthogonal or identical. Basis states (classical data) copy; unknown superpositions do not. This underlies the security of BB84.</li>
+<li>Teleportation: a Bell pair plus two classical bits moves an unknown qubit. Alice's outcomes are uniform, Bob holds \(X^{m_1}Z^{m_0}|\psi\rangle\), and he corrects with \(X^{m_1}\) then \(Z^{m_0}\). Without the bits he has nothing.</li>
+<li>Superdense coding: a Bell pair plus one sent qubit delivers two classical bits, via \(Z^{b_1}X^{b_0}\) and a Bell measurement.</li>
+<li>CHSH: classical strategies win at most \(\tfrac34\) (\(|S|\le2\)); a Bell pair wins \(\cos^2(\pi/8)\approx0.854\) (\(S=2\sqrt2\), the quantum maximum).</li>
+<li>Dynamic circuits apply gates conditioned on mid-circuit measurements; deferred measurement replaces them by controlled gates.</li>
+</ul>
+<p><strong>Next time:</strong> Block II begins with the query model and the first algorithms that beat classical ones: Deutsch–Jozsa and Bernstein–Vazirani. <strong>HW4</strong> is due at the start of Week 5; <strong>Lab 2</strong> in ten days.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 8</span>
+<ol>
+<li>A would-be cloner \(U\) satisfies \(U|0\rangle|0\rangle=|0\rangle|0\rangle\) and \(U|1\rangle|0\rangle=|1\rangle|1\rangle\). Compute \(U\big(|{+i}\rangle|0\rangle\big)\) and its overlap \(|\langle{+i},{+i}|\cdot\rangle|^2\) with two true copies.</li>
+<li>Can a unitary copy both \(|0\rangle\) and \(|1\rangle\)? Both \(|+\rangle\) and \(|-\rangle\)? Both \(|0\rangle\) and \(|+\rangle\)? Justify each answer with Theorem 8.1, and give a circuit where one exists.</li>
+<li>In Example 8.2, suppose Bob mistakenly applies \(Z\) before \(X\) in the \(m_0m_1=11\) branch. What state does he end with, and is it physically different from \(|\psi\rangle\)?</li>
+<li>Show that \(\tfrac12\) is the probability that Bob measures 0 before receiving Alice's bits, for every \(|\psi\rangle=\alpha|0\rangle+\beta|1\rangle\), not just the one in Example 8.2.</li>
+<li>Which deterministic CHSH strategies win with probability \(\tfrac34\)? Find all those with \(a_0=0\) and \(b_0=0\).</li>
+<li>For the quantum CHSH strategy, Alice keeps \(a_0=0,a_1=\pi/2\) and Bob uses \(b_0=\beta,b_1=-\beta\). Find the win probability as a function of \(\beta\) and show it is largest at \(\beta=\pi/4\).</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>By linearity, \(U\big(\tfrac{1}{\sqrt2}(|0\rangle+i|1\rangle)|0\rangle\big)=\tfrac{1}{\sqrt2}\big(|00\rangle+i|11\rangle\big)\). Two copies would be \(|{+i}\rangle|{+i}\rangle=\tfrac12\big(|00\rangle+i|01\rangle+i|10\rangle-|11\rangle\big)\). The inner product is \(\tfrac{1}{2\sqrt2}\big(1+\overline{(-1)}\cdot i\big)=\tfrac{1-i}{2\sqrt2}\), whose squared modulus is \(\tfrac14\).</li>
+<li>\(|0\rangle,|1\rangle\): orthogonal, so allowed; <code>cx(0, 1)</code> does it. \(|+\rangle,|-\rangle\): orthogonal, so allowed; apply \(H\) to qubit 0 (turning \(|\pm\rangle\) into \(|0\rangle,|1\rangle\)), then <code>cx(0, 1)</code>, then \(H\) to both qubits, which turns \(|00\rangle,|11\rangle\) into \(|{+}{+}\rangle,|{-}{-}\rangle\). \(|0\rangle,|+\rangle\): \(\langle0|+\rangle=\tfrac{1}{\sqrt2}\) is neither 0 nor 1, so no unitary copies both.</li>
+<li>He holds \(XZ|\psi\rangle\) and applies \(Z\) then \(X\), giving \(XZXZ|\psi\rangle\). Since \(ZX=-XZ\), \(XZXZ=-XXZZ=-I\), so he ends with \(-|\psi\rangle\). That differs from \(|\psi\rangle\) by a global phase only, so it is the same physical state; the order of the two corrections does not matter.</li>
+<li>Bob holds \(X^{m_1}Z^{m_0}|\psi\rangle\) with probability \(\tfrac14\) each. \(|\psi\rangle\) and \(Z|\psi\rangle\) give 0 with probability \(|\alpha|^2\); \(X|\psi\rangle\) and \(XZ|\psi\rangle\) give 0 with probability \(|\beta|^2\). The average is \(\tfrac14(2|\alpha|^2+2|\beta|^2)=\tfrac12\).</li>
+<li>A deterministic strategy wins \(\tfrac34\) exactly when it loses exactly one of the four question pairs. With \(a_0=b_0=0\), the pair \((0,0)\) is won. The remaining conditions are \(b_1=0\) (for \((0,1)\)), \(a_1=0\) (for \((1,0)\)) and \(a_1\ne b_1\) (for \((1,1)\)); exactly one may fail. \((a_1,b_1)=(0,0)\) fails only \((1,1)\); \((1,0)\) fails only \((1,0)\); \((0,1)\) fails only \((0,1)\); \((1,1)\) fails \((1,0)\), \((0,1)\) and \((1,1)\). So the three strategies \((a_0a_1,b_0b_1)=(00,00),(01,00),(00,01)\) win \(\tfrac34\).</li>
+<li>The angle differences are \(-\beta\), \(\beta\), \(\tfrac\pi2-\beta\) and \(\tfrac\pi2+\beta\). The win probability is
+$$\begin{aligned}&\tfrac14\Big(2\cos^2\tfrac\beta2+\cos^2\big(\tfrac\pi4-\tfrac\beta2\big)+\sin^2\big(\tfrac\pi4+\tfrac\beta2\big)\Big)\\[4pt] &\quad=\tfrac12+\tfrac14\big(\cos\beta+\sin\beta\big),\end{aligned}$$
+using \(\cos^2u=\tfrac12(1+\cos2u)\) and \(\sin^2u=\tfrac12(1-\cos2u)\). Since \(\cos\beta+\sin\beta=\sqrt2\sin(\beta+\tfrac\pi4)\), the maximum is at \(\beta=\pi/4\), where the win probability is \(\tfrac12+\tfrac{\sqrt2}{4}=\cos^2(\pi/8)\).</li>
+</ol>
+</div>
+</div>
+
+<h3>Reading and sources</h3>
+<ul>
+<li>J. Watrous, <em>Understanding Quantum Information and Computation</em>, §3.3 (the no-cloning theorem) and Ch. 4 (teleportation, superdense coding and the CHSH game) (<a href="https://arxiv.org/abs/2507.11536">arXiv:2507.11536</a>; IBM course <a href="https://quantum.cloud.ibm.com/learning/en/courses/basics-of-quantum-information">Basics of Quantum Information</a>, Lessons 3 and 4).</li>
+<li>Qiskit documentation: <a href="https://quantum.cloud.ibm.com/docs/en/guides/classical-feedforward-and-control-flow">classical feedforward and control flow</a> (<code>if_test</code>) and <a href="https://qiskit.github.io/qiskit-aer/">Qiskit Aer</a>.</li>
+<li>W. K. Wootters and W. H. Zurek, "A single quantum cannot be cloned", <em>Nature</em> 299 (1982); D. Dieks, <em>Phys. Lett. A</em> 92 (1982); V. Bužek and M. Hillery, "Quantum copying: beyond the no-cloning theorem", <em>Phys. Rev. A</em> 54 (1996); C. H. Bennett et al., "Teleporting an unknown quantum state via dual classical and Einstein–Podolsky–Rosen channels", <em>Phys. Rev. Lett.</em> 70 (1993); C. H. Bennett and S. J. Wiesner, superdense coding, <em>Phys. Rev. Lett.</em> 69 (1992); J. F. Clauser, M. A. Horne, A. Shimony and R. A. Holt, <em>Phys. Rev. Lett.</em> 23 (1969); B. S. Tsirelson, <em>Lett. Math. Phys.</em> 4 (1980).</li>
+</ul>
+<p class="kicker" style="margin-top:2.4em">all numbers and figures in these notes are computed in python (verify_L08.py) and follow the page theme</p>
+</div>
+
+<style>.ctrls select{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);border:1px solid var(--rule);border-radius:6px;padding:4px 6px}</style>
+<script>
+/* ---------- helpers ---------- */
+var NS='http://www.w3.org/2000/svg';
+function mk(tag,at,parent,txt){var e=document.createElementNS(NS,tag);for(var k in at)e.setAttribute(k,at[k]);if(txt!==undefined)e.textContent=txt;if(parent)parent.appendChild(e);return e;}
+function clr(s){while(s.firstChild)s.removeChild(s.firstChild);}
+function fx(x,d){d=(d===undefined?3:d);var v=Number(x).toFixed(d);return /^-0\.?0*$/.test(v)?v.slice(1):v;}
+function cfmt(re,im,d){d=d===undefined?3:d;var r=Math.abs(re)<5e-4?0:re,i=Math.abs(im)<5e-4?0:im;
+  if(i===0)return fx(r,d); if(r===0)return (i<0?'-':'')+fx(Math.abs(i),d)+'i'; return fx(r,d)+(i<0?' - ':' + ')+fx(Math.abs(i),d)+'i';}
+function btn(parent,label,fn){var b=document.createElement('button');b.className='ctl';b.type='button';b.textContent=label;b.addEventListener('click',fn);parent.appendChild(b);return b;}
+function cm(a,b){return [a[0]*b[0]-a[1]*b[1],a[0]*b[1]+a[1]*b[0]];}
+function ca(a,b){return [a[0]+b[0],a[1]+b[1]];}
+function ab2(a){return a[0]*a[0]+a[1]*a[1];}
+
+/* ---------- teleportation stepper ----------
+   amplitudes indexed in circuit order: i = 4*q0 + 2*q1 + q2 */
+(function(){
+  var svg=document.getElementById('tpSvg'); if(!svg) return;
+  var out=document.getElementById('tpOut'), th=document.getElementById('tpTh'), ph=document.getElementById('tpPh');
+  var r2=Math.SQRT1_2, step=0, outcome=null, sb=[], ob=[];
+  var names=['start','H on q1','cx(1,2): Bell pair','cx(0,1)','H on q0','Alice measures','Bob corrects'];
+  function bit(i,q){return (i>>(2-q))&1;}
+  function psi(){var t=th.value*Math.PI/180,p=ph.value*Math.PI/180;return [[Math.cos(t/2),0],[Math.sin(t/2)*Math.cos(p),Math.sin(t/2)*Math.sin(p)]];}
+  function g1(s,q,U){var o=s.map(function(z){return z.slice();});
+    for(var i=0;i<8;i++){ if(bit(i,q)) continue; var j=i|(1<<(2-q));
+      o[i]=ca(cm(U[0][0],s[i]),cm(U[0][1],s[j])); o[j]=ca(cm(U[1][0],s[i]),cm(U[1][1],s[j])); } return o;}
+  function cx(s,c,t){var o=s.map(function(z){return z.slice();});
+    for(var i=0;i<8;i++) if(bit(i,c)&&!bit(i,t)){var j=i|(1<<(2-t));o[i]=s[j].slice();o[j]=s[i].slice();} return o;}
+  var H=[[[r2,0],[r2,0]],[[r2,0],[-r2,0]]], X=[[[0,0],[1,0]],[[1,0],[0,0]]], Z=[[[1,0],[0,0]],[[0,0],[-1,0]]];
+  function stateAt(k){ var p=psi(), s=[]; for(var i=0;i<8;i++) s.push(i%4===0?p[i>>2].slice():[0,0]);
+    if(k>=1) s=g1(s,1,H); if(k>=2) s=cx(s,1,2); if(k>=3) s=cx(s,0,1); if(k>=4) s=g1(s,0,H);
+    if(k>=5){ var m0=outcome[0], m1=outcome[1], f=2; s=s.map(function(z,i){return (bit(i,0)===m0&&bit(i,1)===m1)?[z[0]*f,z[1]*f]:[0,0];});
+      if(k>=6){ if(m1) s=g1(s,2,X); if(m0) s=g1(s,2,Z); } }
+    return s; }
+  function bob(s){var m0=outcome?outcome[0]:0, m1=outcome?outcome[1]:0, b=4*m0+2*m1; return [s[b],s[b+1]];}
+  function draw(){
+    document.getElementById('tpThV').textContent=th.value; document.getElementById('tpPhV').textContent=ph.value;
+    sb.forEach(function(b,k){b.classList.toggle('on',k===step);});
+    ob.forEach(function(b){b.classList.toggle('on',step>=5&&outcome&&b.textContent==='m0 m1 = '+outcome.join(''));});
+    var s=stateAt(step); clr(svg); mk('rect',{x:0,y:0,width:600,height:250,rx:8,class:'plot-bg'},svg);
+    var base=190,hmax=140;
+    mk('line',{x1:30,y1:base,x2:580,y2:base,class:'axis'},svg);
+    mk('text',{x:30,y:20,class:'axtext'},svg,'step '+step+': '+names[step]+'   (bars: |amplitude|^2, labels |q0 q1 q2>)');
+    for(var i=0;i<8;i++){ var p=ab2(s[i]), x=40+i*68, h=hmax*p, lab=''+bit(i,0)+bit(i,1)+bit(i,2);
+      var col=step>=5&&outcome&&bit(i,0)===outcome[0]&&bit(i,1)===outcome[1]?'var(--moss)':'var(--sky)';
+      mk('rect',{x:x,y:base-h,width:52,height:Math.max(h,1),fill:col,'fill-opacity':0.75,rx:2},svg);
+      if(p>1e-9) mk('text',{x:x+26,y:base-h-6,'text-anchor':'middle',class:'axtext',style:'font-size:11px'},svg,cfmt(s[i][0],s[i][1],2));
+      mk('text',{x:x+26,y:base+18,'text-anchor':'middle',class:'lbltext'},svg,'|'+lab+'>');
+      mk('text',{x:x+26,y:base+36,'text-anchor':'middle',class:'axtext',style:'fill:var(--muted)'},svg,'q2 = '+bit(i,2)); }
+    var P=psi(), msg='|psi> = ('+cfmt(P[0][0],P[0][1])+')|0> + ('+cfmt(P[1][0],P[1][1])+')|1>. ';
+    if(step<5) msg+=step<4?'Step forward to reach Alice\'s measurement.':'Every pair m0 m1 now has probability 1/4: choose one or draw at random.';
+    else { var b=bob(s), ov=ab2(ca(cm([P[0][0],-P[0][1]],b[0]),cm([P[1][0],-P[1][1]],b[1])));
+      msg+='Alice got m0 m1 = '+outcome.join('')+'. Bob '+(step===5?'now holds':'after correcting holds')+' ('+cfmt(b[0][0],b[0][1])+')|0> + ('+cfmt(b[1][0],b[1][1])+')|1>, overlap with |psi> = '+fx(ov,3)+(step===5?'. Press "Bob corrects".':'.'); }
+    out.textContent=msg; }
+  var st=document.getElementById('tpSteps'), oc=document.getElementById('tpOutc');
+  names.forEach(function(n,k){ sb.push(btn(st,k+': '+n,function(){ if(k>=5&&!outcome) outcome=[Math.random()<.5?0:1,Math.random()<.5?0:1]; step=k; draw(); })); });
+  ['00','01','10','11'].forEach(function(o){ ob.push(btn(oc,'m0 m1 = '+o,function(){outcome=[+o[0],+o[1]]; step=5; draw();})); });
+  ob.push(btn(oc,'random outcome',function(){outcome=[Math.random()<.5?0:1,Math.random()<.5?0:1]; step=5; draw();}));
+  [th,ph].forEach(function(e){e.addEventListener('input',draw);});
+  window.__tp={set:function(k,o){outcome=o;step=k;draw();}};
+  draw();
+})();
+
+/* ---------- CHSH game ---------- */
+(function(){
+  var svg=document.getElementById('chSvg'); if(!svg) return;
+  var out=document.getElementById('chOut'), sel=document.getElementById('chClass'), mode='quantum', wins=[0,0,0,0], plays=[0,0,0,0];
+  var ang=['chA0','chA1','chB0','chB1'].map(function(k){return document.getElementById(k);});
+  for(var k=0;k<16;k++){ var o=document.createElement('option'); o.value=k; var a0=(k>>3)&1,a1=(k>>2)&1,b0=(k>>1)&1,b1=k&1; o.textContent=''+a0+a1+' '+b0+b1; sel.appendChild(o); }
+  var mb=document.getElementById('chMode'), bq=btn(mb,'quantum strategy',function(){mode='quantum';reset();}), bc=btn(mb,'classical strategy',function(){mode='classical';reset();});
+  function pwin(x,y){ if(mode==='classical'){ var k=+sel.value, a=x?(k>>2)&1:(k>>3)&1, b=y?k&1:(k>>1)&1; return ((a^b)===(x&y))?1:0; }
+    var a=ang[x].value*Math.PI/180, b=ang[2+y].value*Math.PI/180, pa=Math.pow(Math.cos((a-b)/2),2); return (x&y)?1-pa:pa; }
+  function reset(){wins=[0,0,0,0];plays=[0,0,0,0];draw();}
+  function play(n){ for(var i=0;i<n;i++){ var x=Math.random()<.5?0:1, y=Math.random()<.5?0:1, q=2*x+y; plays[q]++; if(Math.random()<pwin(x,y)) wins[q]++; } draw(); }
+  function draw(){
+    bq.classList.toggle('on',mode==='quantum'); bc.classList.toggle('on',mode==='classical');
+    ang.forEach(function(e,i){document.getElementById(['chA0v','chA1v','chB0v','chB1v'][i]).textContent=e.value; e.disabled=mode!=='quantum';}); sel.disabled=mode!=='classical';
+    clr(svg); mk('rect',{x:0,y:0,width:600,height:230,rx:8,class:'plot-bg'},svg);
+    var base=180,hmax=150,Y=function(v){return base-hmax*v;};
+    mk('line',{x1:40,y1:base,x2:580,y2:base,class:'axis'},svg);
+    [[0.75,'0.75 classical','var(--amber)'],[Math.pow(Math.cos(Math.PI/8),2),'0.854 quantum','var(--moss)']].forEach(function(r){
+      mk('line',{x1:40,y1:Y(r[0]),x2:580,y2:Y(r[0]),stroke:r[2],'stroke-dasharray':'5 4','stroke-width':1.4},svg);
+      mk('text',{x:578,y:Y(r[0])-4,'text-anchor':'end',class:'axtext',style:'fill:'+r[2]},svg,r[1]); });
+    var labs=['x,y = 0,0','0,1','1,0','1,1','overall'], tw=wins.reduce(function(a,b){return a+b;},0), tp=plays.reduce(function(a,b){return a+b;},0);
+    var exact=[pwin(0,0),pwin(0,1),pwin(1,0),pwin(1,1)], ex=(exact[0]+exact[1]+exact[2]+exact[3])/4;
+    for(var i=0;i<5;i++){ var v=i<4?(plays[i]?wins[i]/plays[i]:0):(tp?tw/tp:0), e=i<4?exact[i]:ex, x=50+i*90;
+      mk('rect',{x:x,y:Y(v),width:56,height:Math.max(hmax*v,1),fill:i<4?'var(--sky)':'var(--rose)','fill-opacity':0.75,rx:2},svg);
+      mk('line',{x1:x-6,y1:Y(e),x2:x+62,y2:Y(e),stroke:'var(--ink)','stroke-width':2.4},svg);
+      mk('text',{x:x+28,y:base+18,'text-anchor':'middle',class:'axtext'},svg,labs[i]);
+      mk('text',{x:x+28,y:base+34,'text-anchor':'middle',class:'axtext'},svg,(i<4?plays[i]:tp)?fx(v,3):'-'); }
+    mk('text',{x:40,y:18,class:'axtext'},svg,'bars: observed win rate;  solid line: exact');
+    out.textContent=(mode==='quantum'?'Quantum strategy with angles ('+ang.map(function(e){return e.value;}).join(', ')+') degrees':'Classical strategy a0a1 b0b1 = '+sel.options[sel.selectedIndex].text)+
+      ': exact win probability '+fx(ex,4)+(mode==='quantum'?' (S = '+fx(8*(ex-0.5),3)+')':'')+'. '+(tp?'After '+tp+' rounds: '+fx(tw/tp,3)+'.':'Press "play 1000 rounds".');
+  }
+  ang.forEach(function(e){e.addEventListener('input',reset);}); sel.addEventListener('change',reset);
+  document.getElementById('chPlay').addEventListener('click',function(){play(1000);});
+  document.getElementById('chReset').addEventListener('click',reset);
+  draw();
+})();
+</script>
+
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    var lab=b.getAttribute('data-lab')||b.textContent.replace(/^(show|hide) /,''); b.setAttribute('data-lab',lab);
+    b.textContent=(open?'hide ':'show ')+lab;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+
+<script id="spot-js">
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×/g,'*').replace(/π/g,'pi').replace(/,/g,'');
+    var pct=/%$/.test(s); if(pct) s=s.slice(0,-1);
+    s=s.replace(/√\s*\(/g,'sqrt(').replace(/√\s*([0-9.]+)/g,'sqrt($1)');
+    if(!s||!/^[0-9a-z+\-*\/^().\s]*$/.test(s)) return NaN;
+    var ok=s.replace(/sqrt|pi|ln|log|exp|sin|cos|tan|e(?![a-z])/g,'').replace(/[0-9+\-*\/^().\s]/g,'');
+    if(ok.length) return NaN;
+    s=s.replace(/\^/g,'**').replace(/(\d)\s*(pi|sqrt|\()/g,'$1*$2').replace(/\)\s*(\d|pi|sqrt|\()/g,')*$1')
+       .replace(/sqrt/g,'Math.sqrt').replace(/pi/g,'Math.PI').replace(/\blog\b/g,'Math.log10').replace(/\bln\b/g,'Math.log')
+       .replace(/exp/g,'Math.exp').replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos').replace(/tan/g,'Math.tan')
+       .replace(/(^|[^a-z.0-9])e(?![a-z0-9(])/g,'$1Math.E');
+    try{ var v=Function('"use strict";return ('+s+')')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function typeset(el){ if(window.MathJax&&MathJax.typesetPromise){ MathJax.typesetPromise([el]).catch(function(){}); } }
+  function fb(spot,ok,html){
+    var f=spot.querySelector('.fb'); spot.classList.toggle('ok',ok); spot.classList.toggle('bad',!ok);
+    f.innerHTML='<p><span class="tag">'+(ok?'correct.':'not yet.')+'</span>'+(html||'')+'</p>'; typeset(f);
+  }
+  function part(spot,sel){ var e=spot.querySelector(sel); return e? e.innerHTML : ''; }
+  var n=0, lec=(document.title.match(/^Lecture (\d+)/)||[])[1];
+  document.querySelectorAll('.spot').forEach(function(spot){
+    n++; var kind=spot.getAttribute('data-kind')||'num', tries=0;
+    var lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent='spot check '+(lec?lec+'.':'')+n+(spot.getAttribute('data-tag')?' — '+spot.getAttribute('data-tag'):'');
+    spot.insertBefore(lbl,spot.firstChild);
+    var area=document.createElement('div'), btns=document.createElement('div'), f=document.createElement('div');
+    btns.className='btns'; f.className='fb'; f.setAttribute('role','status'); f.setAttribute('aria-live','polite');
+    var check=document.createElement('button'); check.type='button'; check.textContent='check';
+    var reveal=document.createElement('button'); reveal.type='button'; reveal.className='reveal'; reveal.textContent='show answer'; reveal.style.display='none';
+    btns.appendChild(check); btns.appendChild(reveal);
+    var grade, show;
+    if(kind==='num'){
+      var ans=spot.getAttribute('data-ans').split('|').map(evalNum), labs=(spot.getAttribute('data-labels')||'').split('|');
+      var tol=spot.getAttribute('data-tol'), row=document.createElement('div'); row.className='row'; area.appendChild(row);
+      var ins=ans.map(function(a,i){ var lab=document.createElement('label'), inp=document.createElement('input');
+        inp.className='ans'; inp.type='text'; inp.setAttribute('inputmode','text'); inp.setAttribute('autocomplete','off');
+        inp.setAttribute('aria-label',labs[i]||'answer'); if(labs[i]){ lab.appendChild(document.createTextNode(labs[i]+' =')); }
+        lab.appendChild(inp); row.appendChild(lab);
+        inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); check.click(); } }); return inp; });
+      var fmt=document.createElement('div'); fmt.className='fmt'; fmt.textContent='decimals, fractions, sqrt(2)/2, pi/4 or 2^-3 all work';
+      area.appendChild(fmt);
+      grade=function(){ var bad=[]; ins.forEach(function(inp,i){ var v=evalNum(inp.value), a=ans[i];
+          var t= tol!==null? Number(tol) : Math.max(0.005, 0.005*Math.abs(a)); if(!(Math.abs(v-a)<=t)) bad.push(i); });
+        var empty=ins.some(function(inp){return !inp.value.trim();});
+        if(empty) return {ok:false,msg:'Fill in '+(ins.length>1?'every box':'the box')+' first.',soft:true};
+        var unparsed=ins.some(function(inp){return isNaN(evalNum(inp.value));});
+        if(unparsed) return {ok:false,msg:'I could not read that as a number. Try a decimal or a fraction such as 3/8.',soft:true};
+        return {ok:!bad.length, which:bad}; };
+      show=function(){ var s=spot.getAttribute('data-show'); if(!s){ s=spot.getAttribute('data-ans').split('|').map(function(a,i){return (labs[i]?labs[i]+' = ':'')+a;}).join(', '); } return 'The answer is '+s+'.'; };
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=spot.querySelector('ul.opts'), name='spot'+n, lis=[].slice.call(ul.querySelectorAll(':scope > li'));
+      lis.forEach(function(li,i){ var inp=document.createElement('input'); inp.type= kind==='mc'?'radio':'checkbox'; inp.name=name; inp.value=i;
+        inp.setAttribute('aria-label','option '+(i+1)); li.insertBefore(inp,li.firstChild);
+        li.addEventListener('click',function(e){ if(e.target!==inp&&e.target.tagName!=='A'){ if(kind==='mc') inp.checked=true; else inp.checked=!inp.checked; } }); });
+      grade=function(){ var picked=lis.filter(function(li){return li.querySelector('input').checked;});
+        if(!picked.length) return {ok:false,msg:'Pick '+(kind==='mc'?'an answer':'at least one option')+' first.',soft:true};
+        var ok= lis.every(function(li){ return li.hasAttribute('data-ok')===li.querySelector('input').checked; });
+        var oh=''; picked.forEach(function(li){ if(!li.hasAttribute('data-ok')){ var h=li.querySelector('.oh'); if(h) oh+=' '+h.innerHTML; } });
+        if(kind==='multi'&&!ok&&!oh){ var miss=lis.filter(function(li){return li.hasAttribute('data-ok')&&!li.querySelector('input').checked;});
+          if(miss.length&&picked.every(function(li){return li.hasAttribute('data-ok');})) oh=' Everything you ticked is right, but something is missing.'; }
+        return {ok:ok, extra:oh}; };
+      show=function(){ lis.forEach(function(li){ li.classList.toggle('right',li.hasAttribute('data-ok')); }); return 'The right '+(kind==='mc'?'option is':'options are')+' outlined.'; };
+    } else if(kind==='select'){
+      var sels=[].slice.call(spot.querySelectorAll('select'));
+      sels.forEach(function(s){ var o=document.createElement('option'); o.textContent='choose…'; o.value=''; o.selected=true; s.insertBefore(o,s.firstChild);
+        s.setAttribute('aria-label', s.getAttribute('aria-label')||'choose an answer'); });
+      grade=function(){ if(sels.some(function(s){return !s.value;})) return {ok:false,msg:'Make a choice in '+(sels.length>1?'every menu':'the menu')+' first.',soft:true};
+        var oh=''; var ok=sels.every(function(s){ var o=s.options[s.selectedIndex]; if(!o.hasAttribute('data-ok')&&o.getAttribute('data-hint')) oh+=' '+o.getAttribute('data-hint'); return o.hasAttribute('data-ok'); });
+        return {ok:ok, extra:oh}; };
+      show=function(){ sels.forEach(function(s){ [].forEach.call(s.options,function(o,i){ if(o.hasAttribute('data-ok')) s.selectedIndex=i; }); }); return 'The right choices are now selected.'; };
+    }
+    var anchor=null;
+    [].forEach.call(spot.children,function(c){ if(!anchor&&(c.classList.contains('hint')||c.classList.contains('why'))) anchor=c; });
+    if(kind==='select'){ spot.insertBefore(btns,anchor); } else { spot.insertBefore(area,anchor); spot.insertBefore(btns,anchor); }
+    spot.appendChild(f);
+    check.addEventListener('click',function(){ var r=grade();
+      if(r.soft){ spot.classList.remove('ok'); spot.classList.add('bad'); f.innerHTML='<p><span class="tag">hold on.</span>'+r.msg+'</p>'; return; }
+      if(r.ok){ fb(spot,true,part(spot,'.why')); reveal.style.display='none'; }
+      else { tries++; var h=part(spot,'.hint'); var extra=r.extra||'';
+        if(r.which&&r.which.length&&ans.length>1){ extra=' Check '+r.which.map(function(i){return labs[i]||('box '+(i+1));}).join(' and ')+'.'+extra; }
+        fb(spot,false,(extra?extra+' ':'')+h); if(tries>=2) reveal.style.display=''; } });
+    reveal.addEventListener('click',function(){ var msg=show(); spot.classList.remove('ok'); spot.classList.add('bad');
+      f.innerHTML='<p><span class="tag">answer.</span>'+msg+' '+part(spot,'.why')+'</p>'; typeset(f); });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1017 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark light">
+<title>Lecture 2 — Complex Linear Algebra and Dirac Notation</title>
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:'1.2em', fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-svg.js"></script>
+<style>
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  html[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a;
+  }
+  *{box-sizing:border-box}
+  html{font-size:17.5px}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%}
+  mjx-container{color:var(--ink)}
+  .wrap{max-width:760px;margin:0 auto;padding:22px 20px 110px}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .lab{border-left-color:var(--moss);background:var(--surface2)} .lab .lbl{color:var(--moss)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)}
+  .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid}
+  .exr .lbl{color:var(--amber)}
+  .idea{font-style:normal}
+  .idea p{color:var(--ink)}
+  /* course additions, same family */
+  .crypto{border-left-color:var(--moss);background:var(--surface2)} .crypto .lbl{color:var(--moss)}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap)}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  .ccap{font-family:var(--mono);font-size:12.5px;fill:var(--cap);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .curve{fill:none;stroke:var(--sky);stroke-width:2.5;stroke-linejoin:round;stroke-linecap:round}
+  .curve2{fill:none;stroke:var(--amber);stroke-width:2.5}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 130px}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.9rem;color:var(--ink);margin-top:8px;min-height:1.4em}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  dl.gloss dt{font-family:var(--mono);color:var(--sky);font-size:.95rem;margin-top:.9em}
+  dl.gloss dd{margin:.1em 0 0 1.1em}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding:16px 14px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+<style id="spot-css">
+.spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+  border-radius:6px;padding:12px 16px;margin:1.3em 0;transition:background .25s,border-color .25s}
+.spot .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em;color:var(--sky)}
+.spot > p{margin:.35em 0}
+.spot .hint,.spot .why,.spot .oh{display:none}
+.spot .fb{display:none;margin:.55em 0 0;font-size:.97rem}
+.spot .fb > :first-child{margin-top:0}.spot .fb > :last-child{margin-bottom:0}
+.spot.ok{border-left-color:var(--moss);background:color-mix(in srgb,var(--moss) 13%,var(--surface))}
+.spot.ok .lbl{color:var(--moss)}
+.spot.bad{border-left-color:var(--amber);background:color-mix(in srgb,var(--amber) 13%,var(--surface))}
+.spot.bad .lbl{color:var(--amber)}
+.spot.ok .fb{display:block;color:var(--ink)} .spot.bad .fb{display:block;color:var(--ink)}
+.spot .fb .tag{font-family:var(--mono);font-size:.85rem;margin-right:.4em}
+.spot.ok .fb .tag{color:var(--moss)} .spot.bad .fb .tag{color:var(--amber)}
+.spot ul.opts{list-style:none;padding:0;margin:.5em 0}
+.spot ul.opts li{display:flex;gap:.6em;align-items:baseline;padding:4px 8px;margin:3px 0;border-radius:5px;cursor:pointer;
+  border:1px solid transparent}
+.spot ul.opts li:hover{border-color:var(--rule)}
+.spot ul.opts li input{accent-color:var(--sky);flex:none;margin:0;transform:translateY(1px)}
+.spot ul.opts li.right{border-color:var(--moss)}
+.spot .row{display:flex;flex-wrap:wrap;gap:.6em 1em;align-items:center;margin:.55em 0 .2em}
+.spot .row label{font-family:var(--mono);font-size:.88rem;color:var(--muted);display:flex;gap:.45em;align-items:center}
+.spot input.ans{font-family:var(--mono);font-size:.95rem;width:9.5em;max-width:100%;padding:5px 8px;border-radius:5px;
+  border:1px solid var(--rule);background:var(--bg);color:var(--ink)}
+.spot input.ans:focus,.spot select:focus{outline:2px solid var(--sky);outline-offset:1px}
+.spot select{font-family:var(--mono);font-size:.9rem;padding:3px 6px;border-radius:5px;border:1px solid var(--rule);
+  background:var(--bg);color:var(--ink);max-width:100%}
+.spot .btns{display:flex;gap:.5em;flex-wrap:wrap;margin-top:.5em}
+.spot .btns button{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--sky);border:1px solid var(--sky);
+  padding:5px 12px;border-radius:999px;cursor:pointer}
+.spot .btns button:hover{background:var(--sky);color:var(--bg)}
+.spot .btns button.reveal{color:var(--muted);border-color:var(--rule)}
+.spot .btns button.reveal:hover{background:var(--rule);color:var(--ink)}
+.spot .fmt{font-family:var(--mono);font-size:.78rem;color:var(--muted)}
+@media print{.spot .btns,.spot .fmt{display:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Quantum Computation &amp; Cryptography · Lecture 2</a>
+  <button class="ctl" id="theme">light</button>
+</div>
+<h1 id="top">Lecture 2<br>Complex Linear Algebra and Dirac Notation</h1>
+<p class="kicker">Week 1 &nbsp;|&nbsp; the language of amplitudes &nbsp;|&nbsp; reading: Watrous Ch. 1, de Wolf Appendix A</p>
+
+<figure class="toon">
+<svg viewBox="0 0 580 210" width="580" height="210" role="img" aria-labelledby="c2t c2d">
+<title id="c2t">Cartoon: multiplying by i is a quarter turn</title><desc id="c2d">A stick figure points at an arrow lying along the real axis. A curved arrow swings it a quarter turn up to the imaginary axis. A speech bubble says: multiplying by i? That is just turning left.</desc>
+<defs><filter id="rough22" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="22" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough22)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="70" cy="128" r="11"/><path d="M 70 139 L 70 165"/><path d="M 70 145 L 57 163"/><path d="M 70 145 L 96 136"/><path d="M 70 165 L 59 190"/><path d="M 70 165 L 81 190"/>
+<path d="M 300 175 L 480 175"/><path d="M 330 190 L 330 35"/>
+<path d="M 330 175 L 440 175" stroke-width="3"/><path d="M 430 169 L 441 175 L 430 181" stroke-width="3"/>
+<path d="M 330 175 L 330 68" stroke-width="3" stroke="var(--moss)"/><path d="M 324 79 L 330 67 L 336 79" stroke-width="3" stroke="var(--moss)"/>
+<path d="M 432 150 C 420 100, 390 80, 350 72" stroke="var(--rose)"/><path d="M 360 66 L 348 72 L 359 80" stroke="var(--rose)"/>
+<rect x="100" y="12" width="232" height="56" rx="9" fill="var(--surface2)"/>
+<path d="M 128 65 L 96 104 L 160 65" fill="var(--surface2)" stroke-width="1.6"/>
+<path d="M 20 198 L 560 198" stroke-width="1.6"/>
+</g>
+<text x="114" y="36" class="ctext">multiplying by i?</text><text x="114" y="56" class="ctext">that's just turning left.</text>
+<text x="450" y="170" class="ctext">1</text><text x="340" y="66" class="ctext" style="fill:var(--moss)">i</text>
+<text x="404" y="100" class="ccap" style="fill:var(--rose)">x i</text>
+</svg>
+<figcaption class="tooncap">the imaginary unit is not imaginary; it is a rotation</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">Why amplitudes need complex numbers</a></li>
+<li><a href="#s2">Complex numbers as arrows</a></li>
+<li><a href="#s3">Roots of unity: arrows that cancel</a></li>
+<li><a href="#s4">Complex vectors and the inner product</a></li>
+<li><a href="#s5">Dirac notation: kets, bras, brackets</a></li>
+<li><a href="#s6">Outer products and projectors</a></li>
+<li><a href="#s7">Unitary and Hermitian matrices</a></li>
+<li><a href="#s8">The spectral theorem</a></li>
+<li><a href="#s9">Try it in code</a></li>
+<li><a href="#s10">Summary and exercises</a></li>
+</ol>
+</div>
+
+<p>In Lecture 1 we met amplitudes: numbers attached to the outcomes of a qubit, whose squared sizes are probabilities, and which, unlike probabilities, can cancel. This lecture builds the language they are written in. By the end you should be able to compute with complex numbers in both rectangular and polar form; add up roots of unity; take inner products in \(\mathbb C^n\) without forgetting the conjugate; move freely between column vectors and Dirac's kets and bras; and recognise the two families of matrices that run the rest of the course, <strong>unitary</strong> and <strong>Hermitian</strong>.</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; Why amplitudes need complex numbers</h2>
+
+<p>The Lecture 1 example used real amplitudes, and a minus sign was enough to make two paths cancel. Why not stop there? Because between "reinforce" (+) and "cancel" (−) there is a whole circle of possibilities, and nature uses all of them. Two amplitudes of the same size can meet at any relative angle, and the result depends continuously on that angle. A plus or minus sign is just the two ends of that circle, and a complex number is exactly an arrow that can point anywhere on it.</p>
+
+<p>There is also a practical reason. The six states that will appear in every lab this semester are \(|0\rangle,|1\rangle,|+\rangle,|-\rangle\) and two more, \(|{+i}\rangle\) and \(|{-i}\rangle\), and the last two cannot be written with real numbers at all. Neither can the gates that rotate one into another, and neither can the quantum Fourier transform at the heart of Shor's algorithm. So we need complex numbers. The good news is that you need them only as <em>arrows</em>: the algebra is the algebra of rotating and stretching.</p>
+
+<div class="box hist">
+<span class="lbl">history &mdash; the numbers nobody wanted</span>
+<p>Complex numbers were not invented to be useful; they forced their way in. In 1545 Gerolamo Cardano published a formula for solving cubic equations, and it had an embarrassing habit: for some cubics with three perfectly real answers, the formula passed through square roots of negative numbers on the way. In 1572 Rafael Bombelli simply wrote down rules for calculating with these objects and watched the imaginary parts cancel to give the right real answers. René Descartes named them "imaginary" in 1637, meaning it as an insult. In 1748 Leonhard Euler found \(e^{i\theta}=\cos\theta+i\sin\theta\), and around 1800 Caspar Wessel and Jean-Robert Argand drew them as points in a plane. Four centuries later, they are the native language of the smallest things in the universe.</p>
+</div>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; Complex numbers as arrows</h2>
+
+<div class="box def">
+<span class="lbl">definition 2.1 &mdash; complex number, conjugate, modulus</span>
+<p>A <strong>complex number</strong> is \(z=a+bi\) with \(a,b\) real and \(i^2=-1\). We draw it as the point, or arrow, \((a,b)\) in the plane. Its <strong>conjugate</strong> is its mirror image across the real axis, and its <strong>modulus</strong> is its length:</p>
+$$\bar z=a-bi,\qquad |z|=\sqrt{a^2+b^2},\qquad |z|^2=z\,\bar z .$$
+</div>
+
+<p>The identity \(|z|^2=z\bar z\) is the one to remember: multiplying a number by its own conjugate kills the imaginary part and leaves the squared length. It is why conjugates will appear in every inner product below.</p>
+
+<p>An arrow can also be described by its length \(r=|z|\) and the angle \(\theta\) it makes with the positive real axis, its <strong>argument</strong> or <strong>phase</strong>. Euler's formula packages the pair into one symbol:</p>
+$$z=r\,(\cos\theta+i\sin\theta)=r\,e^{i\theta}.$$
+
+<div class="box thm">
+<span class="lbl">proposition 2.1 &mdash; multiplication is rotate-and-stretch</span>
+<p>If \(z=r\,e^{i\theta}\) and \(w=s\,e^{i\varphi}\), then</p>
+$$z\,w=rs\;e^{i(\theta+\varphi)},\qquad \frac{z}{w}=\frac{r}{s}\;e^{i(\theta-\varphi)},\qquad \bar z=r\,e^{-i\theta}.$$
+<p>Lengths multiply and angles add. In particular, multiplying by \(e^{i\varphi}\), a number of length 1, is a pure rotation by \(\varphi\). Multiplying by \(i=e^{i\pi/2}\) is a quarter turn, and multiplying by \(-1=e^{i\pi}\) is a half turn.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Expand with the angle-addition formulas:</p>
+$$\begin{aligned}(\cos\theta+i\sin\theta)(\cos\varphi+i\sin\varphi)&=(\cos\theta\cos\varphi-\sin\theta\sin\varphi)\\[4pt] &\quad+i(\sin\theta\cos\varphi+\cos\theta\sin\varphi)\\[4pt] &=\cos(\theta+\varphi)+i\sin(\theta+\varphi).\end{aligned}$$
+<p>Multiply by \(rs\) for the first identity. The second follows because \(w\cdot\tfrac1s e^{-i\varphi}=1\), and the third because \(\overline{\cos\theta+i\sin\theta}=\cos(-\theta)+i\sin(-\theta)\).</p>
+</div>
+</div>
+
+<div class="spot" data-kind="num" data-ans="6|pi/2" data-labels="length|phase" data-show="|zw| = 6 and arg(zw) = π/2 ≈ 1.571, so zw = 6i">
+<p>Let \(z=2e^{i\pi/3}\) and \(w=3e^{i\pi/6}\). Find the length and the phase (in radians) of \(zw\).</p>
+<div class="hint">Proposition 2.1: lengths multiply and angles add. You never need rectangular form here.</div>
+<div class="why">\(|zw|=2\cdot3=6\) and the phase is \(\tfrac\pi3+\tfrac\pi6=\tfrac\pi2\), so \(zw=6e^{i\pi/2}=6i\).</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 2.1 &mdash; rectangular versus polar</span>
+<p>Let \(z=\sqrt3+i\) and \(w=1+i\). Write both in polar form, then find \(zw\) and \(z/w\) in both forms. Check that the two methods agree.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(|z|=\sqrt{3+1}=2\) at angle \(\pi/6\), and \(|w|=\sqrt2\) at angle \(\pi/4\). So</p>
+$$z=2e^{i\pi/6},\qquad w=\sqrt2\,e^{i\pi/4}.$$
+<p>Polar: lengths multiply and angles add,</p>
+$$zw=2\sqrt2\;e^{i\,5\pi/12},\qquad \frac zw=\sqrt2\;e^{-i\pi/12}.$$
+<p>Rectangular: expand, using \(i^2=-1\),</p>
+$$zw=(\sqrt3+i)(1+i)=\sqrt3+\sqrt3\,i+i+i^2=(\sqrt3-1)+(\sqrt3+1)\,i .$$
+<p>Check the length: \((\sqrt3-1)^2+(\sqrt3+1)^2=2(3+1)=8\), and \(\sqrt8=2\sqrt2\). For the quotient, multiply top and bottom by \(\bar w\) so that the denominator becomes the real number \(|w|^2\):</p>
+$$\frac{z}{w}=\frac{z\,\bar w}{|w|^2}=\frac{(\sqrt3+i)(1-i)}{2}=\frac{(\sqrt3+1)+(1-\sqrt3)\,i}{2}.$$
+<p>Rectangular form is best for adding; polar form is best for multiplying. Quantum computing does a lot of both.</p>
+</div>
+</div>
+
+<figure>
+<svg viewBox="0 0 640 400" width="640" height="400" role="img" aria-labelledby="cpt cpd"><title id="cpt">The complex number z = sqrt(3) + i, its conjugate, and i times z</title><desc id="cpd">Complex plane with real axis horizontal and imaginary axis vertical. The point z = sqrt(3) + i sits at distance 2 from the origin at angle 30 degrees. Its conjugate sqrt(3) - i is the mirror image across the real axis, at angle minus 30 degrees. The point i z = -1 + i sqrt(3) is z turned a quarter turn counterclockwise, at angle 120 degrees and the same distance 2. A dashed circle of radius 2 passes through all three.</desc><defs><marker id="cpA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--sky)"/></marker><marker id="cpB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--amber)"/></marker><marker id="cpC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--rose)"/></marker></defs><rect x="0" y="0" width="640" height="400" rx="8" class="plot-bg"/><line class="gridline" x1="40.0" y1="15" x2="40.0" y2="385"/><line class="gridline" x1="110.0" y1="15" x2="110.0" y2="385"/><line class="gridline" x1="180.0" y1="15" x2="180.0" y2="385"/><line class="gridline" x1="250.0" y1="15" x2="250.0" y2="385"/><line class="gridline" x1="320.0" y1="15" x2="320.0" y2="385"/><line class="gridline" x1="390.0" y1="15" x2="390.0" y2="385"/><line class="gridline" x1="460.0" y1="15" x2="460.0" y2="385"/><line class="gridline" x1="530.0" y1="15" x2="530.0" y2="385"/><line class="gridline" x1="600.0" y1="15" x2="600.0" y2="385"/><line class="gridline" x1="15" y1="345.0" x2="625" y2="345.0"/><line class="gridline" x1="15" y1="275.0" x2="625" y2="275.0"/><line class="gridline" x1="15" y1="205.0" x2="625" y2="205.0"/><line class="gridline" x1="15" y1="135.0" x2="625" y2="135.0"/><line class="gridline" x1="15" y1="65.0" x2="625" y2="65.0"/><line class="axis" x1="15" y1="205" x2="625" y2="205"/><line class="axis" x1="320" y1="15" x2="320" y2="385"/><text class="axtext" x="622.0" y="197.0" text-anchor="end">Re</text><text class="axtext" x="328.0" y="28.0" text-anchor="start">Im</text><text class="axtext" x="180.0" y="223.0" text-anchor="middle">-2</text><text class="axtext" x="250.0" y="223.0" text-anchor="middle">-1</text><text class="axtext" x="390.0" y="223.0" text-anchor="middle">1</text><text class="axtext" x="460.0" y="223.0" text-anchor="middle">2</text><text class="axtext" x="530.0" y="223.0" text-anchor="middle">3</text><text class="axtext" x="600.0" y="223.0" text-anchor="middle">4</text><text class="axtext" x="312.0" y="349.0" text-anchor="end">-2i</text><text class="axtext" x="312.0" y="279.0" text-anchor="end">-1i</text><text class="axtext" x="312.0" y="139.0" text-anchor="end">1i</text><text class="axtext" x="312.0" y="69.0" text-anchor="end">2i</text><circle cx="320" cy="205" r="140" fill="none" stroke="var(--axis)" stroke-dasharray="4 5"/><path d="M360.0,205.0 A40,40 0 0 0 354.6,185.0" fill="none" stroke="var(--sky)" stroke-width="1.6"/><text class="axtext" x="366.0" y="197.0" text-anchor="start" style="fill:var(--sky)">30 deg</text><path d="M453.4,128.0 A154,154 0 0 0 243.0,71.6" fill="none" stroke="var(--rose)" stroke-width="1.6" stroke-dasharray="5 4" marker-end="url(#cpC)"/><text class="axtext" x="363.0" y="44.7" text-anchor="middle" style="fill:var(--rose)">times i: +90 deg</text><line x1="320.0" y1="205.0" x2="441.2" y2="135.0" stroke="var(--sky)" stroke-width="2.4" marker-end="url(#cpA)"/><circle cx="441.2" cy="135.0" r="4" fill="var(--sky)"/><text class="lbltext" x="451.2" y="129.0" text-anchor="start" style="fill:var(--sky)">z = sqrt3 + i</text><line x1="320.0" y1="205.0" x2="441.2" y2="275.0" stroke="var(--amber)" stroke-width="2.4" marker-end="url(#cpB)"/><circle cx="441.2" cy="275.0" r="4" fill="var(--amber)"/><text class="lbltext" x="451.2" y="291.0" text-anchor="start" style="fill:var(--amber)">conj(z) = sqrt3 - i</text><line x1="320.0" y1="205.0" x2="250.0" y2="83.8" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#cpC)"/><circle cx="250.0" cy="83.8" r="4" fill="var(--rose)"/><text class="lbltext" x="238.0" y="75.8" text-anchor="end" style="fill:var(--rose)">iz = -1 + i sqrt3</text><text class="axtext" x="362.6" y="164.0" text-anchor="end">|z| = 2</text></svg>
+<figcaption>The number \(z=\sqrt3+i\) has length 2 and phase \(30^\circ\). Its conjugate is the mirror image; multiplying by \(i\) turns it a quarter turn to \(iz=-1+i\sqrt3\), at \(120^\circ\), without changing its length.</figcaption>
+</figure>
+
+<div class="widget">
+<h4>Multiply two arrows</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Set the length and phase of \(z\) (blue) and \(w\) (gold). The product \(zw\) (rose) has length \(|z||w|\) and phase equal to the sum of the phases. Set \(|w|=1\) to see a pure rotation.</p>
+<svg id="cmSvg" viewBox="0 0 600 340" width="600" height="340" role="img" aria-label="Complex plane showing z, w and their product zw as arrows"></svg>
+<div class="ctrls">
+<label><span>|z| <span id="cmRzv">2.00</span></span><input type="range" id="cmRz" min="0.2" max="2" step="0.05" value="2"></label>
+<label><span>arg z <span id="cmTzv">30</span>&deg;</span><input type="range" id="cmTz" min="-180" max="180" step="1" value="30"></label>
+<label><span>|w| <span id="cmRwv">1.41</span></span><input type="range" id="cmRw" min="0.2" max="2" step="0.01" value="1.41"></label>
+<label><span>arg w <span id="cmTwv">45</span>&deg;</span><input type="range" id="cmTw" min="-180" max="180" step="1" value="45"></label>
+</div>
+<p class="readout" role="status" aria-live="polite" id="cmOut"></p>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; phase is the part you cannot see</span>
+<p>Probabilities are squared lengths, \(|z|^2\), so they cannot see phase at all: \(e^{i\theta}\) has length 1 for every \(\theta\). Yet phase decides what happens when two amplitudes meet, because it decides whether their arrows line up or point apart. Much of quantum computing is the craft of steering phases you cannot observe directly so that, at the moment of measurement, they have arranged themselves into lengths you can.</p>
+</div>
+
+<div class="spot" data-kind="num" data-ans="3" data-labels="|1+e^(iπ/3)|²">
+<p>Two amplitudes of length 1 meet with a relative phase of \(60^\circ\). Compute \(\big|1+e^{i\pi/3}\big|^2\).</p>
+<div class="hint">Write \(e^{i\pi/3}=\tfrac12+\tfrac{\sqrt3}{2}i\), add 1, then take (real part)\(^2\) + (imaginary part)\(^2\). It is not \(1^2+1^2\): lengths do not add like that unless the arrows are perpendicular.</div>
+<div class="why">\(1+e^{i\pi/3}=\tfrac32+\tfrac{\sqrt3}2i\), whose squared length is \(\tfrac94+\tfrac34=3\): between the 4 of "in phase" and the 0 of "opposite".</div>
+</div>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; Roots of unity: arrows that cancel</h2>
+
+<div class="box def">
+<span class="lbl">definition 2.2 &mdash; roots of unity</span>
+<p>For a whole number \(N\ge1\), let \(\omega=e^{2\pi i/N}\). The <strong>\(N\)th roots of unity</strong> are the \(N\) numbers</p>
+$$1,\;\omega,\;\omega^2,\;\dots,\;\omega^{N-1},$$
+<p>equally spaced around the unit circle. Each satisfies \(z^N=1\), and \(\omega^N=1\) means the powers repeat with period \(N\).</p>
+</div>
+
+<div class="box thm">
+<span class="lbl">proposition 2.2 &mdash; the cancellation identity</span>
+<p>For every whole number \(j\),</p>
+$$\sum_{k=0}^{N-1}\omega^{jk}=\begin{cases}N, & \text{if } N \text{ divides } j,\\[4pt] 0, & \text{otherwise.}\end{cases}$$
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Write \(q=\omega^j\). If \(N\) divides \(j\), then \(q=1\) and the sum is \(1+1+\dots+1=N\). Otherwise \(q\neq1\), and the geometric-series formula applies:</p>
+$$\sum_{k=0}^{N-1}q^k=\frac{q^N-1}{q-1}=\frac{(\omega^N)^j-1}{q-1}=\frac{1-1}{q-1}=0 .$$
+<p>Geometrically, the arrows \(q^0,q^1,\dots,q^{N-1}\) are spread symmetrically around the circle, so they pull equally in every direction and cancel.</p>
+</div>
+</div>
+
+<div class="spot" data-kind="select">
+<p>Let \(\omega=e^{2\pi i/10}\). Then \(\sum_{k=0}^{9}\omega^{5k}\) equals
+<select><option data-ok>0</option><option data-hint="What is ω^5? Are all ten terms equal to 1?">10</option><option data-hint="Pair up neighbouring terms.">5</option><option data-hint="Ten terms that alternate in sign: what is left over?">−1</option></select>
+and \(\sum_{k=0}^{9}\omega^{20k}\) equals
+<select><option data-hint="Does 10 divide 20? If so, what is each term ω^{20k}?">0</option><option data-ok>10</option><option data-hint="There are only ten terms; how big can each one be?">20</option></select>.</p>
+<div class="hint">Proposition 2.2 with \(N=10\): ask whether 10 divides \(j\).</div>
+<div class="why">10 does not divide 5, so the first sum is 0 (the terms alternate \(+1,-1\)); 10 divides 20, so every term is 1 and the second sum is 10.</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 2.2 &mdash; the fourth roots</span>
+<p>List the fourth roots of unity and compute \(\sum_{k=0}^{3} i^{2k}\) and \(\sum_{k=0}^{3} i^{4k}\) directly. Check the answers against Proposition 2.2.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Here \(\omega=e^{2\pi i/4}=i\), so the roots are \(1,\,i,\,-1,\,-i\): quarter turns around the circle. Then \(\sum i^{2k}=1-1+1-1=0\), matching \(j=2\), which 4 does not divide. And \(\sum i^{4k}=1+1+1+1=4\), matching \(j=4\), which 4 divides.</p>
+</div>
+</div>
+
+<figure>
+<svg viewBox="0 0 760 320" width="760" height="320" role="img" aria-labelledby="rwt rwd"><title id="rwt">Adding the sixth roots of unity, head to tail</title><desc id="rwd">Three panels. Each adds the six numbers omega to the power j k, for k = 0 to 5, where omega = e^(2 pi i/6), by laying unit arrows head to tail. Left, j = 1: the arrows turn 60 degrees each time and trace a closed hexagon, so the sum is 0. Middle, j = 2: the arrows turn 120 degrees and trace a triangle twice, sum 0. Right, j = 6: every arrow points the same way, so they line up and the sum is 6.</desc><defs><marker id="rwA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--sky)"/></marker><marker id="rwB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--moss)"/></marker><marker id="rwC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--amber)"/></marker></defs><rect x="0" y="0" width="760" height="320" rx="8" class="plot-bg"/><line x1="92.0" y1="225.0" x2="154.0" y2="225.0" stroke="var(--sky)" stroke-width="2.2" marker-end="url(#rwA)"/><line x1="154.0" y1="225.0" x2="185.0" y2="171.3" stroke="var(--sky)" stroke-width="2.2" marker-end="url(#rwA)"/><line x1="185.0" y1="171.3" x2="154.0" y2="117.6" stroke="var(--sky)" stroke-width="2.2" marker-end="url(#rwA)"/><line x1="154.0" y1="117.6" x2="92.0" y2="117.6" stroke="var(--sky)" stroke-width="2.2" marker-end="url(#rwA)"/><line x1="92.0" y1="117.6" x2="61.0" y2="171.3" stroke="var(--sky)" stroke-width="2.2" marker-end="url(#rwA)"/><line x1="61.0" y1="171.3" x2="92.0" y2="225.0" stroke="var(--sky)" stroke-width="2.2" marker-end="url(#rwA)"/><circle cx="92" cy="225" r="4.5" fill="var(--ink)"/><text class="axtext" x="84.0" y="243.0" text-anchor="end">start</text><text class="lbltext" x="123.0" y="34.0" text-anchor="middle" style="fill:var(--sky)">j = 1: hexagon closes</text><text class="lbltext" x="123.0" y="272.0" text-anchor="middle">sum = 0</text><line x1="300.0" y1="225.0" x2="412.0" y2="225.0" stroke="var(--moss)" stroke-width="2.2" marker-end="url(#rwB)"/><line x1="412.0" y1="225.0" x2="356.0" y2="128.0" stroke="var(--moss)" stroke-width="2.2" marker-end="url(#rwB)"/><line x1="356.0" y1="128.0" x2="300.0" y2="225.0" stroke="var(--moss)" stroke-width="2.2" marker-end="url(#rwB)"/><line x1="303.0" y1="228.0" x2="415.0" y2="228.0" stroke="var(--moss)" stroke-width="2.2" marker-end="url(#rwB)"/><line x1="415.0" y1="228.0" x2="359.0" y2="131.0" stroke="var(--moss)" stroke-width="2.2" marker-end="url(#rwB)"/><line x1="359.0" y1="131.0" x2="303.0" y2="228.0" stroke="var(--moss)" stroke-width="2.2" marker-end="url(#rwB)"/><circle cx="300" cy="225" r="4.5" fill="var(--ink)"/><text class="axtext" x="292.0" y="243.0" text-anchor="end">start</text><text class="lbltext" x="356.0" y="34.0" text-anchor="middle" style="fill:var(--moss)">j = 2: triangle, twice</text><text class="lbltext" x="356.0" y="272.0" text-anchor="middle">sum = 0</text><line x1="474.0" y1="178.0" x2="518.0" y2="178.0" stroke="var(--amber)" stroke-width="2.2" marker-end="url(#rwC)"/><line x1="518.0" y1="178.0" x2="562.0" y2="178.0" stroke="var(--amber)" stroke-width="2.2" marker-end="url(#rwC)"/><line x1="562.0" y1="178.0" x2="606.0" y2="178.0" stroke="var(--amber)" stroke-width="2.2" marker-end="url(#rwC)"/><line x1="606.0" y1="178.0" x2="650.0" y2="178.0" stroke="var(--amber)" stroke-width="2.2" marker-end="url(#rwC)"/><line x1="650.0" y1="178.0" x2="694.0" y2="178.0" stroke="var(--amber)" stroke-width="2.2" marker-end="url(#rwC)"/><line x1="694.0" y1="178.0" x2="738.0" y2="178.0" stroke="var(--amber)" stroke-width="2.2" marker-end="url(#rwC)"/><circle cx="474" cy="178" r="4.5" fill="var(--ink)"/><text class="axtext" x="466.0" y="196.0" text-anchor="end">start</text><text class="lbltext" x="606.0" y="34.0" text-anchor="middle" style="fill:var(--amber)">j = 6: all aligned</text><text class="lbltext" x="606.0" y="272.0" text-anchor="middle">sum = 6</text><text class="axtext" x="380.0" y="306.0" text-anchor="middle">omega = e^(2 pi i / 6); each panel adds omega^(j k) for k = 0,...,5</text></svg>
+<figcaption>Adding the six numbers \(\omega^{jk}\) (\(\omega=e^{2\pi i/6}\)) by laying unit arrows head to tail. When 6 does not divide \(j\) the walk returns to its start and the sum is 0; when it does, every arrow points the same way and the sum is 6.</figcaption>
+</figure>
+
+<div class="widget">
+<h4>Walk the roots of unity</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Choose \(N\) and \(j\). Left: the \(N\) arrows \(\omega^{jk}\) on the unit circle. Right: the same arrows laid head to tail. The walk closes unless \(N\) divides \(j\). Try \(N=8\) with \(j=2\), \(4\) and \(8\).</p>
+<svg id="ruSvg" viewBox="0 0 600 300" width="600" height="300" role="img" aria-label="Roots of unity on a circle and their head-to-tail sum"></svg>
+<div class="ctrls">
+<label><span>N <span id="ruNv">6</span></span><input type="range" id="ruN" min="1" max="12" step="1" value="6"></label>
+<label><span>j <span id="ruJv">1</span></span><input type="range" id="ruJ" min="0" max="24" step="1" value="1"></label>
+</div>
+<p class="readout" role="status" aria-live="polite" id="ruOut"></p>
+</div>
+
+<div class="box crypto">
+<span class="lbl">crypto connection &mdash; the engine of Shor's algorithm</span>
+<p>Proposition 2.2 looks like a curiosity. It is the single most important identity in this course. The quantum Fourier transform (Lecture 13) sends a state that repeats with some hidden period into a state concentrated on multiples of \(N\) divided by that period. It works because every other outcome collects a sum of roots of unity that cancels exactly. Shor's algorithm uses that to find the period of \(a^x \bmod N\), and from the period it factors \(N\) and breaks RSA. When you see a quantum speedup, look for a sum of roots of unity quietly adding up to zero.</p>
+</div>
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; Complex vectors and the inner product</h2>
+
+<p>A qubit state lives in \(\mathbb C^2\), and \(n\) qubits live in \(\mathbb C^{2^n}\). Vectors there add and scale exactly as in \(\mathbb R^n\). The one thing that changes is how we measure lengths and angles.</p>
+
+<p>Try the real formula on \(u=(1,\,i)\): \(u_1^2+u_2^2=1+i^2=0\). A nonzero vector of "length zero" is useless, so the real dot product has to be repaired. The repair is the identity \(|z|^2=z\bar z\): conjugate one side.</p>
+
+<div class="box def">
+<span class="lbl">definition 2.3 &mdash; inner product and norm on \(\mathbb C^n\)</span>
+<p>For \(u,v\in\mathbb C^n\),</p>
+$$\langle u,v\rangle=\sum_{k=1}^{n}\overline{u_k}\,v_k,\qquad \lVert u\rVert=\sqrt{\langle u,u\rangle}=\sqrt{\sum_k |u_k|^2}.$$
+<p>The conjugate goes on the <strong>first</strong> vector; this is the physicists' convention, and the one Qiskit and NumPy's <code>vdot</code> use. Two vectors are <strong>orthogonal</strong> if \(\langle u,v\rangle=0\). A basis of unit vectors that are pairwise orthogonal is <strong>orthonormal</strong>.</p>
+</div>
+
+<p>Three properties do all the work. The inner product is linear in the second slot; swapping the slots conjugates it, \(\langle v,u\rangle=\overline{\langle u,v\rangle}\); and \(\langle u,u\rangle\ge0\), with equality only for \(u=0\). The second property is new: in \(\mathbb C^n\) the order of an inner product matters.</p>
+
+<div class="spot" data-kind="num" data-ans="3|-1" data-labels="Re,Im" data-show="⟨u,v⟩ = 3 − i">
+<p>Let \(u=(i,\;2)\) and \(v=(1+i,\;1)\). Compute \(\langle u,v\rangle\) and give its real and imaginary parts.</p>
+<div class="hint">Conjugate the <em>first</em> vector: \(\bar u=(-i,\;2)\). Then \(\langle u,v\rangle=(-i)(1+i)+2\cdot1\).</div>
+<div class="why">\((-i)(1+i)=-i+1\), so \(\langle u,v\rangle=3-i\). Without the conjugate you would get \(1+i\).</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 2.3 &mdash; computing an inner product</span>
+<p>Let \(u=(1,\;i)\) and \(v=(2,\;1-i)\). Find \(\langle u,v\rangle\), \(\langle v,u\rangle\), \(\lVert u\rVert\) and \(\lVert v\rVert\). What does the unconjugated formula give?</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Conjugate the entries of \(u\) first: \(\bar u=(1,\,-i)\). Then</p>
+$$\langle u,v\rangle=1\cdot2+(-i)(1-i)=2-i+i^2=1-i,$$
+$$\langle v,u\rangle=\overline{1-i}=1+i .$$
+<p>For the norms, \(\lVert u\rVert^2=|1|^2+|i|^2=2\) and \(\lVert v\rVert^2=4+|1-i|^2=4+2=6\), so \(\lVert u\rVert=\sqrt2\) and \(\lVert v\rVert=\sqrt6\). Without the conjugate you would get \(2+i(1-i)=3+i\), a different and meaningless number.</p>
+</div>
+</div>
+
+<p>Orthonormal bases are useful because coordinates become inner products. If \(b_1,\dots,b_n\) is orthonormal, then every vector satisfies</p>
+$$v=\sum_k c_k\,b_k\qquad\text{with}\qquad c_k=\langle b_k,v\rangle .$$
+<p>No linear system to solve: just take inner products. To check, take the inner product of both sides with \(b_j\); every term vanishes except \(c_j\langle b_j,b_j\rangle=c_j\).</p>
+
+<div class="box ex">
+<span class="lbl">example 2.4 &mdash; the plus/minus basis</span>
+<p>Show that \(b_+=\tfrac{1}{\sqrt2}(1,\,1)\) and \(b_-=\tfrac{1}{\sqrt2}(1,\,-1)\) form an orthonormal basis of \(\mathbb C^2\), and find the coordinates of a general state \((\alpha,\beta)\) in this basis.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(\langle b_+,b_+\rangle=\tfrac12(1+1)=1\), likewise \(\langle b_-,b_-\rangle=1\), and \(\langle b_+,b_-\rangle=\tfrac12(1-1)=0\). Two orthonormal vectors in a 2-dimensional space form a basis. The coordinates are inner products:</p>
+$$c_+=\langle b_+,(\alpha,\beta)\rangle=\frac{\alpha+\beta}{\sqrt2},\qquad c_-=\langle b_-,(\alpha,\beta)\rangle=\frac{\alpha-\beta}{\sqrt2}.$$
+<p>For the Lecture 1 state \((0.6,\,0.8)\) this gives \(c_+=1.4/\sqrt2\approx0.990\) and \(c_-\approx-0.141\), exactly the numbers we got from the Hadamard gate. That is no coincidence, as Section 7 will show.</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; a measurement is a choice of basis</span>
+<p>Reading a qubit "in the standard basis" gives outcome \(k\) with probability \(|\text{coordinate } k|^2\). Nothing is special about the standard basis. Pick any orthonormal basis, compute the coordinates of your state by inner products, and their squared lengths are the probabilities of a different measurement. The state stays the same; the question you ask it changes. This is the Born rule, and Lecture 3 makes it official.</p>
+</div>
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; Dirac notation: kets, bras, brackets</h2>
+
+<p>Physicists write quantum states in a notation invented by Paul Dirac in 1939. It looks odd for about a week and then becomes indispensable, because the notation does half the algebra for you.</p>
+
+<div class="box def">
+<span class="lbl">definition 2.4 &mdash; ket, bra, bracket</span>
+<p>A <strong>ket</strong> \(|v\rangle\) is a column vector. Its <strong>bra</strong> \(\langle v|\) is the conjugate transpose, a row vector. Putting a bra next to a ket multiplies them as matrices and produces the inner product, a <strong>bracket</strong>:</p>
+$$|v\rangle=\begin{pmatrix}v_1\\[2pt] \vdots\\[2pt] v_n\end{pmatrix},\qquad
+\langle v|=\begin{pmatrix}\overline{v_1} & \cdots & \overline{v_n}\end{pmatrix},\qquad
+\langle u|v\rangle=\langle u|\,|v\rangle=\sum_k\overline{u_k}\,v_k .$$
+<p>The label inside the ket is just a name. \(|0\rangle\), \(|+\rangle\) and \(|\psi\rangle\) are vectors named 0, plus and psi.</p>
+</div>
+
+<p>The six single-qubit states below will follow us all semester. The first two are the standard basis; each row pair is an orthonormal basis.</p>
+
+<table>
+<tr><th>ket</th><th>column</th><th>bra (conjugate row)</th><th>basis</th></tr>
+<tr><td>\(|0\rangle\), \(|1\rangle\)</td><td>\((1,0)^{\mathsf T}\), \((0,1)^{\mathsf T}\)</td><td>\((1\;\;0)\), \((0\;\;1)\)</td><td>standard (Z)</td></tr>
+<tr><td>\(|\pm\rangle\)</td><td>\(\tfrac{1}{\sqrt2}(1,\,\pm1)^{\mathsf T}\)</td><td>\(\tfrac{1}{\sqrt2}(1\;\;\pm1)\)</td><td>Hadamard (X)</td></tr>
+<tr><td>\(|{\pm i}\rangle\)</td><td>\(\tfrac{1}{\sqrt2}(1,\,\pm i)^{\mathsf T}\)</td><td>\(\tfrac{1}{\sqrt2}(1\;\;\mp i)\)</td><td>circular (Y)</td></tr>
+</table>
+
+<p>Notice the \(\mp\) in the last bra: the conjugate flips the sign of \(i\). The standard basis turns any vector into kets immediately: \((\alpha,\beta)^{\mathsf T}=\alpha|0\rangle+\beta|1\rangle\).</p>
+
+<div class="spot" data-kind="mc">
+<p>What is the bra of \(|\psi\rangle=\tfrac12\big(\sqrt3\,|0\rangle-i|1\rangle\big)\)?</p>
+<ul class="opts">
+<li>\(\tfrac12\begin{pmatrix}\sqrt3 &amp; -i\end{pmatrix}\)<span class="oh">That is only the transpose. A bra is the <em>conjugate</em> transpose, so the sign of \(i\) must flip.</span></li>
+<li data-ok>\(\tfrac12\begin{pmatrix}\sqrt3 &amp; i\end{pmatrix}\)</li>
+<li>\(\tfrac12\begin{pmatrix}\sqrt3\\ i\end{pmatrix}\)<span class="oh">Right entries, wrong shape: a bra is a row, so that it can sit to the left of a ket.</span></li>
+<li>\(\tfrac12\begin{pmatrix}-\sqrt3 &amp; i\end{pmatrix}\)<span class="oh">Conjugation leaves real numbers alone: the \(\sqrt3\) keeps its sign.</span></li>
+</ul>
+<div class="hint">Definition 2.4: transpose to a row, and conjugate every entry.</div>
+<div class="why">Conjugating \(-i\) gives \(+i\) and leaves \(\sqrt3\) unchanged, so \(\langle\psi|=\tfrac12(\sqrt3\;\;i)\).</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 2.5 &mdash; the conjugate at work</span>
+<p>Show that \(|{+i}\rangle\) and \(|{-i}\rangle\) are orthogonal. Then compute the same product without the conjugate and see what goes wrong.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The bra of \(|{+i}\rangle\) is \(\tfrac1{\sqrt2}(1\;\;-i)\). So</p>
+$$\begin{aligned}\langle{+i}|{-i}\rangle&=\frac12\begin{pmatrix}1 & -i\end{pmatrix}\begin{pmatrix}1\\[2pt] -i\end{pmatrix}\\[4pt] &=\frac12\big(1+(-i)(-i)\big)=\frac12(1+i^2)=\frac12(1-1)=0 .\end{aligned}$$
+<p>Forgetting to conjugate gives \(\tfrac12(1\cdot1+i\cdot(-i))=\tfrac12(1+1)=1\): the two states would look identical instead of perfectly distinguishable. This is the most common slip in all of this material.</p>
+</div>
+</div>
+
+<div class="widget">
+<h4>Bra-ket calculator</h4>
+<p style="font-size:.92rem;margin:.2em 0 .6em">Pick a bra and a ket. The readout shows the bracket \(\langle u|v\rangle\), its squared size (the probability that a measurement in the \(u\)-basis finds \(|v\rangle\) looking like \(|u\rangle\)), and what you get if you forget the conjugate.</p>
+<div class="ctrls" id="bkBra" aria-label="choose the bra"></div>
+<div class="ctrls" id="bkKet" aria-label="choose the ket"></div>
+<p class="readout" role="status" aria-live="polite" id="bkOut"></p>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; why the notation is worth it</span>
+<p>In Dirac notation, a bra next to a ket is a number and a ket next to a bra is a matrix. The shapes enforce the algebra: \(\langle u|v\rangle\) can only be a scalar, and \(|u\rangle\langle v|\), coming next, can only be a matrix. Once you trust the shapes, long calculations become bookkeeping: move the brackets around and let the scalars fall out.</p>
+</div>
+
+<!-- =================== 6 =================== -->
+<h2 id="s6">6 &mdash; Outer products and projectors</h2>
+
+<div class="box def">
+<span class="lbl">definition 2.5 &mdash; outer product, projector</span>
+<p>The <strong>outer product</strong> \(|u\rangle\langle v|\) is the matrix column times row. It acts on a ket by</p>
+$$\big(|u\rangle\langle v|\big)\,|w\rangle=|u\rangle\,\langle v|w\rangle=\langle v|w\rangle\,|u\rangle .$$
+<p>If \(|u\rangle\) is a unit vector, \(P_u=|u\rangle\langle u|\) is the <strong>projector</strong> onto the line through \(|u\rangle\): it keeps the \(|u\rangle\)-component of any vector and discards the rest.</p>
+</div>
+
+<figure>
+<svg viewBox="0 0 600 330" width="600" height="330" role="img" aria-labelledby="pjt pjd"><title id="pjt">Projecting a vector onto a line</title><desc id="pjd">A unit vector u at 30 degrees spans a line. A vector v = (1.5, 2) is projected onto the line: the projection P v = (u . v) u lands at about (1.99, 1.15), and the leftover v - P v meets the line at a right angle.</desc><defs><marker id="pjA" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--sky)"/></marker><marker id="pjB" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--rose)"/></marker><marker id="pjC" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="var(--moss)"/></marker></defs><rect x="0" y="0" width="600" height="330" rx="8" class="plot-bg"/><line x1="58.2" y1="303.4" x2="481.0" y2="59.3" stroke="var(--axis)" stroke-width="1.5" stroke-dasharray="6 5"/><text class="axtext" x="477.0" y="77.3" text-anchor="end">line spanned by u</text><line x1="90.0" y1="285.0" x2="247.5" y2="75.0" stroke="var(--rose)" stroke-width="2.4" marker-end="url(#pjB)"/><line x1="90.0" y1="285.0" x2="299.1" y2="164.3" stroke="var(--moss)" stroke-width="3.4"/><circle cx="299.1" cy="164.3" r="5" fill="var(--moss)"/><line x1="90.0" y1="285.0" x2="180.9" y2="232.5" stroke="var(--sky)" stroke-width="3.2" marker-end="url(#pjA)"/><line x1="247.5" y1="75.0" x2="299.1" y2="164.3" stroke="var(--amber)" stroke-width="2" stroke-dasharray="5 4"/><path d="M288.7,170.3 L282.7,159.9 L293.1,153.9" fill="none" stroke="var(--amber)" stroke-width="1.5"/><text class="lbltext" x="184.9" y="252.5" text-anchor="start" style="fill:var(--sky)">u</text><text class="lbltext" x="255.5" y="71.0" text-anchor="start" style="fill:var(--rose)">v</text><text class="lbltext" x="311.1" y="184.3" text-anchor="start" style="fill:var(--moss)">Pv = (u.v) u</text><text class="lbltext" x="283.3" y="119.7" text-anchor="start" style="fill:var(--amber)">v - Pv</text><circle cx="90.0" cy="285.0" r="3.5" fill="var(--ink)"/><text class="axtext" x="584.0" y="26.0" text-anchor="end">u.v = 2.299</text></svg>
+<figcaption>A real picture of a projector. \(P=|u\rangle\langle u|\) sends \(v\) to its shadow \(\langle u|v\rangle\,u\) on the line through \(u\), and the leftover \(v-Pv\) is perpendicular to that line. Here \(u\) is at \(30^\circ\), \(v=(1.5,\,2)\) and \(\langle u|v\rangle\approx2.299\).</figcaption>
+</figure>
+
+<p>Two facts follow straight from the notation. Projecting twice changes nothing, \(P_u^2=|u\rangle\langle u|u\rangle\langle u|=P_u\), because \(\langle u|u\rangle=1\). And the projectors onto an orthonormal basis add up to the identity, the <strong>completeness relation</strong>:</p>
+$$\sum_k |b_k\rangle\langle b_k|=I.$$
+<p>For example,</p>
+$$ |0\rangle\langle0|+|1\rangle\langle1|=|+\rangle\langle+|+|-\rangle\langle-|=I .$$
+<p>Completeness is the expansion \(v=\sum_k c_k b_k\) of Section 4 written as a matrix identity, and it will save you pages of algebra: you can insert \(I=\sum_k|b_k\rangle\langle b_k|\) anywhere in a calculation.</p>
+
+<div class="spot" data-kind="num" data-ans="0.36|0.48" data-labels="row 1, col 1|row 1, col 2">
+<p>Let \(|u\rangle=0.6|0\rangle+0.8|1\rangle\). Find the top row of the projector \(P_u=|u\rangle\langle u|\).</p>
+<div class="hint">Column times row: entry \((j,k)\) of \(|u\rangle\langle u|\) is \(u_j\,\overline{u_k}\).</div>
+<div class="why">The top row is \((0.6\cdot0.6,\;0.6\cdot0.8)=(0.36,\;0.48)\). The diagonal entries 0.36 and 0.64 are the outcome probabilities of \(|u\rangle\) in the standard basis.</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 2.6 &mdash; Lecture 1's coin was a projector</span>
+<p>Write \(|+\rangle\langle+|\) as a matrix. Compare it with the fair-coin matrix \(F\) of Lecture 1. Then compute \(\langle\psi|\,P_+\,|\psi\rangle\) for \(|\psi\rangle=0.6|0\rangle+0.8|1\rangle\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+$$|+\rangle\langle+|=\frac{1}{\sqrt2}\begin{pmatrix}1\\[2pt] 1\end{pmatrix}\frac{1}{\sqrt2}\begin{pmatrix}1 & 1\end{pmatrix}=\frac12\begin{pmatrix}1 & 1\\[2pt] 1 & 1\end{pmatrix}=F .$$
+<p>The fair coin was a projector all along, which explains why applying it twice gave nothing new: \(F^2=F\). Next,</p>
+$$\langle\psi|P_+|\psi\rangle=\langle\psi|+\rangle\langle+|\psi\rangle=|\langle+|\psi\rangle|^2=\Big(\frac{0.6+0.8}{\sqrt2}\Big)^2=0.98 .$$
+<p>That is the probability 0.98 we found in Lecture 1, now computed as "how much of \(|\psi\rangle\) lies along \(|+\rangle\)". The pattern \(\langle\psi|P|\psi\rangle=\) probability is the general rule of measurement.</p>
+</div>
+</div>
+
+<!-- =================== 7 =================== -->
+<h2 id="s7">7 &mdash; Unitary and Hermitian matrices</h2>
+
+<div class="box def">
+<span class="lbl">definition 2.6 &mdash; adjoint</span>
+<p>The <strong>adjoint</strong> (or conjugate transpose, or "dagger") of a matrix \(A\) is \(A^\dagger=\overline{A}^{\mathsf T}\). It is the matrix version of turning a ket into a bra: \((|v\rangle)^\dagger=\langle v|\). It reverses products and moves across brackets:</p>
+$$(AB)^\dagger=B^\dagger A^\dagger,\qquad \langle u|\,A\,v\rangle=\langle A^\dagger u\,|\,v\rangle .$$
+</div>
+
+<div class="box def">
+<span class="lbl">definition 2.7 &mdash; unitary matrix</span>
+<p>A square matrix \(U\) is <strong>unitary</strong> if</p>
+$$U^\dagger U=I,$$
+<p>so \(U\) is invertible and its inverse is simply its adjoint. Unitary matrices are the <em>quantum gates</em>: every step of a quantum computation, short of measurement, is one.</p>
+</div>
+
+<div class="box thm">
+<span class="lbl">proposition 2.3 &mdash; what unitaries preserve</span>
+<p>If \(U\) is unitary, then (a) \(\langle Uu|Uv\rangle=\langle u|v\rangle\) for all \(u,v\), so \(U\) preserves lengths, angles and orthogonality; (b) the columns of \(U\) form an orthonormal basis; (c) every eigenvalue of \(U\) has \(|\lambda|=1\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>(a) Move \(U\) across the bracket: \(\langle Uu|Uv\rangle=\langle u|U^\dagger U v\rangle=\langle u|v\rangle\).</p>
+<p>(b) The \((j,k)\) entry of \(U^\dagger U\) is (row \(j\) of \(U^\dagger\)) times (column \(k\) of \(U\)), which is \(\langle \text{col}_j|\text{col}_k\rangle\). Setting \(U^\dagger U=I\) says exactly that these brackets are 1 when \(j=k\) and 0 otherwise. (The converse, that orthonormal columns make \(U\) unitary, is HW1.)</p>
+<p>(c) Save it for exercise 6.</p>
+</div>
+</div>
+
+<div class="spot" data-kind="select">
+<p>A unitary matrix has an eigenvalue \(\lambda\). Which of these could \(\lambda\) be?
+<select><option data-hint="A unitary preserves lengths, so it cannot double the length of an eigenvector.">2</option><option data-hint="Then U would send a nonzero vector to 0, and U would not be invertible.">0</option><option data-ok>(1 + i)/√2</option><option data-hint="Its length is √2, not 1.">1 + i</option></select></p>
+<div class="hint">Proposition 2.3: \(U\) preserves lengths, and \(\lVert Uv\rVert=\lVert\lambda v\rVert=|\lambda|\,\lVert v\rVert\).</div>
+<div class="why">Only \(\tfrac{1+i}{\sqrt2}=e^{i\pi/4}\) has \(|\lambda|=1\). It really occurs, for instance as an eigenvalue of \(\mathrm{diag}(1,e^{i\pi/4})\).</div>
+</div>
+
+<div class="box def">
+<span class="lbl">definition 2.8 &mdash; Hermitian matrix</span>
+<p>A square matrix \(A\) is <strong>Hermitian</strong> if \(A^\dagger=A\): it equals its own conjugate transpose. Hermitian matrices are the quantum version of real numbers. They will describe measurements and energies, and their key property is that their eigenvalues are real.</p>
+</div>
+
+<div class="spot" data-kind="multi">
+<p>Tick every Hermitian matrix.</p>
+<ul class="opts">
+<li data-ok>\(\begin{pmatrix}2 &amp; 1-i\\ 1+i &amp; 3\end{pmatrix}\)</li>
+<li>\(\begin{pmatrix}1 &amp; i\\ i &amp; 1\end{pmatrix}\)<span class="oh">This one is symmetric, but conjugating turns each \(i\) into \(-i\), so \(A^\dagger\neq A\). Symmetric and Hermitian agree only for real matrices.</span></li>
+<li data-ok>\(\begin{pmatrix}0 &amp; 2\\ 2 &amp; 0\end{pmatrix}\)</li>
+<li>\(\begin{pmatrix}i &amp; 0\\ 0 &amp; i\end{pmatrix}\)<span class="oh">A Hermitian matrix must have real diagonal entries, since each one equals its own conjugate.</span></li>
+<li data-ok>\(\begin{pmatrix}5 &amp; 0\\ 0 &amp; -1\end{pmatrix}\)</li>
+</ul>
+<div class="hint">For each matrix, conjugate every entry and transpose. Is the result the same matrix?</div>
+<div class="why">The first, third and fifth equal their conjugate transposes. The second is only symmetric, and the fourth has imaginary diagonal entries.</div>
+</div>
+
+<div class="box thm">
+<span class="lbl">proposition 2.4 &mdash; Hermitian matrices have real eigenvalues</span>
+<p>If \(A^\dagger=A\) and \(A|v\rangle=\lambda|v\rangle\) with \(|v\rangle\neq0\), then \(\lambda\) is real. Eigenvectors for different eigenvalues are orthogonal.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Compute \(\langle v|A|v\rangle\) two ways. Using \(A|v\rangle=\lambda|v\rangle\) gives \(\lambda\langle v|v\rangle\). Moving \(A\) to the bra, \(\langle A^\dagger v|v\rangle=\langle Av|v\rangle=\bar\lambda\langle v|v\rangle\), where the conjugate appears because the first slot is conjugated. Since \(\langle v|v\rangle>0\), \(\lambda=\bar\lambda\). For orthogonality, if \(A|w\rangle=\mu|w\rangle\) with \(\mu\neq\lambda\), the same trick gives \(\lambda\langle w|v\rangle=\langle w|A|v\rangle=\mu\langle w|v\rangle\), so \(\langle w|v\rangle=0\).</p>
+</div>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 2.7 &mdash; a gallery of gates</span>
+<p>Decide which of these matrices are unitary and which are Hermitian:</p>
+$$X=\begin{pmatrix}0 & 1\\[2pt] 1 & 0\end{pmatrix},\qquad Y=\begin{pmatrix}0 & -i\\[2pt] i & 0\end{pmatrix},\qquad Z=\begin{pmatrix}1 & 0\\[2pt] 0 & -1\end{pmatrix},$$
+$$H=\frac{1}{\sqrt2}\begin{pmatrix}1 & 1\\[2pt] 1 & -1\end{pmatrix},\qquad S=\begin{pmatrix}1 & 0\\[2pt] 0 & i\end{pmatrix},\qquad F=\frac12\begin{pmatrix}1 & 1\\[2pt] 1 & 1\end{pmatrix}.$$
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<table>
+<tr><th>matrix</th><th>unitary?</th><th>Hermitian?</th><th>reason</th></tr>
+<tr><td>\(X,\;Y,\;Z\)</td><td>yes</td><td>yes</td><td>columns orthonormal, and each equals its conjugate transpose</td></tr>
+<tr><td>\(H\)</td><td>yes</td><td>yes</td><td>real and symmetric, and \(H^2=I\), so \(H^\dagger H=H^2=I\)</td></tr>
+<tr><td>\(S\)</td><td>yes</td><td>no</td><td>\(S^\dagger=\mathrm{diag}(1,-i)\neq S\), but \(S^\dagger S=\mathrm{diag}(1,|i|^2)=I\)</td></tr>
+<tr><td>\(F\)</td><td>no</td><td>yes</td><td>\(\det F=0\): not invertible, so it cannot be unitary</td></tr>
+</table>
+<p>So unitary and Hermitian are independent properties. The Pauli matrices and \(H\) happen to be both, which is why they turn up both as gates and as measurements.</p>
+<p>One more look at \(H\): its rows are the bras \(\langle+|\) and \(\langle-|\), so \(H|\psi\rangle=(\langle+|\psi\rangle,\;\langle-|\psi\rangle)\) lists the coordinates of \(|\psi\rangle\) in the plus/minus basis. That is why Example 2.4 reproduced the Lecture 1 numbers.</p>
+</div>
+</div>
+
+<table>
+<tr><th></th><th>stochastic (Lecture 1)</th><th>unitary (from now on)</th></tr>
+<tr><td>acts on</td><td>probability vectors</td><td>amplitude vectors</td></tr>
+<tr><td>preserves</td><td>1-norm \(\sum p_k=1\)</td><td>2-norm \(\sum|\psi_k|^2=1\)</td></tr>
+<tr><td>entries</td><td>nonnegative reals</td><td>any complex numbers</td></tr>
+<tr><td>inverse</td><td>usually none: information is lost</td><td>always, \(U^{-1}=U^\dagger\): nothing is lost</td></tr>
+<tr><td>example</td><td>fair coin \(F\)</td><td>Hadamard \(H\)</td></tr>
+</table>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; quantum computation runs backwards</span>
+<p>The last row of the table is profound. A fair coin destroys information: after flipping it you cannot tell what it was before. A unitary destroys nothing, since \(U^\dagger\) undoes it exactly. Between measurements a quantum computer is perfectly reversible, and the only irreversible step is measurement itself. This is why, in Lecture 7, even ordinary AND gates must be rebuilt in reversible form before a quantum computer can run them.</p>
+</div>
+
+<!-- =================== 8 =================== -->
+<h2 id="s8">8 &mdash; The spectral theorem</h2>
+
+<div class="box thm">
+<span class="lbl">theorem 2.5 &mdash; spectral theorem (statement)</span>
+<p>Let \(A\) be Hermitian or unitary (more generally, normal: \(A^\dagger A=AA^\dagger\)). Then \(A\) has an orthonormal basis of eigenvectors \(|e_1\rangle,\dots,|e_n\rangle\) with eigenvalues \(\lambda_1,\dots,\lambda_n\), and</p>
+$$A=\sum_{k=1}^{n}\lambda_k\,|e_k\rangle\langle e_k| .$$
+<p>In words: every such matrix is a weighted sum of projectors onto perpendicular lines. It stretches each line by its own eigenvalue and leaves the lines perpendicular.</p>
+</div>
+
+<div class="spot" data-kind="num" data-ans="3|-1" data-labels="row 1, col 1|row 1, col 2">
+<p>A matrix has eigenvector \(|+\rangle\) with eigenvalue 2 and eigenvector \(|-\rangle\) with eigenvalue 4, so \(A=2|+\rangle\langle+|+4|-\rangle\langle-|\). Find the top row of \(A\).</p>
+<div class="hint">\(|+\rangle\langle+|=\tfrac12\begin{pmatrix}1&amp;1\\ 1&amp;1\end{pmatrix}\) and \(|-\rangle\langle-|=\tfrac12\begin{pmatrix}1&amp;-1\\ -1&amp;1\end{pmatrix}\). Weight them and add.</div>
+<div class="why">The top row is \(\big(\tfrac{2+4}{2},\ \tfrac{2-4}{2}\big)=(3,\,-1)\), so \(A=\begin{pmatrix}3&amp;-1\\ -1&amp;3\end{pmatrix}\).</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; what about matrices that are not normal?</span>
+<p>Many matrices have no orthonormal basis of eigenvectors. The shear</p>
+$$\begin{pmatrix}1&1\\[2pt] 0&1\end{pmatrix}$$
+<p>has the single eigenvalue 1 and only one eigenvector direction, so it cannot be diagonalised at all. Lecture 5 needs to analyse arbitrary \(2\times2\) matrices (the coefficient matrices of two-qubit states), and there we meet the <strong>singular value decomposition</strong>, which works for every matrix by using two orthonormal bases instead of one. It is built from this theorem, applied to the Hermitian matrix \(A^\dagger A\).</p>
+</div>
+
+<div class="box ex">
+<span class="lbl">example 2.8 &mdash; decomposing X</span>
+<p>Find the eigenvalues and eigenvectors of \(X\) and write its spectral decomposition.</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(X\) swaps the two entries of a vector, so it fixes \((1,1)\) and negates \((1,-1)\): \(X|+\rangle=|+\rangle\) and \(X|-\rangle=-|-\rangle\). Hence</p>
+$$\begin{aligned}X&=(+1)\,|+\rangle\langle+|+(-1)\,|-\rangle\langle-|\\[4pt] &=\frac12\begin{pmatrix}1 & 1\\[2pt] 1 & 1\end{pmatrix}-\frac12\begin{pmatrix}1 & -1\\[2pt] -1 & 1\end{pmatrix}=\begin{pmatrix}0 & 1\\[2pt] 1 & 0\end{pmatrix}.\end{aligned}$$
+</div>
+</div>
+
+<table>
+<tr><th>Pauli matrix</th><th>eigenvalue \(+1\)</th><th>eigenvalue \(-1\)</th><th>spectral form</th></tr>
+<tr><td>\(Z\)</td><td>\(|0\rangle\)</td><td>\(|1\rangle\)</td><td>\(|0\rangle\langle0|-|1\rangle\langle1|\)</td></tr>
+<tr><td>\(X\)</td><td>\(|+\rangle\)</td><td>\(|-\rangle\)</td><td>\(|+\rangle\langle+|-|-\rangle\langle-|\)</td></tr>
+<tr><td>\(Y\)</td><td>\(|{+i}\rangle\)</td><td>\(|{-i}\rangle\)</td><td>\(|{+i}\rangle\langle{+i}|-|{-i}\rangle\langle{-i}|\)</td></tr>
+</table>
+<p>This is why the three bases in the Section 5 table are named Z, X and Y: each is the eigenbasis of one Pauli matrix.</p>
+
+<h3>Going further: functions of a matrix, and a square root of NOT</h3>
+<p>The spectral form lets you apply any function to a matrix by applying it to the eigenvalues:</p>
+$$f(A)=\sum_k f(\lambda_k)\,|e_k\rangle\langle e_k| .$$
+<p>Here is a gate that no classical machine can have. Take \(f(\lambda)=\sqrt\lambda\) for \(X\), choosing \(\sqrt{1}=1\) and \(\sqrt{-1}=i\):</p>
+$$\sqrt{X}=|+\rangle\langle+|+i\,|-\rangle\langle-|=\frac12\begin{pmatrix}1+i & 1-i\\[2pt] 1-i & 1+i\end{pmatrix}.$$
+<p>It is unitary, and applying it twice gives \(|+\rangle\langle+|+i^2|-\rangle\langle-|=X\): a genuine "half of a NOT".</p>
+
+<div class="box thm">
+<span class="lbl">proposition 2.6 &mdash; no random process is half of a NOT</span>
+<p>There is no \(2\times2\) stochastic matrix \(M\) with \(M^2=\mathrm{NOT}\).</p>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Every \(2\times2\) stochastic matrix has the form</p>
+$$M=\begin{pmatrix}a & b\\[2pt] 1-a & 1-b\end{pmatrix},\qquad 0\le a,b\le1 .$$
+<p>Its columns sum to 1, so \((1\;\;1)\,M=(1\;\;1)\) and \(1\) is an eigenvalue. The eigenvalues add up to the trace \(a+1-b\), so the other eigenvalue is the real number \(a-b\). The eigenvalues of \(M^2\) are therefore \(1\) and \((a-b)^2\ge0\). But NOT has eigenvalue \(-1\), so \(M^2\neq\mathrm{NOT}\).</p>
+</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">idea &mdash; what the square root of NOT tells you</span>
+<p>Probabilities are stuck on the nonnegative half of the number line, so they cannot take the square root of \(-1\). Amplitudes live on the whole complex plane, where \(i\) is waiting. That single extra degree of freedom is enough to create operations with no classical counterpart, and "half a NOT" is the simplest one you can hold in your hand.</p>
+</div>
+
+<!-- =================== 9 =================== -->
+<h2 id="s9">9 &mdash; Try it in code</h2>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; inner products, adjoints, eigenvectors (numpy)</span>
+<pre>import numpy as np
+
+u = np.array([1, 1j])
+v = np.array([2, 1 - 1j])
+print(np.vdot(u, v))          <span class="cm"># &lt;u|v&gt;: vdot conjugates its FIRST argument</span>
+print(u @ v)                  <span class="cm"># plain dot product: no conjugate, wrong for C^n</span>
+
+H = np.array([[1, 1], [1, -1]]) / np.sqrt(2)
+S = np.array([[1, 0], [0, 1j]])
+print((S.conj().T @ S).round(12))      <span class="cm"># S-dagger S: the identity, so S is unitary</span>
+print(np.allclose(S.conj().T, S))      <span class="cm"># is S Hermitian?</span>
+
+X = np.array([[0, 1], [1, 0]])
+vals, vecs = np.linalg.eigh(X)         <span class="cm"># eigh: for Hermitian matrices</span>
+print(vals)
+print(vecs.round(4))                   <span class="cm"># columns: eigenvectors, each up to a sign</span></pre>
+<pre class="out">(1-1j)
+(3+1j)
+[[1.+0.j 0.+0.j]
+ [0.+0.j 1.+0.j]]
+False
+[-1.  1.]
+[[-0.7071  0.7071]
+ [ 0.7071  0.7071]]</pre>
+<p>The first eigenvector column is \(-|-\rangle\) rather than \(|-\rangle\). Both are fine: an eigenvector times any nonzero number, including \(-1\), is still an eigenvector. In HW1 you will package the unitarity check into a function of your own.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">tool &mdash; the same ideas in qiskit (tested with qiskit 2.5)</span>
+<pre>import numpy as np
+from qiskit.quantum_info import Operator, Statevector
+from qiskit.circuit.library import HGate, SGate
+
+plus_i  = Statevector([1,  1j] / np.sqrt(2))
+minus_i = Statevector([1, -1j] / np.sqrt(2))
+print(plus_i.inner(minus_i))                        <span class="cm"># &lt;+i|-i&gt;, conjugate included</span>
+print(Operator(HGate()).is_unitary(), Operator(SGate()).is_unitary())
+print(Operator(SGate()).data)</pre>
+<pre class="out">0j
+True True
+[[1.+0.j 0.+0.j]
+ [0.+0.j 0.+1.j]]</pre>
+</div>
+
+<!-- =================== 10 =================== -->
+<h2 id="s10">10 &mdash; Summary and exercises</h2>
+
+<div class="box thm">
+<span class="lbl">summary</span>
+<ul>
+<li>A complex number is an arrow: \(z=re^{i\theta}\). Multiplication multiplies lengths and adds angles, and \(|z|^2=z\bar z\).</li>
+<li>The \(N\)th roots of unity add to zero unless every arrow points the same way; this cancellation drives the quantum Fourier transform and Shor's algorithm.</li>
+<li>In \(\mathbb C^n\), \(\langle u|v\rangle=\sum\overline{u_k}v_k\): <strong>conjugate the first vector</strong>. In an orthonormal basis, coordinates are brackets.</li>
+<li>Kets are columns, bras are conjugate rows; \(\langle u|v\rangle\) is a number and \(|u\rangle\langle v|\) is a matrix. Projectors \(|u\rangle\langle u|\) satisfy \(P^2=P\), and \(\sum_k|b_k\rangle\langle b_k|=I\).</li>
+<li><strong>Unitary</strong> (\(U^\dagger U=I\)): gates, reversible, eigenvalues on the unit circle. <strong>Hermitian</strong> (\(A^\dagger=A\)): real eigenvalues, orthogonal eigenvectors.</li>
+<li>Spectral theorem: \(A=\sum\lambda_k|e_k\rangle\langle e_k|\). The Pauli eigenbases are the Z, X and Y bases, and \(\sqrt X\) is a gate no random process can imitate.</li>
+</ul>
+<p><strong>Next time:</strong> the qubit made official: the Born rule, global versus relative phase, and the Bloch sphere. <strong>HW1</strong> is due at the start of Week 2, and <strong>Lab 1</strong> launches in Lecture 4.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 2</span>
+<ol>
+<li>Let \(z=1-i\sqrt3\). Find \(|z|\), its phase and its polar form; then compute \(\bar z\), \(z^2\) (in both forms) and \(1/z\).</li>
+<li>Let \(\omega=e^{2\pi i/8}\). Evaluate \(\sum_{k=0}^{7}\omega^{3k}\) and \(\sum_{k=0}^{7}\omega^{8k}\) without adding anything up. Then compute \(1+i+i^2+i^3\) directly.</li>
+<li>Let \(u=\tfrac{1}{\sqrt2}(1,\;i)\) and \(v=\tfrac12(1+i,\;1-i)\). Check that both are unit vectors and decide whether they are orthogonal.</li>
+<li>Show that \(Y\) is unitary and Hermitian, verify that \(|{\pm i}\rangle\) are its eigenvectors with eigenvalues \(\pm1\), and check the spectral form in the Pauli table.</li>
+<li>Write \(P=|{+i}\rangle\langle{+i}|\) as a matrix. Check that \(P^2=P\) and \(P^\dagger=P\), and compute \(\langle0|P|0\rangle\). What probability does that number represent?</li>
+<li>Prove part (c) of Proposition 2.3: if \(U\) is unitary and \(U|v\rangle=\lambda|v\rangle\) with \(|v\rangle\neq0\), then \(|\lambda|=1\).</li>
+<li>Is the fair-coin matrix \(F\) unitary? Answer in two ways: with a determinant, and with the reversibility idea of Section 7.</li>
+</ol>
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<ol>
+<li>\(|z|=\sqrt{1+3}=2\) and the phase is \(-\pi/3\), so \(z=2e^{-i\pi/3}\). Then \(\bar z=1+i\sqrt3=2e^{i\pi/3}\). Squaring in polar form gives \(z^2=4e^{-2\pi i/3}\); in rectangular form, \((1-i\sqrt3)^2=1-2i\sqrt3+3i^2=-2-2i\sqrt3\), which agrees. Finally \(1/z=\bar z/|z|^2=(1+i\sqrt3)/4=\tfrac12e^{i\pi/3}\).</li>
+<li>8 does not divide 3, so the first sum is 0; 8 divides 8, so the second is 8. Directly, \(1+i+i^2+i^3=1+i-1-i=0\).</li>
+<li>\(\lVert u\rVert^2=\tfrac12(1+1)=1\) and \(\lVert v\rVert^2=\tfrac14(|1+i|^2+|1-i|^2)=\tfrac14(2+2)=1\). Then \(\langle u|v\rangle=\tfrac{1}{2\sqrt2}\big(1\cdot(1+i)+(-i)(1-i)\big)=\tfrac{1}{2\sqrt2}\big(1+i-i+i^2\big)=0\). Yes, they are orthogonal.</li>
+<li>Conjugate every entry of \(Y\), then transpose:
+$$\begin{pmatrix}0 & -i\\[2pt] i & 0\end{pmatrix}\;\xrightarrow{\ \text{conjugate}\ }\;\begin{pmatrix}0 & i\\[2pt] -i & 0\end{pmatrix}\;\xrightarrow{\ \text{transpose}\ }\;\begin{pmatrix}0 & -i\\[2pt] i & 0\end{pmatrix},$$
+which is \(Y\) again. So \(Y^\dagger=Y\) and \(Y\) is Hermitian. Also \(Y^2=I\), so \(Y^\dagger Y=Y^2=I\) and \(Y\) is unitary. \(Y(1,\,i)^{\mathsf T}=(-i\cdot i,\;i\cdot1)^{\mathsf T}=(1,\,i)^{\mathsf T}\) and \(Y(1,\,-i)^{\mathsf T}=(-1,\,i)^{\mathsf T}=-(1,\,-i)^{\mathsf T}\). The spectral form follows from Theorem 2.5.</li>
+<li>$$P=\frac{1}{\sqrt2}\begin{pmatrix}1\\[2pt] i\end{pmatrix}\frac{1}{\sqrt2}\begin{pmatrix}1 & -i\end{pmatrix}=\frac12\begin{pmatrix}1 & -i\\[2pt] i & 1\end{pmatrix}.$$ Direct multiplication gives \(P^2=P\), and conjugating and transposing gives \(P^\dagger=P\). \(\langle0|P|0\rangle=P_{11}=\tfrac12=|\langle{+i}|0\rangle|^2\): the probability that \(|0\rangle\) is found to be \(|{+i}\rangle\) when measured in the Y basis.</li>
+<li>By Proposition 2.3(a), \(\lVert v\rVert=\lVert Uv\rVert=\lVert\lambda v\rVert=|\lambda|\,\lVert v\rVert\), and \(\lVert v\rVert\neq0\), so \(|\lambda|=1\).</li>
+<li>No. \(\det F=\tfrac14-\tfrac14=0\), so \(F\) has no inverse, while every unitary does. In terms of information, \(F\) sends both \(|0\rangle\) and \(|1\rangle\) to the same vector \(\tfrac12(1,1)\), so its input cannot be recovered from its output, and a unitary never loses information.</li>
+</ol>
+</div>
+</div>
+
+<h3>Reading and sources</h3>
+<ul>
+<li>J. Watrous, <em>Understanding Quantum Information and Computation</em>, Ch. 1, including the linear-algebra review (<a href="https://arxiv.org/abs/2507.11536">arXiv:2507.11536</a>; IBM course <a href="https://quantum.cloud.ibm.com/learning/en/courses/basics-of-quantum-information">Basics of Quantum Information</a>).</li>
+<li>R. de Wolf, <em>Quantum Computing: Lecture Notes</em>, Appendix A, "Some useful linear algebra" (<a href="https://arxiv.org/abs/1907.09415">arXiv:1907.09415</a>).</li>
+<li>T. G. Wong, <em>Introduction to Classical and Quantum Computing</em>, the linear-algebra chapter, for a gentler pace with many worked examples (<a href="http://www.thomaswong.net/introduction-to-classical-and-quantum-computing-1e4p.pdf">free PDF</a>).</li>
+<li>N. D. Mermin, <em>Quantum Computer Science</em>, Ch. 1, for a short, conversational account of Dirac notation written for computer scientists.</li>
+</ul>
+<p class="kicker" style="margin-top:2.4em">all numbers and figures in these notes are computed in python (verify_L02.py) and follow the page theme</p>
+</div>
+
+<script>
+/* ---------- shared helpers ---------- */
+var NS='http://www.w3.org/2000/svg';
+function mk(tag,at,parent,txt){var e=document.createElementNS(NS,tag);for(var k in at)e.setAttribute(k,at[k]);if(txt!==undefined)e.textContent=txt;if(parent)parent.appendChild(e);return e;}
+function clr(s){while(s.firstChild)s.removeChild(s.firstChild);}
+function fx(x,d){var v=Number(x).toFixed(d===undefined?3:d); return (v.replace(/^-/,'')===Number(0).toFixed(d===undefined?3:d))?v.replace(/^-/,''):v;}
+function arrowDefs(svg,pre,cols){var d=mk('defs',{},svg);cols.forEach(function(c,i){var m=mk('marker',{id:pre+i,viewBox:'0 0 10 10',refX:9,refY:5,markerWidth:7,markerHeight:7,orient:'auto-start-reverse'},d);mk('path',{d:'M0,0 L10,5 L0,10 z',fill:c},m);});}
+function cfmt(re,im,d){ d=d===undefined?3:d; var r=Math.abs(re)<5e-4?0:re, i=Math.abs(im)<5e-4?0:im;
+  if(i===0) return fx(r,d); if(r===0) return (i<0?'-':'')+fx(Math.abs(i),d)+'i';
+  return fx(r,d)+(i<0?' - ':' + ')+fx(Math.abs(i),d)+'i'; }
+function wrapDeg(a){ a=((a+180)%360+360)%360-180; return a===-180?180:a; }
+
+/* ---------- widget 1: multiply two arrows ---------- */
+(function(){
+  var svg=document.getElementById('cmSvg'); if(!svg) return;
+  var W=600,H=340,cx=300,cy=170,sc=38;
+  function P(x,y){return [cx+sc*x, cy-sc*y];}
+  function val(id){return parseFloat(document.getElementById(id).value);}
+  function draw(){
+    var rz=val('cmRz'), tz=val('cmTz'), rw=val('cmRw'), tw=val('cmTw');
+    document.getElementById('cmRzv').textContent=rz.toFixed(2); document.getElementById('cmTzv').textContent=tz;
+    document.getElementById('cmRwv').textContent=rw.toFixed(2); document.getElementById('cmTwv').textContent=tw;
+    var a=tz*Math.PI/180, b=tw*Math.PI/180;
+    var z=[rz*Math.cos(a), rz*Math.sin(a)], w=[rw*Math.cos(b), rw*Math.sin(b)];
+    var p=[z[0]*w[0]-z[1]*w[1], z[0]*w[1]+z[1]*w[0]];
+    clr(svg); arrowDefs(svg,'cmM',['var(--sky)','var(--amber)','var(--rose)']);
+    mk('rect',{x:0,y:0,width:W,height:H,rx:8,class:'plot-bg'},svg);
+    for(var k=-7;k<=7;k++){var x=P(k,0)[0]; mk('line',{x1:x,y1:10,x2:x,y2:H-10,class:'gridline'},svg);}
+    for(var k=-4;k<=4;k++){var y=P(0,k)[1]; mk('line',{x1:10,y1:y,x2:W-10,y2:y,class:'gridline'},svg);}
+    mk('line',{x1:10,y1:cy,x2:W-10,y2:cy,class:'axis'},svg); mk('line',{x1:cx,y1:10,x2:cx,y2:H-10,class:'axis'},svg);
+    mk('text',{x:W-14,y:cy-8,'text-anchor':'end',class:'axtext'},svg,'Re'); mk('text',{x:cx+8,y:24,class:'axtext'},svg,'Im');
+    [-4,-2,2,4].forEach(function(k){mk('text',{x:P(k,0)[0],y:cy+16,'text-anchor':'middle',class:'axtext'},svg,String(k));});
+    mk('circle',{cx:cx,cy:cy,r:sc,fill:'none',stroke:'var(--axis)','stroke-dasharray':'4 5'},svg);
+    [[z,'var(--sky)',0,'z'],[w,'var(--amber)',1,'w'],[p,'var(--rose)',2,'zw']].forEach(function(o){
+      var e=P(o[0][0],o[0][1]);
+      mk('line',{x1:cx,y1:cy,x2:e[0],y2:e[1],stroke:o[1],'stroke-width':o[3]==='zw'?3:2.4,'marker-end':'url(#cmM'+o[2]+')'},svg);
+      var dx=o[0][0]>=0?8:-8;
+      mk('text',{x:e[0]+dx,y:e[1]-8,'text-anchor':dx>0?'start':'end',class:'lbltext',style:'fill:'+o[1]},svg,o[3]);
+    });
+    var rp=rz*rw, tp=wrapDeg(tz+tw);
+    document.getElementById('cmOut').textContent=
+      'z = '+cfmt(z[0],z[1],2)+' = '+rz.toFixed(2)+' e^(i '+tz+' deg)   |   w = '+cfmt(w[0],w[1],2)+' = '+rw.toFixed(2)+' e^(i '+tw+' deg)   |   zw = '+
+      cfmt(p[0],p[1],2)+' = '+rp.toFixed(2)+' e^(i '+tp+' deg)';
+  }
+  ['cmRz','cmTz','cmRw','cmTw'].forEach(function(id){document.getElementById(id).addEventListener('input',draw);});
+  draw();
+})();
+
+/* ---------- widget 2: walk the roots of unity ---------- */
+(function(){
+  var svg=document.getElementById('ruSvg'); if(!svg) return;
+  var W=600,H=300;
+  function draw(){
+    var N=parseInt(document.getElementById('ruN').value,10), j=parseInt(document.getElementById('ruJ').value,10);
+    document.getElementById('ruNv').textContent=N; document.getElementById('ruJv').textContent=j;
+    clr(svg); arrowDefs(svg,'ruM',['var(--sky)','var(--moss)']);
+    mk('rect',{x:0,y:0,width:W,height:H,rx:8,class:'plot-bg'},svg);
+    mk('line',{x1:300,y1:16,x2:300,y2:H-16,stroke:'var(--rule)'},svg);
+    // left: arrows on the unit circle
+    var cx=150,cy=162,r=92;
+    mk('circle',{cx:cx,cy:cy,r:r,fill:'none',stroke:'var(--axis)','stroke-dasharray':'4 5'},svg);
+    mk('line',{x1:cx-r-14,y1:cy,x2:cx+r+14,y2:cy,class:'gridline'},svg); mk('line',{x1:cx,y1:cy-r-14,x2:cx,y2:cy+r+14,class:'gridline'},svg);
+    var seen={};
+    for(var k=0;k<N;k++){
+      var ang=2*Math.PI*j*k/N, x=cx+r*Math.cos(ang), y=cy-r*Math.sin(ang);
+      mk('line',{x1:cx,y1:cy,x2:x,y2:y,stroke:'var(--sky)','stroke-width':2,'marker-end':'url(#ruM0)'},svg);
+      var key=Math.round(x)+','+Math.round(y); seen[key]=(seen[key]||[]).concat([k]);
+    }
+    Object.keys(seen).forEach(function(key){var p=key.split(',').map(Number), dx=p[0]-cx, dy=p[1]-cy, L=Math.hypot(dx,dy)||1;
+      var lab='k='+seen[key].slice(0,3).join(',')+(seen[key].length>3?',...':'');
+      mk('text',{x:cx+dx*(1+22/L),y:cy+dy*(1+22/L)+4,'text-anchor':'middle',class:'axtext'},svg,lab);});
+    mk('text',{x:cx,y:20,'text-anchor':'middle',class:'lbltext',style:'fill:var(--sky)'},svg,'omega^(jk) on the circle');
+    // right: head-to-tail walk, auto-scaled
+    var pts=[[0,0]], sx=0, sy=0;
+    for(var k=0;k<N;k++){var ang=2*Math.PI*j*k/N; sx+=Math.cos(ang); sy+=Math.sin(ang); pts.push([sx,sy]);}
+    var xs=pts.map(function(p){return p[0];}), ys=pts.map(function(p){return p[1];});
+    var minx=Math.min.apply(null,xs), maxx=Math.max.apply(null,xs), miny=Math.min.apply(null,ys), maxy=Math.max.apply(null,ys);
+    var sc=Math.min(250/Math.max(maxx-minx,1), 220/Math.max(maxy-miny,1), 95);
+    var ox=450-sc*(minx+maxx)/2, oy=165+sc*(miny+maxy)/2;
+    for(var k=0;k<N;k++){
+      var a=pts[k], b=pts[k+1];
+      mk('line',{x1:ox+sc*a[0],y1:oy-sc*a[1],x2:ox+sc*b[0],y2:oy-sc*b[1],stroke:'var(--moss)','stroke-width':2.2,'marker-end':'url(#ruM1)'},svg);
+    }
+    mk('circle',{cx:ox,cy:oy,r:4.5,fill:'var(--ink)'},svg);
+    mk('text',{x:450,y:22,'text-anchor':'middle',class:'lbltext',style:'fill:var(--moss)'},svg,'head to tail');
+    var closes=(j%N!==0);
+    document.getElementById('ruOut').textContent='sum of omega^(jk), k = 0..'+(N-1)+'  =  '+cfmt(sx,sy,3)+
+      (closes?'   ('+N+' does not divide '+j+': the walk closes)':'   ('+N+' divides '+j+': every arrow is 1, so the sum is '+N+')');
+  }
+  ['ruN','ruJ'].forEach(function(id){document.getElementById(id).addEventListener('input',draw);});
+  draw();
+})();
+
+/* ---------- widget 3: bra-ket calculator ---------- */
+(function(){
+  var bra=document.getElementById('bkBra'), ket=document.getElementById('bkKet'); if(!bra) return;
+  var r=1/Math.sqrt(2);
+  // each state: [ [re0,im0], [re1,im1] ]
+  var S={'0':[[1,0],[0,0]],'1':[[0,0],[1,0]],'+':[[r,0],[r,0]],'-':[[r,0],[-r,0]],'+i':[[r,0],[0,r]],'-i':[[r,0],[0,-r]]};
+  var names=Object.keys(S), cb='+', ck='-i';
+  function mul(a,b){return [a[0]*b[0]-a[1]*b[1], a[0]*b[1]+a[1]*b[0]];}
+  function conj(a){return [a[0],-a[1]];}
+  function add(a,b){return [a[0]+b[0],a[1]+b[1]];}
+  function build(host,label,getSel,setSel){
+    var s=document.createElement('span'); s.textContent=label; s.style.minWidth='3.2em'; host.appendChild(s);
+    names.forEach(function(n){var b=document.createElement('button'); b.className='ctl'; b.dataset.n=n;
+      b.textContent=(label==='bra'?'<'+n+'|':'|'+n+'>'); b.addEventListener('click',function(){setSel(n);draw();}); host.appendChild(b);});
+  }
+  build(bra,'bra',function(){return cb;},function(n){cb=n;});
+  build(ket,'ket',function(){return ck;},function(n){ck=n;});
+  function draw(){
+    Array.prototype.forEach.call(bra.querySelectorAll('button'),function(b){b.classList.toggle('on',b.dataset.n===cb);});
+    Array.prototype.forEach.call(ket.querySelectorAll('button'),function(b){b.classList.toggle('on',b.dataset.n===ck);});
+    var u=S[cb], v=S[ck];
+    var br=add(mul(conj(u[0]),v[0]), mul(conj(u[1]),v[1]));
+    var wrong=add(mul(u[0],v[0]), mul(u[1],v[1]));
+    var p=br[0]*br[0]+br[1]*br[1];
+    var same=Math.abs(br[0]-wrong[0])<1e-9 && Math.abs(br[1]-wrong[1])<1e-9;
+    document.getElementById('bkOut').innerHTML='&lang;'+cb+'|'+ck+'&rang; = <b>'+cfmt(br[0],br[1])+'</b> &nbsp;|&nbsp; |&lang;'+cb+'|'+ck+'&rang;|<sup>2</sup> = <b>'+fx(p,3)+
+      '</b> &nbsp;|&nbsp; without the conjugate: '+cfmt(wrong[0],wrong[1])+(same?' (the same here: the bra has no imaginary parts)':' <span style="color:var(--rose)">&larr; wrong!</span>');
+  }
+  draw();
+})();
+</script>
+
+<script>
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    var lab=b.getAttribute('data-lab')||b.textContent.replace(/^(show|hide) /,''); b.setAttribute('data-lab',lab);
+    b.textContent=(open?'hide ':'show ')+lab;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+  b.setAttribute('aria-expanded','false');
+});
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement,
+     meta=document.querySelector('meta[name="color-scheme"]');
+ function set(mode){
+   root.setAttribute('data-theme',mode);
+   root.style.colorScheme=mode;                 // stops the OS from auto-darkening us
+   if(meta) meta.setAttribute('content',mode);
+   t.textContent = (mode==='light') ? 'dark' : 'light';
+ }
+ set(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+ t.addEventListener('click',function(){
+   set(root.getAttribute('data-theme')==='light' ? 'dark' : 'light');});
+})();
+</script>
+
+<script id="spot-js">
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×/g,'*').replace(/π/g,'pi').replace(/,/g,'');
+    var pct=/%$/.test(s); if(pct) s=s.slice(0,-1);
+    s=s.replace(/√\s*\(/g,'sqrt(').replace(/√\s*([0-9.]+)/g,'sqrt($1)');
+    if(!s||!/^[0-9a-z+\-*\/^().\s]*$/.test(s)) return NaN;
+    var ok=s.replace(/sqrt|pi|ln|log|exp|sin|cos|tan|e(?![a-z])/g,'').replace(/[0-9+\-*\/^().\s]/g,'');
+    if(ok.length) return NaN;
+    s=s.replace(/\^/g,'**').replace(/(\d)\s*(pi|sqrt|\()/g,'$1*$2').replace(/\)\s*(\d|pi|sqrt|\()/g,')*$1')
+       .replace(/sqrt/g,'Math.sqrt').replace(/pi/g,'Math.PI').replace(/\blog\b/g,'Math.log10').replace(/\bln\b/g,'Math.log')
+       .replace(/exp/g,'Math.exp').replace(/sin/g,'Math.sin').replace(/cos/g,'Math.cos').replace(/tan/g,'Math.tan')
+       .replace(/(^|[^a-z.0-9])e(?![a-z0-9(])/g,'$1Math.E');
+    try{ var v=Function('"use strict";return ('+s+')')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function typeset(el){ if(window.MathJax&&MathJax.typesetPromise){ MathJax.typesetPromise([el]).catch(function(){}); } }
+  function fb(spot,ok,html){
+    var f=spot.querySelector('.fb'); spot.classList.toggle('ok',ok); spot.classList.toggle('bad',!ok);
+    f.innerHTML='<p><span class="tag">'+(ok?'correct.':'not yet.')+'</span>'+(html||'')+'</p>'; typeset(f);
+  }
+  function part(spot,sel){ var e=spot.querySelector(sel); return e? e.innerHTML : ''; }
+  var n=0, lec=(document.title.match(/^Lecture (\d+)/)||[])[1];
+  document.querySelectorAll('.spot').forEach(function(spot){
+    n++; var kind=spot.getAttribute('data-kind')||'num', tries=0;
+    var lbl=document.createElement('span'); lbl.className='lbl'; lbl.textContent='spot check '+(lec?lec+'.':'')+n+(spot.getAttribute('data-tag')?' — '+spot.getAttribute('data-tag'):'');
+    spot.insertBefore(lbl,spot.firstChild);
+    var area=document.createElement('div'), btns=document.createElement('div'), f=document.createElement('div');
+    btns.className='btns'; f.className='fb'; f.setAttribute('role','status'); f.setAttribute('aria-live','polite');
+    var check=document.createElement('button'); check.type='button'; check.textContent='check';
+    var reveal=document.createElement('button'); reveal.type='button'; reveal.className='reveal'; reveal.textContent='show answer'; reveal.style.display='none';
+    btns.appendChild(check); btns.appendChild(reveal);
+    var grade, show;
+    if(kind==='num'){
+      var ans=spot.getAttribute('data-ans').split('|').map(evalNum), labs=(spot.getAttribute('data-labels')||'').split('|');
+      var tol=spot.getAttribute('data-tol'), row=document.createElement('div'); row.className='row'; area.appendChild(row);
+      var ins=ans.map(function(a,i){ var lab=document.createElement('label'), inp=document.createElement('input');
+        inp.className='ans'; inp.type='text'; inp.setAttribute('inputmode','text'); inp.setAttribute('autocomplete','off');
+        inp.setAttribute('aria-label',labs[i]||'answer'); if(labs[i]){ lab.appendChild(document.createTextNode(labs[i]+' =')); }
+        lab.appendChild(inp); row.appendChild(lab);
+        inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); check.click(); } }); return inp; });
+      var fmt=document.createElement('div'); fmt.className='fmt'; fmt.textContent='decimals, fractions, sqrt(2)/2, pi/4 or 2^-3 all work';
+      area.appendChild(fmt);
+      grade=function(){ var bad=[]; ins.forEach(function(inp,i){ var v=evalNum(inp.value), a=ans[i];
+          var t= tol!==null? Number(tol) : Math.max(0.005, 0.005*Math.abs(a)); if(!(Math.abs(v-a)<=t)) bad.push(i); });
+        var empty=ins.some(function(inp){return !inp.value.trim();});
+        if(empty) return {ok:false,msg:'Fill in '+(ins.length>1?'every box':'the box')+' first.',soft:true};
+        var unparsed=ins.some(function(inp){return isNaN(evalNum(inp.value));});
+        if(unparsed) return {ok:false,msg:'I could not read that as a number. Try a decimal or a fraction such as 3/8.',soft:true};
+        return {ok:!bad.length, which:bad}; };
+      show=function(){ var s=spot.getAttribute('data-show'); if(!s){ s=spot.getAttribute('data-ans').split('|').map(function(a,i){return (labs[i]?labs[i]+' = ':'')+a;}).join(', '); } return 'The answer is '+s+'.'; };
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=spot.querySelector('ul.opts'), name='spot'+n, lis=[].slice.call(ul.querySelectorAll(':scope > li'));
+      lis.forEach(function(li,i){ var inp=document.createElement('input'); inp.type= kind==='mc'?'radio':'checkbox'; inp.name=name; inp.value=i;
+        inp.setAttribute('aria-label','option '+(i+1)); li.insertBefore(inp,li.firstChild);
+        li.addEventListener('click',function(e){ if(e.target!==inp&&e.target.tagName!=='A'){ if(kind==='mc') inp.checked=true; else inp.checked=!inp.checked; } }); });
+      grade=function(){ var picked=lis.filter(function(li){return li.querySelector('input').checked;});
+        if(!picked.length) return {ok:false,msg:'Pick '+(kind==='mc'?'an answer':'at least one option')+' first.',soft:true};
+        var ok= lis.every(function(li){ return li.hasAttribute('data-ok')===li.querySelector('input').checked; });
+        var oh=''; picked.forEach(function(li){ if(!li.hasAttribute('data-ok')){ var h=li.querySelector('.oh'); if(h) oh+=' '+h.innerHTML; } });
+        if(kind==='multi'&&!ok&&!oh){ var miss=lis.filter(function(li){return li.hasAttribute('data-ok')&&!li.querySelector('input').checked;});
+          if(miss.length&&picked.every(function(li){return li.hasAttribute('data-ok');})) oh=' Everything you ticked is right, but something is missing.'; }
+        return {ok:ok, extra:oh}; };
+      show=function(){ lis.forEach(function(li){ li.classList.toggle('right',li.hasAttribute('data-ok')); }); return 'The right '+(kind==='mc'?'option is':'options are')+' outlined.'; };
+    } else if(kind==='select'){
+      var sels=[].slice.call(spot.querySelectorAll('select'));
+      sels.forEach(function(s){ var o=document.createElement('option'); o.textContent='choose…'; o.value=''; o.selected=true; s.insertBefore(o,s.firstChild);
+        s.setAttribute('aria-label', s.getAttribute('aria-label')||'choose an answer'); });
+      grade=function(){ if(sels.some(function(s){return !s.value;})) return {ok:false,msg:'Make a choice in '+(sels.length>1?'every menu':'the menu')+' first.',soft:true};
+        var oh=''; var ok=sels.every(function(s){ var o=s.options[s.selectedIndex]; if(!o.hasAttribute('data-ok')&&o.getAttribute('data-hint')) oh+=' '+o.getAttribute('data-hint'); return o.hasAttribute('data-ok'); });
+        return {ok:ok, extra:oh}; };
+      show=function(){ sels.forEach(function(s){ [].forEach.call(s.options,function(o,i){ if(o.hasAttribute('data-ok')) s.selectedIndex=i; }); }); return 'The right choices are now selected.'; };
+    }
+    var anchor=null;
+    [].forEach.call(spot.children,function(c){ if(!anchor&&(c.classList.contains('hint')||c.classList.contains('why'))) anchor=c; });
+    if(kind==='select'){ spot.insertBefore(btns,anchor); } else { spot.insertBefore(area,anchor); spot.insertBefore(btns,anchor); }
+    spot.appendChild(f);
+    check.addEventListener('click',function(){ var r=grade();
+      if(r.soft){ spot.classList.remove('ok'); spot.classList.add('bad'); f.innerHTML='<p><span class="tag">hold on.</span>'+r.msg+'</p>'; return; }
+      if(r.ok){ fb(spot,true,part(spot,'.why')); reveal.style.display='none'; }
+      else { tries++; var h=part(spot,'.hint'); var extra=r.extra||'';
+        if(r.which&&r.which.length&&ans.length>1){ extra=' Check '+r.which.map(function(i){return labs[i]||('box '+(i+1));}).join(' and ')+'.'+extra; }
+        fb(spot,false,(extra?extra+' ':'')+h); if(tries>=2) reveal.style.display=''; } });
+    reveal.addEventListener('click',function(){ var msg=show(); spot.classList.remove('ok'); spot.classList.add('bad');
+      f.innerHTML='<p><span class="tag">answer.</span>'+msg+' '+part(spot,'.why')+'</p>'; typeset(f); });
+  });
+})();
+</script>
+</body>
+</html>
