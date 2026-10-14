@@ -1,15 +1,15 @@
 ---
-title: "MAT 141 · Precalculus"
+title: "Precalculus"
+permalink: /precalculus/
 description: >-
-  A visual, example-led precalculus course preparing students for calculus,
-  linear algebra and machine learning.
+  A visual, example-led precalculus course preparing students for calculus, linear algebra and machine learning.
 image:
-  path: /assets/img/courses/mat141-cover.png
-  alt: MAT 141 Precalculus lecture notes
+  path: /assets/img/courses/precalculus-cover.png
+  alt: Precalculus lecture notes
 toc: true
 ---
 
-![Course cover](/assets/img/courses/mat141-cover.png){: .shadow }
+![Course cover](/assets/img/courses/precalculus-cover.png){: .shadow }
 
 These notes were written for students who have finished college algebra and are
 heading toward calculus, linear algebra, or a first course in data science.
