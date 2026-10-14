@@ -27,7 +27,7 @@ This semester (Fall 2026) I am teaching:
 
 | Course | Subject|
 |---|
-|MAT301| Introduction to Probability and Mathematical Statistics|
+|MAT301| Probability and Mathematical Statistics I|
 |MAT141| Pre-Calculus|
 
 
@@ -36,9 +36,9 @@ In the past I have taught:
 
 | Semester | Course | Subject |
 |---|---|
-| Spring 2026 |MAT301| Introduction to Probability and Mathematical Statistics|
+| Spring 2026 |MAT301| Probability and Mathematical Statistics I|
 | Spring 2026 |FCM709| Foundation of Digital Forensics II|
 | Fall 2025 | MAT141 | Pre-Calculus |
 | Fall 2025 | CS171 | Introduction to Python Programming|
-|Spring 2025 | MAT301 | Introduction to Probability and Statistics |
+|Spring 2025 | MAT301 | Probability and Mathematical Statistics I|
 |Spring 2025 | MAT141 | Pre-Calculus |
