@@ -1,0 +1,16 @@
+# Course list for the probability and statistics notes.
+# No lecture files are listed yet, so the course page says the notes are on
+# their way. Add units as you publish them, exactly as in precalculus.yml.
+
+title: "Probability and Statistics"
+tagline: "uncertainty, data and inference, with calculus"
+description: >-
+  Lecture notes on probability and statistics for students who have taken
+  calculus.
+summary: "lecture notes in progress"
+page: /probability-statistics/
+folder: /assets/courses/probability-statistics/
+order: 3
+listed: true
+
+units: []

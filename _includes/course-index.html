@@ -1,0 +1,64 @@
+{%- comment -%}
+  Course page contents, built from _data/courses/<course>.yml.
+  Use on a page whose front matter has   course: <course>
+  or call it directly:                   {% include course-index.html course="precalculus" %}
+{%- endcomment -%}
+{%- assign key = include.course | default: page.course -%}
+{%- assign course = site.data.courses[key] -%}
+{%- if course -%}
+{%- assign first_unit = nil -%}
+{%- for u in course.units -%}{%- unless u.draft -%}{%- unless first_unit -%}{%- assign first_unit = u -%}{%- endunless -%}{%- endunless -%}{%- endfor -%}
+<link rel="stylesheet" href="{{ '/assets/courses/common/course-page.css' | relative_url }}">
+<div class="cp" data-course="{{ key }}">
+{%- if course.cover %}
+<img class="cp-cover" src="{{ course.cover | relative_url }}" alt="{{ course.title }} lecture notes" width="1200" height="630">
+{%- endif %}
+{%- if course.description %}
+<p class="cp-desc">{{ course.description }}</p>
+{%- endif %}
+<div class="cp-actions">
+{%- if first_unit %}
+<a class="cp-btn cp-start" href="{{ course.folder | append: first_unit.file | relative_url }}">Start reading</a>
+{%- endif %}
+{%- if course.summary %}
+<span class="cp-summary">{{ course.summary }}</span>
+{%- endif %}
+</div>
+<h2 class="cp-h">Contents</h2>
+{%- if course.units == nil or course.units.size == 0 %}
+<p class="cp-empty">Lecture notes for this course will appear here as they are published.</p>
+{%- else %}
+<ol class="cp-units">
+{%- for u in course.units %}
+<li class="cp-unit{% if u.draft %} is-draft{% endif %}">
+<div class="cp-uhead">
+{%- if u.label %}<span class="cp-label">{{ u.label }}</span>{% endif -%}
+{%- if u.draft %}<span class="cp-title">{{ u.title }}</span> <span class="cp-soon">coming soon</span>
+{%- else %}<a class="cp-title" href="{{ course.folder | append: u.file | relative_url }}">{{ u.title }}</a>{% endif -%}
+{%- if u.note %} <span class="cp-note">{{ u.note }}</span>{% endif -%}
+</div>
+{%- if u.blurb %}
+<p class="cp-blurb">{{ u.blurb }}</p>
+{%- endif %}
+{%- if u.sections and u.sections.size > 0 %}
+<ol class="cp-secs">
+{%- for s in u.sections %}
+<li>
+{%- if u.draft or s.draft or s.anchor == nil -%}
+<span class="is-draft">{% if s.label %}<span class="cp-slabel">{{ s.label }}</span> {% endif %}{{ s.title }}</span>
+{%- else -%}
+<a href="{{ course.folder | append: u.file | relative_url }}#{{ s.anchor }}">{% if s.label %}<span class="cp-slabel">{{ s.label }}</span> {% endif %}{{ s.title }}</a>
+{%- endif -%}
+</li>
+{%- endfor %}
+</ol>
+{%- endif %}
+</li>
+{%- endfor %}
+</ol>
+{%- endif %}
+</div>
+<script src="{{ '/assets/courses/common/course-page.js' | relative_url }}" defer></script>
+{%- else -%}
+<p>No course list found for “{{ key }}”. Check that <code>_data/courses/{{ key }}.yml</code> exists.</p>
+{%- endif -%}

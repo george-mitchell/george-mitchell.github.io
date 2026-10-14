@@ -1,0 +1,24 @@
+{%- comment -%}
+  A card for every course in _data/courses/ with  listed: true,
+  sorted by its  order:  value. Use it on the Teaching tab:
+    {% include course-list.html %}
+{%- endcomment -%}
+<div class="cl-wrap">
+<link rel="stylesheet" href="{{ '/assets/courses/common/course-page.css' | relative_url }}">
+<ul class="cl">
+{%- for n in (1..99) -%}
+{%- for pair in site.data.courses -%}
+{%- assign c = pair[1] -%}
+{%- if c.listed and c.order == n %}
+<li class="cl-item">
+<a class="cl-link" href="{{ c.page | relative_url }}">
+<span class="cl-title">{{ c.title }}</span>
+{%- if c.tagline %}<span class="cl-tag">{{ c.tagline }}</span>{% endif -%}
+{%- if c.summary %}<span class="cl-sum">{{ c.summary }}</span>{% endif -%}
+</a>
+</li>
+{%- endif -%}
+{%- endfor -%}
+{%- endfor %}
+</ul>
+</div>

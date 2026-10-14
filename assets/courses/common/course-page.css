@@ -1,0 +1,72 @@
+/* course-page.css — the course page and the course list, inside Chirpy.
+   Built on Chirpy's own colour variables, so it follows the site's palette
+   (Harbour, if jekyll-theme-chirpy.scss is installed) in light and dark. */
+
+.cp, .cl {
+  --cp-mono: var(--h-mono, ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace);
+  --cp-accent: var(--heading-color);
+  --cp-link: var(--link-color);
+  --cp-card: var(--card-bg);
+  --cp-card-hover: var(--card-hover-bg);
+  --cp-border: var(--main-border-color);
+  --cp-muted: var(--text-muted-color);
+}
+
+/* ---------- course page ---------- */
+.cp-cover {
+  display: block; width: 100%; height: auto; border-radius: 10px;
+  border: 1px solid var(--cp-border); margin: .4rem 0 1.4rem;
+}
+.cp-desc { font-size: 1.08rem; line-height: 1.7; }
+.cp-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin: 1.2rem 0 2rem; }
+.cp-btn {
+  display: inline-flex; align-items: center; min-height: 44px; padding: 0 20px;
+  border-radius: 999px; font-family: var(--cp-mono); font-size: .9rem; font-weight: 600;
+  text-decoration: none !important; border: 1px solid var(--cp-link);
+  background: var(--cp-link); color: var(--main-bg) !important;
+}
+.cp-btn:hover { filter: brightness(1.08); }
+.cp-btn.cp-btn-quiet { background: transparent; color: var(--cp-link) !important; }
+.cp-summary { font-family: var(--cp-mono); font-size: .85rem; color: var(--cp-muted); }
+
+.content h2.cp-h, .cp-h { font-family: var(--cp-mono); font-size: 1.15rem; margin: 2rem 0 1rem; }
+.cp-units { list-style: none; padding: 0 !important; margin: 0; display: grid; gap: 14px; }
+.cp-unit {
+  margin: 0 !important; padding: 16px 18px 12px; border-radius: 10px;
+  background: var(--cp-card); border: 1px solid var(--cp-border);
+  border-left: 3px solid var(--cp-accent);
+}
+.cp-unit.is-draft { border-left-color: var(--cp-border); opacity: .8; }
+.cp-uhead { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; }
+.cp-label {
+  font-family: var(--cp-mono); font-size: .74rem; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--cp-muted); flex-basis: 100%;
+}
+.cp-title { font-size: 1.18rem; font-weight: 600; }
+a.cp-title { color: var(--text-color) !important; text-decoration: none !important; border-bottom: 0 !important; }
+a.cp-title:hover { color: var(--cp-link) !important; }
+.cp-note, .cp-soon { font-family: var(--cp-mono); font-size: .78rem; color: var(--cp-muted); font-style: italic; }
+.cp-blurb { margin: .35rem 0 .6rem !important; color: var(--cp-muted); }
+.cp-secs { margin: .2rem 0 .2rem !important; padding-left: 0 !important; list-style: none; columns: 2 300px; column-gap: 24px; }
+.cp-secs li { break-inside: avoid; margin: 0 !important; }
+.cp-secs a, .cp-secs .is-draft { display: block; padding: 6px 0; line-height: 1.4; }
+.cp-secs a { text-decoration: none !important; border-bottom: 0 !important; }
+.cp-secs a:hover .cp-title-txt, .cp-secs a:hover { text-decoration: underline !important; text-underline-offset: 3px; }
+.cp-slabel { display: block; font-family: var(--cp-mono); font-size: .74rem; color: var(--cp-muted); }
+.cp .is-draft { color: var(--cp-muted); }
+.cp-empty { font-style: italic; color: var(--cp-muted); }
+
+/* ---------- course list (Teaching tab) ---------- */
+.cl { list-style: none; padding: 0 !important; display: grid; gap: 14px; margin: 1rem 0 1.5rem; }
+.cl-item { margin: 0 !important; }
+.cl-link {
+  display: flex; flex-direction: column; gap: 4px; padding: 16px 18px; border-radius: 10px;
+  background: var(--cp-card); border: 1px solid var(--cp-border); border-left: 3px solid var(--cp-accent);
+  text-decoration: none !important; border-bottom-width: 1px !important; color: var(--text-color) !important;
+}
+.cl-link:hover { background: var(--cp-card-hover); }
+.cl-title { font-size: 1.2rem; font-weight: 700; color: var(--cp-accent); font-family: var(--cp-mono); }
+.cl-tag { font-style: italic; }
+.cl-sum { font-family: var(--cp-mono); font-size: .82rem; color: var(--cp-muted); }
+
+.cp a:focus-visible, .cl a:focus-visible { outline: 2px solid var(--cp-link); outline-offset: 3px; }

@@ -1,0 +1,25 @@
+# Course list for the quantum computing notes.
+# The lecture titles below were read from the file names. Edit them freely,
+# and add each new lecture as you publish it (or list it now with draft: true).
+
+title: "Quantum Computing"
+tagline: "qubits, gates and the algorithms they make possible"
+description: >-
+  Lecture notes on quantum computing, starting from complex linear algebra and
+  the single qubit.
+summary: "lecture notes in progress"
+page: /quantum-computing/
+folder: /assets/courses/quantum-computing/
+order: 2
+listed: true
+
+units:
+  - label: "Lecture 1"
+    title: "Why quantum?"
+    file: "QC-L01-why-quantum-notes.html"
+  - label: "Lecture 2"
+    title: "Complex linear algebra"
+    file: "QC-L02-complex-linear-algebra-notes.html"
+  - label: "Lecture 3"
+    title: "The qubit"
+    file: "QC-L03-the-qubit-notes.html"

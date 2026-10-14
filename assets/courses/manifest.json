@@ -1,0 +1,5 @@
+---
+layout: null
+permalink: /assets/courses/manifest.json
+---
+{{ site.data.courses | jsonify }}
