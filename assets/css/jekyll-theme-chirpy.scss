@@ -1,0 +1,160 @@
+---
+---
+
+@use 'abstracts/variables' with (
+  $theme: '{{ site.theme_mode }}'
+);
+
+/* prettier-ignore */
+@use 'main
+{%- if jekyll.environment == 'production' -%}
+.bundle
+{%- endif -%}
+';
+
+/* ==========================================================================
+   Harbour — the palette and type of the lecture notes, applied to Chirpy.
+   Everything below overrides Chirpy's own colour variables, so the sidebar,
+   posts, tags, code blocks and prompts all pick it up automatically.
+   ========================================================================== */
+
+/* ---------- the notes' tokens, in one place ---------- */
+@mixin harbour-dark {
+  color-scheme: dark;
+  --h-bg: #151d22;      --h-surface: #1d282e;  --h-surface2: #243138;
+  --h-ink: #eaf1f2;     --h-cap: #c9dade;      --h-muted: #93a7ad;
+  --h-rule: #33454d;    --h-rose: #f0907e;     --h-moss: #7fcdb0;
+  --h-amber: #e8bd6d;   --h-sky: #8ab6e8;
+}
+@mixin harbour-light {
+  color-scheme: light;
+  --h-bg: #f7fafa;      --h-surface: #eaf1f2;  --h-surface2: #dde8ea;
+  --h-ink: #10191d;     --h-cap: #26343a;      --h-muted: #4a5f68;
+  --h-rule: #bacdd2;    --h-rose: #ad3b28;     --h-moss: #1d6b54;
+  --h-amber: #805907;   --h-sky: #1d5187;
+}
+
+/* ---------- map them onto Chirpy's variables ---------- */
+@mixin harbour-chirpy {
+  /* framework */
+  --main-bg: var(--h-bg);
+  --mask-bg: var(--h-surface2);
+  --main-border-color: var(--h-rule);
+
+  /* text and links */
+  --text-color: var(--h-ink);
+  --text-muted-color: var(--h-muted);
+  --text-muted-highlight-color: var(--h-cap);
+  --heading-color: var(--h-rose);
+  --label-color: var(--h-muted);
+  --blockquote-border-color: var(--h-sky);
+  --blockquote-text-color: var(--h-cap);
+  --link-color: var(--h-moss);
+  --link-underline-color: var(--h-rule);
+  --button-bg: var(--h-surface);
+  --btn-border-color: var(--h-rule);
+  --card-header-bg: var(--h-surface2);
+  --checkbox-checked-color: var(--h-moss);
+  --menu-bg: var(--h-surface);
+  --menu-border-color: var(--h-rule);
+
+  /* sidebar */
+  --site-title-color: var(--h-ink);
+  --site-subtitle-color: var(--h-muted);
+  --sidebar-bg: var(--h-surface);
+  --sidebar-border-color: var(--h-rule);
+  --sidebar-muted-color: var(--h-muted);
+  --sidebar-active-color: var(--h-rose);
+  --sidebar-hover-bg: var(--h-surface2);
+  --sidebar-btn-bg: var(--h-surface2);
+  --sidebar-btn-color: var(--h-cap);
+  --avatar-border-color: var(--h-rule);
+
+  /* top bar and search */
+  --topbar-bg: color-mix(in srgb, var(--h-bg) 85%, transparent);
+  --topbar-text-color: var(--h-cap);
+  --search-border-color: var(--h-rule);
+  --search-icon-color: var(--h-muted);
+  --input-focus-border-color: var(--h-sky);
+
+  /* home page, posts, cards */
+  --post-list-text-color: var(--h-cap);
+  --btn-paginator-hover-color: var(--h-surface2);
+  --toc-highlight: var(--h-sky);
+  --tag-hover: var(--h-surface2);
+  --tb-odd-bg: var(--h-surface);
+  --tb-even-bg: var(--h-bg);
+  --tb-border-color: var(--h-rule);
+  --card-bg: var(--h-surface);
+  --card-hover-bg: var(--h-surface2);
+  --card-shadow: 0 0 0 1px var(--h-rule);
+
+  /* tags, categories, archive */
+  --tag-border: var(--h-rule);
+  --dash-color: var(--h-rule);
+  --search-tag-bg: var(--h-surface2);
+  --categories-border: var(--h-rule);
+  --categories-hover-bg: var(--h-surface2);
+  --timeline-node-bg: var(--h-sky);
+  --timeline-color: var(--h-rule);
+
+  /* code */
+  --highlight-bg-color: var(--h-surface);
+  --inline-code-bg: var(--h-surface2);
+  --highlighter-rouge-color: var(--h-amber);
+  --code-color: var(--h-ink);
+  --language-border-color: var(--h-rule);
+
+  /* prompts ({: .prompt-tip } etc.) use the notes' box colours */
+  --prompt-text-color: var(--h-ink);
+  --prompt-tip-bg: color-mix(in srgb, var(--h-moss) 14%, var(--h-surface));
+  --prompt-tip-icon-color: var(--h-moss);
+  --prompt-info-bg: color-mix(in srgb, var(--h-sky) 14%, var(--h-surface));
+  --prompt-info-icon-color: var(--h-sky);
+  --prompt-warning-bg: color-mix(in srgb, var(--h-amber) 14%, var(--h-surface));
+  --prompt-warning-icon-color: var(--h-amber);
+  --prompt-danger-bg: color-mix(in srgb, var(--h-rose) 14%, var(--h-surface));
+  --prompt-danger-icon-color: var(--h-rose);
+}
+
+/* Chirpy marks the chosen mode with data-bs-theme on <html>; with no
+   attribute it follows the system setting. Cover all three cases. */
+:root[data-bs-theme='dark']  { @include harbour-dark;  @include harbour-chirpy; }
+:root[data-bs-theme='light'] { @include harbour-light; @include harbour-chirpy; }
+@media (prefers-color-scheme: dark) {
+  :root:not([data-bs-theme]) { @include harbour-dark;  @include harbour-chirpy; }
+}
+@media (prefers-color-scheme: light) {
+  :root:not([data-bs-theme]) { @include harbour-light; @include harbour-chirpy; }
+}
+
+/* ---------- type: serif body, monospace for structure ---------- */
+:root {
+  --h-serif: 'Iowan Old Style', Charter, 'Bitstream Charter', Georgia, serif;
+  --h-mono: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, monospace;
+}
+
+body {
+  font-family: var(--h-serif);
+  line-height: 1.75;
+}
+
+h1, h2, h3, h4, h5, h6,
+.site-title, #topbar-title, #sidebar .nav-link,
+.post-meta, .post-tail-wrapper, .tag, .post-tag,
+#toc-wrapper, .content th, code, pre, kbd {
+  font-family: var(--h-mono);
+}
+
+h1, h2 { color: var(--h-rose); letter-spacing: -0.01em; }
+h3, h4 { color: var(--h-ink); }
+
+.content a:not(.img-link) {
+  color: var(--h-moss);
+  text-underline-offset: 3px;
+}
+
+a:focus-visible, button:focus-visible, input:focus-visible {
+  outline: 2px solid var(--h-sky);
+  outline-offset: 3px;
+}
