@@ -10,8 +10,7 @@ I teach mathematics, statistics and computer science at John Jay College, CUNY.
 
 ## Lecture Notes
 
-Course notes I have written are
-below; all of them are free to read, link to, and use in your own teaching.
+Using Claude, I have developed some interactive course notes below; all of them are free to read, link to, and use in your own teaching.
 
 
 - [**Precalculus**](/precalculus/) 
