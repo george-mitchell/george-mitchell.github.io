@@ -6,6 +6,7 @@ description: >-
 summary: "33 lectures in 14 chapters, plus an afterword"
 page: /applied-bayesian-inference/
 folder: /assets/courses/applied-bayesian-inference/
+cover: /assets/img/courses/applied-bayesian-inference-cover.png
 order: 4
 listed: true
 units:
