@@ -6,6 +6,7 @@ description: >-
 summary: "25 lectures"
 page: /probability-statistics/
 folder: /assets/courses/probability-statistics/
+cover: /assets/img/courses/probability-statistics-cover.png
 order: 2
 listed: true
 units:
