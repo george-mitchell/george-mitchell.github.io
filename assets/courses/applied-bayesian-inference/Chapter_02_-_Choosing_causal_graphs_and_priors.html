@@ -315,6 +315,10 @@ dl.pdl{display:grid;grid-template-columns:10.5em 1fr;gap:.45em 1.1em;margin:.4em
 dl.pdl dt{font-family:var(--mono);font-size:.84rem;font-weight:700;color:color-mix(in srgb,var(--sky) 75%,var(--ink));padding-top:.15em}
 dl.pdl dd{margin:0}
 @media (max-width:620px){dl.pdl{grid-template-columns:1fr;gap:.15em}dl.pdl dt{margin-top:.6em}}
+/* Paper in Focus: a modern research paper read as a case study */
+.box.paper{--bc:var(--lilac);border-left-color:var(--lilac);border-left-style:double;border-left-width:7px;background:var(--surface)}
+.box.paper .lbl{color:var(--lilac)}
+.box.paper .lbl::before{content:"¶ ";font-weight:400}
 </style><script src="/assets/courses/common/course-nav.js" data-course="applied-bayesian-inference" defer></script></head><body><div class="wrap"><a class="skip-link" href="#main">Skip to main content</a><div class="topbar"><a href="#top">Applied Bayesian Inference · Chapter 2</a><button class="ctl" id="theme" type="button">light theme</button></div><main id="main"><h1 id="top">Chapter 2<br/>Choosing causal graphs and priors</h1><p class="kicker">Lectures 3–4 · where graphs and priors come from, how to learn a graph from data, and how to assume as little as possible</p>
 <figure class="toon">
 <svg aria-labelledby="t2t t2d" height="210" role="img" viewBox="0 0 580 210" width="580">
@@ -670,6 +674,13 @@ hc_int    <span class="r-op">&lt;-</span> <span class="r-fn">hc</span>(cells_d, 
 <li>Never present a learned graph as established; present it as the graph the data favour <em>under stated assumptions</em>, and test its new predictions on new data or by experiment, as Sachs and colleagues did.</li>
 </ul>
 </div>
+
+<div class="box paper"><h4 class="lbl">Paper in Focus: Signalling Networks from Single Cells</h4>
+<p><strong>The paper.</strong> Karen Sachs, Omar Perez, Dana Pe'er, Douglas Lauffenburger and Garry Nolan, "Causal protein-signaling networks derived from multiparameter single-cell data", <em>Science</em> 308(5721), 523–529, 2005.</p>
+<p><strong>The claim.</strong> From flow-cytometry measurements of 11 phosphorylated proteins and phospholipids in thousands of individual human T cells, under nine experimental conditions, a Bayesian network recovered most of the known signalling pathway: of 17 high-confidence arcs, 15 were well established in the literature and 2 had been reported but were less established, and only 3 known connections were missed. The network also predicted an unreported influence of Erk on Akt, which the authors then confirmed by knocking down Erk in the laboratory.</p>
+<p><strong>Reading it.</strong> The design is the paper's main contribution. Measuring single cells rather than averages of millions supplied thousands of samples, and the interventions (chemicals that block or stimulate particular molecules) supplied the information that observational data alone cannot: the direction of arrows (Section 2.6). The model is a score-based search over graphs, with posterior confidence in each arc estimated by averaging over high-scoring graphs. Ask the questions this chapter has taught: which edges are oriented by interventions and which only by the search, how much depends on how the measurements were discretised, and how many of the 15 "known" arcs would have been found without the experiments. The final step, a new prediction tested by a new experiment, is the standard every discovery claim should meet.</p>
+</div>
+
 
 <div class="box idea"><h4 class="lbl">Project Connection: Cancer Gene-Expression Subtypes</h4>
 <p>Gene-expression studies measure thousands of genes in hundreds of tumours. Nobody can write the full graph by hand, so structure learning is not a check but a starting point. The lessons of this section transfer directly: discovery from observational expression data alone will orient few edges reliably; perturbation data (CRISPR knockouts, drug screens) are what make directions identifiable; and with far more variables than samples, the bootstrap stability of each edge matters more than the single best graph.</p>

@@ -315,6 +315,10 @@ dl.pdl{display:grid;grid-template-columns:10.5em 1fr;gap:.45em 1.1em;margin:.4em
 dl.pdl dt{font-family:var(--mono);font-size:.84rem;font-weight:700;color:color-mix(in srgb,var(--sky) 75%,var(--ink));padding-top:.15em}
 dl.pdl dd{margin:0}
 @media (max-width:620px){dl.pdl{grid-template-columns:1fr;gap:.15em}dl.pdl dt{margin-top:.6em}}
+/* Paper in Focus: a modern research paper read as a case study */
+.box.paper{--bc:var(--lilac);border-left-color:var(--lilac);border-left-style:double;border-left-width:7px;background:var(--surface)}
+.box.paper .lbl{color:var(--lilac)}
+.box.paper .lbl::before{content:"¶ ";font-weight:400}
 </style><script src="/assets/courses/common/course-nav.js" data-course="applied-bayesian-inference" defer></script></head><body><div class="wrap"><a class="skip-link" href="#main">Skip to main content</a><div class="topbar"><a href="#top">Applied Bayesian Inference · Chapter 4</a><button class="ctl" id="theme" type="button">light theme</button></div><main id="main"><h1 id="top">Chapter 4<br/>Generalized linear models</h1><p class="kicker">Lectures 7–8 · probabilities and counts: links, logistic and Poisson regression, and the fairness of a risk score</p>
 <figure class="toon">
 <svg aria-labelledby="t4t t4d" height="210" role="img" viewBox="0 0 580 210" width="580">
@@ -997,12 +1001,19 @@ compas <span class="r-op">|&gt;</span> <span class="r-fn">summarise</span>(auc_m
 <p>Both models are well calibrated: within each bin, the observed rate is close to the predicted probability. And the three-variable model discriminates slightly <em>better</em> than the COMPAS score (AUC 0.73 against 0.71), with a slightly lower Brier score (0.208 against 0.215; the Brier score is the mean squared difference between probability and outcome). An AUC of about 0.7 means that if you pick one person who was re-arrested and one who was not, the model ranks them correctly about 70% of the time. That is useful but far from certain, and both approaches are doing it with essentially the same information: how young a person is and how many times they have been arrested before.</p>
 
 <div class="box hist"><h4 class="lbl">History: Can Untrained People Beat the Algorithm?</h4>
-<p>In 2018 Julia Dressel and Hany Farid, at Dartmouth, ran a simple experiment on the same Broward County data. They showed short descriptions of defendants (sex, age, the charge and criminal history) to 400 people recruited online, with no training in criminal justice, and asked them to predict re-arrest. The crowd was about as accurate as COMPAS (67% against 65%), and a logistic regression with just two variables, age and number of prior convictions, matched COMPAS too. Their paper, in <em>Science Advances</em>, did not show that risk tools are useless; it showed that this one added little to information any court already has, which matters when the tool is proprietary and cannot be inspected. A good baseline is the most important comparison in any predictive paper.</p>
+<p>In 2018 Julia Dressel and Hany Farid, at Dartmouth, ran a simple experiment on the same Broward County data. They showed short descriptions of defendants (sex, age, the charge and criminal history) to 400 people recruited online, with no training in criminal justice, and asked them to predict re-arrest. The crowd was about as accurate as COMPAS, and so was a logistic regression with just two variables; the Paper in Focus box below reads the study in detail. The lesson for this section is that a good baseline is the most important comparison in any predictive paper.</p>
 </div>
 
 <div class="box pub"><h4 class="lbl">Research Practice: Evaluate Predictions Properly</h4>
 <p>For any model whose purpose is prediction, report: <strong>calibration</strong> (a calibration plot, overall and in the subgroups that matter); <strong>discrimination</strong> (AUC for binary outcomes); a <strong>proper scoring rule</strong> such as the Brier score or the log score, which rewards honest probabilities; and a comparison with a <strong>simple baseline</strong>. Evaluate on data the model did not see (a held-out sample or cross-validation, Chapter 10); with four parameters and 6,000 people the in-sample numbers above are close to out-of-sample ones, but with many predictors they can be badly optimistic. The TRIPOD guidelines (Collins et al., 2015) list what a prediction-model paper must report.</p>
 </div>
+
+<div class="box paper"><h4 class="lbl">Paper in Focus: Algorithms and Untrained People</h4>
+<p><strong>The paper.</strong> Julia Dressel and Hany Farid, "The accuracy, fairness, and limits of predicting recidivism", <em>Science Advances</em> 4(1), eaao5580, 2018.</p>
+<p><strong>The claim.</strong> On 1,000 defendants from the Broward County data, 400 people recruited online, each shown short descriptions of 50 defendants, predicted two-year re-arrest. Individually they were less accurate than COMPAS, but pooling the answers of the 20 people who saw each defendant gave an accuracy of 67.0%, against 65.2% for COMPAS. A logistic regression on two features, age and number of prior convictions, was about as accurate as both. The crowd and COMPAS made the same kind of error: both had markedly higher false-positive rates for Black defendants than for white defendants.</p>
+<p><strong>Reading it.</strong> The estimand is accuracy at predicting re-<em>arrest</em>, which is not the same as re-offending (the Research Practice box of Section 4.2). Note the role of the baselines: the paper's force comes from comparing a proprietary tool with the simplest possible alternatives, on the same cases. Then look at what accuracy hides. Calibration, which Section 4.6 checks, and false-positive rates, which Section 4.7 shows cannot all be equalised at once, are separate questions, and two predictors with the same accuracy can differ on both. A sensible reading is not "algorithms are useless" but "this one adds little to two facts any court already knows", which matters when the tool cannot be inspected. The same logic, compare with the simplest baseline and report uncertainty about the difference, is the basis of the A/B tests of Lecture 31.</p>
+</div>
+
 
 <div class="box rex"><h4 class="lbl">Check Yourself</h4>
 <div class="chk" data-answer="3" data-kind="select" id="chk-4-3"><div class="chk-row"><label class="chk-plab" for="chk-4-3-s">A model gives every person the overall base rate, 45%, as their probability of re-arrest. It is</label><select class="chk-sel" id="chk-4-3-s"><option value="">choose…</option><option value="1">badly calibrated and useless for discrimination</option><option value="2">well calibrated and good at discrimination</option><option value="3">perfectly calibrated overall but useless for discrimination (AUC 0.5)</option></select></div><div aria-live="polite" class="chk-fb" role="status"></div><button class="chk-reveal" hidden="" type="button">stuck? show the answer</button><div class="chk-store chk-hint" data-opt="1" hidden="">
@@ -1473,6 +1484,13 @@ Estimate     Q2.5    Q97.5
 
 
 <p>The prior for the intercept, Normal(−5, 2), says the typical airline has <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>e</mi><mrow><mo>&#x02212;</mo><mn>5</mn></mrow></msup><mo>&#x02248;</mo><mn>0.007</mn></mrow></math> incidents per billion seat-kilometres, about 7 per thousand billion (roughly the 15-year exposure of a mid-sized airline), with a wide range of plausible values. The posterior says that past record matters: an airline whose 1985–99 incident rate was one standard deviation above average had, in 2000–14, an incident rate about 1.6 times higher. Past safety records <em>do</em> predict future ones. But how sure should we be? That depends on whether the Poisson model is right.</p>
+
+<div class="box hist"><h4 class="lbl">History: Counting Processes and Survival Analysis</h4>
+<p>Let <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>N</mi><mo stretchy="false">&#x00028;</mo><mi>t</mi><mo stretchy="false">&#x00029;</mo></mrow></math> count the events (incidents, deaths, relapses) up to time <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>t</mi></mrow></math>, and let <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x0039B;</mi><mo stretchy="false">&#x00028;</mo><mi>t</mi><mo stretchy="false">&#x00029;</mo></mrow></math> be the expected number given the history so far: the integral of the hazard, or for the Poisson model of this section, rate times exposure. The difference</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>M</mi><mo stretchy="false">&#x00028;</mo><mi>t</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mi>N</mi><mo stretchy="false">&#x00028;</mo><mi>t</mi><mo stretchy="false">&#x00029;</mo><mo>&#x02212;</mo><mi>&#x0039B;</mi><mo stretchy="false">&#x00028;</mo><mi>t</mi><mo stretchy="false">&#x00029;</mo></mrow></math>
+<p>is a martingale: given the past, the expected number of further events equals the expected number still to be accumulated. In the 1970s Odd Aalen, then a doctoral student at Berkeley, realised that this one fact, with the martingale central limit theorem, gives the large-sample theory of almost every method in survival analysis: the Nelson–Aalen estimator of cumulative hazard, the log-rank test, Kaplan–Meier confidence intervals and the Cox model's standard errors. Per Kragh Andersen, Ørnulf Borgan, Richard Gill and Niels Keiding wrote the theory up in <em>Statistical Models Based on Counting Processes</em> (1993). David Salsburg's <em>The Lady Tasting Tea</em> (2001) tells the story for a general reader.</p>
+<p>The applied legacy is a residual. For each subject, observed events minus expected events, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mover accent="true"><mi>M</mi><mo>&#x0005E;</mo></mover><mi>i</mi></msub><mo>&#x0003D;</mo><msub><mi>N</mi><mi>i</mi></msub><mo>&#x02212;</mo><msub><mover accent="true"><mi>&#x0039B;</mi><mo>&#x0005E;</mo></mover><mi>i</mi></msub></mrow></math>, is the <strong>martingale residual</strong>, a standard diagnostic for Cox models: plotted against a covariate, it shows whether the covariate's effect has the right functional form. For the Poisson model in this section, observed minus expected incidents for each airline is the same quantity, and plotting it against exposure is a check of the model's assumption that incidents scale with the number of flights. Bayesian survival models (piecewise-exponential models are Poisson regressions with exposure) inherit the whole apparatus.</p>
+</div>
 
 <h2 id="sec-4-9">4.9 Overdispersion and the negative binomial</h2>
 
@@ -2671,6 +2689,8 @@ air <span class="r-op">&lt;-</span> air <span class="r-op">|&gt;</span> <span cl
 </div>
 
 <ol class="refs">
+<li>Aalen, O. O. (1978). Nonparametric inference for a family of counting processes. <em>Annals of Statistics</em>, 6(4), 701–726.</li>
+<li>Andersen, P. K., Borgan, Ø., Gill, R. D. and Keiding, N. (1993). <em>Statistical Models Based on Counting Processes</em>. Springer.</li>
 <li>Angwin, J., Larson, J., Mattu, S. and Kirchner, L. (2016). Machine bias. <em>ProPublica</em>, 23 May 2016. Data and code: github.com/propublica/compas-analysis.</li>
 <li>Berkson, J. (1944). Application of the logistic function to bio-assay. <em>Journal of the American Statistical Association</em>, 39(227), 357–365.</li>
 <li>Bortkiewicz, L. von (1898). <em>Das Gesetz der kleinen Zahlen.</em> Leipzig: Teubner.</li>
@@ -2679,12 +2699,13 @@ air <span class="r-op">&lt;-</span> air <span class="r-op">|&gt;</span> <span cl
 <li>Collins, G. S., Reitsma, J. B., Altman, D. G. and Moons, K. G. M. (2015). Transparent reporting of a multivariable prediction model for individual prognosis or diagnosis (TRIPOD). <em>Annals of Internal Medicine</em>, 162(1), 55–63.</li>
 <li>Dieterich, W., Mendoza, C. and Brennan, T. (2016). <em>COMPAS Risk Scales: Demonstrating Accuracy Equity and Predictive Parity.</em> Northpointe Inc.</li>
 <li>Dressel, J. and Farid, H. (2018). The accuracy, fairness, and limits of predicting recidivism. <em>Science Advances</em>, 4(1), eaao5580.</li>
-<li>Gelman, A., Meng, X.-L. and Stern, H. (1996). Posterior predictive assessment of model fitness via realized discrepancies. <em>Statistica Sinica</em>, 6(4), 733–760.</li>
 <li>Gelman, A., Hill, J. and Vehtari, A. (2020). <em>Regression and Other Stories.</em> Cambridge University Press.</li>
+<li>Gelman, A., Meng, X.-L. and Stern, H. (1996). Posterior predictive assessment of model fitness via realized discrepancies. <em>Statistica Sinica</em>, 6(4), 733–760.</li>
 <li>Kleinberg, J., Mullainathan, S. and Raghavan, M. (2017). Inherent trade-offs in the fair determination of risk scores. <em>Proceedings of Innovations in Theoretical Computer Science</em>, 43:1–43:23.</li>
 <li>Liang, W., Yuksekgonul, M., Mao, Y., Wu, E. and Zou, J. (2023). GPT detectors are biased against non-native English writers. <em>Patterns</em>, 4(7), 100779.</li>
 <li>Mitchell, S., Potash, E., Barocas, S., D'Amour, A. and Lum, K. (2021). Algorithmic fairness: choices, assumptions, and definitions. <em>Annual Review of Statistics and Its Application</em>, 8, 141–163.</li>
 <li>Poisson, S. D. (1837). <em>Recherches sur la probabilité des jugements en matière criminelle et en matière civile.</em> Paris: Bachelier.</li>
+<li>Salsburg, D. (2001). <em>The Lady Tasting Tea: How Statistics Revolutionized Science in the Twentieth Century</em>. W. H. Freeman.</li>
 <li>Silver, N. (2014). Should travelers avoid flying airlines that have had crashes in the past? <em>FiveThirtyEight</em>, 18 July 2014. Data: github.com/fivethirtyeight/data/tree/master/airline-safety.</li>
 <li>Verhulst, P.-F. (1838). Notice sur la loi que la population suit dans son accroissement. <em>Correspondance mathématique et physique</em>, 10, 113–121.</li>
 </ol>

@@ -315,6 +315,10 @@ dl.pdl{display:grid;grid-template-columns:10.5em 1fr;gap:.45em 1.1em;margin:.4em
 dl.pdl dt{font-family:var(--mono);font-size:.84rem;font-weight:700;color:color-mix(in srgb,var(--sky) 75%,var(--ink));padding-top:.15em}
 dl.pdl dd{margin:0}
 @media (max-width:620px){dl.pdl{grid-template-columns:1fr;gap:.15em}dl.pdl dt{margin-top:.6em}}
+/* Paper in Focus: a modern research paper read as a case study */
+.box.paper{--bc:var(--lilac);border-left-color:var(--lilac);border-left-style:double;border-left-width:7px;background:var(--surface)}
+.box.paper .lbl{color:var(--lilac)}
+.box.paper .lbl::before{content:"¶ ";font-weight:400}
 </style><script src="/assets/courses/common/course-nav.js" data-course="applied-bayesian-inference" defer></script></head><body><div class="wrap"><a class="skip-link" href="#main">Skip to main content</a><div class="topbar"><a href="#top">Applied Bayesian Inference · Chapter 1</a><button class="ctl" id="theme" type="button">light theme</button></div><main id="main"><h1 id="top">Chapter 1<br/>The causal–Bayesian workflow</h1><p class="kicker">Lectures 1–2 · small worlds, graphs, priors and posteriors: the loop that every later chapter runs</p>
 <figure class="toon">
 <svg aria-labelledby="t1t t1d" height="210" role="img" viewBox="0 0 580 210" width="580">
@@ -653,6 +657,30 @@ draws$distribution <span class="r-op">&lt;-</span> <span class="r-fn">factor</sp
 
 <p>Three things are worth trying. First, set both counts to zero: the posterior is the prior, because there are no data. Second, replay the trial and watch how quickly the posterior abandons the prior: after twenty or thirty cases, the choice of prior barely matters. Third, switch to the <em>sceptical</em> prior, which is centred on VE = 0 and worth 40 observations, and lower the case counts to something small like 2 and 15. With few data, the prior visibly holds the posterior back. <strong>Priors matter most when data are scarce</strong>, which is exactly when you should think hardest about them.</p>
 
+<div class="box idea"><h4 class="lbl">Idea: You Cannot Expect to Change Your Mind</h4>
+<p>Before the next 50 cases of the vaccine trial arrive, we do not know what the posterior will be. But we can say what we expect it to be: exactly what it is now. For any quantity <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B8;</mi></mrow></math> and any future data <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>y</mi><mrow><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></msub></mrow></math>,</p>
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>&#x1D53C;</mi><mo minsize="1.2em" maxsize="1.2em">[</mo><mspace width="0.167em" /><mi>&#x1D53C;</mi><mo stretchy="false">[</mo><mi>&#x003B8;</mi><mo>&#x02223;</mo><msub><mi>y</mi><mrow><mn>1</mn><mi>:</mi><mi>n</mi><mo>&#x0002B;</mo><mn>1</mn></mrow></msub><mo stretchy="false">]</mo><mspace width="0.278em" /><mo minsize="1.2em" maxsize="1.2em">|</mo><mspace width="0.278em" /><msub><mi>y</mi><mrow><mn>1</mn><mi>:</mi><mi>n</mi></mrow></msub><mo minsize="1.2em" maxsize="1.2em">]</mo><mo>&#x0003D;</mo><mi>&#x1D53C;</mi><mo stretchy="false">[</mo><mi>&#x003B8;</mi><mo>&#x02223;</mo><msub><mi>y</mi><mrow><mn>1</mn><mi>:</mi><mi>n</mi></mrow></msub><mo stretchy="false">]</mo><mo>&#x0002C;</mo></mrow></math>
+<p>because averaging the future posterior over the predictive distribution of the future data simply undoes the conditioning (the "tower property" of conditional expectation). A sequence with this property, whose expected next value equals its current value, is called a <strong>martingale</strong>. Your posterior mean is one. If you can predict which way your beliefs will move, you should move them now.</p>
+<p>Two practical consequences follow. First, a posterior that drifts predictably as data accumulate, say, an estimated effect that keeps falling as each new batch arrives, is a sign that the model is wrong, for instance that the data are not exchangeable over time. Second, the result gives Bayesian updating a frequentist guarantee: Doob (1949) used it to show that, for almost every parameter value under the prior, the posterior converges to the truth.</p>
+</div>
+
+<div class="rblock">
+<div class="rhead"><span class="rlab">R</span><button class="copy-btn" type="button">copy code</button></div>
+<pre class="rcode"><code>a <span class="r-op">&lt;-</span> <span class="r-num">0.700102</span> + <span class="r-num">8</span>; b <span class="r-op">&lt;-</span> <span class="r-num">1</span> + <span class="r-num">162</span>                       <span class="r-com"># posterior for the vaccine share of cases, Section 1.2</span>
+<span class="r-fn">set.seed</span>(<span class="r-num">1</span>)
+theta <span class="r-op">&lt;-</span> <span class="r-fn">rbeta</span>(<span class="r-num">1e5</span>, a, b); k <span class="r-op">&lt;-</span> <span class="r-fn">rbinom</span>(<span class="r-num">1e5</span>, <span class="r-num">50</span>, theta)  <span class="r-com"># the next 50 cases, from the posterior predictive</span>
+future_mean <span class="r-op">&lt;-</span> (a + k) / (a + b + <span class="r-num">50</span>)
+<span class="r-fn">c</span>(current_posterior_mean = a / (a + b), average_future_posterior_mean = <span class="r-fn">mean</span>(future_mean),
+  sd_future_posterior_mean = <span class="r-fn">sd</span>(future_mean), prob_future_mean_higher = <span class="r-fn">mean</span>(future_mean &gt; a / (a + b))) <span class="r-op">|&gt;</span> <span class="r-fn">round</span>(<span class="r-num">4</span>)</code></pre>
+<div class="routlab">output</div><pre class="rout"><code>       current_posterior_mean average_future_posterior_mean 
+                       0.0507                        0.0507 
+     sd_future_posterior_mean       prob_future_mean_higher 
+                       0.0080                        0.4508 </code></pre>
+</div>
+
+
+<p>Simulating the next 50 cases 100,000 times, the future posterior mean of the vaccine share of cases varies (its standard deviation is 0.008), and it is slightly more likely to fall than to rise (it rises in 45% of simulations, because the distribution is skewed). Its average, 0.0507, is the current posterior mean to four decimal places.</p>
+
 <div class="box pub"><h4 class="lbl">Research Practice: Decide Before You Look</h4>
 <p>The trial's statistical analysis plan stated the prior, the likelihood, the number of cases at which the data would be analysed, and the success criterion (posterior probability that VE &gt; 30% above 98.6% at the final analysis) before any results were seen. That is why nobody could accuse the company of choosing the prior that gave the answer they wanted. For your own work:</p>
 <ul>
@@ -661,6 +689,27 @@ draws$distribution <span class="r-op">&lt;-</span> <span class="r-fn">factor</sp
 <li>If you change the plan after seeing data, say so and say why. Reviewers forgive changes they are told about; they do not forgive changes they discover.</li>
 </ul>
 </div>
+
+<div class="box idea"><h4 class="lbl">How to Read a Paper in This Course</h4>
+<p>Every chapter has a <strong>Paper in Focus</strong>: a real, recent study whose analysis uses the chapter's ideas. Each box follows the same plan, and so should your reading.</p>
+<ol>
+<li><strong>The claim.</strong> State it in one sentence, with its number and its uncertainty. If you cannot, the paper has not told you yet.</li>
+<li><strong>The estimand.</strong> What quantity, for which population, under which intervention? Most disagreements between papers are disagreements about estimands.</li>
+<li><strong>The design and the data.</strong> How did the data come to be: randomised, observed, simulated, selected? Who is missing?</li>
+<li><strong>The model.</strong> The likelihood, the priors, the graph behind the adjustment, and how it was computed.</li>
+<li><strong>The key table or figure.</strong> Find the one exhibit the claim rests on, and read its axes and intervals before its caption.</li>
+<li><strong>What we reproduce.</strong> Where the data are open, the chapter refits a simplified version; compare our numbers with theirs and explain the differences.</li>
+<li><strong>What to question.</strong> Apply the eight questions of Section A.4: estimand, data, structure, priors, computation, fit, size and certainty, sensitivity.</li>
+</ol>
+<p>Read the abstract last, not first. It is the authors' summary of what they hope you will remember; the methods, the supplement and the code are what they did.</p>
+</div>
+
+<div class="box paper"><h4 class="lbl">Paper in Focus: The BNT162b2 Vaccine Trial</h4>
+<p><strong>The paper.</strong> Fernando Polack, Stephen Thomas, Nicholas Kitchin and colleagues, "Safety and efficacy of the BNT162b2 mRNA Covid-19 vaccine", <em>New England Journal of Medicine</em> 383(27), 2603–2615, 2020.</p>
+<p><strong>The claim.</strong> Two doses of the vaccine were 95.0% effective at preventing symptomatic COVID-19 from seven days after the second dose, with a 95% credible interval of 90.3% to 97.6%: 8 cases among vaccine recipients against 162 among placebo recipients. The posterior probability that efficacy exceeded 30% was above 99.99%, and the safety profile over a median of two months was similar to that of other viral vaccines.</p>
+<p><strong>Reading it.</strong> The estimand is the efficacy against <em>symptomatic, laboratory-confirmed</em> disease in participants without evidence of previous infection, not efficacy against infection, transmission or severe disease, which were secondary questions. The design was a randomised, observer-blinded trial of about 43,500 people. The model is the beta–binomial of this section, with a prior fixed in the protocol before any data were seen. Note what is in the main text and what is not: the prior and the success criteria are set out in the protocol, published with the paper, rather than in the article itself. Lecture 34 returns to this design and shows how its Bayesian thresholds were tuned so that its frequentist error rate stayed below 2.5%.</p>
+</div>
+
 
 <div class="box rex"><h4 class="lbl">Check Yourself</h4>
 <div class="chk" data-answer="0.5" data-kind="num" data-tol="0.001" id="chk-1-1"><p>If the vaccine had no effect at all (VE = 0), what value would <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B8;</mi></mrow></math>, the share of cases in the vaccine arm, take?</p><div class="chk-row"><label class="chk-plab" for="chk-1-1-i">θ =</label><input autocomplete="off" class="chk-in" id="chk-1-1-i" inputmode="decimal" spellcheck="false" type="text"/><button class="ctl chk-go" type="button">check</button></div><div aria-live="polite" class="chk-fb" role="status"></div><button class="chk-reveal" hidden="" type="button">stuck? show the answer</button><div class="chk-store chk-hint" hidden="">
@@ -2067,6 +2116,7 @@ m1 -93.6      11.2  </code></pre>
 
 <ol class="refs">
 <li>Berkson, J. (1946). Limitations of the application of fourfold table analysis to hospital data. <em>Biometrics Bulletin</em>, 2(3), 47–53.</li>
+<li>Doob, J. L. (1949). Application of the theory of martingales. In <em>Le Calcul des Probabilités et ses Applications</em>, 23–27. CNRS, Paris.</li>
 <li>FDA (2020). <em>Vaccines and Related Biological Products Advisory Committee Briefing Document: Pfizer-BioNTech COVID-19 Vaccine</em>, 10 December 2020.</li>
 <li>Gelman, A., Vehtari, A., Simpson, D., et al. (2020). Bayesian workflow. arXiv:2011.01808.</li>
 <li>Griffith, G. J., Morris, T. T., Tudball, M. J., et al. (2020). Collider bias undermines our understanding of COVID-19 disease risk and severity. <em>Nature Communications</em>, 11, 5749.</li>

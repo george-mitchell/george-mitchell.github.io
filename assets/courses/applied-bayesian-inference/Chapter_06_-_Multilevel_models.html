@@ -315,6 +315,10 @@ dl.pdl{display:grid;grid-template-columns:10.5em 1fr;gap:.45em 1.1em;margin:.4em
 dl.pdl dt{font-family:var(--mono);font-size:.84rem;font-weight:700;color:color-mix(in srgb,var(--sky) 75%,var(--ink));padding-top:.15em}
 dl.pdl dd{margin:0}
 @media (max-width:620px){dl.pdl{grid-template-columns:1fr;gap:.15em}dl.pdl dt{margin-top:.6em}}
+/* Paper in Focus: a modern research paper read as a case study */
+.box.paper{--bc:var(--lilac);border-left-color:var(--lilac);border-left-style:double;border-left-width:7px;background:var(--surface)}
+.box.paper .lbl{color:var(--lilac)}
+.box.paper .lbl::before{content:"¶ ";font-weight:400}
 </style><script src="/assets/courses/common/course-nav.js" data-course="applied-bayesian-inference" defer></script></head><body><div class="wrap"><a class="skip-link" href="#main">Skip to main content</a><div class="topbar"><a href="#top">Applied Bayesian Inference · Chapter 6</a><button class="ctl" id="theme" type="button">light theme</button></div><main id="main"><h1 id="top">Chapter 6<br/>Multilevel models</h1><p class="kicker">Lectures 11–12 · partial pooling, empirical Bayes, varying slopes, the geometry of hierarchies, and ambulance response times across New York</p>
 <figure class="toon">
 <svg aria-labelledby="t6t t6d" height="210" role="img" viewBox="0 0 580 210" width="580">
@@ -340,7 +344,7 @@ dl.pdl dd{margin:0}
 <p>The third option is the <strong>multilevel model</strong> (also called a hierarchical or mixed-effects model), and it is probably the single most useful technique in applied Bayesian statistics. It treats the group averages as themselves drawn from a population, learns from the data how much the groups differ, and pulls each group's estimate toward the population average by exactly the amount its own data warrant. Groups with lots of data barely move; groups with little data move a lot. This <strong>shrinkage</strong> sounds like a compromise, but it is not: shrunken estimates are, on average, <em>more accurate</em> than the raw group averages. That fact so surprised statisticians when it was proved in the 1950s that it became known as a paradox.</p>
 
 <ul>
-<li><strong>Lecture 11 is about pooling.</strong> We will ask which country grows the best coffee, using ratings of 1,309 coffees from 36 countries, see why the raw rankings mislead, fit a multilevel model, check on held-out data that its estimates predict better, and meet <em>empirical Bayes</em>: the shortcut that estimates the population from the data and the history of Stein's paradox.</li>
+<li><strong>Lecture 11 is about pooling.</strong> We will ask which country grows the best coffee, using ratings of 1,309 coffees from 36 countries, see why the raw rankings mislead, fit a multilevel model, check on held-out data that its estimates predict better, and meet <em>empirical Bayes</em>: the shortcut that estimates the population from the data, with the history of Stein's paradox, Tweedie's formula for the winner's curse, and a pooled analysis of seven microcredit experiments.</li>
 <li><strong>Lecture 12 extends the idea.</strong> Groups can differ in their slopes as well as their averages: we will model how carbon emissions per person changed in 164 countries from 2000 to 2022, and ask whether richer countries cut them faster. Then we confront the computational price of hierarchies, the <em>funnel</em>, and the reparameterisation that removes it, and end with a case study from New York City's ambulance dispatch records: response times to cardiac arrests across nearly 200 ZIP codes.</li>
 </ul>
 
@@ -856,6 +860,82 @@ Zambia              81.97      1.23 79.58 84.50</code></pre>
 </div><div class="chk-store chk-ans" hidden="">too narrow, because it treats τ = 0 as known when values up to about 3 are plausible</div></div>
 </div>
 
+<p><strong>Efron's view: empirical Bayes at scale.</strong> Bradley Efron, who with Carl Morris turned Stein's paradox into practical statistics in the 1970s, later argued that empirical Bayes comes into its own when there are not dozens of groups but thousands: genes in a microarray, schools in a state, experiments in a technology company. Then the data say a great deal about the prior, which can be estimated almost nonparametrically, and the Bayesian answer acquires frequentist guarantees. One result makes this vivid. Suppose each of many estimates is <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>z</mi><mi>i</mi></msub><mo>&#x0223C;</mo><mtext>normal</mtext><mo stretchy="false">&#x00028;</mo><msub><mi>&#x003B8;</mi><mi>i</mi></msub><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, with the <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003B8;</mi><mi>i</mi></msub></mrow></math> drawn from an unknown prior. <strong>Tweedie's formula</strong> says that the posterior mean is</p>
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>&#x1D53C;</mi><mo stretchy="false">[</mo><msub><mi>&#x003B8;</mi><mi>i</mi></msub><mo>&#x02223;</mo><msub><mi>z</mi><mi>i</mi></msub><mo stretchy="false">]</mo><mo>&#x0003D;</mo><msub><mi>z</mi><mi>i</mi></msub><mo>&#x0002B;</mo><mfrac><mrow><mi>d</mi></mrow><mrow><mi>d</mi><mi>z</mi></mrow></mfrac><mi>log</mi><mo>&#x2061;</mo><mi>f</mi><mo stretchy="false">&#x00028;</mo><mi>z</mi><mo stretchy="false">&#x00029;</mo><msub><mo minsize="1.623em" maxsize="1.623em">|</mo><mrow><mi>z</mi><mo>&#x0003D;</mo><msub><mi>z</mi><mi>i</mi></msub></mrow></msub><mo>&#x0002C;</mo></mrow></math>
+
+<p>where <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> is the <em>marginal</em> density of the <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>z</mi></mrow></math>'s, which can be estimated directly from their histogram without ever specifying the prior (Efron, 2011). The correction is largest exactly where selection operates: the estimates that look best are, on average, too good, and Tweedie's formula says by how much. The simulation draws 5,000 true effects from a heavy-tailed distribution, observes each with noise, selects the top 1%, as a league table or a "winners" list would, and compares their raw estimates, their true values and the Tweedie correction, with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> estimated by Lindsey's method, a Poisson regression on the histogram counts.</p>
+
+<div class="rblock">
+<div class="rhead"><span class="rlab">R</span><button class="copy-btn" type="button">copy code</button></div>
+<pre class="rcode"><code><span class="r-fn">set.seed</span>(<span class="r-num">6</span>)
+theta <span class="r-op">&lt;-</span> <span class="r-num">1.5</span> * <span class="r-fn">rt</span>(<span class="r-num">5000</span>, df = <span class="r-num">4</span>); z <span class="r-op">&lt;-</span> theta + <span class="r-fn">rnorm</span>(<span class="r-num">5000</span>)          <span class="r-com"># true effects and noisy estimates</span>
+br <span class="r-op">&lt;-</span> <span class="r-fn">seq</span>(<span class="r-fn">min</span>(z) - <span class="r-num">0.1</span>, <span class="r-fn">max</span>(z) + <span class="r-num">0.1</span>, length.out = <span class="r-num">101</span>); mid <span class="r-op">&lt;-</span> (br[-<span class="r-num">1</span>] + br[-<span class="r-num">101</span>]) / <span class="r-num">2</span>
+counts <span class="r-op">&lt;-</span> <span class="r-fn">as.vector</span>(<span class="r-fn">table</span>(<span class="r-fn">cut</span>(z, br)))
+lindsey <span class="r-op">&lt;-</span> <span class="r-fn">glm</span>(counts <span class="r-op">~</span> <span class="r-fn">poly</span>(mid, <span class="r-num">7</span>), family = poisson)            <span class="r-com"># log f(z) as a smooth polynomial</span>
+dlogf <span class="r-op">&lt;-</span> <span class="r-fn">diff</span>(<span class="r-fn">log</span>(<span class="r-fn">fitted</span>(lindsey))) / <span class="r-fn">diff</span>(mid)                    <span class="r-com"># derivative of log f at bin edges</span>
+tweedie <span class="r-op">&lt;-</span> z + <span class="r-fn">approx</span>((mid[-<span class="r-num">1</span>] + mid[-<span class="r-num">100</span>]), dlogf, xout = z, rule = <span class="r-num">2</span>)$y
+top <span class="r-op">&lt;-</span> z &gt;= <span class="r-fn">quantile</span>(z, <span class="r-num">0.99</span>)
+<span class="r-fn">c</span>(top_1pct_raw = <span class="r-fn">mean</span>(z[top]), top_1pct_truth = <span class="r-fn">mean</span>(theta[top]), top_1pct_tweedie = <span class="r-fn">mean</span>(tweedie[top]),
+  rmse_raw = <span class="r-fn">sqrt</span>(<span class="r-fn">mean</span>((z - theta)^<span class="r-num">2</span>)), rmse_tweedie = <span class="r-fn">sqrt</span>(<span class="r-fn">mean</span>((tweedie - theta)^<span class="r-num">2</span>))) <span class="r-op">|&gt;</span> <span class="r-fn">round</span>(<span class="r-num">3</span>)</code></pre>
+<div class="routlab">output</div><pre class="rout"><code>    top_1pct_raw   top_1pct_truth top_1pct_tweedie         rmse_raw 
+           7.750            7.128            6.975            1.003 
+    rmse_tweedie 
+           0.908 </code></pre>
+</div>
+
+
+<p>The 50 best-looking estimates average 7.75, but their true effects average only 7.13: selection has inflated them by 0.6, even though every estimate is individually unbiased. Tweedie's formula, using nothing but the histogram of all 5,000 estimates, pulls the winners back to 6.98, slightly too far but much closer to the truth than the raw values. Across all 5,000 units the root mean squared error falls from 1.00 to 0.91. No prior was specified: the data supplied it.</p>
+
+<p>The same logic, an empirical estimate of the prior from many parallel cases, appears three more times in this course: in the local false discovery rates of Section 10.9, where it decides which of twenty thousand genes are differentially expressed; in the 27,000 headline experiments of Lecture 31, where it corrects the winner's curse in A/B testing; and in Lecture 34, where Efron's formula for the frequentist accuracy of a Bayesian estimate makes the bridge between the two schools explicit.</p>
+
+<div class="box paper"><h4 class="lbl">Paper in Focus: Seven Microcredit Experiments</h4>
+<p><strong>The paper.</strong> Rachael Meager, "Understanding the average impact of microcredit expansions: a Bayesian hierarchical analysis of seven randomized experiments", <em>American Economic Journal: Applied Economics</em> 11(1), 2019. Between 2015 and 2016, seven randomised evaluations of expanding access to microloans in Bosnia, Ethiopia, India, Mexico, Mongolia, Morocco and the Philippines were published, with apparently conflicting results. Meager asked what they say together, and how much the effect varies from place to place.</p>
+<p><strong>The model.</strong> A Bayesian hierarchical model of exactly the kind in this chapter: each site's effect <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003C4;</mi><mi>k</mi></msub></mrow></math> is estimated with standard error <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>s</mi><mi>k</mi></msub></mrow></math>, and the <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003C4;</mi><mi>k</mi></msub></mrow></math> are drawn from a population with mean <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003C4;</mi></mrow></math> and standard deviation <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003C3;</mi><mi>&#x003C4;</mi></msub></mrow></math>. Outcomes were converted to US dollars at purchasing-power parity per fortnight. The quantities of interest are the general effect <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003C4;</mi></mrow></math>, the heterogeneity <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003C3;</mi><mi>&#x003C4;</mi></msub></mrow></math>, and the <em>pooling factors</em>, which say how much of the variation between sites' estimates is sampling noise.</p>
+<p><strong>The claim.</strong> The effects on household business profit, consumption and other outcomes are small, around 7% of the control group's mean on average across outcomes, probably positive, and with substantial probability of being near zero. Averaged across outcomes, about 60% of the observed variation between sites' estimates is sampling error, so the studies are more similar than they look, and they generalise better than their conflicting headlines suggested. For consumption, the joint model's posterior mean of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003C4;</mi></mrow></math> is $3.4 per fortnight (95% interval −$6.3 to $13.2).</p>
+<p><strong>Reading it.</strong> Note the estimand (an average effect across a population of possible sites, not the effect in any one), the assumption that the sites are exchangeable, and the pooling factors, which are the paper's main contribution to policy debates about external validity. We reproduce the consumption analysis for the five sites that measured it, from the household data distributed with the <code>baggr</code> package (Wiecek and Meager, 2022), using a simplified version without covariates; Section 14.12 then uses the result for a policy decision.</p>
+</div>
+
+<div class="rblock">
+<div class="rhead"><span class="rlab">R</span><button class="copy-btn" type="button">copy code</button></div>
+<pre class="rcode"><code>mc_url <span class="r-op">&lt;-</span> <span class="r-str">"https://raw.githubusercontent.com/wwiecek/baggr/master/data/microcredit_simplified.rda"</span>
+<span class="r-kw">if</span> (!<span class="r-fn">file.exists</span>(<span class="r-str">"data/microcredit/microcredit_simplified.rda"</span>)) {
+  <span class="r-fn">dir.create</span>(<span class="r-str">"data/microcredit"</span>, showWarnings = <span class="r-kw">FALSE</span>); <span class="r-fn">download.file</span>(mc_url, <span class="r-str">"data/microcredit/microcredit_simplified.rda"</span>, mode = <span class="r-str">"wb"</span>) }
+<span class="r-fn">load</span>(<span class="r-str">"data/microcredit/microcredit_simplified.rda"</span>)                  <span class="r-com"># household consumption, USD PPP per fortnight</span>
+sites <span class="r-op">&lt;-</span> <span class="r-fn">tibble</span>(group = <span class="r-num">1</span>:<span class="r-num">5</span>, site = <span class="r-fn">c</span>(<span class="r-str">"Mexico"</span>, <span class="r-str">"Mongolia"</span>, <span class="r-str">"Bosnia"</span>, <span class="r-str">"India"</span>, <span class="r-str">"Morocco"</span>))
+site_est <span class="r-op">&lt;-</span> microcredit_simplified <span class="r-op">|&gt;</span> <span class="r-fn">group_by</span>(group) <span class="r-op">|&gt;</span>
+  <span class="r-fn">group_modify</span>(<span class="r-op">~</span> { f <span class="r-op">&lt;-</span> <span class="r-fn">lm</span>(consumption <span class="r-op">~</span> treatment, .x); <span class="r-fn">tibble</span>(n = <span class="r-fn">nrow</span>(.x), tau = <span class="r-fn">coef</span>(f)[[<span class="r-num">2</span>]], se = <span class="r-fn">sqrt</span>(<span class="r-fn">vcov</span>(f)[<span class="r-num">2</span>, <span class="r-num">2</span>])) }) <span class="r-op">|&gt;</span>
+  <span class="r-fn">ungroup</span>() <span class="r-op">|&gt;</span> <span class="r-fn">left_join</span>(sites, by = <span class="r-str">"group"</span>)
+m_meager <span class="r-op">&lt;-</span> <span class="r-fn">brm</span>(tau | <span class="r-fn">se</span>(se) <span class="r-op">~</span> <span class="r-num">1</span> + (<span class="r-num">1</span> | site), data = site_est, seed = <span class="r-num">6</span>, refresh = <span class="r-num">0</span>,
+                prior = <span class="r-fn">c</span>(<span class="r-fn">prior</span>(<span class="r-fn">normal</span>(<span class="r-num">0</span>, <span class="r-num">50</span>), class = Intercept), <span class="r-fn">prior</span>(<span class="r-fn">normal</span>(<span class="r-num">0</span>, <span class="r-num">25</span>), class = sd)),
+                control = <span class="r-fn">list</span>(adapt_delta = <span class="r-num">0.999</span>), file = <span class="r-str">"fits/ch6_meager"</span>)
+site_est <span class="r-op">|&gt;</span> <span class="r-fn">select</span>(site, n, tau, se) <span class="r-op">|&gt;</span> <span class="r-fn">mutate</span>(<span class="r-fn">across</span>(<span class="r-fn">c</span>(tau, se), <span class="r-op">~</span> <span class="r-fn">round</span>(.x, <span class="r-num">2</span>)))
+w <span class="r-op">&lt;-</span> <span class="r-num">1</span> / site_est$se^<span class="r-num">2</span>
+<span class="r-fn">rbind</span>(full_pooling = <span class="r-fn">c</span>(estimate = <span class="r-fn">sum</span>(w * site_est$tau) / <span class="r-fn">sum</span>(w), lo = <span class="r-fn">sum</span>(w * site_est$tau) / <span class="r-fn">sum</span>(w) - <span class="r-num">1.96</span> / <span class="r-fn">sqrt</span>(<span class="r-fn">sum</span>(w)),
+                       hi = <span class="r-fn">sum</span>(w * site_est$tau) / <span class="r-fn">sum</span>(w) + <span class="r-num">1.96</span> / <span class="r-fn">sqrt</span>(<span class="r-fn">sum</span>(w))),
+      hierarchical_tau = <span class="r-fn">posterior_summary</span>(m_meager, variable = <span class="r-str">"b_Intercept"</span>)[, <span class="r-fn">c</span>(<span class="r-num">1</span>, <span class="r-num">3</span>, <span class="r-num">4</span>)],
+      sigma_tau = <span class="r-fn">posterior_summary</span>(m_meager, variable = <span class="r-str">"sd_site__Intercept"</span>)[, <span class="r-fn">c</span>(<span class="r-num">1</span>, <span class="r-num">3</span>, <span class="r-num">4</span>)]) <span class="r-op">|&gt;</span> <span class="r-fn">round</span>(<span class="r-num">2</span>)
+sig <span class="r-op">&lt;-</span> <span class="r-fn">as_draws_df</span>(m_meager)$sd_site__Intercept
+<span class="r-fn">c</span>(pooling_factor = <span class="r-fn">mean</span>(<span class="r-fn">sapply</span>(sig, <span class="r-kw">function</span>(s) <span class="r-fn">mean</span>(site_est$se^<span class="r-num">2</span> / (site_est$se^<span class="r-num">2</span> + s^<span class="r-num">2</span>))))) <span class="r-op">|&gt;</span> <span class="r-fn">round</span>(<span class="r-num">2</span>)</code></pre>
+<div class="routlab">output</div><pre class="rout"><code># A tibble: 5 x 4
+  site         n   tau    se
+  &lt;chr&gt;    &lt;int&gt; &lt;dbl&gt; &lt;dbl&gt;
+1 Mexico   16560  5.51  4.1 
+2 Mongolia   961 50.4  32.2 
+3 Bosnia     995 -5.17 19.2 
+4 India     6827  4.64  5.48
+5 Morocco   5487 -2.94  6.02
+                 estimate    lo    hi
+full_pooling         3.51 -2.05  9.08
+hierarchical_tau     3.48 -7.02 14.53
+sigma_tau            6.77  0.18 24.77
+pooling_factor 
+          0.68 </code></pre>
+</div>
+
+
+<p>The site estimates show why pooling matters. Mexico and India, with thousands of households, have small standard errors; Mongolia's estimate of $50 per fortnight comes from 961 households and has a standard error of $32, so it is mostly noise. Full pooling gives $3.51 (95% interval −$2.05 to $9.08), but it assumes that every site has the same effect. The hierarchical model gives a general effect of $3.48 with a 95% interval from −$7.02 to $14.53, close to Meager's $3.4 (−$6.3 to $13.2) from the full household-level model. The interval is wider than full pooling's because it admits that sites differ: the posterior for <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003C3;</mi><mi>&#x003C4;</mi></msub></mrow></math> has mean $6.77 but ranges from almost zero to $25, since five sites cannot pin down a standard deviation. The average pooling factor of 0.68 says that about two-thirds of the variation between the sites' estimates is sampling noise; Meager's model, which uses the full household data and all outcomes jointly, gives about 0.5. Either way the conclusion is hers: the studies disagree less than their headlines did, and the effect on consumption is small, plausibly zero and unlikely to be large.</p>
+
 <div class="box take"><h4 class="lbl">Key Takeaways: Lecture 11</h4>
 <ul>
 <li>Raw group averages put <strong>small groups at the extremes</strong> by chance; rankings of raw rates mislead.</li>
@@ -863,6 +943,8 @@ Zambia              81.97      1.23 79.58 84.50</code></pre>
 <li>Shrunken estimates <strong>predict better</strong> than raw averages or a single pooled mean, as the held-out test showed.</li>
 <li>Report rankings as <strong>posterior probabilities</strong>, not league tables.</li>
 <li><strong>Empirical Bayes</strong> estimates <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003C4;</mi></mrow></math> by maximising the marginal likelihood; it matches full Bayes with many groups but is overconfident with few.</li>
+<li>With thousands of parallel units, empirical Bayes estimates the prior almost nonparametrically; <strong>Tweedie's formula</strong> then corrects the selection bias of the best-looking estimates.</li>
+<li>Hierarchical models are the natural way to <strong>combine experiments</strong> across sites, as in Meager's analysis of seven microcredit trials: report the general effect, the heterogeneity and how much of the apparent disagreement is noise.</li>
 </ul>
 </div>
 
@@ -5696,7 +5778,7 @@ at_least_30_calls         144    0.088       0.088</code></pre>
 
 <div class="box read"><h4 class="lbl">Further Reading</h4>
 <ul>
-<li>McElreath, <em>Statistical Rethinking</em> (2nd ed., 2020), Chapters 13–14: varying intercepts and slopes, the non-centred parameterisation, and the case for multilevel models as the default.</li>
+<li>McElreath, <em>Statistical Rethinking</em> (2nd ed., 2020), Chapters 13–16: varying intercepts and slopes, the non-centred parameterisation, and the case for multilevel models as the default.</li>
 <li>Gelman and Hill, <em>Data Analysis Using Regression and Multilevel/Hierarchical Models</em> (2007): the classic applied treatment, including the radon example and MRP.</li>
 <li>Efron, <em>Large-Scale Inference</em> (2010): empirical Bayes for thousands of simultaneous estimates, from the person who popularised Stein's paradox.</li>
 <li>Efron and Morris, "Stein's paradox in statistics" (<em>Scientific American</em>, 1977): the most readable introduction to shrinkage ever written.</li>
@@ -5706,6 +5788,7 @@ at_least_30_calls         144    0.088       0.088</code></pre>
 
 <ol class="refs">
 <li>Betancourt, M. and Girolami, M. (2015). Hamiltonian Monte Carlo for hierarchical models. In S. K. Upadhyay et al. (eds), <em>Current Trends in Bayesian Methodology with Applications</em>, 79–101. CRC Press.</li>
+<li>Efron, B. (2011). Tweedie's formula and selection bias. <em>Journal of the American Statistical Association</em>, 106(496), 1602–1614.</li>
 <li>Efron, B. and Morris, C. (1975). Data analysis using Stein's estimator and its generalizations. <em>Journal of the American Statistical Association</em>, 70(350), 311–319.</li>
 <li>Efron, B. and Morris, C. (1977). Stein's paradox in statistics. <em>Scientific American</em>, 236(5), 119–127.</li>
 <li>Fire Department of the City of New York (2026). EMS Incident Dispatch Data. NYC Open Data, dataset 76xm-jjuj, data.cityofnewyork.us.</li>
@@ -5716,10 +5799,12 @@ at_least_30_calls         144    0.088       0.088</code></pre>
 <li>LeDoux, J. (2018). Coffee Quality Institute database. Distributed via TidyTuesday, 7 July 2020: github.com/rfordatascience/tidytuesday.</li>
 <li>Lewandowski, D., Kurowicka, D. and Joe, H. (2009). Generating random correlation matrices based on vines and extended onion method. <em>Journal of Multivariate Analysis</em>, 100(9), 1989–2001.</li>
 <li>McElreath, R. (2020). <em>Statistical Rethinking</em> (2nd ed.). CRC Press.</li>
+<li>Meager, R. (2019). Understanding the average impact of microcredit expansions: a Bayesian hierarchical analysis of seven randomized experiments. <em>American Economic Journal: Applied Economics</em>, 11(1), 57–91.</li>
 <li>Neal, R. M. (2003). Slice sampling. <em>Annals of Statistics</em>, 31(3), 705–767.</li>
 <li>Robbins, H. (1956). An empirical Bayes approach to statistics. <em>Proceedings of the Third Berkeley Symposium on Mathematical Statistics and Probability</em>, 1, 157–163.</li>
 <li>Stein, C. (1956). Inadmissibility of the usual estimator for the mean of a multivariate normal distribution. <em>Proceedings of the Third Berkeley Symposium on Mathematical Statistics and Probability</em>, 1, 197–206.</li>
 <li>Wainer, H. (2007). The most dangerous equation. <em>American Scientist</em>, 95(3), 249–256.</li>
+<li>Wiecek, W. and Meager, R. (2022). baggr: Bayesian aggregate treatment effects. R package; data sets <code>microcredit</code> and <code>microcredit_simplified</code>.</li>
 </ol>
 </main></div><script>/* Widget toolkit: tiny SVG plotting + probability helpers. */
 var SL = (function(){

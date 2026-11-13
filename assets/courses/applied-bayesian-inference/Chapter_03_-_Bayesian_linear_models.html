@@ -315,6 +315,10 @@ dl.pdl{display:grid;grid-template-columns:10.5em 1fr;gap:.45em 1.1em;margin:.4em
 dl.pdl dt{font-family:var(--mono);font-size:.84rem;font-weight:700;color:color-mix(in srgb,var(--sky) 75%,var(--ink));padding-top:.15em}
 dl.pdl dd{margin:0}
 @media (max-width:620px){dl.pdl{grid-template-columns:1fr;gap:.15em}dl.pdl dt{margin-top:.6em}}
+/* Paper in Focus: a modern research paper read as a case study */
+.box.paper{--bc:var(--lilac);border-left-color:var(--lilac);border-left-style:double;border-left-width:7px;background:var(--surface)}
+.box.paper .lbl{color:var(--lilac)}
+.box.paper .lbl::before{content:"¶ ";font-weight:400}
 </style><script src="/assets/courses/common/course-nav.js" data-course="applied-bayesian-inference" defer></script></head><body><div class="wrap"><a class="skip-link" href="#main">Skip to main content</a><div class="topbar"><a href="#top">Applied Bayesian Inference · Chapter 3</a><button class="ctl" id="theme" type="button">light theme</button></div><main id="main"><h1 id="top">Chapter 3<br/>Bayesian linear models</h1><p class="kicker">Lectures 5–6 · the Gaussian model, the regression line, and what a coefficient means once the graph is drawn</p>
 <figure class="toon">
 <svg aria-labelledby="t3t t3d" height="210" role="img" viewBox="0 0 580 210" width="580">
@@ -3057,7 +3061,7 @@ diff_direct <span class="r-op">&lt;-</span> post_d$b_Gendermale - post_d$b_Gende
 
 <h2 id="sec-3-8">3.8 Confounding in the wild: majors and money</h2>
 
-<p>Now a harder example, with real stakes. In 2014 the data journalism site FiveThirtyEight published earnings data for 173 college majors, taken from the American Community Survey for 2010–2012: for each major, the median annual earnings of recent graduates working full time, and the share of graduates who are women. The question that leaps out is: <em>do majors with more women pay less, and why?</em></p>
+<p>Now a harder example, with real stakes. In 2014 the data journalism site FiveThirtyEight (Casselman, 2014) published earnings data for 173 college majors, taken from the American Community Survey for 2010–2012: for each major, the median annual earnings of recent graduates working full time, and the share of graduates who are women. The question that leaps out is: <em>do majors with more women pay less, and why?</em></p>
 
 <div class="rblock">
 <div class="rhead"><span class="rlab">R</span><button class="copy-btn" type="button">copy code</button></div>
@@ -3478,12 +3482,19 @@ R2     0.65      0.03 0.59  0.69</code></pre>
 </ol>
 
 <div class="box pub"><h4 class="lbl">Research Practice: Choose Controls with the Graph, and Leave Their Coefficients Alone</h4>
-<p>Cinelli, Forney and Pearl (2022) catalogue these cases as "a crash course in good and bad controls", and reviewers increasingly expect authors to justify each covariate from a causal diagram rather than by habit. Two habits to adopt:</p>
+<p>Cinelli, Forney and Pearl (2024) catalogue these cases as "a crash course in good and bad controls", and reviewers increasingly expect authors to justify each covariate from a causal diagram rather than by habit. Two habits to adopt:</p>
 <ul>
 <li><strong>Justify every control.</strong> List each covariate with its role (confounder, precision variable, or otherwise) in a table or in the DAG figure. Never include post-treatment variables in an analysis of a total effect.</li>
 <li><strong>Avoid the "Table 2 fallacy"</strong> (Westreich and Greenland, 2013). A model built to estimate the effect of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>X</mi></mrow></math> adjusts for the confounders of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>X</mi></mrow></math>; it does not, in general, estimate the effects of those confounders. In <code>m_maj2</code>, the field intercepts are not the causal effects of field on earnings, because nothing in the design removes the confounders of field. Report the coefficient you designed the model for, and leave the others in the supplement or out of the discussion.</li>
 </ul>
 </div>
+
+<div class="box paper"><h4 class="lbl">Paper in Focus: The Gender Wage Gap</h4>
+<p><strong>The paper.</strong> Francine Blau and Lawrence Kahn, "The gender wage gap: extent, trends, and explanations", <em>Journal of Economic Literature</em> 55(3), 789–865, 2017. A survey with a new analysis of the Panel Study of Income Dynamics (PSID) for 1980 to 2010.</p>
+<p><strong>The claim.</strong> Among full-time workers, women's average hourly wages rose from 62.1% of men's in 1980 to 79.3% in 2010. Education and experience, which once explained much of the gap, explained little of it by 2010, because women had caught up or overtaken men. With the full set of controls, which adds occupation, industry and union status, measured characteristics account for 62% of the 2010 gap, the largest pieces being occupation (33%) and industry (18%), and the adjusted ratio is 91.6%, leaving 38% of the gap "unexplained".</p>
+<p><strong>Reading it.</strong> This paper is a lesson in Section 3.9. The authors report several specifications precisely because the choice of controls changes the question. If occupation is partly a consequence of gender (through discrimination in hiring, or through expectations about who does care work), it is a mediator, and adjusting for it estimates something like a direct effect within occupations, not the total difference between men's and women's pay. Neither number is wrong; they answer different questions, and the authors are careful to say that the "explained" part is not thereby justified, nor the "unexplained" part proof of discrimination. Draw the graph for occupation, hours and pay, and decide which estimand a policy on pay transparency needs and which one a policy on occupational segregation needs. The majors data of Section 3.8 show the same structure in miniature.</p>
+</div>
+
 
 <div class="box idea"><h4 class="lbl">Project Connection: AI and University Mathematics</h4>
 <p>A study of whether students' use of AI tools affects their grades in mathematics courses will be judged largely on its choice of controls. <strong>Prior attainment</strong> (earlier GPA, placement scores) plausibly affects both AI use and grades: a confounder, so adjust for it. <strong>Hours spent on homework</strong> or <strong>assignment completion</strong> may be affected by AI use: mediators, so do not adjust for them if the question is the total effect. <strong>Attending tutoring</strong> may be a collider if both struggling grades and AI enthusiasm lead students to it. <strong>Course section</strong> or instructor may affect grades only: precision variables, worth including. Draw the graph before collecting the data, so that you collect the confounders, and pre-register the adjustment set (Chapter 1).</p>
@@ -4806,16 +4817,17 @@ p2 <span class="r-op">&lt;-</span> <span class="r-fn">ggplot</span>(speed, <span
 <ul>
 <li>McElreath, <em>Statistical Rethinking</em> (2nd ed., 2020), Chapters 4–6: Gaussian models, splines, spurious and masked associations, and the "haunted DAG", in a style these notes follow closely.</li>
 <li>Gelman, Hill and Vehtari, <em>Regression and Other Stories</em> (2020): the best practical book on linear regression, with Bayesian fitting throughout and excellent chapters on transformations and causal inference.</li>
-<li>Cinelli, Forney and Pearl, "A crash course in good and bad controls" (2022): the full catalogue of the cases in Section 3.9.</li>
+<li>Cinelli, Forney and Pearl, "A crash course in good and bad controls" (2024): the full catalogue of the cases in Section 3.9.</li>
 <li>Lundberg, Johnson and Stewart, "What is your estimand?" (2021): how to state the target of an analysis before choosing the model.</li>
 <li>Wood, <em>Generalized Additive Models: An Introduction with R</em> (2nd ed., 2017): the theory behind <code>s()</code> and penalised splines.</li>
 </ul>
 </div>
 
 <ol class="refs">
+<li>Blau, F. D. and Kahn, L. M. (2017). The gender wage gap: extent, trends, and explanations. <em>Journal of Economic Literature</em>, 55(3), 789–865.</li>
 <li>Casselman, B. (2014). The economic guide to picking a college major. <em>FiveThirtyEight</em>, 12 September 2014. Data: github.com/fivethirtyeight/data/tree/master/college-majors.</li>
 <li>Centers for Disease Control and Prevention. <em>National Health and Nutrition Examination Survey, 2009–2012.</em> Distributed in the R package <code>NHANES</code> (Pruim, 2015).</li>
-<li>Cinelli, C., Forney, A. and Pearl, J. (2022). A crash course in good and bad controls. <em>Sociological Methods &amp; Research</em>, 53(3), 1071–1104 (print issue 2024).</li>
+<li>Cinelli, C., Forney, A. and Pearl, J. (2024). A crash course in good and bad controls. <em>Sociological Methods &amp; Research</em>, 53(3), 1071–1104.</li>
 <li>Frisch, R. and Waugh, F. V. (1933). Partial time regressions as compared with individual trends. <em>Econometrica</em>, 1(4), 387–401.</li>
 <li>Galton, F. (1886). Regression towards mediocrity in hereditary stature. <em>Journal of the Anthropological Institute</em>, 15, 246–263.</li>
 <li>Gauss, C. F. (1809). <em>Theoria Motus Corporum Coelestium.</em> Hamburg: Perthes and Besser.</li>

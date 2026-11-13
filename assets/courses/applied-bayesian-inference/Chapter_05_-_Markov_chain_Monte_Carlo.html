@@ -315,7 +315,11 @@ dl.pdl{display:grid;grid-template-columns:10.5em 1fr;gap:.45em 1.1em;margin:.4em
 dl.pdl dt{font-family:var(--mono);font-size:.84rem;font-weight:700;color:color-mix(in srgb,var(--sky) 75%,var(--ink));padding-top:.15em}
 dl.pdl dd{margin:0}
 @media (max-width:620px){dl.pdl{grid-template-columns:1fr;gap:.15em}dl.pdl dt{margin-top:.6em}}
-</style><script src="/assets/courses/common/course-nav.js" data-course="applied-bayesian-inference" defer></script></head><body><div class="wrap"><a class="skip-link" href="#main">Skip to main content</a><div class="topbar"><a href="#top">Applied Bayesian Inference · Chapter 5</a><button class="ctl" id="theme" type="button">light theme</button></div><main id="main"><h1 id="top">Chapter 5<br/>Markov chain Monte Carlo</h1><p class="kicker">Lectures 9–10 · how the posterior is computed: Metropolis, Hamiltonian Monte Carlo and how to tell when a sampler can be trusted</p>
+/* Paper in Focus: a modern research paper read as a case study */
+.box.paper{--bc:var(--lilac);border-left-color:var(--lilac);border-left-style:double;border-left-width:7px;background:var(--surface)}
+.box.paper .lbl{color:var(--lilac)}
+.box.paper .lbl::before{content:"¶ ";font-weight:400}
+</style><script src="/assets/courses/common/course-nav.js" data-course="applied-bayesian-inference" defer></script></head><body><div class="wrap"><a class="skip-link" href="#main">Skip to main content</a><div class="topbar"><a href="#top">Applied Bayesian Inference · Chapter 5</a><button class="ctl" id="theme" type="button">light theme</button></div><main id="main"><h1 id="top">Chapter 5<br/>Markov chain Monte Carlo</h1><p class="kicker">Lectures 9–10 · how the posterior is computed: Metropolis, Hamiltonian Monte Carlo, how to tell when a sampler can be trusted, and what a posterior cannot identify</p>
 <figure class="toon">
 <svg aria-labelledby="t5t t5d" height="210" role="img" viewBox="0 0 580 210" width="580">
 <title id="t5t">Cartoon: explorers on a hill</title><desc id="t5d">Four small explorers walk over a hilly landscape, leaving trails of footprints. One shouts: Is this the top? Another, holding a clipboard, replies: All four of us agree. R-hat is 1.00.</desc>
@@ -342,7 +346,7 @@ dl.pdl dd{margin:0}
 
 <ul>
 <li><strong>Lecture 9 is about how sampling works.</strong> Why grids fail in high dimensions; Metropolis by hand; why the way you write a model changes how hard it is to sample; and Hamiltonian Monte Carlo by hand.</li>
-<li><strong>Lecture 10 is about trusting the result.</strong> Multiple chains, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mover accent="true"><mi>R</mi><mo>&#x0005E;</mo></mover></mrow></math>, effective sample size and Monte Carlo error; what divergences mean; the "folk theorem" that computational problems are usually model problems; and how to check, with fake data, that a model can recover the truth.</li>
+<li><strong>Lecture 10 is about trusting the result.</strong> Multiple chains, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mover accent="true"><mi>R</mi><mo>&#x0005E;</mo></mover></mrow></math>, effective sample size and Monte Carlo error; what divergences mean; the "folk theorem" that computational problems are usually model problems; how to check, with fake data, that a model can recover the truth; and what a posterior cannot identify, in a refit of an influential model of COVID-19 lockdowns.</li>
 </ul>
 
 <div class="box think"><h4 class="lbl">Think About It: Before You Start</h4>
@@ -689,7 +693,7 @@ t_metr <span class="r-op">&lt;-</span> <span class="r-fn">system.time</span>(cha
 <p>One thousand HMC iterations, each with 20 leapfrog steps, produce an effective sample size about twice the number of draws kept: successive HMC draws are essentially independent (an ESS larger than the number of draws means successive draws are slightly <em>negatively</em> correlated, which makes averages even more precise). One warning from experience: started at <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math> instead of <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mo stretchy="false">&#x00028;</mo><mn>0</mn><mo>&#x0002C;</mo><mn>0</mn><mo stretchy="false">&#x00029;</mo></mrow></math>, this same sampler crawls for over 800 iterations before reaching the posterior, because its fixed step size and unit "mass" suit the posterior's centre, not the steep landscape far from it. Stan avoids this by adapting the step size and a mass matrix (the scale of each parameter) during warmup, which is one reason its warmup draws must be discarded. Metropolis needed five times as many iterations to produce about a quarter of the effective draws. In two dimensions, per second of computing, the two samplers come out roughly level (the timings vary from run to run and machine to machine), because each HMC iteration costs 21 gradient evaluations. In hundreds of dimensions the gap becomes enormous, because Metropolis's efficiency falls roughly in proportion to the number of parameters while HMC's falls much more slowly (Neal, 2011). That is why every modern general-purpose Bayesian engine uses gradients.</p>
 
 <div class="box hist"><h4 class="lbl">History: From Quarks to Stan</h4>
-<p>HMC was invented in 1987 by four physicists, Simon Duane, Anthony Kennedy, Brian Pendleton and Duncan Roweth, to simulate quantum chromodynamics on a lattice; they called it "hybrid Monte Carlo". The statistician Radford Neal brought it to statistics in the 1990s, using it to fit Bayesian neural networks (Chapter 14). It remained a specialist tool because it needs gradients and careful tuning. Two developments changed that around 2011: automatic differentiation, which computes exact gradients of any model written as a program, and the No-U-Turn Sampler, which tunes itself. A team led by Andrew Gelman, Bob Carpenter and Matt Hoffman combined them in <strong>Stan</strong>, named after Stanisław Ulam, released in 2012. <code>brms</code> writes Stan code for you.</p>
+<p>HMC was invented in 1987 by four physicists, Simon Duane, Anthony Kennedy, Brian Pendleton and Duncan Roweth, to simulate quantum chromodynamics on a lattice; they called it "hybrid Monte Carlo". The statistician Radford Neal brought it to statistics in the 1990s, using it to fit Bayesian neural networks (Chapter 16). It remained a specialist tool because it needs gradients and careful tuning. Two developments changed that around 2011: automatic differentiation, which computes exact gradients of any model written as a program, and the No-U-Turn Sampler, which tunes itself. A team led by Andrew Gelman, Bob Carpenter and Matt Hoffman combined them in <strong>Stan</strong>, named after Stanisław Ulam, released in 2012. <code>brms</code> writes Stan code for you.</p>
 </div>
 
 <div class="box rex"><h4 class="lbl">Check Yourself</h4>
@@ -3538,6 +3542,187 @@ recovery <span class="r-op">|&gt;</span> <span class="r-fn">group_by</span>(para
 <p>Fake-data simulation is the single best habit for avoiding embarrassing errors in applied Bayesian work (Gelman et al., 2020, "Bayesian Workflow"). It checks that your code does what you think, that the data can identify the parameters you care about with the design you have, and that the priors are not doing more than you intend. Its formal version, <strong>simulation-based calibration</strong> (Talts et al., 2018; Modrák et al., 2025), repeats the exercise hundreds of times with parameters drawn from the prior and checks that the ranks of the true values among the posterior draws are uniform; packages such as <code>SBC</code> automate it. In a paper, a sentence like "In 20 simulated datasets, 95% intervals for the treatment effect covered the true value 19 times" is reassuring and cheap to produce. It also makes an excellent power analysis: simulate data with the effect size you expect and see how often the posterior would detect it.</p>
 </div>
 
+<p>The habit matters most when a model is used for policy. In June 2020, at the height of the first wave of COVID-19, a Bayesian model written in Stan by the Imperial College COVID-19 Response Team was published in <em>Nature</em> and widely cited as evidence that lockdowns, rather than the other measures taken in March 2020, had stopped the epidemic in Europe. Six months later, a team of Swedish control engineers published a reply arguing that the model could not tell the measures apart. The exchange is a case study in what a posterior can and cannot tell you about parameters the data barely identify.</p>
+
+<div class="box paper"><h4 class="lbl">Paper in Focus: Lockdowns in a Stan Model</h4>
+<p><strong>The paper.</strong> Seth Flaxman, Swapnil Mishra, Axel Gandy and colleagues, "Estimating the effects of non-pharmaceutical interventions on COVID-19 in Europe", <em>Nature</em> 584, 257–261, 2020; with the reply by Kristian Soltesz and colleagues, "The effect of interventions on COVID-19", <em>Nature</em> 588, E26–E28, 2020, and the authors' response, E29–E31.</p>
+<p><strong>The model.</strong> Reported deaths in each of 11 countries are negative binomial around expected deaths, which are infections convolved with the distribution of time from infection to death and multiplied by the infection fatality ratio. Infections follow a renewal equation, each day's infections being the reproduction number <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>R</mi><mi>t</mi></msub></mrow></math> times a weighted sum of earlier infections. <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>R</mi><mi>t</mi></msub></mrow></math> starts at a country-specific <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>R</mi><mn>0</mn></msub></mrow></math> and is multiplied by <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msup><mi>e</mi><mrow><mo>&#x02212;</mo><msub><mi>&#x003B1;</mi><mi>k</mi></msub></mrow></msup></mrow></math> when intervention <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>k</mi></mrow></math> begins: school closures, self-isolation of the ill, bans on public events, encouragement of social distancing and lockdown. The <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003B1;</mi><mi>k</mi></msub></mrow></math> are shared by all countries, and the published model adds a country-specific effect for whichever intervention came <em>last</em> in each country.</p>
+<p><strong>The claim.</strong> Lockdown reduced <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>R</mi><mi>t</mi></msub></mrow></math> by about 81%, the other interventions had effects too small to distinguish from zero, and the interventions together had averted about 3.1 million deaths by 4 May 2020.</p>
+<p><strong>The critique.</strong> The interventions were introduced within a few days of each other, so their separate effects are barely identified, and the model credits most of the fall in transmission to whichever intervention came last. Sweden, the one country without a lockdown, illustrates the problem: its ban on gatherings of more than 50 people, its last intervention, was estimated to have cut transmission by about 71%, while the same kind of ban had almost no effect anywhere else. Moving Sweden's dates by a few days changed which intervention was last and hence the conclusions. The authors replied that the lockdown effect, unlike the others, was identifiable across countries, supporting this with a simulation study, and that partial pooling across countries gave the same ranking.</p>
+<p><strong>Reading it.</strong> The posterior is only as informative as the data allow, and a narrow interval on one parameter can coexist with near-total confounding among others. Ask which parameters the data identify, look at the posterior correlations, and check, by simulation, whether the model can recover effects of the size claimed from interventions timed as they were.</p>
+</div>
+
+<p>The model's code and data are public, so we can refit a simplified version: the same likelihood and priors, a single infection fatality ratio of 1% for every country (with a normal(1, 0.1) multiplier), and the deaths reported up to 24 April 2020, the last date in the version of the data we use.</p>
+
+<div class="rblock">
+<div class="rhead"><span class="rlab">R</span><button class="copy-btn" type="button">copy code</button></div>
+<pre class="rcode"><code><span class="r-fn">library</span>(rstan)
+gh <span class="r-op">&lt;-</span> <span class="r-str">"https://raw.githubusercontent.com/ImperialCollegeLondon/covid19model/v6.0/data/"</span>
+<span class="r-kw">for</span> (f <span class="r-kw">in</span> <span class="r-fn">c</span>(<span class="r-str">"COVID-19-up-to-date.csv"</span>, <span class="r-str">"interventions.csv"</span>, <span class="r-str">"serial_interval.csv"</span>))
+  <span class="r-kw">if</span> (!<span class="r-fn">file.exists</span>(<span class="r-fn">file.path</span>(<span class="r-str">"data/covid19model"</span>, f))) {
+    <span class="r-fn">dir.create</span>(<span class="r-str">"data/covid19model"</span>, showWarnings = <span class="r-kw">FALSE</span>); <span class="r-fn">download.file</span>(<span class="r-fn">paste0</span>(gh, f), <span class="r-fn">file.path</span>(<span class="r-str">"data/covid19model"</span>, f)) }
+countries <span class="r-op">&lt;-</span> <span class="r-fn">c</span>(<span class="r-str">"Austria"</span>, <span class="r-str">"Belgium"</span>, <span class="r-str">"Denmark"</span>, <span class="r-str">"France"</span>, <span class="r-str">"Germany"</span>, <span class="r-str">"Italy"</span>, <span class="r-str">"Norway"</span>, <span class="r-str">"Spain"</span>, <span class="r-str">"Sweden"</span>, <span class="r-str">"Switzerland"</span>, <span class="r-str">"United_Kingdom"</span>)
+npis <span class="r-op">&lt;-</span> <span class="r-fn">c</span>(<span class="r-str">"Schools + Universities"</span>, <span class="r-str">"Self-isolating if ill"</span>, <span class="r-str">"Public events"</span>, <span class="r-str">"Social distancing encouraged"</span>, <span class="r-str">"Lockdown"</span>)
+ecdc <span class="r-op">&lt;-</span> <span class="r-fn">read_csv</span>(<span class="r-str">"data/covid19model/COVID-19-up-to-date.csv"</span>, show_col_types = <span class="r-kw">FALSE</span>) <span class="r-op">|&gt;</span> <span class="r-fn">mutate</span>(date = <span class="r-fn">lubridate::dmy</span>(dateRep))
+npi <span class="r-op">&lt;-</span> <span class="r-fn">read_csv</span>(<span class="r-str">"data/covid19model/interventions.csv"</span>, show_col_types = <span class="r-kw">FALSE</span>, name_repair = <span class="r-str">"minimal"</span>)[, <span class="r-num">1</span>:<span class="r-num">4</span>] <span class="r-op">|&gt;</span>
+  <span class="r-fn">setNames</span>(<span class="r-fn">c</span>(<span class="r-str">"country"</span>, <span class="r-str">"type"</span>, <span class="r-str">"event"</span>, <span class="r-str">"date"</span>)) <span class="r-op">|&gt;</span> <span class="r-fn">filter</span>(type <span class="r-op">%in%</span> npis) <span class="r-op">|&gt;</span>
+  <span class="r-fn">mutate</span>(date = <span class="r-fn">lubridate::dmy</span>(date)) <span class="r-op">|&gt;</span> <span class="r-fn">distinct</span>(country, type, .keep_all = <span class="r-kw">TRUE</span>) <span class="r-op">|&gt;</span> <span class="r-fn">select</span>(-event) <span class="r-op">|&gt;</span>
+  <span class="r-fn">pivot_wider</span>(names_from = type, values_from = date)                  <span class="r-com"># Sweden's lockdown is coded as 2090: never</span>
+si <span class="r-op">&lt;-</span> <span class="r-fn">read_csv</span>(<span class="r-str">"data/covid19model/serial_interval.csv"</span>, show_col_types = <span class="r-kw">FALSE</span>)$fit
+<span class="r-fn">set.seed</span>(<span class="r-num">1</span>)                                                             <span class="r-com"># infection-to-death: incubation + onset-to-death</span>
+i2d <span class="r-op">&lt;-</span> <span class="r-fn">rgamma</span>(<span class="r-num">1e6</span>, shape = <span class="r-num">1</span> / <span class="r-num">0.86</span>^<span class="r-num">2</span>, scale = <span class="r-num">5.1</span> * <span class="r-num">0.86</span>^<span class="r-num">2</span>) + <span class="r-fn">rgamma</span>(<span class="r-num">1e6</span>, shape = <span class="r-num">1</span> / <span class="r-num">0.45</span>^<span class="r-num">2</span>, scale = <span class="r-num">17.8</span> * <span class="r-num">0.45</span>^<span class="r-num">2</span>)
+dat <span class="r-op">&lt;-</span> <span class="r-fn">map</span>(countries, <span class="r-kw">function</span>(cn) {
+  e <span class="r-op">&lt;-</span> ecdc <span class="r-op">|&gt;</span> <span class="r-fn">filter</span>(countriesAndTerritories == cn, date &lt;= <span class="r-fn">as.Date</span>(<span class="r-str">"2020-04-24"</span>)) <span class="r-op">|&gt;</span> <span class="r-fn">arrange</span>(date)
+  e <span class="r-op">&lt;-</span> e <span class="r-op">|&gt;</span> <span class="r-fn">filter</span>(date &gt;= e$date[<span class="r-fn">which</span>(<span class="r-fn">cumsum</span>(e$deaths) &gt;= <span class="r-num">10</span>)[<span class="r-num">1</span>]] - <span class="r-num">30</span>)   <span class="r-com"># start 30 days before 10 cumulative deaths</span>
+  d <span class="r-op">&lt;-</span> <span class="r-fn">unlist</span>(npi[npi$country == cn, npis]) <span class="r-op">|&gt;</span> <span class="r-fn">as.Date</span>(origin = <span class="r-str">"1970-01-01"</span>)
+  X <span class="r-op">&lt;-</span> <span class="r-fn">sapply</span>(d, <span class="r-kw">function</span>(t) <span class="r-fn">as.integer</span>(e$date &gt;= t))
+  <span class="r-fn">list</span>(deaths = <span class="r-fn">pmax</span>(e$deaths, <span class="r-num">0</span>), X = <span class="r-fn">cbind</span>(X, last = <span class="r-fn">as.integer</span>(e$date &gt;= <span class="r-fn">max</span>(d[d &lt; <span class="r-fn">as.Date</span>(<span class="r-str">"2021-01-01"</span>)]))),
+       pop = e$popData2018[<span class="r-num">1</span>], N = <span class="r-fn">nrow</span>(e)) })
+N2 <span class="r-op">&lt;-</span> <span class="r-fn">max</span>(<span class="r-fn">map_int</span>(dat, <span class="r-str">"N"</span>)); M <span class="r-op">&lt;-</span> <span class="r-fn">length</span>(countries)
+sdat <span class="r-op">&lt;-</span> <span class="r-fn">list</span>(M = M, N2 = N2, N = <span class="r-fn">map_int</span>(dat, <span class="r-str">"N"</span>), pop = <span class="r-fn">map_dbl</span>(dat, <span class="r-str">"pop"</span>), SI = si[<span class="r-num">1</span>:N2], EpidemicStart = <span class="r-fn">rep</span>(<span class="r-num">31</span>, M),
+  f = <span class="r-fn">diff</span>(<span class="r-fn">c</span>(<span class="r-num">0</span>, <span class="r-fn">ecdf</span>(i2d)(<span class="r-num">1</span>:N2))),
+  deaths = <span class="r-fn">sapply</span>(dat, <span class="r-kw">function</span>(z) <span class="r-fn">c</span>(z$deaths, <span class="r-fn">rep</span>(-<span class="r-num">1</span>, N2 - z$N))),
+  X = <span class="r-fn">aperm</span>(<span class="r-fn">array</span>(<span class="r-fn">unlist</span>(<span class="r-fn">map</span>(dat, <span class="r-kw">function</span>(z) <span class="r-fn">rbind</span>(z$X, <span class="r-fn">matrix</span>(<span class="r-num">1</span>, N2 - z$N, <span class="r-num">6</span>)))), <span class="r-fn">c</span>(N2, <span class="r-num">6</span>, M)), <span class="r-fn">c</span>(<span class="r-num">3</span>, <span class="r-num">1</span>, <span class="r-num">2</span>)))
+flax_code <span class="r-op">&lt;-</span> <span class="r-str">"
+data { int&lt;lower=1&gt; M; int&lt;lower=1&gt; N2; array[M] int N; array[N2, M] int deaths; array[M] matrix[N2, 6] X;
+       vector[M] pop; vector[N2] SI; vector[N2] f; array[M] int EpidemicStart; }
+parameters { vector&lt;lower=0&gt;[M] R0; vector&lt;lower=0&gt;[5] alpha_hier; real&lt;lower=0&gt; gamma; vector[M] last_m;
+             real&lt;lower=0&gt; kappa; vector&lt;lower=0&gt;[M] y; real&lt;lower=0&gt; phi; real&lt;lower=0&gt; tau; vector&lt;lower=0&gt;[M] ifr_noise; }
+transformed parameters {
+  vector[5] alpha = alpha_hier - log(1.05) / 6;                      // effects of the five interventions
+  matrix[N2, M] infections = rep_matrix(0, N2, M); matrix[N2, M] E_deaths = rep_matrix(0, N2, M);
+  matrix[N2, M] Rt = rep_matrix(0, N2, M); matrix[N2, M] Rt_adj = Rt;
+  for (m in 1:M) {
+    infections[1:6, m] = rep_vector(y[m], 6);                         // seeding
+    Rt[, m] = R0[m] * exp(-X[m][, 1:5] * alpha - X[m][, 6] * last_m[m]);
+    Rt_adj[1:6, m] = Rt[1:6, m];
+    for (i in 7:N2) {                                                   // renewal equation, with depletion of susceptibles
+      real conv = dot_product(sub_col(infections, 1, m, i - 1), reverse(SI[1:(i - 1)]));
+      Rt_adj[i, m] = ((pop[m] - sum(infections[1:(i - 1), m])) / pop[m]) * Rt[i, m];
+      infections[i, m] = Rt_adj[i, m] * conv; }
+    E_deaths[1, m] = 1e-15 * infections[1, m];
+    for (i in 2:N2) E_deaths[i, m] = 0.01 * ifr_noise[m] * dot_product(sub_col(infections, 1, m, i - 1), reverse(f[1:(i - 1)])); } }
+model {
+  tau ~ exponential(0.03); y ~ exponential(1 / tau); gamma ~ normal(0, 0.2); last_m ~ normal(0, gamma);
+  phi ~ normal(0, 5); kappa ~ normal(0, 0.5); R0 ~ normal(3.28, kappa); alpha_hier ~ gamma(1.0 / 6, 1); ifr_noise ~ normal(1, 0.1);
+  for (m in 1:M) deaths[EpidemicStart[m]:N[m], m] ~ neg_binomial_2(E_deaths[EpidemicStart[m]:N[m], m], phi); }
+"</span>
+fit_path <span class="r-op">&lt;-</span> <span class="r-str">"fits/ch5_flaxman.rds"</span>                                      <span class="r-com"># about 13 minutes with 2 chains</span>
+<span class="r-kw">if</span> (<span class="r-fn">file.exists</span>(fit_path)) fit_flax <span class="r-op">&lt;-</span> <span class="r-fn">readRDS</span>(fit_path) <span class="r-kw">else</span> {
+  fit_flax <span class="r-op">&lt;-</span> <span class="r-fn">stan</span>(model_code = flax_code, data = sdat, chains = <span class="r-num">2</span>, iter = <span class="r-num">1000</span>, seed = <span class="r-num">5</span>, refresh = <span class="r-num">0</span>,
+                   control = <span class="r-fn">list</span>(adapt_delta = <span class="r-num">0.95</span>), pars = <span class="r-fn">c</span>(<span class="r-str">"R0"</span>, <span class="r-str">"alpha"</span>, <span class="r-str">"last_m"</span>, <span class="r-str">"gamma"</span>, <span class="r-str">"phi"</span>, <span class="r-str">"kappa"</span>, <span class="r-str">"Rt_adj"</span>, <span class="r-str">"E_deaths"</span>))
+  <span class="r-fn">saveRDS</span>(fit_flax, fit_path) }
+dr <span class="r-op">&lt;-</span> <span class="r-fn">rstan::extract</span>(fit_flax, <span class="r-fn">c</span>(<span class="r-str">"alpha"</span>, <span class="r-str">"last_m"</span>)); <span class="r-fn">colnames</span>(dr$alpha) <span class="r-op">&lt;-</span> npis
+reduction <span class="r-op">&lt;-</span> <span class="r-kw">function</span>(a) <span class="r-fn">round</span>(<span class="r-num">100</span> * <span class="r-fn">c</span>(median = <span class="r-fn">median</span>(<span class="r-num">1</span> - <span class="r-fn">exp</span>(-a)), lo = <span class="r-fn">unname</span>(<span class="r-fn">quantile</span>(<span class="r-num">1</span> - <span class="r-fn">exp</span>(-a), <span class="r-num">0.025</span>)), hi = <span class="r-fn">unname</span>(<span class="r-fn">quantile</span>(<span class="r-num">1</span> - <span class="r-fn">exp</span>(-a), <span class="r-num">0.975</span>))), <span class="r-num">1</span>)
+<span class="r-fn">rbind</span>(<span class="r-fn">t</span>(<span class="r-fn">apply</span>(dr$alpha, <span class="r-num">2</span>, reduction)), `Sweden: public events + last-intervention effect` = <span class="r-fn">reduction</span>(dr$alpha[, <span class="r-num">3</span>] + dr$last_m[, <span class="r-num">9</span>]))
+<span class="r-fn">round</span>(<span class="r-fn">cor</span>(<span class="r-fn">cbind</span>(dr$alpha, Sweden_last = dr$last_m[, <span class="r-num">9</span>]))[<span class="r-fn">c</span>(<span class="r-str">"Lockdown"</span>, <span class="r-str">"Sweden_last"</span>), ], <span class="r-num">2</span>)
+sp <span class="r-op">&lt;-</span> <span class="r-fn">get_sampler_params</span>(fit_flax, inc_warmup = <span class="r-kw">FALSE</span>)
+<span class="r-fn">c</span>(divergent = <span class="r-fn">sum</span>(<span class="r-fn">sapply</span>(sp, <span class="r-kw">function</span>(x) <span class="r-fn">sum</span>(x[, <span class="r-str">"divergent__"</span>]))), max_treedepth_hits = <span class="r-fn">sum</span>(<span class="r-fn">sapply</span>(sp, <span class="r-kw">function</span>(x) <span class="r-fn">sum</span>(x[, <span class="r-str">"treedepth__"</span>] &gt;= <span class="r-num">10</span>))),
+  max_Rhat = <span class="r-fn">round</span>(<span class="r-fn">max</span>(<span class="r-fn">summary</span>(fit_flax, pars = <span class="r-fn">c</span>(<span class="r-str">"alpha"</span>, <span class="r-str">"last_m"</span>, <span class="r-str">"R0"</span>))$summary[, <span class="r-str">"Rhat"</span>]), <span class="r-num">3</span>))</code></pre>
+<div class="routlab">output</div><pre class="rout"><code>                                                 median   lo   hi
+Schools + Universities                             -0.3 -0.8 22.4
+Self-isolating if ill                              -0.5 -0.8 15.1
+Public events                                       0.2 -0.8 30.8
+Social distancing encouraged                        1.3 -0.8 30.1
+Lockdown                                           77.1 64.9 84.2
+Sweden: public events + last-intervention effect   56.3 26.3 75.0
+            Schools + Universities Self-isolating if ill Public events
+Lockdown                     -0.27                 -0.09         -0.45
+Sweden_last                   0.10                 -0.09         -0.39
+            Social distancing encouraged Lockdown Sweden_last
+Lockdown                           -0.41     1.00        0.28
+Sweden_last                        -0.25     0.28        1.00
+         divergent max_treedepth_hits           max_Rhat 
+             3.000            713.000              1.013 </code></pre>
+</div>
+
+
+<p>The refit reproduces the published pattern. Lockdown reduces <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>R</mi><mi>t</mi></msub></mrow></math> by 77% (95% interval 65% to 84%), close to the paper's 81%. The other four interventions have posterior medians within a percentage point of zero, with upper limits between 15% and 31%: the data cannot rule out sizeable effects, they simply do not support them. Sweden's ban on public events, which carries Sweden's country-specific effect for its last intervention, reduces <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>R</mi><mi>t</mi></msub></mrow></math> by 56% (26% to 75%), while the same ban elsewhere does essentially nothing. Two numbers show why the critique has force. The lockdown effect is negatively correlated with the effects of public-event bans (−0.45) and social distancing (−0.41): where interventions were close in time, the posterior can trade one for another. And the sampler struggled: 713 of 1,000 iterations hit the maximum tree depth and 3 were divergent, although <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mover accent="true"><mrow><mi>R</mi></mrow><mo>&#x0005E;</mo></mover></mrow></math> is at most 1.013. By the folk theorem of Section 5.6, that is information about the model: long, curved ridges in the posterior, along which nearly equivalent combinations of effects explain the same deaths.</p>
+
+<div class="rblock">
+<div class="rhead"><span class="rlab">R</span><button class="copy-btn" type="button">copy code</button></div>
+<pre class="rcode"><code><span class="r-fn">set.seed</span>(<span class="r-num">2</span>); prior_a <span class="r-op">&lt;-</span> <span class="r-fn">rgamma</span>(<span class="r-num">1e5</span>, <span class="r-num">1</span> / <span class="r-num">6</span>, <span class="r-num">1</span>) - <span class="r-fn">log</span>(<span class="r-num">1.05</span>) / <span class="r-num">6</span>
+pr <span class="r-op">&lt;-</span> <span class="r-fn">reduction</span>(prior_a)
+<span class="r-fn">tibble</span>(npi = <span class="r-fn">c</span>(npis, <span class="r-str">"Sweden: public events"</span>), 
+       draws = <span class="r-fn">c</span>(<span class="r-fn">map</span>(<span class="r-fn">seq_along</span>(npis), <span class="r-op">~</span> dr$alpha[, .x]), <span class="r-fn">list</span>(dr$alpha[, <span class="r-num">3</span>] + dr$last_m[, <span class="r-num">9</span>]))) <span class="r-op">|&gt;</span>
+  <span class="r-fn">mutate</span>(med = <span class="r-fn">map_dbl</span>(draws, <span class="r-op">~</span> <span class="r-num">100</span> * <span class="r-fn">median</span>(<span class="r-num">1</span> - <span class="r-fn">exp</span>(-.x))), lo = <span class="r-fn">map_dbl</span>(draws, <span class="r-op">~</span> <span class="r-num">100</span> * <span class="r-fn">quantile</span>(<span class="r-num">1</span> - <span class="r-fn">exp</span>(-.x), <span class="r-num">0.025</span>)),
+         hi = <span class="r-fn">map_dbl</span>(draws, <span class="r-op">~</span> <span class="r-num">100</span> * <span class="r-fn">quantile</span>(<span class="r-num">1</span> - <span class="r-fn">exp</span>(-.x), <span class="r-num">0.975</span>)), npi = <span class="r-fn">factor</span>(npi, <span class="r-fn">rev</span>(<span class="r-fn">c</span>(npis, <span class="r-str">"Sweden: public events"</span>)))) <span class="r-op">|&gt;</span>
+  <span class="r-fn">ggplot</span>(<span class="r-fn">aes</span>(y = npi)) +
+  <span class="r-fn">geom_linerange</span>(<span class="r-fn">aes</span>(xmin = pr[[<span class="r-str">"lo"</span>]], xmax = pr[[<span class="r-str">"hi"</span>]]), colour = harbour[[<span class="r-str">"grid"</span>]], linewidth = <span class="r-num">5</span>) +
+  <span class="r-fn">geom_linerange</span>(<span class="r-fn">aes</span>(xmin = lo, xmax = hi), colour = harbour[[<span class="r-str">"sky"</span>]], linewidth = <span class="r-num">1.2</span>) +
+  <span class="r-fn">geom_point</span>(<span class="r-fn">aes</span>(x = med), colour = harbour[[<span class="r-str">"sky"</span>]], size = <span class="r-num">2</span>) +
+  <span class="r-fn">labs</span>(x = <span class="r-str">"reduction in R (%)"</span>, y = <span class="r-kw">NULL</span>)</code></pre>
+</div>
+<figure class="rfig"><svg class="svglite" role="img" focusable="false" aria-label="Six rows of horizontal intervals on a scale from 0 to 100 percent. The grey prior intervals run from 0 to about 74 percent for every row. The posterior for lockdown is narrow, from about 65 to 84 percent; the posteriors for schools, self-isolation, public events and social distancing are short intervals near zero reaching up to between 15 and 30 percent; Sweden&#x27;s public-events row runs from about 26 to 75 percent." style="max-width:700px;margin:0 auto" xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' class='svglite' viewBox='0 0 504.00 230.40'><title>Six rows of horizontal intervals on a scale from 0 to 100 percent</title><desc>Six rows of horizontal intervals on a scale from 0 to 100 percent. The grey prior intervals run from 0 to about 74 percent for every row. The posterior for lockdown is narrow, from about 65 to 84 percent; the posteriors for schools, self-isolation, public events and social distancing are short intervals near zero reaching up to between 15 and 30 percent; Sweden&#x27;s public-events row runs from about 26 to 75 percent.</desc>
+<defs>
+  
+</defs>
+<rect width='100%' height='100%' style='stroke: none; fill: none;'/>
+<defs>
+  <clipPath id='f-flaxman_fig-cpMC4wMHw1MDQuMDB8MC4wMHwyMzAuNDA='>
+    <rect x='0.00' y='0.00' width='504.00' height='230.40' />
+  </clipPath>
+</defs>
+<g clip-path='url(#f-flaxman_fig-cpMC4wMHw1MDQuMDB8MC4wMHwyMzAuNDA=)'>
+</g>
+<defs>
+  <clipPath id='f-flaxman_fig-cpMTMzLjQyfDQ5OC41Mnw1LjQ4fDE5OC41Nw=='>
+    <rect x='133.42' y='5.48' width='365.10' height='193.09' />
+  </clipPath>
+</defs>
+<g clip-path='url(#f-flaxman_fig-cpMTMzLjQyfDQ5OC41Mnw1LjQ4fDE5OC41Nw==)'>
+<polyline points='133.42,179.88 498.52,179.88 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='133.42,148.74 498.52,148.74 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='133.42,117.59 498.52,117.59 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='133.42,86.45 498.52,86.45 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='133.42,55.31 498.52,55.31 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='133.42,24.17 498.52,24.17 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='153.21,198.57 153.21,5.48 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='231.33,198.57 231.33,5.48 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='309.45,198.57 309.45,5.48 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='387.56,198.57 387.56,5.48 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='465.68,198.57 465.68,5.48 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<line x1='150.08' y1='24.17' x2='443.03' y2='24.17' style='stroke-width: 10.67; stroke: var(--grid); stroke-linecap: butt;' />
+<line x1='150.08' y1='55.31' x2='443.03' y2='55.31' style='stroke-width: 10.67; stroke: var(--grid); stroke-linecap: butt;' />
+<line x1='150.08' y1='86.45' x2='443.03' y2='86.45' style='stroke-width: 10.67; stroke: var(--grid); stroke-linecap: butt;' />
+<line x1='150.08' y1='117.59' x2='443.03' y2='117.59' style='stroke-width: 10.67; stroke: var(--grid); stroke-linecap: butt;' />
+<line x1='150.08' y1='148.74' x2='443.03' y2='148.74' style='stroke-width: 10.67; stroke: var(--grid); stroke-linecap: butt;' />
+<line x1='150.08' y1='179.88' x2='443.03' y2='179.88' style='stroke-width: 10.67; stroke: var(--grid); stroke-linecap: butt;' />
+<line x1='150.02' y1='24.17' x2='240.54' y2='24.17' style='stroke-width: 2.56; stroke: var(--sky); stroke-linecap: butt;' />
+<line x1='150.02' y1='55.31' x2='212.09' y2='55.31' style='stroke-width: 2.56; stroke: var(--sky); stroke-linecap: butt;' />
+<line x1='150.02' y1='86.45' x2='273.58' y2='86.45' style='stroke-width: 2.56; stroke: var(--sky); stroke-linecap: butt;' />
+<line x1='150.02' y1='117.59' x2='270.82' y2='117.59' style='stroke-width: 2.56; stroke: var(--sky); stroke-linecap: butt;' />
+<line x1='406.78' y1='148.74' x2='481.93' y2='148.74' style='stroke-width: 2.56; stroke: var(--sky); stroke-linecap: butt;' />
+<line x1='255.97' y1='179.88' x2='446.21' y2='179.88' style='stroke-width: 2.56; stroke: var(--sky); stroke-linecap: butt;' />
+<circle cx='151.96' cy='24.17' r='2.49' style='stroke-width: 0.71; stroke: var(--sky); fill: var(--sky);' />
+<circle cx='151.13' cy='55.31' r='2.49' style='stroke-width: 0.71; stroke: var(--sky); fill: var(--sky);' />
+<circle cx='154.13' cy='86.45' r='2.49' style='stroke-width: 0.71; stroke: var(--sky); fill: var(--sky);' />
+<circle cx='158.30' cy='117.59' r='2.49' style='stroke-width: 0.71; stroke: var(--sky); fill: var(--sky);' />
+<circle cx='454.47' cy='148.74' r='2.49' style='stroke-width: 0.71; stroke: var(--sky); fill: var(--sky);' />
+<circle cx='373.18' cy='179.88' r='2.49' style='stroke-width: 0.71; stroke: var(--sky); fill: var(--sky);' />
+</g>
+<g clip-path='url(#f-flaxman_fig-cpMC4wMHw1MDQuMDB8MC4wMHwyMzAuNDA=)'>
+<text x='128.49' y='183.08' text-anchor='end' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='94.35px' lengthAdjust='spacingAndGlyphs'>Sweden: public events</text>
+<text x='128.49' y='151.94' text-anchor='end' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='43.17px' lengthAdjust='spacingAndGlyphs'>Lockdown</text>
+<text x='128.49' y='120.79' text-anchor='end' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='123.01px' lengthAdjust='spacingAndGlyphs'>Social distancing encouraged</text>
+<text x='128.49' y='89.65' text-anchor='end' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='55.89px' lengthAdjust='spacingAndGlyphs'>Public events</text>
+<text x='128.49' y='58.51' text-anchor='end' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='71.66px' lengthAdjust='spacingAndGlyphs'>Self-isolating if ill</text>
+<text x='128.49' y='27.37' text-anchor='end' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='92.79px' lengthAdjust='spacingAndGlyphs'>Schools + Universities</text>
+<text x='153.21' y='209.90' text-anchor='middle' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='5.55px' lengthAdjust='spacingAndGlyphs'>0</text>
+<text x='231.33' y='209.90' text-anchor='middle' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='10.92px' lengthAdjust='spacingAndGlyphs'>20</text>
+<text x='309.45' y='209.90' text-anchor='middle' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='11.23px' lengthAdjust='spacingAndGlyphs'>40</text>
+<text x='387.56' y='209.90' text-anchor='middle' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='11.01px' lengthAdjust='spacingAndGlyphs'>60</text>
+<text x='465.68' y='209.90' text-anchor='middle' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='10.99px' lengthAdjust='spacingAndGlyphs'>80</text>
+<text x='315.97' y='222.54' text-anchor='middle' style='font-size: 11.00px;fill: var(--ink); font-family: "Liberation Sans";' textLength='93.79px' lengthAdjust='spacingAndGlyphs'>reduction in R (%)</text>
+</g>
+</svg><figcaption>Prior (grey) and posterior (blue) 95% intervals for the percentage reduction in the reproduction number attributed to each intervention, from the simplified refit of Flaxman et al. (2020). The bottom row is Sweden's ban on public events, which also receives Sweden's country-specific effect for its last intervention; its grey bar is the prior for a single intervention.</figcaption></figure>
+
+
+<p>The figure puts the prior beside the posterior. For lockdown the posterior is far narrower than the prior and sits at its upper end: the data are informative. For the other four interventions the posterior is the prior's spike at zero with its tail cut back, which is what a weakly identified parameter under a prior concentrated near zero looks like; an effect of 20% for school closures is not excluded, and the published conclusion that they were "ineffective" depends partly on the prior, which puts most of its mass on small effects. Sweden's row shows the flexibility Soltesz and colleagues objected to: one country-specific parameter absorbs whatever the shared effects cannot explain, and it attaches it to whichever intervention happened to come last. None of this means the model is wrong. It means that the claims it supports are narrower than the claims made from it, and that a fake-data check with interventions timed as they really were is the way to find out which effects the data can recover.</p>
+
+<p>Fake-data simulation and its formal version, simulation-based calibration, answer one question: does the computation return the posterior of the model that was written down, averaged over parameters drawn from the prior? That is a check of the <em>software</em>. A different question is whether a procedure's intervals cover the truth for every fixed value of the parameter, or whether a decision rule built on the posterior controls its error rates whatever the truth. That is a frequentist check of the <em>procedure</em>, and it can fail even when SBC passes perfectly, because a prior that is wrong for the case at hand produces well-computed but miscalibrated intervals. Lecture 34 shows how Bayesian designs are tuned to pass the second check as well.</p>
+
+
 <div class="box rex"><h4 class="lbl">Check Yourself</h4>
 <div class="chk" data-answer="2" data-kind="mc" id="chk-5-6"><fieldset class="chk-fs"><legend id="chk-5-6-p">In fake-data simulation, the 95% intervals for a parameter cover the true value in only 9 of 20 simulated datasets, and the posterior means are all too high. What is the most likely explanation?</legend><label class="chk-opt" for="chk-5-6-o1"><input aria-label="Bad luck: 20 simulations are too few to judge." id="chk-5-6-o1" name="chk-5-6" type="radio" value="1"/><span>Bad luck: 20 simulations are too few to judge.</span></label><label class="chk-opt" for="chk-5-6-o2"><input aria-label="A problem in the model or code, such as a prior that pulls the estimate, a mis-coded variable, or a mismatch between the simulation and the fitted model." id="chk-5-6-o2" name="chk-5-6" type="radio" value="2"/><span>A problem in the model or code, such as a prior that pulls the estimate, a mis-coded variable, or a mismatch between the simulation and the fitted model.</span></label><label class="chk-opt" for="chk-5-6-o3"><input aria-label="Too few iterations; R-hat would have caught it." id="chk-5-6-o3" name="chk-5-6" type="radio" value="3"/><span>Too few iterations; R-hat would have caught it.</span></label></fieldset><div class="chk-row"><button class="ctl chk-go" type="button">check</button></div><div aria-live="polite" class="chk-fb" role="status"></div><button class="chk-reveal" hidden="" type="button">stuck? show the answer</button><div class="chk-store chk-hint" data-opt="1" hidden="">
 <p>With 20 intervals, coverage between 17 and 20 is consistent with 95%; 9 is not.</p>
@@ -3557,6 +3742,7 @@ recovery <span class="r-op">|&gt;</span> <span class="r-fn">group_by</span>(para
 <li>The <strong>folk theorem</strong>: computational problems usually point to model problems, such as duplicated or collinear predictors, non-identified parameters or awkward geometry. Fix the model, not the sampler.</li>
 <li><strong>Divergences</strong> signal regions the sampler cannot explore; they bias results and call for reparameterisation.</li>
 <li><strong>Fake-data simulation</strong> checks that the model and code recover known parameters; do it before fitting real data.</li>
+<li>A narrow posterior for one parameter can sit beside near-total confounding of others: in the COVID-19 interventions model, lockdown is well identified, the other measures are not, and the posterior correlations and the sampler's struggles both say so.</li>
 <li>Report computational details, diagnostics and checks in every paper.</li>
 </ul>
 </div>
@@ -3640,9 +3826,11 @@ recovery <span class="r-op">|&gt;</span> <span class="r-fn">group_by</span>(para
 <ol class="refs">
 <li>Betancourt, M. (2017). A conceptual introduction to Hamiltonian Monte Carlo. arXiv:1701.02434.</li>
 <li>Duane, S., Kennedy, A. D., Pendleton, B. J. and Roweth, D. (1987). Hybrid Monte Carlo. <em>Physics Letters B</em>, 195(2), 216–222.</li>
+<li>Flaxman, S., Mishra, S., Gandy, A., Unwin, H. J. T., Mellan, T. A., Coupland, H. et al. (2020). Estimating the effects of non-pharmaceutical interventions on COVID-19 in Europe. <em>Nature</em>, 584, 257–261.</li>
+<li>Flaxman, S., Mishra, S., Scott, J., Ferguson, N., Gandy, A. and Bhatt, S. (2020). Reply to: The effect of interventions on COVID-19. <em>Nature</em>, 588, E29–E31.</li>
 <li>Gelfand, A. E. and Smith, A. F. M. (1990). Sampling-based approaches to calculating marginal densities. <em>Journal of the American Statistical Association</em>, 85(410), 398–409.</li>
-<li>Gelman, A., Roberts, G. O. and Gilks, W. R. (1996). Efficient Metropolis jumping rules. In J. M. Bernardo, J. O. Berger, A. P. Dawid and A. F. M. Smith (eds), <em>Bayesian Statistics 5</em>, 599–607. Oxford University Press.</li>
 <li>Gelman, A. and Rubin, D. B. (1992). Inference from iterative simulation using multiple sequences. <em>Statistical Science</em>, 7(4), 457–472.</li>
+<li>Gelman, A., Roberts, G. O. and Gilks, W. R. (1996). Efficient Metropolis jumping rules. In J. M. Bernardo, J. O. Berger, A. P. Dawid and A. F. M. Smith (eds), <em>Bayesian Statistics 5</em>, 599–607. Oxford University Press.</li>
 <li>Gelman, A., Vehtari, A., Simpson, D., Margossian, C. C., Carpenter, B., Yao, Y., Kennedy, L., Gabry, J., Bürkner, P.-C. and Modrák, M. (2020). Bayesian workflow. arXiv:2011.01808.</li>
 <li>Hoffman, M. D. and Gelman, A. (2014). The No-U-Turn sampler: adaptively setting path lengths in Hamiltonian Monte Carlo. <em>Journal of Machine Learning Research</em>, 15, 1593–1623.</li>
 <li>Kruschke, J. K. (2021). Bayesian analysis reporting guidelines. <em>Nature Human Behaviour</em>, 5, 1282–1291.</li>
@@ -3650,6 +3838,7 @@ recovery <span class="r-op">|&gt;</span> <span class="r-fn">group_by</span>(para
 <li>Modrák, M., Moon, A. H., Kim, S., Bürkner, P., Huurre, N., Faltejsková, K., Gelman, A. and Vehtari, A. (2025). Simulation-based calibration checking for Bayesian computation: the choice of test quantities shapes sensitivity. <em>Bayesian Analysis</em>, 20(2), 461–488.</li>
 <li>Neal, R. M. (2011). MCMC using Hamiltonian dynamics. In S. Brooks et al. (eds), <em>Handbook of Markov Chain Monte Carlo</em>, 113–162. Chapman and Hall/CRC.</li>
 <li>Roberts, G. O., Gelman, A. and Gilks, W. R. (1997). Weak convergence and optimal scaling of random walk Metropolis algorithms. <em>Annals of Applied Probability</em>, 7(1), 110–120.</li>
+<li>Soltesz, K., Gustafsson, F., Timpka, T., Jaldén, J., Jidling, C., Heimerson, A. et al. (2020). The effect of interventions on COVID-19. <em>Nature</em>, 588, E26–E28.</li>
 <li>Stan Development Team (2024). <em>Stan Reference Manual</em>. mc-stan.org.</li>
 <li>Talts, S., Betancourt, M., Simpson, D., Vehtari, A. and Gelman, A. (2018). Validating Bayesian inference algorithms with simulation-based calibration. arXiv:1804.06788.</li>
 <li>Vehtari, A., Gelman, A., Simpson, D., Carpenter, B. and Bürkner, P.-C. (2021). Rank-normalization, folding, and localization: an improved R-hat for assessing convergence of MCMC. <em>Bayesian Analysis</em>, 16(2), 667–718.</li>

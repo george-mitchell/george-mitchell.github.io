@@ -315,7 +315,11 @@ dl.pdl{display:grid;grid-template-columns:10.5em 1fr;gap:.45em 1.1em;margin:.4em
 dl.pdl dt{font-family:var(--mono);font-size:.84rem;font-weight:700;color:color-mix(in srgb,var(--sky) 75%,var(--ink));padding-top:.15em}
 dl.pdl dd{margin:0}
 @media (max-width:620px){dl.pdl{grid-template-columns:1fr;gap:.15em}dl.pdl dt{margin-top:.6em}}
-</style><script src="/assets/courses/common/course-nav.js" data-course="applied-bayesian-inference" defer></script></head><body><div class="wrap"><a class="skip-link" href="#main">Skip to main content</a><div class="topbar"><a href="#top">Applied Bayesian Inference · Chapter 10</a><button class="ctl" id="theme" type="button">light theme</button></div><main id="main"><h1 id="top">Chapter 10<br/>Bayesian machine learning</h1><p class="kicker">Lectures 19–20 · shrinkage priors from ridge to the horseshoe, prediction versus explanation, more features than observations, and Bayesian trees and networks</p>
+/* Paper in Focus: a modern research paper read as a case study */
+.box.paper{--bc:var(--lilac);border-left-color:var(--lilac);border-left-style:double;border-left-width:7px;background:var(--surface)}
+.box.paper .lbl{color:var(--lilac)}
+.box.paper .lbl::before{content:"¶ ";font-weight:400}
+</style><script src="/assets/courses/common/course-nav.js" data-course="applied-bayesian-inference" defer></script></head><body><div class="wrap"><a class="skip-link" href="#main">Skip to main content</a><div class="topbar"><a href="#top">Applied Bayesian Inference · Chapter 10</a><button class="ctl" id="theme" type="button">light theme</button></div><main id="main"><h1 id="top">Chapter 10<br/>Bayesian machine learning</h1><p class="kicker">Lectures 19–20 · shrinkage priors from ridge to the horseshoe, prediction versus explanation, more features than observations, twenty thousand tests, and Bayesian trees and networks</p>
 <figure class="toon">
 <svg aria-labelledby="t10t t10d" height="210" role="img" viewBox="0 0 580 210" width="580">
 <title id="t10t">Cartoon: a mixing desk with too many sliders</title><desc id="t10d">A sound engineer stands beside a mixing desk with twelve sliders. Nine of them have been pushed almost all the way down; three are still high. The engineer says: Thirty-nine knobs, and the song only needs a few. The trick is finding out which.</desc>
@@ -340,7 +344,7 @@ dl.pdl dd{margin:0}
 
 <ul>
 <li><strong>Lecture 19 is about shrinkage priors.</strong> We will try to price houses from 39 features using only 100 sales, watch an unregularised model overfit, see that ridge regression and the lasso are posterior modes under normal and Laplace priors, and build the horseshoe prior, which shrinks noise hard and leaves real signals almost alone.</li>
-<li><strong>Lecture 20 is about practice.</strong> We will compare four priors on 2,830 houses the models never saw, choose a small set of predictors by projection, move to a breast-cancer data set with more features than patients, and look beyond linear models at Bayesian additive regression trees, Gaussian processes and Bayesian neural networks.</li>
+<li><strong>Lecture 20 is about practice.</strong> We will compare four priors on 2,830 houses the models never saw, choose a small set of predictors by projection, move to a breast-cancer data set with more features than patients, test twenty thousand genes at once with local false discovery rates, and look beyond linear models at Bayesian additive regression trees, Gaussian processes and Bayesian neural networks.</li>
 </ul>
 
 <div class="box think"><h4 class="lbl">Think About It: Before You Start</h4>
@@ -356,8 +360,9 @@ dl.pdl dd{margin:0}
 <li><a href="#sec-10-6">10.6 Four priors, one hundred houses</a></li>
 <li><a href="#sec-10-7">10.7 Which predictors matter?</a></li>
 <li><a href="#sec-10-8">10.8 More features than patients</a></li>
-<li><a href="#sec-10-9">10.9 Beyond linear models</a></li>
-<li><a href="#sec-10-10">10.10 Exercises</a></li>
+<li><a href="#sec-10-9">10.9 Twenty thousand tests</a></li>
+<li><a href="#sec-10-10">10.10 Beyond linear models</a></li>
+<li><a href="#sec-10-11">10.11 Exercises</a></li>
 <li><a href="#sec-10-refs">Further reading and references</a></li>
 </ol></nav>
 
@@ -1459,6 +1464,12 @@ pl <span class="r-op">&lt;-</span> <span class="r-fn">proj_linpred</span>(prj, n
 <li>Do not present the coefficients of a prediction model as causal effects; if variables were selected, say how (projection, not interval exclusion), and report the performance of the selected model on held-out data.</li>
 </ul>
 </div>
+<div class="box paper"><h4 class="lbl">Paper in Focus: Prediction Models for COVID-19</h4>
+<p><strong>The paper.</strong> Laure Wynants, Ben Van Calster, Gary Collins and colleagues, "Prediction models for diagnosis and prognosis of covid-19: systematic review and critical appraisal", <em>BMJ</em> 369, m1328, 2020, a "living" review updated four times until 2022. When the pandemic began, hundreds of research groups built models to predict who had COVID-19, who would deteriorate and who would die, and many were promoted for clinical use. The review assessed every one it could find with PROBAST (Wolff et al., 2019), a tool for judging the risk of bias of prediction models.</p>
+<p><strong>The claim.</strong> By the final update, 412 studies describing 731 new models or validations had been included. Of 606 prognostic models, 545 were at high risk of bias, 32 at unclear risk and only 29 at low risk. The commonest failures were samples too small for the number of candidate predictors (67%) and inadequate evaluation of performance (56%): no calibration, no external validation, optimistic internal validation. A handful of models (such as QCovid, ISARIC4C Deterioration and the PRIEST score) performed adequately in studies at low risk of bias.</p>
+<p><strong>Reading it.</strong> Read it with the Research Practice box above beside you: almost every item on that list was violated by most of the 731 models. Then pick one model from the review's tables and ask the questions this chapter has taught: how many events per candidate parameter, how were predictors selected, was any filtering done before cross-validation (Section 10.8), was calibration reported, and was the model ever tested on data from another hospital? The paper is the clearest evidence that prediction is easy to do and hard to do well, and that the difference lies in exactly the details this chapter has stressed.</p>
+</div>
+
 
 <h2 id="sec-10-8">10.8 More features than patients</h2>
 
@@ -1813,7 +1824,256 @@ gt <span class="r-op">|&gt;</span> <span class="r-fn">filter</span>(prior == <sp
 <p>The <strong>cancer gene-expression</strong> project lives in the regime of Section 10.8. Section 10.8 used 1,000 of the 20,530 genes; the horseshoe scales to all of them, though the sampler will need a few hours rather than minutes, and a common route is to keep all genes but use the regularised horseshoe with a deliberately small <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>p</mi><mn>0</mn></msub></mrow></math>, then summarise with projection predictive selection. Two habits from this chapter are essential: fit every filtering and normalisation step inside the training folds, and report calibration as well as accuracy, because a clinician acts on the probability. Subtype discovery itself is unsupervised, the subject of Chapter 11, but validating discovered subtypes against outcomes is this chapter's prediction problem. The <strong>AI-generated text detection</strong> project has the same shape: thousands of word, character and embedding features, a few thousand labelled documents, and a strong suspicion that only some features generalise across writing tasks. A horseshoe logistic model, evaluated on documents from tasks it was not trained on, says which features carry the signal and how sure the detector is about each document, which matters when a false accusation of using AI is costly. For <strong>EMS response equity</strong>, a horseshoe on many neighbourhood covariates is a good <em>predictive</em> baseline, but the equity question is causal: do not read its coefficients as effects of neighbourhood composition (Section 10.2).</p>
 </div>
 
-<h2 id="sec-10-9">10.9 Beyond linear models</h2>
+<h2 id="sec-10-9">10.9 Twenty thousand tests</h2>
+
+<p>Section 10.8 asked how well expression predicts HER2 status. Molecular biologists often ask the reverse question: which of the 20,530 genes are expressed differently in HER2-positive tumours? The usual approach tests each gene separately, which makes this a problem of <strong>large-scale inference</strong>, and Bradley Efron (2010) showed that it is best solved by empirical Bayes. Compute, for every gene, a test statistic comparing the two groups and convert it to a <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>z</mi></mrow></math>-value, which would be standard normal if the gene were unrelated to HER2. The <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>z</mi></mrow></math>-values of thousands of genes have a histogram, and that histogram is a mixture: a large majority of null genes and a minority of genes that really differ,</p>
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>f</mi><mo stretchy="false">&#x00028;</mo><mi>z</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><msub><mi>&#x003C0;</mi><mn>0</mn></msub><msub><mi>f</mi><mn>0</mn></msub><mo stretchy="false">&#x00028;</mo><mi>z</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0002B;</mo><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x02212;</mo><msub><mi>&#x003C0;</mi><mn>0</mn></msub><mo stretchy="false">&#x00029;</mo><msub><mi>f</mi><mn>1</mn></msub><mo stretchy="false">&#x00028;</mo><mi>z</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0002E;</mo></mrow></math>
+
+<p>By Bayes' theorem, the probability that a gene with value <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>z</mi></mrow></math> is null is the <strong>local false discovery rate</strong>,</p>
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mtext>fdr</mtext><mo stretchy="false">&#x00028;</mo><mi>z</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mo>Pr</mo><mo stretchy="false">&#x00028;</mo><mtext>null</mtext><mo>&#x02223;</mo><mi>z</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0003D;</mo><mfrac><mrow><msub><mi>&#x003C0;</mi><mn>0</mn></msub><msub><mi>f</mi><mn>0</mn></msub><mo stretchy="false">&#x00028;</mo><mi>z</mi><mo stretchy="false">&#x00029;</mo></mrow><mrow><mi>f</mi><mo stretchy="false">&#x00028;</mo><mi>z</mi><mo stretchy="false">&#x00029;</mo></mrow></mfrac><mo>&#x0002E;</mo></mrow></math>
+
+<p>Everything in it can be estimated from the data: <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>f</mi></mrow></math> from the histogram of all <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>z</mi></mrow></math>-values, and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003C0;</mi><mn>0</mn></msub><msub><mi>f</mi><mn>0</mn></msub></mrow></math> from its central part, where almost all genes are null. Efron also showed that the theoretical null <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>f</mi><mn>0</mn></msub><mo>&#x0003D;</mo><mtext>normal</mtext><mo stretchy="false">&#x00028;</mo><mn>0</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></math> is often wrong in practice, because correlations between genes and hidden confounders such as batch effects make null <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>z</mi></mrow></math>-values wider than standard normal; the <em>empirical null</em> estimates its centre and spread from the data. The <code>locfdr</code> package does both.</p>
+
+<div class="rblock">
+<div class="rhead"><span class="rlab">R</span><button class="copy-btn" type="button">copy code</button></div>
+<pre class="rcode"><code><span class="r-fn">library</span>(locfdr)
+expr <span class="r-op">&lt;-</span> <span class="r-fn">read_tsv</span>(<span class="r-str">"data/tcga/HiSeqV2.gz"</span>, show_col_types = <span class="r-kw">FALSE</span>)
+clin <span class="r-op">&lt;-</span> <span class="r-fn">read_tsv</span>(<span class="r-str">"data/tcga/BRCA_clinicalMatrix"</span>, show_col_types = <span class="r-kw">FALSE</span>, guess_max = <span class="r-num">5000</span>)
+her2 <span class="r-op">&lt;-</span> clin <span class="r-op">|&gt;</span> <span class="r-fn">filter</span>(<span class="r-fn">substr</span>(sampleID, <span class="r-num">14</span>, <span class="r-num">15</span>) == <span class="r-str">"01"</span>, HER2_Final_Status_nature2012 <span class="r-op">%in%</span> <span class="r-fn">c</span>(<span class="r-str">"Positive"</span>, <span class="r-str">"Negative"</span>))
+E <span class="r-op">&lt;-</span> <span class="r-fn">as.matrix</span>(expr[, <span class="r-fn">intersect</span>(<span class="r-fn">colnames</span>(expr), her2$sampleID)]); <span class="r-fn">rownames</span>(E) <span class="r-op">&lt;-</span> expr$sample
+pos <span class="r-op">&lt;-</span> her2$HER2_Final_Status_nature2012[<span class="r-fn">match</span>(<span class="r-fn">colnames</span>(E), her2$sampleID)] == <span class="r-str">"Positive"</span>
+E <span class="r-op">&lt;-</span> E[<span class="r-fn">apply</span>(E, <span class="r-num">1</span>, sd) &gt; <span class="r-num">0</span>, ]                                        <span class="r-com"># drop genes with no variation</span>
+m1 <span class="r-op">&lt;-</span> <span class="r-fn">rowMeans</span>(E[, pos]); m0 <span class="r-op">&lt;-</span> <span class="r-fn">rowMeans</span>(E[, !pos]); v1 <span class="r-op">&lt;-</span> <span class="r-fn">apply</span>(E[, pos], <span class="r-num">1</span>, var); v0 <span class="r-op">&lt;-</span> <span class="r-fn">apply</span>(E[, !pos], <span class="r-num">1</span>, var)
+t_stat <span class="r-op">&lt;-</span> (m1 - m0) / <span class="r-fn">sqrt</span>(v1 / <span class="r-fn">sum</span>(pos) + v0 / <span class="r-fn">sum</span>(!pos))             <span class="r-com"># Welch t for every gene</span>
+df_w <span class="r-op">&lt;-</span> (v1 / <span class="r-fn">sum</span>(pos) + v0 / <span class="r-fn">sum</span>(!pos))^<span class="r-num">2</span> / ((v1 / <span class="r-fn">sum</span>(pos))^<span class="r-num">2</span> / (<span class="r-fn">sum</span>(pos) - <span class="r-num">1</span>) + (v0 / <span class="r-fn">sum</span>(!pos))^<span class="r-num">2</span> / (<span class="r-fn">sum</span>(!pos) - <span class="r-num">1</span>))
+z <span class="r-op">&lt;-</span> -<span class="r-fn">sign</span>(t_stat) * <span class="r-fn">qnorm</span>(<span class="r-fn">pt</span>(-<span class="r-fn">abs</span>(t_stat), df_w, log.p = <span class="r-kw">TRUE</span>), log.p = <span class="r-kw">TRUE</span>)   <span class="r-com"># z-values, computed on the log scale to avoid Inf</span>
+lf <span class="r-op">&lt;-</span> <span class="r-fn">locfdr</span>(z, nulltype = <span class="r-num">1</span>, plot = <span class="r-num">0</span>)                               <span class="r-com"># empirical null</span>
+lf0 <span class="r-op">&lt;-</span> <span class="r-fn">locfdr</span>(z, nulltype = <span class="r-num">0</span>, plot = <span class="r-num">0</span>)                              <span class="r-com"># theoretical null, normal(0, 1)</span>
+<span class="r-fn">c</span>(genes = <span class="r-fn">length</span>(z), tumours = <span class="r-fn">ncol</span>(E), positive = <span class="r-fn">sum</span>(pos)) 
+<span class="r-fn">round</span>(lf$fp0[<span class="r-str">"mlest"</span>, <span class="r-fn">c</span>(<span class="r-str">"delta"</span>, <span class="r-str">"sigma"</span>, <span class="r-str">"p0"</span>)], <span class="r-num">3</span>)                  <span class="r-com"># centre, spread and proportion of the null</span>
+fdr <span class="r-op">&lt;-</span> lf$fdr
+o <span class="r-op">&lt;-</span> <span class="r-fn">order</span>(fdr); cum_fdr <span class="r-op">&lt;-</span> <span class="r-fn">cumsum</span>(fdr[o]) / <span class="r-fn">seq_along</span>(o)            <span class="r-com"># average fdr of the top k genes = Bayesian FDR</span>
+<span class="r-fn">c</span>(theoretical_null_lfdr_below_0.2 = <span class="r-fn">sum</span>(lf0$fdr &lt; <span class="r-num">0.2</span>), lfdr_below_0.2 = <span class="r-fn">sum</span>(fdr &lt; <span class="r-num">0.2</span>), list_with_FDR_0.1 = <span class="r-fn">sum</span>(cum_fdr &lt;= <span class="r-num">0.1</span>), bonferroni_5pct = <span class="r-fn">sum</span>(<span class="r-num">2</span> * <span class="r-fn">pnorm</span>(-<span class="r-fn">abs</span>(z)) &lt; <span class="r-num">0.05</span> / <span class="r-fn">length</span>(z)))
+<span class="r-fn">tibble</span>(gene = <span class="r-fn">rownames</span>(E)[o][<span class="r-num">1</span>:<span class="r-num">10</span>], z = <span class="r-fn">round</span>(z[o][<span class="r-num">1</span>:<span class="r-num">10</span>], <span class="r-num">1</span>), lfdr = <span class="r-fn">signif</span>(fdr[o][<span class="r-num">1</span>:<span class="r-num">10</span>], <span class="r-num">2</span>))</code></pre>
+<div class="routlab">output</div><pre class="rout"><code>   genes  tumours positive 
+   20231      766      114 
+ delta  sigma     p0 
+-0.313  2.448  0.994 
+theoretical_null_lfdr_below_0.2                  lfdr_below_0.2 
+                           7700                               5 
+              list_with_FDR_0.1                 bonferroni_5pct 
+                              6                            1212 
+# A tibble: 10 x 3
+   gene         z    lfdr
+   &lt;chr&gt;    &lt;dbl&gt;   &lt;dbl&gt;
+ 1 ERBB2     13.1 0.00027
+ 2 STARD3    12.7 0.0007 
+ 3 PGAP3     12.1 0.0042 
+ 4 GRB7      12   0.0051 
+ 5 C17orf37  12   0.0053 
+ 6 ORMDL3     9.8 0.41   
+ 7 PSMD3      9.8 0.44   
+ 8 TCAP       9.4 0.61   
+ 9 CDK12      9.4 0.63   
+10 MED1       9.2 0.71   </code></pre>
+</div>
+
+
+<p>The data are the 766 primary tumours of Section 10.8 with a clinical HER2 status, 114 of them positive. Under the theoretical null, a standard normal, 7,700 genes, more than a third of the genome, have a local false discovery rate below 0.2, and even Bonferroni's correction declares 1,212 genes significant at the 5% level. The histogram shows why: the <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>z</mi></mrow></math>-values spread from −9 to 13, with a standard deviation of about 2.4, nothing like a standard normal. Efron's empirical null fits the central part of the histogram and finds that it is centred at −0.31 with a spread of 2.45, and that 99.4% of genes belong to it. Against that null only <strong>five genes</strong> have a local fdr below 0.2: <em>ERBB2</em>, the gene that encodes HER2 itself, and <em>STARD3</em>, <em>PGAP3</em>, <em>GRB7</em> and <em>C17orf37</em> (now called <em>MIEN1</em>), all of which lie next to it on chromosome 17 and are copied with it when the region is amplified. The next five genes on the list (<em>ORMDL3</em>, <em>PSMD3</em>, <em>TCAP</em>, <em>CDK12</em>, <em>MED1</em>) are also in the same region, with local fdrs between 0.4 and 0.7.</p>
+
+<div class="rblock">
+<div class="rhead"><span class="rlab">R</span><button class="copy-btn" type="button">copy code</button></div>
+<pre class="rcode"><code>mat <span class="r-op">&lt;-</span> <span class="r-fn">as_tibble</span>(lf$mat) <span class="r-op">|&gt;</span> <span class="r-fn">mutate</span>(null = lf$fp0[<span class="r-str">"mlest"</span>, <span class="r-str">"p0"</span>] * f0, theo = <span class="r-fn">length</span>(z) * <span class="r-fn">diff</span>(x[<span class="r-num">1</span>:<span class="r-num">2</span>]) * <span class="r-fn">dnorm</span>(x))   <span class="r-com"># on the count scale</span>
+<span class="r-fn">ggplot</span>(mat, <span class="r-fn">aes</span>(x)) + <span class="r-fn">geom_col</span>(<span class="r-fn">aes</span>(y = counts), fill = harbour[[<span class="r-str">"muted"</span>]], alpha = <span class="r-num">0.35</span>, width = <span class="r-fn">diff</span>(mat$x[<span class="r-num">1</span>:<span class="r-num">2</span>])) +
+  <span class="r-fn">geom_line</span>(<span class="r-fn">aes</span>(y = theo), colour = harbour[[<span class="r-str">"amber"</span>]], linewidth = <span class="r-num">0.7</span>, linetype = <span class="r-num">3</span>) +
+  <span class="r-fn">geom_line</span>(<span class="r-fn">aes</span>(y = f), colour = harbour[[<span class="r-str">"ink"</span>]], linewidth = <span class="r-num">0.8</span>) +
+  <span class="r-fn">geom_line</span>(<span class="r-fn">aes</span>(y = null), colour = harbour[[<span class="r-str">"sky"</span>]], linewidth = <span class="r-num">0.9</span>, linetype = <span class="r-num">2</span>) +
+  <span class="r-fn">geom_rug</span>(data = <span class="r-fn">tibble</span>(x = z[fdr &lt; <span class="r-num">0.2</span>]), <span class="r-fn">aes</span>(x = x), inherit.aes = <span class="r-kw">FALSE</span>, colour = harbour[[<span class="r-str">"rose"</span>]], length = <span class="r-fn">unit</span>(<span class="r-num">0.05</span>, <span class="r-str">"npc"</span>)) +
+  <span class="r-fn">scale_y_sqrt</span>() + <span class="r-fn">coord_cartesian</span>(ylim = <span class="r-fn">c</span>(<span class="r-num">0</span>, <span class="r-num">1.05</span> * <span class="r-fn">max</span>(mat$counts))) +
+  <span class="r-fn">labs</span>(x = <span class="r-str">"z-value (HER2-positive against HER2-negative)"</span>, y = <span class="r-str">"number of genes (square-root scale)"</span>)</code></pre>
+</div>
+<figure class="rfig"><svg class="svglite" role="img" focusable="false" aria-label="A wide bell-shaped histogram of z-values running from about minus 9 to plus 13, centred just below zero. The black mixture curve and the blue dashed empirical null almost coincide over the whole range, apart from a thin right tail beyond about 10. The amber dotted theoretical null is a narrow spike around zero, far narrower than the histogram. Five red marks sit at z-values between 12 and 13." style="max-width:700px;margin:0 auto" xmlns='http://www.w3.org/2000/svg' xmlns:xlink='http://www.w3.org/1999/xlink' class='svglite' viewBox='0 0 504.00 244.80'><title>A wide bell-shaped histogram of z-values running from about minus 9 to plus 13, centred ju</title><desc>A wide bell-shaped histogram of z-values running from about minus 9 to plus 13, centred just below zero. The black mixture curve and the blue dashed empirical null almost coincide over the whole range, apart from a thin right tail beyond about 10. The amber dotted theoretical null is a narrow spike around zero, far narrower than the histogram. Five red marks sit at z-values between 12 and 13.</desc>
+<defs>
+  
+</defs>
+<rect width='100%' height='100%' style='stroke: none; fill: none;'/>
+<defs>
+  <clipPath id='f-lfdr_fig-cpMC4wMHw1MDQuMDB8MC4wMHwyNDQuODA='>
+    <rect x='0.00' y='0.00' width='504.00' height='244.80' />
+  </clipPath>
+</defs>
+<g clip-path='url(#f-lfdr_fig-cpMC4wMHw1MDQuMDB8MC4wMHwyNDQuODA=)'>
+</g>
+<defs>
+  <clipPath id='f-lfdr_fig-cpNDAuMzJ8NDk4LjUyfDUuNDh8MjEyLjk3'>
+    <rect x='40.32' y='5.48' width='458.20' height='207.49' />
+  </clipPath>
+</defs>
+<g clip-path='url(#f-lfdr_fig-cpNDAuMzJ8NDk4LjUyfDUuNDh8MjEyLjk3)'>
+<polyline points='40.32,203.53 498.52,203.53 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='40.32,100.06 498.52,100.06 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='40.32,57.21 498.52,57.21 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='40.32,24.32 498.52,24.32 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='134.21,212.97 134.21,5.48 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='229.15,212.97 229.15,5.48 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='324.09,212.97 324.09,5.48 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<polyline points='419.03,212.97 419.03,5.48 ' style='stroke-width: 1.07; stroke: var(--grid); stroke-linecap: butt;' />
+<rect x='61.14' y='193.19' width='3.50' height='10.35' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='64.64' y='196.22' width='3.50' height='7.32' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='68.14' y='193.19' width='3.50' height='10.35' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='71.64' y='190.86' width='3.50' height='12.67' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='75.15' y='190.86' width='3.50' height='12.67' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='78.65' y='185.61' width='3.50' height='17.92' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='82.15' y='184.18' width='3.50' height='19.36' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='85.65' y='187.17' width='3.50' height='16.36' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='89.15' y='181.58' width='3.50' height='21.95' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='92.65' y='176.16' width='3.50' height='27.38' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='96.15' y='175.20' width='3.50' height='28.34' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='99.65' y='178.19' width='3.50' height='25.34' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='103.15' y='163.46' width='3.50' height='40.07' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='106.65' y='166.95' width='3.50' height='36.58' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='110.15' y='162.15' width='3.50' height='41.39' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='113.65' y='160.87' width='3.50' height='42.66' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='117.15' y='150.77' width='3.50' height='52.76' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='120.65' y='147.81' width='3.50' height='55.72' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='124.15' y='138.50' width='3.50' height='65.03' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='127.65' y='132.98' width='3.50' height='70.56' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='131.15' y='131.11' width='3.50' height='72.43' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='134.65' y='131.11' width='3.50' height='72.43' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='138.15' y='122.39' width='3.50' height='81.14' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='141.65' y='117.27' width='3.50' height='86.26' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='145.15' y='111.57' width='3.50' height='91.97' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='148.65' y='106.47' width='3.50' height='97.06' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='152.15' y='99.03' width='3.50' height='104.50' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='155.65' y='91.85' width='3.50' height='111.68' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='159.16' y='84.88' width='3.50' height='118.65' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='162.66' y='75.13' width='3.50' height='128.40' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='166.16' y='80.02' width='3.50' height='123.52' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='169.66' y='75.76' width='3.50' height='127.78' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='173.16' y='68.63' width='3.50' height='134.91' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='176.66' y='63.56' width='3.50' height='139.97' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='180.16' y='58.49' width='3.50' height='145.04' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='183.66' y='49.02' width='3.50' height='154.51' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='187.16' y='46.96' width='3.50' height='156.58' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='190.66' y='37.34' width='3.50' height='166.20' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='194.16' y='42.07' width='3.50' height='161.46' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='197.66' y='38.63' width='3.50' height='164.90' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='201.16' y='30.71' width='3.50' height='172.83' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='204.66' y='31.48' width='3.50' height='172.05' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='208.16' y='26.88' width='3.50' height='176.66' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='211.66' y='29.47' width='3.50' height='174.06' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='215.16' y='28.40' width='3.50' height='175.14' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='218.66' y='29.93' width='3.50' height='173.60' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='222.16' y='26.42' width='3.50' height='177.11' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='225.66' y='19.46' width='3.50' height='184.08' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='229.16' y='22.68' width='3.50' height='180.85' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='232.66' y='23.72' width='3.50' height='179.81' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='236.16' y='22.09' width='3.50' height='181.44' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='239.66' y='23.87' width='3.50' height='179.66' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='243.17' y='24.62' width='3.50' height='178.92' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='246.67' y='29.47' width='3.50' height='174.06' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='250.17' y='45.09' width='3.50' height='158.45' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='253.67' y='47.13' width='3.50' height='156.41' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='257.17' y='54.31' width='3.50' height='149.23' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='260.67' y='53.59' width='3.50' height='149.94' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='264.17' y='60.35' width='3.50' height='143.19' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='267.67' y='60.54' width='3.50' height='143.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='271.17' y='76.81' width='3.50' height='126.72' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='274.67' y='80.67' width='3.50' height='122.86' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='278.17' y='81.54' width='3.50' height='121.99' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='281.67' y='79.80' width='3.50' height='123.73' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='285.17' y='85.11' width='3.50' height='118.43' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='288.67' y='99.29' width='3.50' height='104.24' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='292.17' y='107.02' width='3.50' height='96.51' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='295.67' y='105.92' width='3.50' height='97.61' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='299.17' y='114.53' width='3.50' height='89.01' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='302.67' y='123.39' width='3.50' height='80.15' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='306.17' y='118.21' width='3.50' height='85.32' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='309.67' y='126.80' width='3.50' height='76.74' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='313.17' y='129.64' width='3.50' height='73.89' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='316.67' y='132.22' width='3.50' height='71.31' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='320.17' y='145.00' width='3.50' height='58.53' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='323.67' y='145.46' width='3.50' height='58.07' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='327.18' y='149.27' width='3.50' height='54.26' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='330.68' y='150.27' width='3.50' height='53.26' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='334.18' y='159.64' width='3.50' height='43.90' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='337.68' y='162.15' width='3.50' height='41.39' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='341.18' y='170.01' width='3.50' height='33.53' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='344.68' y='168.45' width='3.50' height='35.09' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='348.18' y='178.19' width='3.50' height='25.34' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='351.68' y='182.84' width='3.50' height='20.69' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='355.18' y='176.16' width='3.50' height='27.38' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='358.68' y='179.27' width='3.50' height='24.27' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='362.18' y='184.18' width='3.50' height='19.36' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='365.68' y='184.18' width='3.50' height='19.36' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='369.18' y='185.61' width='3.50' height='17.92' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='372.68' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='376.18' y='190.86' width='3.50' height='12.67' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='379.68' y='188.90' width='3.50' height='14.63' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='383.18' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='386.68' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='390.18' y='196.22' width='3.50' height='7.32' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='393.68' y='196.22' width='3.50' height='7.32' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='397.18' y='196.22' width='3.50' height='7.32' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='400.68' y='196.22' width='3.50' height='7.32' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='404.18' y='196.22' width='3.50' height='7.32' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='407.68' y='196.22' width='3.50' height='7.32' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='411.19' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='414.69' y='193.19' width='3.50' height='10.35' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='418.19' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='421.69' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='425.19' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='428.69' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='432.19' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='435.69' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='439.19' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='442.69' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='446.19' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='449.69' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='453.19' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='456.69' y='190.86' width='3.50' height='12.67' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='460.19' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='463.69' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='467.19' y='196.22' width='3.50' height='7.32' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='470.69' y='203.53' width='3.50' height='0.00' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<rect x='474.19' y='196.22' width='3.50' height='7.32' style='stroke-width: 1.07; stroke: none; stroke-linecap: butt; stroke-linejoin: miter; fill: var(--muted); fill-opacity: 0.35;' />
+<polyline points='62.89,203.53 66.39,203.53 69.89,203.53 73.40,203.53 76.90,203.53 80.40,203.53 83.90,203.53 87.40,203.53 90.90,203.53 94.40,203.53 97.90,203.53 101.40,203.53 104.90,203.53 108.40,203.52 111.90,203.51 115.40,203.50 118.90,203.47 122.40,203.43 125.90,203.36 129.40,203.25 132.90,203.08 136.40,202.81 139.90,202.41 143.40,201.81 146.90,200.94 150.40,199.70 153.90,197.97 157.41,195.58 160.91,192.37 164.41,188.11 167.91,182.59 171.41,175.58 174.91,166.85 178.41,156.20 181.91,143.49 185.41,128.65 188.91,111.72 192.41,92.86 195.91,72.37 199.41,50.70 202.91,28.45 206.41,6.35 209.91,-14.80 213.41,-34.15 216.91,-50.85 220.41,-64.13 223.91,-73.37 227.41,-78.10 230.91,-78.08 234.41,-73.32 237.91,-64.05 241.42,-50.73 244.92,-34.01 248.42,-14.64 251.92,6.52 255.42,28.62 258.92,50.87 262.42,72.53 265.92,93.01 269.42,111.86 272.92,128.77 276.42,143.60 279.92,156.29 283.42,166.92 286.92,175.64 290.42,182.64 293.92,188.15 297.42,192.39 300.92,195.60 304.42,197.98 307.92,199.72 311.42,200.95 314.92,201.82 318.42,202.41 321.92,202.81 325.43,203.08 328.93,203.25 332.43,203.36 335.93,203.43 339.43,203.47 342.93,203.50 346.43,203.51 349.93,203.52 353.43,203.53 356.93,203.53 360.43,203.53 363.93,203.53 367.43,203.53 370.93,203.53 374.43,203.53 377.93,203.53 381.43,203.53 384.93,203.53 388.43,203.53 391.93,203.53 395.43,203.53 398.93,203.53 402.43,203.53 405.93,203.53 409.43,203.53 412.94,203.53 416.44,203.53 419.94,203.53 423.44,203.53 426.94,203.53 430.44,203.53 433.94,203.53 437.44,203.53 440.94,203.53 444.44,203.53 447.94,203.53 451.44,203.53 454.94,203.53 458.44,203.53 461.94,203.53 465.44,203.53 468.94,203.53 472.44,203.53 475.94,203.53 ' style='stroke-width: 1.49; stroke: var(--amber); stroke-dasharray: 1.99,5.98; stroke-linecap: butt;' />
+<polyline points='62.89,195.16 66.39,194.05 69.89,192.79 73.40,191.37 76.90,189.78 80.40,188.00 83.90,186.00 87.40,183.78 90.90,181.32 94.40,178.61 97.90,175.63 101.40,172.37 104.90,168.84 108.40,165.03 111.90,160.95 115.40,156.60 118.90,152.02 122.40,147.22 125.90,142.25 129.40,137.12 132.90,131.85 136.40,126.48 139.90,121.03 143.40,115.51 146.90,109.96 150.40,104.40 153.90,98.85 157.41,93.34 160.91,87.88 164.41,82.51 167.91,77.22 171.41,72.05 174.91,67.00 178.41,62.07 181.91,57.29 185.41,52.66 188.91,48.22 192.41,44.01 195.91,40.07 199.41,36.44 202.91,33.15 206.41,30.25 209.91,27.78 213.41,25.75 216.91,24.22 220.41,23.21 223.91,22.73 227.41,22.82 230.91,23.48 234.41,24.73 237.91,26.56 241.42,28.98 244.92,31.95 248.42,35.44 251.92,39.38 255.42,43.72 258.92,48.40 262.42,53.37 265.92,58.57 269.42,63.95 272.92,69.46 276.42,75.05 279.92,80.68 283.42,86.31 286.92,91.90 290.42,97.42 293.92,102.83 297.42,108.12 300.92,113.27 304.42,118.27 307.92,123.14 311.42,127.89 314.92,132.53 318.42,137.07 321.92,141.49 325.43,145.80 328.93,150.00 332.43,154.08 335.93,158.03 339.43,161.84 342.93,165.50 346.43,169.01 349.93,172.35 353.43,175.52 356.93,178.51 360.43,181.31 363.93,183.90 367.43,186.25 370.93,188.36 374.43,190.23 377.93,191.88 381.43,193.31 384.93,194.55 388.43,195.61 391.93,196.51 395.43,197.28 398.93,197.92 402.43,198.45 405.93,198.89 409.43,199.25 412.94,199.53 416.44,199.75 419.94,199.90 423.44,200.00 426.94,200.05 430.44,200.06 433.94,200.04 437.44,199.97 440.94,199.87 444.44,199.74 447.94,199.57 451.44,199.36 454.94,199.11 458.44,198.83 461.94,198.51 465.44,198.15 468.94,197.75 472.44,197.30 475.94,196.82 ' style='stroke-width: 1.71; stroke: var(--ink); stroke-linecap: butt;' />
+<polyline points='62.89,194.35 66.39,193.09 69.89,191.70 73.40,190.15 76.90,188.44 80.40,186.57 83.90,184.51 87.40,182.27 90.90,179.83 94.40,177.18 97.90,174.32 101.40,171.25 104.90,167.95 108.40,164.42 111.90,160.67 115.40,156.69 118.90,152.49 122.40,148.06 125.90,143.43 129.40,138.59 132.90,133.56 136.40,128.35 139.90,122.98 143.40,117.48 146.90,111.86 150.40,106.15 153.90,100.38 157.41,94.58 160.91,88.77 164.41,83.00 167.91,77.29 171.41,71.70 174.91,66.24 178.41,60.96 181.91,55.90 185.41,51.09 188.91,46.57 192.41,42.37 195.91,38.53 199.41,35.08 202.91,32.04 206.41,29.44 209.91,27.31 213.41,25.65 216.91,24.49 220.41,23.82 223.91,23.67 227.41,24.03 230.91,24.89 234.41,26.25 237.91,28.10 241.42,30.43 244.92,33.20 248.42,36.41 251.92,40.02 255.42,44.00 258.92,48.33 262.42,52.97 265.92,57.89 269.42,63.04 272.92,68.40 276.42,73.91 279.92,79.56 283.42,85.30 286.92,91.08 290.42,96.89 293.92,102.69 297.42,108.44 300.92,114.12 304.42,119.69 307.92,125.14 311.42,130.45 314.92,135.59 318.42,140.54 321.92,145.30 325.43,149.85 328.93,154.19 332.43,158.31 335.93,162.19 339.43,165.86 342.93,169.29 346.43,172.50 349.93,175.49 353.43,178.26 356.93,180.83 360.43,183.19 363.93,185.35 367.43,187.34 370.93,189.14 374.43,190.78 377.93,192.27 381.43,193.61 384.93,194.82 388.43,195.90 391.93,196.87 395.43,197.73 398.93,198.49 402.43,199.17 405.93,199.76 409.43,200.29 412.94,200.74 416.44,201.15 419.94,201.49 423.44,201.80 426.94,202.06 430.44,202.29 433.94,202.48 437.44,202.65 440.94,202.79 444.44,202.91 447.94,203.01 451.44,203.10 454.94,203.17 458.44,203.24 461.94,203.29 465.44,203.33 468.94,203.37 472.44,203.40 475.94,203.42 ' style='stroke-width: 1.92; stroke: var(--sky); stroke-dasharray: 10.24,10.24; stroke-linecap: butt;' />
+<line x1='477.69' y1='212.97' x2='477.69' y2='202.59' style='stroke-width: 1.07; stroke: var(--rose); stroke-linecap: butt;' />
+<line x1='456.96' y1='212.97' x2='456.96' y2='202.59' style='stroke-width: 1.07; stroke: var(--rose); stroke-linecap: butt;' />
+<line x1='456.72' y1='212.97' x2='456.72' y2='202.59' style='stroke-width: 1.07; stroke: var(--rose); stroke-linecap: butt;' />
+<line x1='470.17' y1='212.97' x2='470.17' y2='202.59' style='stroke-width: 1.07; stroke: var(--rose); stroke-linecap: butt;' />
+<line x1='458.17' y1='212.97' x2='458.17' y2='202.59' style='stroke-width: 1.07; stroke: var(--rose); stroke-linecap: butt;' />
+</g>
+<g clip-path='url(#f-lfdr_fig-cpMC4wMHw1MDQuMDB8MC4wMHwyNDQuODA=)'>
+<text x='35.38' y='206.73' text-anchor='end' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='5.55px' lengthAdjust='spacingAndGlyphs'>0</text>
+<text x='35.38' y='103.26' text-anchor='end' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='16.47px' lengthAdjust='spacingAndGlyphs'>200</text>
+<text x='35.38' y='60.41' text-anchor='end' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='16.78px' lengthAdjust='spacingAndGlyphs'>400</text>
+<text x='35.38' y='27.52' text-anchor='end' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='16.56px' lengthAdjust='spacingAndGlyphs'>600</text>
+<text x='134.21' y='224.30' text-anchor='middle' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='9.40px' lengthAdjust='spacingAndGlyphs'>-5</text>
+<text x='229.15' y='224.30' text-anchor='middle' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='5.55px' lengthAdjust='spacingAndGlyphs'>0</text>
+<text x='324.09' y='224.30' text-anchor='middle' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='5.35px' lengthAdjust='spacingAndGlyphs'>5</text>
+<text x='419.03' y='224.30' text-anchor='middle' style='font-size: 8.80px;fill: var(--muted); font-family: "Liberation Sans";' textLength='9.13px' lengthAdjust='spacingAndGlyphs'>10</text>
+<text x='269.42' y='236.94' text-anchor='middle' style='font-size: 11.00px;fill: var(--ink); font-family: "Liberation Sans";' textLength='246.69px' lengthAdjust='spacingAndGlyphs'>z-value (HER2-positive against HER2-negative)</text>
+<text transform='translate(13.49,109.22) rotate(-90)' text-anchor='middle' style='font-size: 11.00px;fill: var(--ink); font-family: "Liberation Sans";' textLength='191.98px' lengthAdjust='spacingAndGlyphs'>number of genes (square-root scale)</text>
+</g>
+</svg><figcaption>Histogram of z-values for 20,231 genes comparing HER2-positive with HER2-negative breast tumours (square-root scale), with the fitted mixture density f (black), the empirical null π0 f0 (blue, dashed) and the theoretical null, a standard normal (amber, dotted). The red marks below the axis are the five genes with local fdr below 0.2.</figcaption></figure>
+
+
+<p>Which null is right depends on the question. With 766 tumours, a test has the power to detect tiny differences, and HER2-positive tumours differ from the rest in many small ways: they include more of the Luminal B and HER2-enriched subtypes of Chapter 11, they grow faster, and they are less often oestrogen-receptor positive. Thousands of genes reflect those differences, and correlations between genes spread the effect across the whole histogram. If the question is "does this gene differ at all?", the answer for most genes is yes, and testing each one against a standard normal tells us little. If the question is "which genes stand out from the background?", the empirical null answers it, and its answer is biologically exact: the amplicon that defines the disease. The empirical null is itself an estimate, which assumes that the great majority of genes are uninteresting and that the interesting ones lie in the tails; the <code>locfdr</code> documentation and Efron (2010, Chapter 6) discuss when those assumptions fail.</p>
+
+<p>This is the bridge between the two schools that Lecture 34 develops. The local false discovery rate is a posterior probability: a Bayesian quantity, computed with a prior estimated from the data. Averaged over a list of discoveries it is the list's expected proportion of false discoveries, which is exactly the frequentist false discovery rate that Benjamini and Hochberg (1995) taught genomics to control. With twenty thousand parallel cases the prior is estimated so well that the Bayesian answer and the frequentist guarantee coincide.</p>
+
+<p>The local false discovery rate assumes that the null <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>z</mi></mrow></math>-values come from a single distribution, and Benjamini and Hochberg's procedure assumes that the tests are independent or positively dependent. Genes are neither: they are co-regulated, and the amplicon genes of this section move together. A recent alternative avoids dependence assumptions entirely. An <strong>e-value</strong> is a nonnegative statistic <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>E</mi></mrow></math> with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x1D53C;</mi><mo stretchy="false">[</mo><mi>E</mi><mo stretchy="false">]</mo><mo>&#x02264;</mo><mn>1</mn></mrow></math> under the null hypothesis; a Bayes factor against a point null, with the prior fixed in advance, is one. Wang and Ramdas (2022) showed that the <em>e-BH procedure</em>, which sorts the <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>m</mi></mrow></math> e-values, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>E</mi><mrow><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo stretchy="false">&#x00029;</mo></mrow></msub><mo>&#x02265;</mo><msub><mi>E</mi><mrow><mo stretchy="false">&#x00028;</mo><mn>2</mn><mo stretchy="false">&#x00029;</mo></mrow></msub><mo>&#x02265;</mo><mo>&#x02026;</mo></mrow></math>, and rejects the <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>k</mi></mrow></math> largest, where <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>k</mi></mrow></math> is the largest index with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>E</mi><mrow><mo stretchy="false">&#x00028;</mo><mi>k</mi><mo stretchy="false">&#x00029;</mo></mrow></msub><mo>&#x02265;</mo><mi>m</mi><mo>&#x0002F;</mo><mo stretchy="false">&#x00028;</mo><mi>&#x003B1;</mi><mi>k</mi><mo stretchy="false">&#x00029;</mo></mrow></math>, controls the false discovery rate at <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi></mrow></math> under <em>any</em> dependence between the tests. The price is power, as always with guarantees this strong; the reward is that the result does not depend on how the genes are correlated, which no one knows. Lecture 34 shows where e-values come from: they are the same objects that make continuous monitoring of an experiment safe.</p>
+
+<div class="box hist"><h4 class="lbl">History: Twenty Thousand Hypotheses</h4>
+<p>Microarrays, which measured the expression of thousands of genes at once, arrived in the late 1990s and broke the statistics of testing one hypothesis at a time. Yoav Benjamini and Yosef Hochberg (1995) had already proposed controlling the <em>false discovery rate</em>, the expected share of false positives among the discoveries, instead of the chance of any false positive at all; their procedure became the default in genomics. In 2001 Bradley Efron, Robert Tibshirani, John Storey and Virginia Tusher analysed a microarray experiment as an empirical Bayes problem and introduced the local false discovery rate, and Storey (2002, 2003) showed that the false discovery rate has a Bayesian reading as a posterior probability. Efron's (2004) paper on the empirical null and his book <em>Large-Scale Inference</em> (2010) completed the picture: with thousands of parallel cases, the data estimate the prior, and the frequentist and Bayesian answers converge.</p>
+</div>
+
+<h2 id="sec-10-10">10.10 Beyond linear models</h2>
 
 <p>Shrinkage priors work inside a linear model. Three families of Bayesian models go further, capturing nonlinearities and interactions without our specifying them, and still return a posterior over predictions.</p>
 
@@ -1848,7 +2108,7 @@ use <span class="r-op">&lt;-</span> <span class="r-fn">colMeans</span>(bt$varcou
 
 
 
-<p>BART's test RMSE is 0.182, between those of the ridge (0.184) and the lasso (0.181). Its predictive intervals are too narrow: its 90% intervals contain only 84.3% of the test houses, against 88.8% for the horseshoe, and its log score is far lower (0.188 against 0.418). Its variable-use proportions are nearly flat (basement area 0.038; living area, half bathrooms, first-floor area, condition and a hillside lot 0.030 to 0.032; uniform use would be <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>1</mn><mo>&#x0002F;</mo><mn>39</mn><mo>&#x02248;</mo><mn>0.026</mn></mrow></math>), so with 100 houses it has not learned which predictors matter. This is a fair result, not a defect of BART: flexible models need data to earn their flexibility, and with 100 sales a linear model with a good prior is hard to beat. Exercise 5 gives BART 1,000 houses.</p>
+<p>BART's test RMSE is 0.182, between those of the ridge (0.184) and the lasso (0.181). Its predictive intervals are too narrow: its 90% intervals contain only 84.3% of the test houses, against 88.8% for the horseshoe, and its log score is far lower (0.188 against 0.418). Its variable-use proportions are nearly flat (basement area 0.038; living area, half bathrooms, first-floor area, condition and a hillside lot 0.030 to 0.032; uniform use would be <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>1</mn><mo>&#x0002F;</mo><mn>39</mn><mo>&#x02248;</mo><mn>0.026</mn></mrow></math>), so with 100 houses it has not learned which predictors matter. This is a fair result, not a defect of BART: flexible models need data to earn their flexibility, and with 100 sales a linear model with a good prior is hard to beat. Exercise 5 gives BART 1,000 houses. Chapter 15 sets BART beside Gaussian processes as priors on functions, and shows how both are used, and can fail, when the target is a causal effect rather than a prediction.</p>
 
 <p><strong>Gaussian processes</strong>, met in Chapter 8, are the other main route to flexible Bayesian regression: a prior directly on the function, through a covariance kernel that says how similar the outcomes of two inputs should be. With an automatic relevance determination kernel (one length scale per input), a GP also learns which inputs matter. Its cost grows with the cube of the number of observations, so approximations are needed beyond a few thousand points; <code>brms</code> offers <code>gp()</code> terms with a low-rank approximation.</p>
 
@@ -1864,11 +2124,12 @@ use <span class="r-op">&lt;-</span> <span class="r-fn">colMeans</span>(bt$varcou
 <li>On Ames the horseshoe had the lowest error and the best log score on one split, but across ten splits it tied with the ridge. On TCGA it had a lower log loss than a normal prior but no better accuracy, and it put the signal on one gene instead of spreading it over a thousand; <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>m</mi><mrow><mtext>eff</mtext></mrow></msub></mrow></math> says how many coefficients a horseshoe effectively used.</li>
 <li>Select variables by <strong>projection</strong> onto a reference model, not by which intervals exclude zero, and check the selected model on held-out data.</li>
 <li>When features outnumber cases, chance correlations are large; every outcome-based filter must sit <strong>inside</strong> the cross-validation, and even a label-free filter can discard the most relevant feature.</li>
+<li>With thousands of parallel tests, the <strong>local false discovery rate</strong> is a posterior probability with an empirically estimated prior; the <strong>empirical null</strong> asks which features stand out from the background, and on TCGA it singles out the HER2 amplicon.</li>
 <li><strong>BART</strong>, <strong>Gaussian processes</strong> and <strong>Bayesian neural networks</strong> extend Bayesian prediction to nonlinear functions; with small samples, a well-regularised linear model can still win.</li>
 </ul>
 </div>
 
-<h2 id="sec-10-10">10.10 Exercises</h2>
+<h2 id="sec-10-11">10.11 Exercises</h2>
 <p>Each exercise has a <strong>hint</strong> and an <strong>answer</strong> button.</p>
 
 <div class="box exr"><h3 class="lbl">Exercises</h3>
@@ -1946,13 +2207,17 @@ use <span class="r-op">&lt;-</span> <span class="r-fn">colMeans</span>(bt$varcou
 
 <ol class="refs">
 <li>Ambroise, C. and McLachlan, G. J. (2002). Selection bias in gene extraction on the basis of microarray gene-expression data. <em>Proceedings of the National Academy of Sciences</em>, 99(10), 6562–6566.</li>
+<li>Benjamini, Y. and Hochberg, Y. (1995). Controlling the false discovery rate: a practical and powerful approach to multiple testing. <em>Journal of the Royal Statistical Society: Series B</em>, 57(1), 289–300.</li>
 <li>Cancer Genome Atlas Network (2012). Comprehensive molecular portraits of human breast tumours. <em>Nature</em>, 490(7418), 61–70.</li>
 <li>Carvalho, C. M., Polson, N. G. and Scott, J. G. (2010). The horseshoe estimator for sparse signals. <em>Biometrika</em>, 97(2), 465–480.</li>
 <li>Chipman, H. A., George, E. I. and McCulloch, R. E. (2010). BART: Bayesian additive regression trees. <em>Annals of Applied Statistics</em>, 4(1), 266–298.</li>
-<li>Collins, G. S., Reitsma, J. B., Altman, D. G. and Moons, K. G. M. (2015). Transparent reporting of a multivariable prediction model for individual prognosis or diagnosis (TRIPOD): the TRIPOD statement. <em>BMJ</em>, 350, g7594.</li>
 <li>Collins, G. S., Moons, K. G. M., Dhiman, P. et al. (2024). TRIPOD+AI statement: updated guidance for reporting clinical prediction models that use regression or machine learning methods. <em>BMJ</em>, 385, e078378.</li>
+<li>Collins, G. S., Reitsma, J. B., Altman, D. G. and Moons, K. G. M. (2015). Transparent reporting of a multivariable prediction model for individual prognosis or diagnosis (TRIPOD): the TRIPOD statement. <em>BMJ</em>, 350, g7594.</li>
 <li>De Cock, D. (2011). Ames, Iowa: alternative to the Boston housing data as an end of semester regression project. <em>Journal of Statistics Education</em>, 19(3).</li>
 <li>Duane, S., Kennedy, A. D., Pendleton, B. J. and Roweth, D. (1987). Hybrid Monte Carlo. <em>Physics Letters B</em>, 195(2), 216–222.</li>
+<li>Efron, B. (2004). Large-scale simultaneous hypothesis testing: the choice of a null hypothesis. <em>Journal of the American Statistical Association</em>, 99(465), 96–104.</li>
+<li>Efron, B. (2010). <em>Large-Scale Inference: Empirical Bayes Methods for Estimation, Testing, and Prediction</em>. Cambridge University Press.</li>
+<li>Efron, B., Tibshirani, R., Storey, J. D. and Tusher, V. (2001). Empirical Bayes analysis of a microarray experiment. <em>Journal of the American Statistical Association</em>, 96(456), 1151–1160.</li>
 <li>Gal, Y. and Ghahramani, Z. (2016). Dropout as a Bayesian approximation: representing model uncertainty in deep learning. <em>Proceedings of the 33rd International Conference on Machine Learning</em>, PMLR 48, 1050–1059.</li>
 <li>George, E. I. and McCulloch, R. E. (1993). Variable selection via Gibbs sampling. <em>Journal of the American Statistical Association</em>, 88(423), 881–889.</li>
 <li>Goldman, M. J., Craft, B., Hastie, M., Repečka, K., McDade, F., Kamath, A., Banerjee, A., Luo, Y., Rogers, D., Brooks, A. N., Zhu, J. and Haussler, D. (2020). Visualizing and interpreting cancer genomics data via the Xena platform. <em>Nature Biotechnology</em>, 38(6), 675–678.</li>
@@ -1966,11 +2231,16 @@ use <span class="r-op">&lt;-</span> <span class="r-fn">colMeans</span>(bt$varcou
 <li>Neal, R. M. (1993). <em>Probabilistic Inference Using Markov Chain Monte Carlo Methods.</em> Technical Report CRG-TR-93-1, Department of Computer Science, University of Toronto.</li>
 <li>Neal, R. M. (1996). <em>Bayesian Learning for Neural Networks.</em> Lecture Notes in Statistics 118. Springer.</li>
 <li>Park, T. and Casella, G. (2008). The Bayesian lasso. <em>Journal of the American Statistical Association</em>, 103(482), 681–686.</li>
-<li>Piironen, J., Paasiniemi, M. and Vehtari, A. (2020). Projective inference in high-dimensional problems: prediction and feature selection. <em>Electronic Journal of Statistics</em>, 14(1), 2155–2197.</li>
 <li>Piironen, J. and Vehtari, A. (2017). Sparsity information and regularization in the horseshoe and other shrinkage priors. <em>Electronic Journal of Statistics</em>, 11(2), 5018–5051.</li>
+<li>Piironen, J., Paasiniemi, M. and Vehtari, A. (2020). Projective inference in high-dimensional problems: prediction and feature selection. <em>Electronic Journal of Statistics</em>, 14(1), 2155–2197.</li>
 <li>Staaf, J., Jönsson, G., Ringnér, M., Vallon-Christersson, J., Grabau, D., Arason, A., Gunnarsson, H., Agnarsson, B. A., Malmström, P.-O., Johannsson, O. T., Loman, N., Barkardottir, R. B. and Borg, Å. (2010). High-resolution genomic and expression analyses of copy number alterations in HER2-amplified breast cancer. <em>Breast Cancer Research</em>, 12(3), R25.</li>
+<li>Storey, J. D. (2002). A direct approach to false discovery rates. <em>Journal of the Royal Statistical Society: Series B</em>, 64(3), 479–498.</li>
+<li>Storey, J. D. (2003). The positive false discovery rate: a Bayesian interpretation and the q-value. <em>Annals of Statistics</em>, 31(6), 2013–2035.</li>
 <li>Tibshirani, R. (1996). Regression shrinkage and selection via the lasso. <em>Journal of the Royal Statistical Society, Series B</em>, 58(1), 267–288.</li>
+<li>Wang, R. and Ramdas, A. (2022). False discovery rate control with e-values. <em>Journal of the Royal Statistical Society: Series B</em>, 84(3), 822–852.</li>
 <li>Westreich, D. and Greenland, S. (2013). The Table 2 fallacy: presenting and interpreting confounder and modifier coefficients. <em>American Journal of Epidemiology</em>, 177(4), 292–298.</li>
+<li>Wolff, R. F., Moons, K. G. M., Riley, R. D., Whiting, P. F., Westwood, M., Collins, G. S., Reitsma, J. B., Kleijnen, J. and Mallett, S. (2019). PROBAST: a tool to assess the risk of bias and applicability of prediction model studies. <em>Annals of Internal Medicine</em>, 170(1), 51–58.</li>
+<li>Wynants, L., Van Calster, B., Collins, G. S., Riley, R. D., Heinze, G., Schuit, E. et al. (2020). Prediction models for diagnosis and prognosis of covid-19: systematic review and critical appraisal. <em>BMJ</em>, 369, m1328 (living review, updated to 2022).</li>
 <li>Zhang, Y. D., Naughton, B. P., Bondell, H. D. and Reich, B. J. (2022). Bayesian regression using a prior on the model fit: the R2-D2 shrinkage prior. <em>Journal of the American Statistical Association</em>, 117(538), 862–874.</li>
 </ol>
 </main></div><script>/* Widget toolkit: tiny SVG plotting + probability helpers. */

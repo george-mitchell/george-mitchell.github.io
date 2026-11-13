@@ -315,7 +315,11 @@ dl.pdl{display:grid;grid-template-columns:10.5em 1fr;gap:.45em 1.1em;margin:.4em
 dl.pdl dt{font-family:var(--mono);font-size:.84rem;font-weight:700;color:color-mix(in srgb,var(--sky) 75%,var(--ink));padding-top:.15em}
 dl.pdl dd{margin:0}
 @media (max-width:620px){dl.pdl{grid-template-columns:1fr;gap:.15em}dl.pdl dt{margin-top:.6em}}
-</style><script src="/assets/courses/common/course-nav.js" data-course="applied-bayesian-inference" defer></script></head><body><div class="wrap"><a class="skip-link" href="#main">Skip to main content</a><div class="topbar"><a href="#top">Applied Bayesian Inference · Chapter 8</a><button class="ctl" id="theme" type="button">light theme</button></div><main id="main"><h1 id="top">Chapter 8<br/>Time-dependent data</h1><p class="kicker">Lectures 15–16 · autocorrelation, autoregression, state-space models, Gaussian processes and honest forecasts</p>
+/* Paper in Focus: a modern research paper read as a case study */
+.box.paper{--bc:var(--lilac);border-left-color:var(--lilac);border-left-style:double;border-left-width:7px;background:var(--surface)}
+.box.paper .lbl{color:var(--lilac)}
+.box.paper .lbl::before{content:"¶ ";font-weight:400}
+</style><script src="/assets/courses/common/course-nav.js" data-course="applied-bayesian-inference" defer></script></head><body><div class="wrap"><a class="skip-link" href="#main">Skip to main content</a><div class="topbar"><a href="#top">Applied Bayesian Inference · Chapter 8</a><button class="ctl" id="theme" type="button">light theme</button></div><main id="main"><h1 id="top">Chapter 8<br/>Time-dependent data</h1><p class="kicker">Lectures 15–16 · autocorrelation, autoregression, state-space models, Gaussian processes, honest forecasts, and forecasts as martingales</p>
 <figure class="toon">
 <svg aria-labelledby="t8t t8d" height="210" role="img" viewBox="0 0 580 210" width="580">
 <title id="t8t">Cartoon: a short trend</title><desc id="t8d">A large chart of a jagged rising line hangs on a wall. One person holds a ruler against a short, flat stretch of the line and says: Warming has stopped! A second person, looking at the whole chart, asks: Since when?</desc>
@@ -341,7 +345,7 @@ dl.pdl dd{margin:0}
 
 <ul>
 <li><strong>Lecture 15 is about autocorrelation.</strong> We will ask how fast the world is warming and whether warming has accelerated, see how autocorrelated noise inflates the apparent precision of a trend, fit regressions with autoregressive errors in <code>brms</code>, and examine the "hiatus" of the 2000s as a lesson in choosing windows after seeing the data.</li>
-<li><strong>Lecture 16 is about latent states and smooth functions.</strong> We will decompose the Keeling curve into a level, a growth rate and a seasonal cycle with a state-space model and the Kalman filter, ask whether the growth of carbon dioxide is still accelerating and whether the 2020 lockdowns left a mark, meet Gaussian processes as priors over whole functions, and check forecasts the only honest way: by predicting a future the model has not seen.</li>
+<li><strong>Lecture 16 is about latent states and smooth functions.</strong> We will decompose the Keeling curve into a level, a growth rate and a seasonal cycle with a state-space model and the Kalman filter, ask whether the growth of carbon dioxide is still accelerating and whether the 2020 lockdowns left a mark, meet Gaussian processes as priors over whole functions, check forecasts the only honest way, by predicting a future the model has not seen, and ask whether forecasts that are revised over time, such as betting odds, move as coherent beliefs should.</li>
 </ul>
 
 <div class="box think"><h4 class="lbl">Think About It: Before You Start</h4>
@@ -358,8 +362,9 @@ dl.pdl dd{margin:0}
 <li><a href="#sec-8-7">8.7 Is carbon dioxide still accelerating?</a></li>
 <li><a href="#sec-8-8">8.8 Gaussian processes</a></li>
 <li><a href="#sec-8-9">8.9 Forecasting honestly</a></li>
-<li><a href="#sec-8-10">8.10 Time series in practice</a></li>
-<li><a href="#sec-8-11">8.11 Exercises</a></li>
+<li><a href="#sec-8-10">8.10 Forecasts are martingales</a></li>
+<li><a href="#sec-8-11">8.11 Time series in practice</a></li>
+<li><a href="#sec-8-12">8.12 Exercises</a></li>
 <li><a href="#sec-8-refs">Further reading and references</a></li>
 </ol></nav>
 
@@ -893,6 +898,13 @@ AR(1) errors        0.169    0.155   0.075    0.234                1</code></pre
 <li><strong>Prefer posterior statements about the quantity of interest</strong> ("the warming rate since 2010 exceeds the 1970–2010 rate with probability 0.99 under this model") over binary significance, and say what the model assumes.</li>
 </ul>
 </div>
+
+<div class="box paper"><h4 class="lbl">Paper in Focus: Has Global Warming Accelerated?</h4>
+<p><strong>The paper.</strong> James Hansen and colleagues, "Global warming has accelerated: are the United Nations and the public well-informed?", <em>Environment: Science and Policy for Sustainable Development</em> 67(1), 6–44, 2025.</p>
+<p><strong>The claim.</strong> The rate of global warming, about 0.18 °C per decade from 1970 to 2010, has since increased by more than 50%. The authors attribute most of the acceleration to reduced aerosol pollution, including the 2020 limits on the sulphur content of ships' fuel, which they estimate removed a cooling of about 0.5 W/m² (other modelling studies find roughly 0.07 to 0.15 W/m²). They infer an equilibrium climate sensitivity of about 4.5 °C for doubled carbon dioxide, above the IPCC's best estimate of 3 °C.</p>
+<p><strong>Reading it.</strong> Separate the statistical claim from the physical one. The statistical claim, that the trend has changed, is a time-series question of exactly the kind in Section 8.4, and its answer depends on how the autocorrelation and the El Niño cycle are handled and on whether the change point was chosen after looking at the data. As Section 8.4 noted, formal change-point analyses (Beaulieu et al., 2024) found that an acceleration was not yet statistically detectable. The physical claim, that aerosols explain it and that sensitivity is high, rests on a chain of modelling assumptions, each with its own uncertainty. Our hinge model takes the break year, 2010, from the paper rather than searching for it, and with AR(1) errors puts the increase in slope at 0.08 to 0.23 °C per decade; compare that interval with the paper's language, and ask how much of the disagreement between the two camps is about data and how much about what counts as evidence. A paper arguing for urgent action, by a distinguished scientist, deserves the same questions as any other.</p>
+</div>
+
 
 <div class="box take"><h4 class="lbl">Key Takeaways: Lecture 15</h4>
 <ul>
@@ -2125,7 +2137,55 @@ linear, 1970-2015 0.193 -0.152         0.6</code></pre>
 </ul>
 </div>
 
-<h2 id="sec-8-10">8.10 Time series in practice</h2>
+<h2 id="sec-8-10">8.10 Forecasts are martingales: do betting odds move too much?</h2>
+
+<p>A forecast that is updated over time is a time series of its own, and if the forecaster uses information coherently it is a martingale: the probability of a home win quoted on Friday should equal the expected probability that will be quoted at kick-off, and that should equal the expected outcome. Two consequences can be tested with data. The <em>movement</em> of a forecast should be unpredictable from its current value. And, as Ned Augenblick and Matthew Rabin (2021) showed, the total squared movement of a sequence of probabilities should, on average, equal the total reduction in uncertainty, where the uncertainty of a probability <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003C0;</mi></mrow></math> is <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003C0;</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x02212;</mo><mi>&#x003C0;</mi><mo stretchy="false">&#x00029;</mo></mrow></math>. If <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003C0;</mi><mn>0</mn></msub></mrow></math> is the opening probability, <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003C0;</mi><mn>1</mn></msub></mrow></math> the closing one and <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003C0;</mi><mn>2</mn></msub><mo>&#x02208;</mo><mo stretchy="false">&#x0007B;</mo><mn>0</mn><mo>&#x0002C;</mo><mn>1</mn><mo stretchy="false">&#x0007D;</mo></mrow></math> the outcome, then for a martingale</p>
+
+<math xmlns="http://www.w3.org/1998/Math/MathML" display="block"><mrow><mi>&#x1D53C;</mi><mo minsize="1.2em" maxsize="1.2em">[</mo><mo stretchy="false">&#x00028;</mo><msub><mi>&#x003C0;</mi><mn>1</mn></msub><mo>&#x02212;</mo><msub><mi>&#x003C0;</mi><mn>0</mn></msub><msup><mo stretchy="false">&#x00029;</mo><mn>2</mn></msup><mo minsize="1.2em" maxsize="1.2em">]</mo><mo>&#x0003D;</mo><mi>&#x1D53C;</mi><mo minsize="1.2em" maxsize="1.2em">[</mo><msub><mi>&#x003C0;</mi><mn>0</mn></msub><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x02212;</mo><msub><mi>&#x003C0;</mi><mn>0</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x02212;</mo><msub><mi>&#x003C0;</mi><mn>1</mn></msub><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x02212;</mo><msub><mi>&#x003C0;</mi><mn>1</mn></msub><mo stretchy="false">&#x00029;</mo><mo minsize="1.2em" maxsize="1.2em">]</mo><mo>&#x0002C;</mo></mrow></math>
+
+<p>and similarly for the step from <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><msub><mi>&#x003C0;</mi><mn>1</mn></msub></mrow></math> to the outcome. Movement in excess of the uncertainty resolved means beliefs swing more than information justifies; too little means they adjust too slowly. Betting markets are a natural test. The football-data files of Section 11.15 record the Pinnacle bookmaker's odds twice for every Premier League match: early in the week (we call them opening odds) and at kick-off (closing odds). Converting odds to probabilities, and removing the bookmaker's margin by normalising the three outcomes to sum to one, gives a three-step sequence for each match. Intervals for the averages over matches come from the <em>Bayesian bootstrap</em>, which reweights the matches with random weights from a flat Dirichlet distribution; Lecture 35 shows why the result is a posterior distribution.</p>
+
+<div class="rblock">
+<div class="rhead"><span class="rlab">R</span><button class="copy-btn" type="button">copy code</button></div>
+<pre class="rcode"><code>files <span class="r-op">&lt;-</span> <span class="r-fn">list.files</span>(<span class="r-str">"data/football"</span>, pattern = <span class="r-str">"^E0_.*\\.csv$"</span>, full.names = <span class="r-kw">TRUE</span>)
+odds <span class="r-op">&lt;-</span> <span class="r-fn">map_dfr</span>(files, <span class="r-op">~</span> <span class="r-fn">read_csv</span>(.x, show_col_types = <span class="r-kw">FALSE</span>) <span class="r-op">|&gt;</span>
+                  <span class="r-fn">select</span>(FTR, PSH, PSD, PSA, PSCH, PSCD, PSCA)) <span class="r-op">|&gt;</span> <span class="r-fn">drop_na</span>()
+implied <span class="r-op">&lt;-</span> <span class="r-kw">function</span>(h, d, a) { s <span class="r-op">&lt;-</span> <span class="r-num">1</span> / h + <span class="r-num">1</span> / d + <span class="r-num">1</span> / a; <span class="r-fn">cbind</span>(<span class="r-num">1</span> / h, <span class="r-num">1</span> / d, <span class="r-num">1</span> / a) / s }   <span class="r-com"># remove the margin</span>
+p0 <span class="r-op">&lt;-</span> <span class="r-fn">with</span>(odds, <span class="r-fn">implied</span>(PSH, PSD, PSA)); p1 <span class="r-op">&lt;-</span> <span class="r-fn">with</span>(odds, <span class="r-fn">implied</span>(PSCH, PSCD, PSCA))
+y  <span class="r-op">&lt;-</span> <span class="r-fn">cbind</span>(odds$FTR == <span class="r-str">"H"</span>, odds$FTR == <span class="r-str">"D"</span>, odds$FTR == <span class="r-str">"A"</span>) * <span class="r-num">1</span>
+unc <span class="r-op">&lt;-</span> <span class="r-kw">function</span>(p) <span class="r-fn">rowSums</span>(p * (<span class="r-num">1</span> - p))
+legs <span class="r-op">&lt;-</span> <span class="r-fn">tibble</span>(match = <span class="r-fn">seq_len</span>(<span class="r-fn">nrow</span>(odds)),
+  move_1 = <span class="r-fn">rowSums</span>((p1 - p0)^<span class="r-num">2</span>), resolve_1 = <span class="r-fn">unc</span>(p0) - <span class="r-fn">unc</span>(p1),     <span class="r-com"># opening -&gt; closing</span>
+  move_2 = <span class="r-fn">rowSums</span>((y - p1)^<span class="r-num">2</span>),  resolve_2 = <span class="r-fn">unc</span>(p1))                <span class="r-com"># closing -&gt; result</span>
+<span class="r-fn">set.seed</span>(<span class="r-num">8</span>)
+bb <span class="r-op">&lt;-</span> <span class="r-kw">function</span>(v) <span class="r-fn">map_dbl</span>(<span class="r-num">1</span>:<span class="r-num">4000</span>, <span class="r-op">~</span> { w <span class="r-op">&lt;-</span> <span class="r-fn">rexp</span>(<span class="r-fn">length</span>(v)); <span class="r-fn">sum</span>(w * v) / <span class="r-fn">sum</span>(w) })   <span class="r-com"># Bayesian bootstrap</span>
+summarise_leg <span class="r-op">&lt;-</span> <span class="r-kw">function</span>(m, r) { e <span class="r-op">&lt;-</span> <span class="r-fn">bb</span>(m - r); <span class="r-fn">c</span>(movement = <span class="r-fn">mean</span>(m), resolution = <span class="r-fn">mean</span>(r), ratio = <span class="r-fn">mean</span>(m) / <span class="r-fn">mean</span>(r),
+  excess = <span class="r-fn">mean</span>(e), lo = <span class="r-fn">unname</span>(<span class="r-fn">quantile</span>(e, <span class="r-num">0.05</span>)), hi = <span class="r-fn">unname</span>(<span class="r-fn">quantile</span>(e, <span class="r-num">0.95</span>)), prob_excess_positive = <span class="r-fn">mean</span>(e &gt; <span class="r-num">0</span>)) }
+<span class="r-fn">rbind</span>(opening_to_closing = <span class="r-fn">summarise_leg</span>(legs$move_1, legs$resolve_1),
+      closing_to_result = <span class="r-fn">summarise_leg</span>(legs$move_2, legs$resolve_2)) <span class="r-op">|&gt;</span> <span class="r-fn">signif</span>(<span class="r-num">3</span>)
+<span class="r-fn">c</span>(matches = <span class="r-fn">nrow</span>(odds), brier_opening = <span class="r-fn">mean</span>(<span class="r-fn">rowSums</span>((y - p0)^<span class="r-num">2</span>)), brier_closing = <span class="r-fn">mean</span>(<span class="r-fn">rowSums</span>((y - p1)^<span class="r-num">2</span>))) <span class="r-op">|&gt;</span> <span class="r-fn">round</span>(<span class="r-num">4</span>)
+<span class="r-fn">summary</span>(<span class="r-fn">lm</span>(<span class="r-fn">I</span>(p1[, <span class="r-num">1</span>] - p0[, <span class="r-num">1</span>]) <span class="r-op">~</span> p0[, <span class="r-num">1</span>]))$coefficients <span class="r-op">|&gt;</span> <span class="r-fn">round</span>(<span class="r-num">4</span>)         <span class="r-com"># is the home-win movement predictable?</span></code></pre>
+<div class="routlab">output</div><pre class="rout"><code>                   movement resolution ratio    excess        lo      hi
+opening_to_closing  0.00162   0.000675 2.400  0.000947  0.000207 0.00170
+closing_to_result   0.56600   0.570000 0.992 -0.004740 -0.016500 0.00674
+                   prob_excess_positive
+opening_to_closing                0.985
+closing_to_result                 0.254
+      matches brier_opening brier_closing 
+    2280.0000        0.5686        0.5655 
+            Estimate Std. Error t value Pr(&gt;|t|)
+(Intercept)   0.0011     0.0014   0.792   0.4284
+p0[, 1]      -0.0042     0.0029  -1.426   0.1541</code></pre>
+</div>
+
+
+<p>The second leg is close to perfect: over 2,280 matches, the squared distance between the closing probabilities and the results (the Brier score, 0.566) is 0.992 times the uncertainty in the closing probabilities, an excess of −0.005 with a 90% interval from −0.017 to 0.007, so the closing odds behave exactly as a martingale requires. The first leg is different. Between the early-week and closing odds, the probabilities move about 2.4 times as much, in squared terms, as the uncertainty they resolve: the excess has a posterior mean of 0.0009 (90% interval 0.0002 to 0.0017), with a posterior probability of 0.985 of being positive. The movement itself is not predictable from the opening probability (the regression slope is −0.004, standard error 0.003), so the excess is not a drift in one direction but noise: early-week prices wobble more than the information arriving during the week warrants. The amounts are tiny, a squared movement of 0.0016 against a Brier score of 0.57, and the closing odds are, as a result, only slightly more accurate than the opening ones (Brier 0.566 against 0.569).</p>
+
+<div class="box pub"><h4 class="lbl">Research Practice: Checking a Forecast Over Time</h4>
+<p>Any system that updates a probability, an election model, a sports win-probability graphic, a clinical early-warning score, a prediction market, can be checked with the two identities above, using only the forecasts and the eventual outcomes. Report the ratio of movement to resolved uncertainty for each step, with an interval; check that the movement is not predictable from the current forecast; and report calibration of the final forecast. The test needs no model of how the forecast was made. Augenblick and Rabin found excess movement in prediction-market prices and in the beliefs of forecasters in experiments; the same test applied to the forecasts of Section 8.9 or to the Afterword's football model (Section A.6) is a short project.</p>
+</div>
+
+<h2 id="sec-8-11">8.11 Time series in practice</h2>
 
 <p>The three approaches of this chapter are less rivals than tools for different questions, and a careful analysis often uses more than one. <strong>Regression with AR or ARMA errors</strong> is the natural choice when the question is about the effect of predictors (a trend, a policy, a covariate) and the time structure is a nuisance to be accounted for. <strong>State-space models</strong> are the choice when the evolving components are themselves the object of interest (a growth rate, a seasonal pattern, an underlying level), when the data arrive in real time and estimates must be updated, or when there are missing observations (the Kalman filter simply skips the update step). <strong>Gaussian processes</strong> are the choice for flexible smoothing and interpolation with honest uncertainty, and for irregularly spaced times. All three are Bayesian models fitted with the same machinery as every other model in this book, and many standard GP kernels have exact state-space representations, so the distinctions are partly a matter of computation and convenience.</p>
 
@@ -2142,7 +2202,7 @@ linear, 1970-2015 0.193 -0.152         0.6</code></pre>
 </ul>
 </div>
 
-<h2 id="sec-8-11">8.11 Exercises</h2>
+<h2 id="sec-8-12">8.12 Exercises</h2>
 <p>Each exercise has a <strong>hint</strong> and an <strong>answer</strong> button.</p>
 
 <div class="box exr"><h3 class="lbl">Exercises</h3>
@@ -2203,6 +2263,13 @@ linear, 1970-2015 0.193 -0.152         0.6</code></pre>
 <button aria-controls="eans-8-8" aria-expanded="false" class="sol-btn proof-btn ans-btn" data-label="answer" type="button">show answer</button><div class="eans" id="eans-8-8">
 <p><em>Example.</em> We estimated the rate of global warming from NASA GISTEMP monthly surface temperature anomalies for 1970–2025 (672 months). Because residuals from a linear trend were strongly autocorrelated (lag-one autocorrelation 0.68), we modelled them as an AR(1) process; this doubled the posterior standard deviation of the trend relative to a model with independent errors. The warming rate was 0.20 °C per decade (95% CrI 0.18 to 0.22). A hinge model allowing the rate to change in 2010 estimated an increase of 0.15 °C per decade after 2010 (95% CrI 0.08 to 0.23; posterior probability of an increase above 0.99), from 0.17 °C per decade before. The estimated increase depended strongly on the assumed break year (0.09 °C per decade for a break in 2000, 0.22 for 2015), the break year was chosen after inspecting the data, and the recent record warmth includes the effect of the 2023–2024 El Niño, which we did not model; the evidence for acceleration should be read with these caveats. Models were fitted with brms 2.20 (all <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mover accent="true"><mi>R</mi><mo>&#x0005E;</mo></mover><mo>&#x02264;</mo><mn>1.01</mn></mrow></math>, bulk ESS above 3,000).</p>
 </div></li>
+<li><p><strong>Two bookmakers.</strong> Repeat the martingale check of Section 8.10 for each outcome (home win, draw, away win) separately, and for the Bet365 odds (columns <code>B365H</code>, <code>B365D</code>, <code>B365A</code> and the closing <code>B365CH</code>, <code>B365CD</code>, <code>B365CA</code>). Which outcome carries the excess movement, and how does Bet365, whose margin is about twice Pinnacle's, compare?</p>
+<button aria-controls="ehint-8-9" aria-expanded="false" class="sol-btn proof-btn hint-btn" data-label="hint" type="button">show hint</button><div class="ehint" id="ehint-8-9">
+<p>Compute the movement and the change in <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003C0;</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x02212;</mo><mi>&#x003C0;</mi><mo stretchy="false">&#x00029;</mo></mrow></math> column by column. Average <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mn>1</mn><mo>&#x0002F;</mo><mi>h</mi><mo>&#x0002B;</mo><mn>1</mn><mo>&#x0002F;</mo><mi>d</mi><mo>&#x0002B;</mo><mn>1</mn><mo>&#x0002F;</mo><mi>a</mi><mo>&#x02212;</mo><mn>1</mn></mrow></math> to get each bookmaker's margin.</p>
+</div>
+<button aria-controls="eans-8-9" aria-expanded="false" class="sol-btn proof-btn ans-btn" data-label="answer" type="button">show answer</button><div class="eans" id="eans-8-9">
+<p>For Pinnacle (margin 3.0% early in the week, 2.7% at kick-off), the excess movement comes mostly from the draw: its excess is 0.0007 (90% interval 0.0005 to 0.0010), against 0.0002 (−0.0001 to 0.0006) for the home win and essentially zero for the away win. For draws the uncertainty <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003C0;</mi><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x02212;</mo><mi>&#x003C0;</mi><mo stretchy="false">&#x00029;</mo></mrow></math> actually rises between the early and closing odds on average, which a martingale cannot do, since <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x1D53C;</mi><mo stretchy="false">[</mo><msub><mi>&#x003C0;</mi><mn>1</mn></msub><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x02212;</mo><msub><mi>&#x003C0;</mi><mn>1</mn></msub><mo stretchy="false">&#x00029;</mo><mo stretchy="false">]</mo><mo>&#x0003D;</mo><msub><mi>&#x003C0;</mi><mn>0</mn></msub><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x02212;</mo><msub><mi>&#x003C0;</mi><mn>0</mn></msub><mo stretchy="false">&#x00029;</mo><mo>&#x02212;</mo><mi>&#x1D53C;</mi><mo stretchy="false">[</mo><mo stretchy="false">&#x00028;</mo><msub><mi>&#x003C0;</mi><mn>1</mn></msub><mo>&#x02212;</mo><msub><mi>&#x003C0;</mi><mn>0</mn></msub><msup><mo stretchy="false">&#x00029;</mo><mn>2</mn></msup><mo stretchy="false">]</mo><mo>&#x02264;</mo><msub><mi>&#x003C0;</mi><mn>0</mn></msub><mo stretchy="false">&#x00028;</mo><mn>1</mn><mo>&#x02212;</mo><msub><mi>&#x003C0;</mi><mn>0</mn></msub><mo stretchy="false">&#x00029;</mo></mrow></math>. Bet365's margin is 5.4%, and its total excess movement is about twice Pinnacle's, 0.0018 (0.0011 to 0.0026), with every outcome showing an excess and the average uncertainty rising rather than falling between the two quotes: its early prices are more extreme than its closing ones, as if set with too little regard for what the week would bring. Both bookmakers' closing odds are equally accurate (Brier scores 0.5655 and 0.5656), so the difference lies in the early prices, which the sharper market corrects.</p>
+</div></li>
 </ol>
 </div>
 
@@ -2219,6 +2286,7 @@ linear, 1970-2015 0.193 -0.152         0.6</code></pre>
 </div>
 
 <ol class="refs">
+<li>Augenblick, N. and Rabin, M. (2021). Belief movement, uncertainty reduction, and rational updating. <em>Quarterly Journal of Economics</em>, 136(2), 933–985.</li>
 <li>Beaulieu, C., Gallagher, C., Killick, R., Lund, R. and Shi, X. (2024). A recent surge in global warming is not detectable yet. <em>Communications Earth &amp; Environment</em>, 5, 576.</li>
 <li>Bürkner, P.-C., Gabry, J. and Vehtari, A. (2020). Approximate leave-future-out cross-validation for Bayesian time series models. <em>Journal of Statistical Computation and Simulation</em>, 90(14), 2499–2523.</li>
 <li>Durbin, J. and Koopman, S. J. (2012). <em>Time Series Analysis by State Space Methods</em> (2nd ed.). Oxford University Press.</li>

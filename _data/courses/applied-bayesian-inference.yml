@@ -2,11 +2,10 @@ title: "Applied Bayesian Inference"
 tagline: "Graphs, priors and posteriors for causal questions with real data"
 description: >-
   A research-level course in applied Bayesian data analysis for readers who know basic probability, linear regression and some R.
-  Every model starts from a causal graph and a simulated prior, is fitted in R with brms and Stan, checked, and written up to a publishable standard, on modern real data from public health, genomics, sport, education and AI.
-summary: "33 lectures in 14 chapters, plus an afterword"
+  Every model starts from a causal graph and a simulated prior, is fitted in R with brms and Stan, checked, and written up to a publishable standard, on modern real data from public health, genomics, online experiments, sport, education and AI.
+summary: "41 lectures in 16 chapters, plus an afterword"
 page: /applied-bayesian-inference/
 folder: /assets/courses/applied-bayesian-inference/
-cover: /assets/img/courses/applied-bayesian-inference-cover.png
 order: 4
 listed: true
 units:
@@ -47,11 +46,17 @@ units:
     title: "Text and Image Data"
     file: "Chapter_12_-_Text_and_image_data.html"
   - label: "Chapter 13"
-    title: "Causal Inference in Depth"
-    file: "Chapter_13_-_Causal_inference_in_depth.html"
+    title: "Causal Inference: One Framework"
+    file: "Chapter_13_-_Causal_inference_one_framework.html"
   - label: "Chapter 14"
+    title: "Experiments, Adaptive Trials and Decisions"
+    file: "Chapter_14_-_Experiments_adaptive_trials_and_decisions.html"
+  - label: "Chapter 15"
+    title: "Bayesian Nonparametrics for Causal Questions"
+    file: "Chapter_15_-_Bayesian_nonparametrics_for_causal_questions.html"
+  - label: "Chapter 16"
     title: "Bayesian Deep Learning and Causal AI"
-    file: "Chapter_14_-_Bayesian_deep_learning_and_causal_AI.html"
+    file: "Chapter_16_-_Bayesian_deep_learning_and_causal_AI.html"
   - label: "Afterword"
     title: "The Workflow, and What Comes Next"
     file: "Afterword_-_The_workflow_and_what_comes_next.html"

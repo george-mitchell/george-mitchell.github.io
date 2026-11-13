@@ -315,6 +315,10 @@ dl.pdl{display:grid;grid-template-columns:10.5em 1fr;gap:.45em 1.1em;margin:.4em
 dl.pdl dt{font-family:var(--mono);font-size:.84rem;font-weight:700;color:color-mix(in srgb,var(--sky) 75%,var(--ink));padding-top:.15em}
 dl.pdl dd{margin:0}
 @media (max-width:620px){dl.pdl{grid-template-columns:1fr;gap:.15em}dl.pdl dt{margin-top:.6em}}
+/* Paper in Focus: a modern research paper read as a case study */
+.box.paper{--bc:var(--lilac);border-left-color:var(--lilac);border-left-style:double;border-left-width:7px;background:var(--surface)}
+.box.paper .lbl{color:var(--lilac)}
+.box.paper .lbl::before{content:"¶ ";font-weight:400}
 </style><script src="/assets/courses/common/course-nav.js" data-course="applied-bayesian-inference" defer></script></head><body><div class="wrap"><a class="skip-link" href="#main">Skip to main content</a><div class="topbar"><a href="#top">Applied Bayesian Inference · Chapter 9</a><button class="ctl" id="theme" type="button">light theme</button></div><main id="main"><h1 id="top">Chapter 9<br/>Variational inference</h1><p class="kicker">Lectures 17–18 · inference as optimisation, the ELBO, mean-field and full-rank families, and knowing when to trust the answer</p>
 <figure class="toon">
 <svg aria-labelledby="t9t t9d" height="210" role="img" viewBox="0 0 580 210" width="580">
@@ -961,6 +965,13 @@ sd_country__Intercept    0.620     0.008 0.604 0.635</code></pre>
 <li>Final results in a paper should come from MCMC whenever it is computationally possible. "It would have taken a week" is a reason to use VI; "it would have taken ten minutes" is not.</li>
 </ul>
 </div>
+
+<div class="box paper"><h4 class="lbl">Paper in Focus: Did the Approximation Work?</h4>
+<p><strong>The paper.</strong> Yuling Yao, Aki Vehtari, Daniel Simpson and Andrew Gelman, "Yes, but did it work?: evaluating variational inference", <em>Proceedings of the 35th International Conference on Machine Learning</em>, PMLR 80, 5581–5590, 2018.</p>
+<p><strong>The claim.</strong> Variational inference always returns an answer, so its users need ways to tell whether the answer is any good. The paper proposes two. The first, the <strong>Pareto <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mover accent="true"><mi>k</mi><mo>&#x0005E;</mo></mover></mrow></math> diagnostic</strong> of Section 9.7, fits a generalised Pareto distribution to the largest importance ratios <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>p</mi><mo stretchy="false">&#x00028;</mo><mi>&#x003B8;</mi><mo>&#x02223;</mo><mi>y</mi><mo stretchy="false">&#x00029;</mo><mo>&#x0002F;</mo><mi>q</mi><mo stretchy="false">&#x00028;</mo><mi>&#x003B8;</mi><mo stretchy="false">&#x00029;</mo></mrow></math>: when <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mover accent="true"><mi>k</mi><mo>&#x0005E;</mo></mover></mrow></math> is below about 0.5 the approximation is close enough for importance sampling to correct it, between 0.5 and 0.7 it is usable with care, and above 0.7 it should not be trusted. The second, <strong>variational simulation-based calibration</strong>, simulates data from the model, fits the approximation and checks whether the true parameters fall symmetrically in the approximate posteriors; asymmetry reveals bias in a particular direction.</p>
+<p><strong>Reading it.</strong> This is a methods paper, so the evidence is a set of examples where the right answer is known, and the question to ask is how much they resemble your model. Note what the diagnostics do not do: <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mover accent="true"><mi>k</mi><mo>&#x0005E;</mo></mover></mrow></math> is computed from the joint distribution and can be acceptable while particular margins are poor, and it needs the unnormalised posterior density, so it is available for Stan models but not for every approximate method. The paper's lasting lesson is the one of Section 9.7: an approximation needs a diagnostic, and a fast answer without one is not yet an answer. We applied <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mover accent="true"><mi>k</mi><mo>&#x0005E;</mo></mover></mrow></math> to the hotel-bookings model; compare our value with the paper's thresholds.</p>
+</div>
+
 
 <h2 id="sec-9-9">9.9 Approximate inference in practice</h2>
 

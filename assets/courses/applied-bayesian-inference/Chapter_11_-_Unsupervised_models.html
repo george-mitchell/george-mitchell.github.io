@@ -315,6 +315,10 @@ dl.pdl{display:grid;grid-template-columns:10.5em 1fr;gap:.45em 1.1em;margin:.4em
 dl.pdl dt{font-family:var(--mono);font-size:.84rem;font-weight:700;color:color-mix(in srgb,var(--sky) 75%,var(--ink));padding-top:.15em}
 dl.pdl dd{margin:0}
 @media (max-width:620px){dl.pdl{grid-template-columns:1fr;gap:.15em}dl.pdl dt{margin-top:.6em}}
+/* Paper in Focus: a modern research paper read as a case study */
+.box.paper{--bc:var(--lilac);border-left-color:var(--lilac);border-left-style:double;border-left-width:7px;background:var(--surface)}
+.box.paper .lbl{color:var(--lilac)}
+.box.paper .lbl::before{content:"¶ ";font-weight:400}
 </style><script src="/assets/courses/common/course-nav.js" data-course="applied-bayesian-inference" defer></script></head><body><div class="wrap"><a class="skip-link" href="#main">Skip to main content</a><div class="topbar"><a href="#top">Applied Bayesian Inference · Chapter 11</a><button class="ctl" id="theme" type="button">light theme</button></div><main id="main"><h1 id="top">Chapter 11<br/>Unsupervised models</h1><p class="kicker">Lectures 21–23 · latent factors behind questionnaires, mixtures behind measurements, the posteriors that will not agree with themselves, and copulas that separate dependence from the margins</p>
 <figure class="toon">
 <svg aria-labelledby="t11t t11d" height="210" role="img" viewBox="0 0 580 210" width="580">
@@ -2672,7 +2676,7 @@ ak <span class="r-op">&lt;-</span> <span class="r-fn">map2</span>(mk, <span clas
 <div class="readout" id="w114-out" aria-live="polite"></div>
 </div>
 
-<p>Two features of the prior matter in practice. Group sizes are very unequal: a few large groups and a tail of small ones, a "rich get richer" pattern that suits some data (species abundances, word frequencies) and not others. And the number of groups keeps growing with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>n</mi></mrow></math>, so a Dirichlet process mixture fitted to a large data set from three true groups tends to report several extra small ones (Miller and Harrison, 2013). That is not a bug in the method, but it means the posterior number of groups is not an estimate of "the" number of clusters; it is the number of components needed to describe the density.</p>
+<p>Two features of the prior matter in practice. Group sizes are very unequal: a few large groups and a tail of small ones, a "rich get richer" pattern that suits some data (species abundances, word frequencies) and not others. And the number of groups keeps growing with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>n</mi></mrow></math>, so a Dirichlet process mixture fitted to a large data set from three true groups tends to report several extra small ones (Miller and Harrison, 2013). That is not a bug in the method, but it means the posterior number of groups is not an estimate of "the" number of clusters; it is the number of components needed to describe the density. Chapter 15 develops the Dirichlet process properly, through stick-breaking and the Chinese restaurant process, fits a Dirichlet-process mixture to real data and shows how its limit, the Bayesian bootstrap, gives nonparametric posteriors for causal effects.</p>
 
 <div class="box rex"><h4 class="lbl">Check Yourself</h4>
 <div class="chk" data-answer="2.93" data-kind="num" data-tol="0.03" id="chk-11-4"><p>Under a Chinese restaurant process with <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>&#x003B1;</mi><mo>&#x0003D;</mo><mn>1</mn></mrow></math>, what is the expected number of groups among <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mi>n</mi><mo>&#x0003D;</mo><mn>10</mn></mrow></math> observations?</p><div class="chk-row"><label class="chk-plab" for="chk-11-4-i">expected groups ≈</label><input autocomplete="off" class="chk-in" id="chk-11-4-i" inputmode="decimal" spellcheck="false" type="text"/><button class="ctl chk-go" type="button">check</button></div><div aria-live="polite" class="chk-fb" role="status"></div><button class="chk-reveal" hidden="" type="button">stuck? show the answer</button><div class="chk-store chk-hint" hidden="">
@@ -2787,6 +2791,12 @@ clinical_her2   1   2   3
 </div>
 
 <h2 class="lecture-head" id="L23">Lecture 23 — Copulas</h2>
+
+<div class="box paper"><h4 class="lbl">Paper in Focus: Molecular Portraits of Breast Tumours</h4>
+<p><strong>The paper.</strong> The Cancer Genome Atlas Network, "Comprehensive molecular portraits of human breast tumours", <em>Nature</em> 490(7418), 61–70, 2012.</p>
+<p><strong>The claim.</strong> Tumours from 825 patients were profiled on up to six platforms (DNA copy number, DNA methylation, exome sequencing, messenger RNA, microRNA and protein arrays). Integrating them showed four main classes of breast cancer that correspond closely to the expression subtypes of the PAM50 classifier (Luminal A, Luminal B, HER2-enriched and Basal-like). Only three genes, <em>TP53</em>, <em>PIK3CA</em> and <em>GATA3</em>, were mutated in more than 10% of tumours; clinically HER2-positive tumours fell into both the HER2-enriched and the luminal expression subtypes; and Basal-like tumours resembled high-grade serous ovarian cancers more than other breast cancers.</p>
+<p><strong>Reading it.</strong> The paper's subtypes are latent classes of exactly the kind in this lecture, found by unsupervised clustering of each platform and then by clustering the clusters. Ask what the number of classes rests on (the PAM50 subtypes were defined earlier by a different method on different tumours, then used as labels), how stable the classes are when the genes or the method change, and whether a tumour's class should be a hard label or a probability, as in Section 11.8. Our three-component mixture of Section 11.9, and the five-component version in the exercises, recover the Basal group almost perfectly and split the luminal tumours less cleanly, a small-scale echo of the paper's finding that Luminal A and B form a continuum rather than two clusters. Chapter 15 returns to mixtures whose number of components is itself unknown, with Dirichlet-process mixtures fitted to data.</p>
+</div>
 
 <h2 id="sec-11-10">11.10 Two genes on one amplicon</h2>
 
