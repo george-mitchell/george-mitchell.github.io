@@ -1,0 +1,1375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lecture 5 — Loss Functions and the Bias–Variance Trade-off · Machine Learning</title>
+<meta name="color-scheme" content="dark light">
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:(window.innerWidth<560?'0em':'1.2em'), fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-svg.js"></script>
+<style>
+  /* harbour theme (Quantum Frontiers notes): dark-first, light under prefers-color-scheme or the toggle.
+     layout: one 760px reading column; boxes by role; widgets as instruments in surface panels */
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade; --plum:#c3a6e8;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  @media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a; --plum:#5b3a8c; } }
+  :root[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a; --plum:#5b3a8c; }
+  *{box-sizing:border-box}
+  html{font-size:17.5px;background:var(--bg)}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  /* maths keeps text size: wide display equations scroll sideways instead of shrinking */
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%;
+    padding-bottom:4px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+  mjx-container{color:var(--ink)}
+  mjx-container svg{max-width:none !important}
+  .wrap{max-width:760px;margin:0 auto;padding-block:22px 110px;
+        padding-left:max(20px, env(safe-area-inset-left, 0px));padding-right:max(20px, env(safe-area-inset-right, 0px))}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em;text-wrap:balance}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px;text-wrap:balance}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0;min-width:0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)} .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid} .exr .lbl{color:var(--amber)}
+  .data{border-left-color:var(--cap);background:var(--surface2)} .data .lbl{color:var(--cap)}
+  /* machine-learning course additions, same family */
+  .big{border-left-color:var(--plum);background:var(--surface2)} .big .lbl{color:var(--plum)}
+  .causal{border-left-color:var(--moss);background:var(--surface2)} .causal .lbl{color:var(--moss)}
+  .bayes{border-left-color:var(--sky);background:var(--surface2)} .bayes .lbl{color:var(--sky)}
+  .quantum{border-left-color:var(--plum);border-left-style:double;border-left-width:4px;background:var(--surface2)} .quantum .lbl{color:var(--plum)}
+  .proj{border-left:3px dashed var(--rose);background:var(--surface2)} .proj .lbl{color:var(--rose)}
+  .proj h4{font-family:var(--mono);font-size:.95rem;color:var(--ink);margin:1.1em 0 .2em;font-weight:600}
+  .proj dl{margin:.1em 0 .4em} .proj dt{font-family:var(--mono);font-size:.84rem;color:var(--cap);margin-top:.35em}
+  .proj dd{margin:.05em 0 0 1em}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap);border-style:dashed}
+  /* syntax colours (build-time highlighting), drawn from the theme tokens */
+  .tool pre.src{border-left:3px solid var(--sky)}
+  .t-c,.t-c1,.t-cm,.t-ch,.t-cs{color:var(--muted);font-style:italic}
+  .t-k,.t-kd,.t-kr,.t-ow{color:var(--rose);font-weight:600}
+  .t-kn{color:var(--plum);font-weight:600}
+  .t-kc{color:var(--amber);font-weight:600}
+  .t-nb,.t-bp,.t-fm{color:var(--sky)}
+  .t-nf,.t-nc{color:var(--sky);font-weight:600}
+  .t-nn{color:var(--plum)}
+  .t-nd{color:var(--plum)}
+  .t-s,.t-s1,.t-s2,.t-sa,.t-sb,.t-sc,.t-sd,.t-se,.t-sh,.t-sx{color:var(--moss)}
+  .t-si{color:var(--amber)}
+  .t-m,.t-mi,.t-mf,.t-mh,.t-mo,.t-il{color:var(--amber)}
+  .t-o{color:var(--cap)}
+  .t-p{color:var(--muted)}
+  .t-n,.t-nv,.t-na{color:var(--ink)}
+  .t-fn{color:var(--sky)}
+  .notation dt{font-family:var(--mono);color:var(--sky);font-size:.92rem;margin-top:.5em}
+  .notation dd{margin:.05em 0 0 1em}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center;overflow-x:auto}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0;min-width:0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .widget .wtxt{font-size:.92rem;margin:.2em 0 .6em}
+  .widget > svg,.wrow > svg{display:block;margin:0 auto;touch-action:manipulation}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 150px;min-width:0}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.88rem;color:var(--ink);margin-top:8px;min-height:1.4em;line-height:1.6;font-variant-numeric:tabular-nums}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl:hover{border-color:var(--sky)}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  .wrow{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+  .wrow > *{flex:1 1 280px;min-width:0}
+  .legend{font-family:var(--mono);font-size:.8rem;color:var(--cap);display:flex;flex-wrap:wrap;gap:4px 14px;margin:.3em 0}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:0}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .tscroll{overflow-x:auto}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  .refs li{font-size:.95rem;margin-bottom:.55em}
+
+  /* ---- spot checks ---- */
+  .spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+        border-radius:0 8px 8px 0;padding:10px 16px 12px;margin:1.4em 0;transition:border-color .2s ease,background .2s ease}
+  .spot > .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.25em;color:var(--sky)}
+  .spot .q{margin:0 0 .55em}
+  .spot .hint,.spot .why,.spot .ans{display:none;font-size:.95rem;margin:.55em 0 0;padding:.45em .7em;border-radius:6px;line-height:1.6}
+  .spot .hint{border:1px solid var(--amber);color:var(--ink);background:var(--surface2)}
+  .spot .why{border:1px solid var(--moss);color:var(--ink);background:var(--surface2)}
+  .spot .ans{border:1px dashed var(--rule);color:var(--ink)}
+  .spot .hint::before{content:"not quite \2014  ";font-family:var(--mono);font-size:.82rem;color:var(--amber)}
+  .spot .why::before{content:"correct \2014  ";font-family:var(--mono);font-size:.82rem;color:var(--moss)}
+  .spot .ans::before{content:"answer \2014  ";font-family:var(--mono);font-size:.82rem;color:var(--cap)}
+  .spot.no{border-left-color:var(--amber);border-color:var(--amber)} .spot.no > .lbl{color:var(--amber)}
+  .spot.ok{border-left-color:var(--moss);border-color:var(--moss)} .spot.ok > .lbl{color:var(--moss)}
+  .spot.no .hint.on,.spot .why.on,.spot .ans.on{display:block}
+  .spot .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .spot input.sp-in{font-family:var(--mono);font-size:.95rem;background:var(--bg);color:var(--ink);
+        border:1px solid var(--rule);border-radius:6px;padding:6px 9px;width:11em;max-width:100%}
+  .spot.ok input.sp-in{border-color:var(--moss)} .spot.no input.sp-in{border-color:var(--amber)}
+  .spot select.sp{font-family:var(--mono);font-size:.9rem;background:var(--bg);color:var(--ink);
+        border:1px solid var(--rule);border-radius:6px;padding:3px 6px;margin:0 .15em;max-width:100%}
+  .spot select.sp.good{border-color:var(--moss)} .spot select.sp.bad{border-color:var(--amber)}
+  .spot ul.opts{list-style:none;padding:0;margin:.3em 0 .2em;display:grid;gap:7px}
+  .spot ul.opts li{margin:0}
+  .spot ul.opts button.opt{width:100%;text-align:left;font-family:var(--serif);font-size:1rem;line-height:1.55;
+        background:var(--bg);color:var(--ink);border:1px solid var(--rule);border-radius:7px;padding:7px 12px;cursor:pointer}
+  .spot ul.opts button.opt:hover{border-color:var(--sky)}
+  .spot ul.opts button.opt[aria-pressed="true"]{border-color:var(--sky);box-shadow:inset 3px 0 0 var(--sky)}
+  .spot ul.opts button.opt.good{border-color:var(--moss);box-shadow:inset 3px 0 0 var(--moss)}
+  .spot ul.opts button.opt.bad{border-color:var(--amber);box-shadow:inset 3px 0 0 var(--amber)}
+  .spot .unit{font-family:var(--mono);font-size:.9rem;color:var(--muted)}
+  .spot button.sp-show{border-style:dashed}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:16px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* formal statements: airy, clean spacing (added Oct 2026) */
+  mjx-container[display="true"]{margin:1.35em 0 !important}
+  .box.def,.box.thm{padding:18px 22px 16px}
+  .box.def > .lbl,.box.thm > .lbl{margin-bottom:.85em;padding-bottom:.5em;border-bottom:1px solid var(--rule)}
+  .box.def p,.box.thm p,.sol p{margin:.8em 0}
+  .box.def mjx-container[display="true"],.box.thm mjx-container[display="true"],.sol mjx-container[display="true"]{margin:1.6em 0 !important}
+  .box.def ul,.box.thm ul,.box.def ol,.box.thm ol{margin:.7em 0;padding-left:1.35em}
+  .box.def li,.box.thm li{margin:.55em 0}
+  .box .sol-btn{margin-top:1em}
+  .sol{margin-top:1.1em;padding-top:1.1em}
+  .box.def p.stmt,.box.thm p.stmt{margin:.9em 0 .9em 1.1em}
+  @media (max-width:520px){ .box.def,.box.thm{padding:13px 14px 12px} .box.def p.stmt,.box.thm p.stmt{margin-left:.4em} }
+</style>
+
+<script src="/assets/courses/common/course-nav.js" data-course="machine-learning" defer></script>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Machine Learning · Lecture 5</a>
+  <button class="ctl" id="theme" type="button">light</button>
+</div>
+<h1 id="top">Lecture 5<br>Loss Functions and the Bias–Variance Trade-off</h1>
+<p class="kicker">Part I &middot; Foundations of supervised learning &nbsp;|&nbsp; decisions and costs, the Bayes decision rule, squared, absolute, quantile and Huber losses, losses as likelihoods, cross-entropy and KL divergence, surrogate losses and calibration, proper scoring rules, the bias–variance decomposition, approximation and estimation error &nbsp;|&nbsp; reading: Hastie, Tibshirani &amp; Friedman, <em>ESL</em>, Sections 2.4, 7.1–7.3 and 10.6; Gneiting &amp; Raftery (2007)</p>
+
+<figure class="toon">
+<svg viewBox="0 0 600 210" width="600" height="210" role="img" aria-labelledby="c5t c5d">
+<title id="c5t">Cartoon: three targets</title><desc id="c5d">A stick figure holding a bow faces three targets labelled mean, median and 90 percent. It asks: which one should I aim for? A second stick figure answers: that depends on what a miss costs you.</desc>
+<defs><filter id="rough5" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="44" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough5)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="50" cy="128" r="11"/><path d="M 50 139 L 50 166"/><path d="M 50 146 L 74 144"/><path d="M 50 146 L 36 160"/><path d="M 50 166 L 39 192"/><path d="M 50 166 L 61 192"/>
+<path d="M 76 120 Q 94 144 76 168" stroke-width="2.2"/><path d="M 76 120 L 76 168" stroke-width="1"/>
+<circle cx="230" cy="150" r="24" fill="var(--surface2)"/><circle cx="230" cy="150" r="14"/><circle cx="230" cy="150" r="4" fill="var(--amber)" stroke="none"/>
+<circle cx="320" cy="150" r="24" fill="var(--surface2)"/><circle cx="320" cy="150" r="14"/><circle cx="320" cy="150" r="4" fill="var(--moss)" stroke="none"/>
+<circle cx="410" cy="150" r="24" fill="var(--surface2)"/><circle cx="410" cy="150" r="14"/><circle cx="410" cy="150" r="4" fill="var(--rose)" stroke="none"/>
+<path d="M 230 174 L 230 198 M 320 174 L 320 198 M 410 174 L 410 198"/>
+<circle cx="545" cy="128" r="11"/><path d="M 545 139 L 545 166"/><path d="M 545 146 L 525 156"/><path d="M 545 146 L 559 160"/><path d="M 545 166 L 534 192"/><path d="M 545 166 L 556 192"/>
+<rect x="8" y="10" width="236" height="56" rx="9" fill="var(--surface2)"/><path d="M 40 64 L 48 104 L 70 64" fill="var(--surface2)" stroke-width="1.6"/>
+<rect x="352" y="10" width="240" height="56" rx="9" fill="var(--surface2)"/><path d="M 524 64 L 540 104 L 556 64" fill="var(--surface2)" stroke-width="1.6"/>
+<path d="M 10 200 L 590 200" stroke-width="1.6"/>
+</g>
+<text x="210" y="118" class="ctext" text-anchor="middle">mean</text><text x="320" y="118" class="ctext" text-anchor="middle">median</text><text x="410" y="118" class="ctext" text-anchor="middle">90%</text>
+<text x="20" y="34" class="ctext">Which one should I</text><text x="20" y="53" class="ctext">aim for?</text>
+<text x="364" y="34" class="ctext">That depends on what</text><text x="364" y="53" class="ctext">a miss costs you.</text>
+</svg>
+<figcaption class="tooncap">The loss function is where you say what you care about; the "best" prediction changes with it</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">What a loss encodes</a></li>
+<li><a href="#s2">Regression losses and what they estimate</a></li>
+<li><a href="#s3">Losses from likelihoods</a></li>
+<li><a href="#s4">Classification: the 0–1 loss and its surrogates</a></li>
+<li><a href="#s5">Scoring probabilities: proper scoring rules</a></li>
+<li><a href="#s6">Bias and variance, precisely</a></li>
+<li><a href="#s7">Approximation, estimation, and choosing complexity</a></li>
+<li><a href="#s8">Losses you will meet later</a></li>
+<li><a href="#s9">Summary, exercises, projects, reading</a></li>
+</ol>
+</div>
+
+<p>Every method so far minimised some loss: squared error for regression, cross-entropy for logistic regression, 0–1 loss when counting mistakes. This lecture asks what those choices mean. A loss is not a neutral measure of error; it decides which feature of the data the model learns to predict. Squared loss learns the mean, absolute loss the median, the quantile loss a percentile. For probabilities, some losses reward honest forecasts and others reward exaggeration. Then we return to the U-shaped test error of Lecture 1 and take it apart exactly: noise, bias and variance, computed in closed form for ridge regression and nearest neighbours.</p>
+
+<p>By the end of this lecture you should be able to derive the optimal decision from a predictive distribution and a loss, including cost-sensitive thresholds; say which statistical functional each regression loss estimates and prove it; read common losses as negative log-likelihoods and relate cross-entropy to KL divergence; explain why classifiers are trained on surrogate losses and which surrogates recover the Bayes classifier; define proper scoring rules and prove that the Brier and log scores are strictly proper; derive the bias–variance decomposition and compute bias and variance exactly for ridge and kNN; and separate approximation, estimation and optimisation error.</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; What a loss encodes</h2>
+
+<p>A prediction is usually an input to a decision: order stock, send a patient for a biopsy, hold a flight. The loss should be the cost of that decision when the truth is revealed. Suppose we have a predictive distribution for \(Y\) given the features \(x\), from a model or a posterior. Which single action should we take?</p>
+
+<div class="box thm">
+<span class="lbl">theorem 5.1 &mdash; the Bayes decision rule</span>
+<p>Given a loss \(\ell(a,y)\) for taking action \(a\) when the outcome is \(y\), the action minimising expected loss at \(x\) is</p>
+$$a^*(x)=\operatorname*{arg\,min}_a\ \mathbb E\big[\ell(a,Y)\mid X=x\big],$$
+<p>and using \(a^*(x)\) at every \(x\) minimises the overall risk \(\mathbb E[\ell(a(X),Y)]\).</p>
+<p>In particular, for a binary outcome with \(\eta(x)=P(Y=1\mid x)\), a false negative costing \(c_{\text{FN}}\) and a false positive costing \(c_{\text{FP}}\), the optimal rule predicts 1 exactly when</p>
+$$\eta(x)\ \ge\ \frac{c_{\text{FP}}}{c_{\text{FP}}+c_{\text{FN}}}.$$
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>The risk of any rule \(a(\cdot)\) is</p>
+$$\mathbb E\big[\mathbb E[\ell(a(X),Y)\mid X]\big],$$
+<p>an average over \(x\) of the conditional expected loss. Minimising the inner expectation separately at each \(x\) minimises the average (the same argument as Theorem 1.3, which is the case of 0–1 loss).</p>
+<p>For the binary case, predicting 1 costs \(c_{\text{FP}}(1-\eta)\) in expectation and predicting 0 costs \(c_{\text{FN}}\,\eta\). Predict 1 when</p>
+$$c_{\text{FN}}\,\eta\ \ge\ c_{\text{FP}}(1-\eta),$$
+<p>which rearranges to the threshold. With equal costs it is \(\tfrac12\). \(\square\)</p>
+</div>
+</div>
+
+<p>If missing a cancer is ten times as costly as a false alarm, the threshold drops from ½ to \(1/11\approx0.09\). The theorem needs calibrated probabilities: the threshold is only right if \(\eta(x)\) means what it says. Here is the test set of Lecture 4's breast-cancer model.</p>
+
+<div class="widget" id="w-cost">
+<h4>Choosing a threshold from costs</h4>
+<p class="wtxt">171 test patients from Lecture 4, scored by penalised logistic regression. Set how much worse a missed cancer is than a false alarm. The curve is the total cost of each threshold on these patients; the moss line is the Bayes threshold \(1/(1+\text{ratio})\), the amber line your choice.</p>
+<svg id="coSvg" viewBox="0 0 560 290" width="560" height="290" role="img" aria-label="Total cost of misclassification against the decision threshold"></svg>
+<div class="ctrls">
+<label><span>cost of a missed cancer ÷ cost of a false alarm = <span id="coRv"></span></span><input type="range" id="coR" min="0" max="2" step="0.01" value="0.7"></label>
+<label><span>threshold = <span id="coTv"></span></span><input type="range" id="coT" min="0.005" max="0.995" step="0.005" value="0.5"></label>
+<button class="ctl" type="button" id="coBayes">use the Bayes threshold</button>
+</div>
+<div class="readout" id="coOut" role="status" aria-live="polite"></div>
+</div>
+
+<p>At a ratio of 20, the Bayes threshold 0.048 misses one cancer and raises 20 false alarms, a cost of 40 units; hindsight on these same patients finds a threshold costing only 24. That gap is the familiar optimism of choosing with the data you report on (Lecture 1, Section 4): the hindsight threshold is tuned to 64 particular malignant patients. The Bayes threshold was fixed before looking, and would be optimal if the probabilities were perfectly calibrated. They are not quite: only 17 of the 171 patients have probabilities between 0.2 and 0.8, so the middle of the probability scale is barely tested, and at a cost ratio of 5 the default threshold of ½ happens to beat the Bayes threshold on these particular patients. With a test set this small, differences of a few patients are noise (Lecture 1, Exercise 9).</p>
+
+<div class="spot" id="sp5-1" data-kind="num" data-ans="0.2" data-tol="0.0005">
+<span class="lbl">spot check 5.1</span>
+<p class="q">A false negative costs 4 times as much as a false positive. Above what predicted probability should you predict positive?</p>
+<div class="hint">\(c_{\text{FP}}/(c_{\text{FP}}+c_{\text{FN}})\) with \(c_{\text{FP}}=1\), \(c_{\text{FN}}=4\).</div>
+<div class="why">\(1/5=0.2\). At \(\eta=0.2\) the expected costs balance: predicting 1 costs \(0.8\times1\), predicting 0 costs \(0.2\times4\).</div>
+</div>
+
+<div class="box bayes">
+<span class="lbl">bayes &mdash; decision theory turns a posterior into an action</span>
+<p>Bayesian inference ends with a posterior distribution; Bayesian decision theory says what to do with it. Theorem 5.1 applies with the posterior (predictive) distribution in place of the true conditional law. Under squared loss the optimal point estimate is the posterior mean; under absolute loss, the posterior median; under 0–1 loss for a discrete parameter, the posterior mode, the MAP estimate of Lecture 3. "Which estimate should I report?" is therefore not a question about the posterior at all, but about the loss. The classic reference is Berger (1985).</p>
+</div>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; Regression losses and what they estimate</h2>
+
+<div class="box def">
+<span class="lbl">definition 5.1 &mdash; four regression losses</span>
+<p>With residual \(u=y-\hat y\):</p>
+<ul>
+<li><strong>squared</strong>: \(u^2\);</li>
+<li><strong>absolute</strong>: \(|u|\);</li>
+<li><strong>pinball</strong> (quantile) at level \(\tau\in(0,1)\):
+$$\rho_\tau(u)=\max(\tau u,(\tau-1)u),$$
+which charges \(\tau\) per unit of under-prediction and \(1-\tau\) per unit of over-prediction;</li>
+<li><strong>Huber</strong> with threshold \(\delta\): \(\tfrac12u^2\) for \(|u|\le\delta\), and \(\delta(|u|-\tfrac\delta2)\) beyond: squared for small residuals, absolute for large ones.</li>
+</ul>
+</div>
+
+<div class="box thm">
+<span class="lbl">theorem 5.2 &mdash; each loss estimates a different summary</span>
+<p>For a random variable \(Y\) with finite mean, the constant \(c\) minimising \(\mathbb E[\ell(Y-c)]\) is:</p>
+<ul>
+<li>the <strong>mean</strong> for squared loss;</li>
+<li>any <strong>median</strong> for absolute loss;</li>
+<li>any <strong>\(\tau\)-quantile</strong> (a \(c\) with \(P(Y&lt;c)\le\tau\le P(Y\le c)\)) for the pinball loss \(\rho_\tau\).</li>
+</ul>
+<p>Applied conditionally on \(X=x\), the best predictor under each loss is the conditional mean, median or quantile.</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p><em>Squared.</em></p>
+$$\mathbb E[(Y-c)^2]=\mathrm{Var}(Y)+(\mathbb E Y-c)^2,$$
+<p>minimised at \(c=\mathbb EY\).</p>
+<p><em>Pinball</em> (absolute loss is twice \(\rho_{1/2}\)). The function \(g(c)=\mathbb E[\rho_\tau(Y-c)]\) is convex. Moving \(c\) up by a small \(h&gt;0\) changes the loss of an outcome \(y&gt;c\) by \(-\tau h\) (we under-predict it by less) and of an outcome \(y\le c\) by \(+(1-\tau)h\). So the right derivative is</p>
+$$g'_+(c)=-\tau P(Y&gt;c)+(1-\tau)P(Y\le c)=P(Y\le c)-\tau,$$
+<p>and similarly the left derivative is \(P(Y&lt;c)-\tau\).</p>
+<p>A convex function is minimised where the left derivative is \(\le0\) and the right derivative is \(\ge0\):</p>
+$$P(Y&lt;c)\le\tau\le P(Y\le c),$$
+<p>the definition of a \(\tau\)-quantile. \(\square\)</p>
+</div>
+</div>
+
+<p>When the distribution is skewed, these summaries differ, and the difference is not a technicality.</p>
+
+<div class="box data">
+<span class="lbl">data &mdash; every flight out of New York in 2013</span>
+<p>All 336,776 flights that departed from JFK, LaGuardia and Newark in 2013, with scheduled and actual times, carrier, origin, destination and distance, from the US Bureau of Transportation Statistics, packaged by Hadley Wickham as the R package <code>nycflights13</code> (CC0); we use the copy in the Rdatasets collection. 327,346 flights have an arrival delay (the rest were cancelled or diverted). Arrival delay is in minutes; negative means early.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">code &mdash; the best single prediction under four losses</span>
+<pre class="src"><span class="t-kn">import</span><span class="t-w"> </span><span class="t-nn">numpy</span><span class="t-w"> </span><span class="t-k">as</span><span class="t-w"> </span><span class="t-nn">np</span>
+<span class="t-kn">import</span><span class="t-w"> </span><span class="t-nn">pandas</span><span class="t-w"> </span><span class="t-k">as</span><span class="t-w"> </span><span class="t-nn">pd</span>
+<span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">scipy.optimize</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">minimize_scalar</span>
+
+<span class="t-n">fl</span> <span class="t-o">=</span> <span class="t-n">pd</span><span class="t-o">.</span><span class="t-fn">read_csv</span><span class="t-p">(</span><span class="t-s1">'data/flights.csv'</span><span class="t-p">,</span> <span class="t-n">usecols</span><span class="t-o">=</span><span class="t-p">[</span><span class="t-s1">'month'</span><span class="t-p">,</span> <span class="t-s1">'hour'</span><span class="t-p">,</span> <span class="t-s1">'origin'</span><span class="t-p">,</span> <span class="t-s1">'carrier'</span><span class="t-p">,</span> <span class="t-s1">'distance'</span><span class="t-p">,</span> <span class="t-s1">'arr_delay'</span><span class="t-p">])</span>
+<span class="t-n">fl</span> <span class="t-o">=</span> <span class="t-n">fl</span><span class="t-o">.</span><span class="t-fn">dropna</span><span class="t-p">(</span><span class="t-n">subset</span><span class="t-o">=</span><span class="t-p">[</span><span class="t-s1">'arr_delay'</span><span class="t-p">])</span>                <span class="t-c1"># cancelled and diverted flights have no arrival delay</span>
+<span class="t-n">d</span> <span class="t-o">=</span> <span class="t-n">fl</span><span class="t-p">[</span><span class="t-s1">'arr_delay'</span><span class="t-p">]</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">()</span>                      <span class="t-c1"># minutes late on arrival (negative = early)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">d</span><span class="t-p">)</span><span class="t-si">}</span><span class="t-s1"> flights: mean </span><span class="t-si">{</span><span class="t-n">d</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">()</span><span class="t-si">:</span><span class="t-s1">.2f</span><span class="t-si">}</span><span class="t-s1">, median </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">median</span><span class="t-p">(</span><span class="t-n">d</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">.0f</span><span class="t-si">}</span><span class="t-s1">, 90th percentile </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">quantile</span><span class="t-p">(</span><span class="t-n">d</span><span class="t-p">,</span><span class="t-w"> </span><span class="t-mf">0.9</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">.0f</span><span class="t-si">}</span><span class="t-s1"> minutes'</span><span class="t-p">)</span>
+
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">pinball</span><span class="t-p">(</span><span class="t-n">u</span><span class="t-p">,</span> <span class="t-n">tau</span><span class="t-p">):</span>                                <span class="t-c1"># the quantile loss</span>
+    <span class="t-k">return</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">maximum</span><span class="t-p">(</span><span class="t-n">tau</span> <span class="t-o">*</span> <span class="t-n">u</span><span class="t-p">,</span> <span class="t-p">(</span><span class="t-n">tau</span> <span class="t-o">-</span> <span class="t-mi">1</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-n">u</span><span class="t-p">)</span>
+
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">huber</span><span class="t-p">(</span><span class="t-n">u</span><span class="t-p">,</span> <span class="t-n">delta</span><span class="t-p">):</span>
+    <span class="t-k">return</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">where</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">abs</span><span class="t-p">(</span><span class="t-n">u</span><span class="t-p">)</span> <span class="t-o">&lt;=</span> <span class="t-n">delta</span><span class="t-p">,</span> <span class="t-mf">0.5</span> <span class="t-o">*</span> <span class="t-n">u</span> <span class="t-o">**</span> <span class="t-mi">2</span><span class="t-p">,</span> <span class="t-n">delta</span> <span class="t-o">*</span> <span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">abs</span><span class="t-p">(</span><span class="t-n">u</span><span class="t-p">)</span> <span class="t-o">-</span> <span class="t-n">delta</span> <span class="t-o">/</span> <span class="t-mi">2</span><span class="t-p">))</span>
+
+<span class="t-n">losses</span> <span class="t-o">=</span> <span class="t-p">{</span><span class="t-s1">'squared'</span><span class="t-p">:</span> <span class="t-k">lambda</span> <span class="t-n">c</span><span class="t-p">:</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">((</span><span class="t-n">d</span> <span class="t-o">-</span> <span class="t-n">c</span><span class="t-p">)</span> <span class="t-o">**</span> <span class="t-mi">2</span><span class="t-p">),</span>
+          <span class="t-s1">'absolute'</span><span class="t-p">:</span> <span class="t-k">lambda</span> <span class="t-n">c</span><span class="t-p">:</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">abs</span><span class="t-p">(</span><span class="t-n">d</span> <span class="t-o">-</span> <span class="t-n">c</span><span class="t-p">)),</span>
+          <span class="t-s1">'pinball, tau = 0.9'</span><span class="t-p">:</span> <span class="t-k">lambda</span> <span class="t-n">c</span><span class="t-p">:</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">(</span><span class="t-fn">pinball</span><span class="t-p">(</span><span class="t-n">d</span> <span class="t-o">-</span> <span class="t-n">c</span><span class="t-p">,</span> <span class="t-mf">0.9</span><span class="t-p">)),</span>
+          <span class="t-s1">'Huber, delta = 15'</span><span class="t-p">:</span> <span class="t-k">lambda</span> <span class="t-n">c</span><span class="t-p">:</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">(</span><span class="t-fn">huber</span><span class="t-p">(</span><span class="t-n">d</span> <span class="t-o">-</span> <span class="t-n">c</span><span class="t-p">,</span> <span class="t-mi">15</span><span class="t-p">))}</span>
+<span class="t-k">for</span> <span class="t-n">name</span><span class="t-p">,</span> <span class="t-n">risk</span> <span class="t-ow">in</span> <span class="t-n">losses</span><span class="t-o">.</span><span class="t-fn">items</span><span class="t-p">():</span>
+    <span class="t-n">c</span> <span class="t-o">=</span> <span class="t-fn">minimize_scalar</span><span class="t-p">(</span><span class="t-n">risk</span><span class="t-p">,</span> <span class="t-n">bounds</span><span class="t-o">=</span><span class="t-p">(</span><span class="t-o">-</span><span class="t-mi">60</span><span class="t-p">,</span> <span class="t-mi">120</span><span class="t-p">),</span> <span class="t-n">method</span><span class="t-o">=</span><span class="t-s1">'bounded'</span><span class="t-p">,</span> <span class="t-n">options</span><span class="t-o">=</span><span class="t-p">{</span><span class="t-s1">'xatol'</span><span class="t-p">:</span> <span class="t-mf">1e-4</span><span class="t-p">})</span><span class="t-o">.</span><span class="t-n">x</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">name</span><span class="t-si">:</span><span class="t-s1">19s</span><span class="t-si">}</span><span class="t-s1">: best constant prediction </span><span class="t-si">{</span><span class="t-n">c</span><span class="t-si">:</span><span class="t-s1">6.2f</span><span class="t-si">}</span><span class="t-s1"> minutes'</span><span class="t-p">)</span></pre>
+<pre class="out">327346 flights: mean 6.90, median -5, 90th percentile 52 minutes
+squared            : best constant prediction   6.90 minutes
+absolute           : best constant prediction  -5.00 minutes
+pinball, tau = 0.9 : best constant prediction  52.00 minutes
+Huber, delta = 15  : best constant prediction  -3.81 minutes</pre>
+</div>
+
+<p>The mean delay is about 7 minutes late, the median 5 minutes <em>early</em>. Both are correct answers to different questions. Most flights arrive a little early; a long tail of badly delayed flights (the worst more than 21 hours) pulls the mean up. An airline promising "typical" arrival times should quote the median; one budgeting total passenger delay needs the mean; a traveller with a tight connection cares about the 90th percentile, 52 minutes. Huber loss lands near the median: it treats the tail as outliers to be resisted.</p>
+
+<div class="widget" id="w-target">
+<h4>The loss chooses the target</h4>
+<p class="wtxt">Fifteen real arrival delays at JFK in 2013 (minutes). Drag any delay along the line. The curve below is the average loss of predicting the constant \(c\); its lowest point (rose) is the best prediction. Amber marks the mean, moss the median.</p>
+<svg id="taSvg" viewBox="0 0 580 330" width="580" height="330" role="img" aria-label="Fifteen flight delays and the average loss of each constant prediction"></svg>
+<div class="ctrls">
+<label><span>loss</span><select class="ctl" id="taLoss"><option value="sq">squared</option><option value="abs">absolute</option><option value="pin">pinball (quantile)</option><option value="hub">Huber</option></select></label>
+<label><span>quantile level τ = <span id="taTauV"></span></span><input type="range" id="taTau" min="0.05" max="0.95" step="0.01" value="0.9"></label>
+<label><span>Huber δ = <span id="taDelV"></span> min</span><input type="range" id="taDel" min="1" max="100" step="1" value="15"></label>
+</div>
+<div class="readout" id="taOut" role="status" aria-live="polite"></div>
+</div>
+
+<p>Drag the 248-minute delay further right: the mean follows it, the median does not move. A single bad record can shift a least-squares model as far as you like, which is why squared loss is called non-robust. Now fit linear models with features (hour, airport, airline, month and distance) under three losses, and score each on held-out flights with two metrics.</p>
+
+<div class="box tool">
+<span class="lbl">code &mdash; each loss wins on its own metric</span>
+<pre class="src"><span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">sklearn.linear_model</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">LinearRegression</span><span class="t-p">,</span> <span class="t-n">QuantileRegressor</span><span class="t-p">,</span> <span class="t-n">HuberRegressor</span>
+
+<span class="t-n">Xf</span> <span class="t-o">=</span> <span class="t-n">pd</span><span class="t-o">.</span><span class="t-fn">get_dummies</span><span class="t-p">(</span><span class="t-n">fl</span><span class="t-p">[[</span><span class="t-s1">'hour'</span><span class="t-p">,</span> <span class="t-s1">'origin'</span><span class="t-p">,</span> <span class="t-s1">'carrier'</span><span class="t-p">,</span> <span class="t-s1">'month'</span><span class="t-p">]]</span><span class="t-o">.</span><span class="t-fn">astype</span><span class="t-p">(</span><span class="t-nb">str</span><span class="t-p">),</span> <span class="t-n">drop_first</span><span class="t-o">=</span><span class="t-kc">True</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">astype</span><span class="t-p">(</span><span class="t-nb">float</span><span class="t-p">)</span>
+<span class="t-n">Xf</span><span class="t-p">[</span><span class="t-s1">'log_distance'</span><span class="t-p">]</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">log</span><span class="t-p">(</span><span class="t-n">fl</span><span class="t-p">[</span><span class="t-s1">'distance'</span><span class="t-p">]</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">())</span>
+<span class="t-n">idx</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-fn">default_rng</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">permutation</span><span class="t-p">(</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">fl</span><span class="t-p">))</span>
+<span class="t-n">tr</span><span class="t-p">,</span> <span class="t-n">te</span> <span class="t-o">=</span> <span class="t-n">idx</span><span class="t-p">[:</span><span class="t-mi">30_000</span><span class="t-p">],</span> <span class="t-n">idx</span><span class="t-p">[</span><span class="t-mi">30_000</span><span class="t-p">:</span><span class="t-mi">60_000</span><span class="t-p">]</span>
+<span class="t-n">X_tr</span><span class="t-p">,</span> <span class="t-n">X_te</span> <span class="t-o">=</span> <span class="t-n">Xf</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">()[</span><span class="t-n">tr</span><span class="t-p">],</span> <span class="t-n">Xf</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">()[</span><span class="t-n">te</span><span class="t-p">]</span>
+<span class="t-n">y_tr</span><span class="t-p">,</span> <span class="t-n">y_te</span> <span class="t-o">=</span> <span class="t-n">d</span><span class="t-p">[</span><span class="t-n">tr</span><span class="t-p">],</span> <span class="t-n">d</span><span class="t-p">[</span><span class="t-n">te</span><span class="t-p">]</span>
+
+<span class="t-n">models</span> <span class="t-o">=</span> <span class="t-p">{</span><span class="t-s1">'squared loss (OLS)'</span><span class="t-p">:</span> <span class="t-fn">LinearRegression</span><span class="t-p">(),</span>
+          <span class="t-s1">'absolute loss (median)'</span><span class="t-p">:</span> <span class="t-fn">QuantileRegressor</span><span class="t-p">(</span><span class="t-n">quantile</span><span class="t-o">=</span><span class="t-mf">0.5</span><span class="t-p">,</span> <span class="t-n">alpha</span><span class="t-o">=</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-n">solver</span><span class="t-o">=</span><span class="t-s1">'highs'</span><span class="t-p">),</span>
+          <span class="t-s1">'Huber loss'</span><span class="t-p">:</span> <span class="t-fn">HuberRegressor</span><span class="t-p">(</span><span class="t-n">epsilon</span><span class="t-o">=</span><span class="t-mf">1.35</span><span class="t-p">,</span> <span class="t-n">max_iter</span><span class="t-o">=</span><span class="t-mi">2000</span><span class="t-p">)}</span>
+<span class="t-k">for</span> <span class="t-n">name</span><span class="t-p">,</span> <span class="t-n">m</span> <span class="t-ow">in</span> <span class="t-n">models</span><span class="t-o">.</span><span class="t-fn">items</span><span class="t-p">():</span>
+    <span class="t-n">p</span> <span class="t-o">=</span> <span class="t-n">m</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">X_tr</span><span class="t-p">,</span> <span class="t-n">y_tr</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">predict</span><span class="t-p">(</span><span class="t-n">X_te</span><span class="t-p">)</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">name</span><span class="t-si">:</span><span class="t-s1">23s</span><span class="t-si">}</span><span class="t-s1"> test MSE </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">((</span><span class="t-n">p</span><span class="t-w"> </span><span class="t-o">-</span><span class="t-w"> </span><span class="t-n">y_te</span><span class="t-p">)</span><span class="t-w"> </span><span class="t-o">**</span><span class="t-w"> </span><span class="t-mi">2</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">7.1f</span><span class="t-si">}</span><span class="t-s1">   test MAE </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">abs</span><span class="t-p">(</span><span class="t-n">p</span><span class="t-w"> </span><span class="t-o">-</span><span class="t-w"> </span><span class="t-n">y_te</span><span class="t-p">))</span><span class="t-si">:</span><span class="t-s1">6.2f</span><span class="t-si">}</span><span class="t-s1">'</span>
+          <span class="t-sa">f</span><span class="t-s1">'   average prediction </span><span class="t-si">{</span><span class="t-n">p</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">()</span><span class="t-si">:</span><span class="t-s1">6.2f</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span></pre>
+<pre class="out">squared loss (OLS)      test MSE  1862.1   test MAE  26.80   average prediction   7.01
+absolute loss (median)  test MSE  2011.6   test MAE  24.72   average prediction  -3.79
+Huber loss              test MSE  1976.1   test MAE  24.76   average prediction  -2.38</pre>
+</div>
+
+<p>Least squares has the lowest test MSE; least absolute deviations has the lowest test MAE; Huber sits between. There is no "best model" until the loss is fixed, and evaluating a model with a different loss from the one it was trained on is a common, quiet mistake.</p>
+
+<div class="spot" id="sp5-2" data-kind="select">
+<span class="lbl">spot check 5.2</span>
+<p class="q">Training with absolute loss estimates the conditional
+<select class="sp" aria-label="absolute"><option>choose</option><option data-hint="The mean minimises squared loss.">mean</option><option data-ok>median</option><option data-hint="The mode minimises 0–1 loss for discrete outcomes.">mode</option></select>;
+training with the pinball loss at \(\tau=0.9\) estimates the conditional
+<select class="sp" aria-label="pinball"><option>choose</option><option data-hint="τ = 0.1 gives the 10th percentile.">10th percentile</option><option data-ok>90th percentile</option></select>.</p>
+<div class="hint">Theorem 5.2.</div>
+<div class="why">With \(\tau=0.9\), under-prediction costs nine times as much as over-prediction, so the best prediction sits high: 90% of outcomes fall below it.</div>
+</div>
+
+<div class="box hist">
+<span class="lbl">history &mdash; absolute or squared?</span>
+<p>The absolute-error criterion is older than least squares. Roger Boscovich fitted a line to measurements of the Earth's shape in 1757 by minimising the sum of absolute deviations, and Pierre-Simon Laplace argued for absolute error in 1774. Squared error won in the nineteenth century largely for convenience: it has a closed-form minimiser, and Gauss tied it to the normal distribution (Lecture 3). The other losses returned when computers made optimisation cheap. Peter Huber's 1964 paper founded robust statistics, and Roger Koenker and Gilbert Bassett's 1978 quantile regression became a standard tool in economics for studying inequality, where what happens in the tails matters as much as the average.</p>
+</div>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; Losses from likelihoods</h2>
+
+<p>Lecture 3 showed that squared loss is the negative log-likelihood of Gaussian noise, and Lecture 4 that cross-entropy is the negative log-likelihood of a Bernoulli label. This is a general recipe: choose a noise distribution suited to the data, and its negative log-likelihood is the loss.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 5.3 &mdash; a dictionary of likelihoods and losses</span>
+<p>Up to terms that do not depend on the prediction \(\mu\):</p>
+<div class="tscroll"><table>
+<tr><th>model for \(Y\)</th><th>negative log-likelihood</th><th>name</th></tr>
+<tr><td>\(\mathcal N(\mu,\sigma^2)\)</td><td>\((y-\mu)^2/2\sigma^2\)</td><td>squared loss</td></tr>
+<tr><td>Laplace\((\mu,b)\)</td><td>\(|y-\mu|/b\)</td><td>absolute loss</td></tr>
+<tr><td>Bernoulli\((\mu)\)</td><td>\(-y\log\mu-(1-y)\log(1-\mu)\)</td><td>cross-entropy (log loss)</td></tr>
+<tr><td>Poisson\((\mu)\)</td><td>\(\mu-y\log\mu\)</td><td>Poisson deviance</td></tr>
+</table></div>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Take minus the log of each density and drop terms free of \(\mu\).</p>
+<p>Gaussian: \(\tfrac12\log(2\pi\sigma^2)+(y-\mu)^2/2\sigma^2\).</p>
+<p>Laplace, density \(\frac1{2b}e^{-|y-\mu|/b}\): \(\log2b+|y-\mu|/b\).</p>
+<p>Bernoulli, mass \(\mu^y(1-\mu)^{1-y}\): immediate.</p>
+<p>Poisson, mass \(e^{-\mu}\mu^y/y!\): \(\mu-y\log\mu+\log y!\).</p>
+<p>The <em>deviance</em> rescales by 2 and subtracts the same expression at \(\mu=y\), so that a perfect prediction scores 0. \(\square\)</p>
+</div>
+</div>
+
+<p>The cross-entropy has an information-theoretic reading that runs through the rest of the course.</p>
+
+<div class="box def">
+<span class="lbl">definition 5.2 &mdash; entropy, cross-entropy, KL divergence</span>
+<p>For distributions \(p\) and \(q\) on a finite set, the <strong>entropy</strong> is</p>
+$$H(p)=-\sum_kp_k\log p_k,$$
+<p>the <strong>cross-entropy</strong> is</p>
+$$H(p,q)=-\sum_kp_k\log q_k,$$
+<p>and the <strong>Kullback–Leibler divergence</strong> is</p>
+$$\mathrm{KL}(p\,\|\,q)=\sum_kp_k\log\frac{p_k}{q_k}=H(p,q)-H(p).$$
+</div>
+
+<div class="box thm">
+<span class="lbl">proposition 5.4 &mdash; Gibbs' inequality</span>
+<p>\(\mathrm{KL}(p\,\|\,q)\ge0\), with equality if and only if \(q=p\).</p>
+<p>Hence the cross-entropy \(H(p,q)\) is minimised over \(q\) exactly at \(q=p\).</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Sum over \(k\) with \(p_k&gt;0\). Since \(\log\) is concave, Jensen's inequality gives</p>
+$$-\mathrm{KL}(p\|q)=\sum_kp_k\log\frac{q_k}{p_k}\le\log\sum_kp_k\frac{q_k}{p_k}=\log\sum_{k:p_k&gt;0}q_k\le\log1=0.$$
+<p>Equality in Jensen requires \(q_k/p_k\) to be constant on the support of \(p\), and equality in the last step requires \(q\) to put no mass elsewhere, together forcing \(q=p\). \(\square\)</p>
+</div>
+</div>
+
+<p>So minimising average cross-entropy over training data is minimising the KL divergence from the empirical label distribution to the model's: a model trained with log loss is pushed to match the true probabilities, not just the most likely class. Not all data are Gaussian, and counts are the commonest exception.</p>
+
+<div class="box data">
+<span class="lbl">data &mdash; hourly bike rentals in Washington, D.C.</span>
+<p>Number of Capital Bikeshare rentals in each hour of 2011 (8,645 hours), with month, hour of day, working day, weather situation, temperature, humidity and wind speed. From Fanaee-T &amp; Gama (2014), as distributed with the <em>ISLP</em> Python package (James et al., 2023). Counts range from 1 to 651 per hour.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">code &mdash; counts: least squares versus Poisson regression, and quantile bands</span>
+<pre class="src"><span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">sklearn.linear_model</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">PoissonRegressor</span>
+
+<span class="t-n">bk</span> <span class="t-o">=</span> <span class="t-n">pd</span><span class="t-o">.</span><span class="t-fn">read_csv</span><span class="t-p">(</span><span class="t-s1">'data/Bikeshare.csv'</span><span class="t-p">)</span>              <span class="t-c1"># hourly rentals, Capital Bikeshare, 2011</span>
+<span class="t-n">Xb</span> <span class="t-o">=</span> <span class="t-n">pd</span><span class="t-o">.</span><span class="t-fn">get_dummies</span><span class="t-p">(</span><span class="t-n">bk</span><span class="t-p">[[</span><span class="t-s1">'mnth'</span><span class="t-p">,</span> <span class="t-s1">'hr'</span><span class="t-p">,</span> <span class="t-s1">'weathersit'</span><span class="t-p">]]</span><span class="t-o">.</span><span class="t-fn">astype</span><span class="t-p">(</span><span class="t-nb">str</span><span class="t-p">),</span> <span class="t-n">drop_first</span><span class="t-o">=</span><span class="t-kc">True</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">astype</span><span class="t-p">(</span><span class="t-nb">float</span><span class="t-p">)</span>
+<span class="t-n">Xb</span><span class="t-p">[[</span><span class="t-s1">'temp'</span><span class="t-p">,</span> <span class="t-s1">'hum'</span><span class="t-p">,</span> <span class="t-s1">'windspeed'</span><span class="t-p">,</span> <span class="t-s1">'workingday'</span><span class="t-p">]]</span> <span class="t-o">=</span> <span class="t-n">bk</span><span class="t-p">[[</span><span class="t-s1">'temp'</span><span class="t-p">,</span> <span class="t-s1">'hum'</span><span class="t-p">,</span> <span class="t-s1">'windspeed'</span><span class="t-p">,</span> <span class="t-s1">'workingday'</span><span class="t-p">]]</span>
+<span class="t-n">yb</span> <span class="t-o">=</span> <span class="t-n">bk</span><span class="t-p">[</span><span class="t-s1">'bikers'</span><span class="t-p">]</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">()</span>
+<span class="t-n">j</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-fn">default_rng</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">permutation</span><span class="t-p">(</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">bk</span><span class="t-p">));</span> <span class="t-n">a</span><span class="t-p">,</span> <span class="t-n">b</span> <span class="t-o">=</span> <span class="t-n">j</span><span class="t-p">[:</span><span class="t-mi">6000</span><span class="t-p">],</span> <span class="t-n">j</span><span class="t-p">[</span><span class="t-mi">6000</span><span class="t-p">:]</span>
+<span class="t-n">Xa</span><span class="t-p">,</span> <span class="t-n">Xz</span> <span class="t-o">=</span> <span class="t-n">Xb</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">()[</span><span class="t-n">a</span><span class="t-p">],</span> <span class="t-n">Xb</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">()[</span><span class="t-n">b</span><span class="t-p">]</span>
+
+<span class="t-n">ols</span> <span class="t-o">=</span> <span class="t-fn">LinearRegression</span><span class="t-p">()</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">Xa</span><span class="t-p">,</span> <span class="t-n">yb</span><span class="t-p">[</span><span class="t-n">a</span><span class="t-p">])</span><span class="t-o">.</span><span class="t-fn">predict</span><span class="t-p">(</span><span class="t-n">Xz</span><span class="t-p">)</span>
+<span class="t-n">poi</span> <span class="t-o">=</span> <span class="t-fn">PoissonRegressor</span><span class="t-p">(</span><span class="t-n">alpha</span><span class="t-o">=</span><span class="t-mf">1e-6</span><span class="t-p">,</span> <span class="t-n">max_iter</span><span class="t-o">=</span><span class="t-mi">5000</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">Xa</span><span class="t-p">,</span> <span class="t-n">yb</span><span class="t-p">[</span><span class="t-n">a</span><span class="t-p">])</span><span class="t-o">.</span><span class="t-fn">predict</span><span class="t-p">(</span><span class="t-n">Xz</span><span class="t-p">)</span>
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">deviance</span><span class="t-p">(</span><span class="t-n">y</span><span class="t-p">,</span> <span class="t-n">mu</span><span class="t-p">):</span>                                <span class="t-c1"># mean Poisson deviance: 2 * (log-lik of perfect fit - log-lik of model)</span>
+    <span class="t-n">mu</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">maximum</span><span class="t-p">(</span><span class="t-n">mu</span><span class="t-p">,</span> <span class="t-mf">1e-9</span><span class="t-p">)</span>
+    <span class="t-k">return</span> <span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">where</span><span class="t-p">(</span><span class="t-n">y</span> <span class="t-o">&gt;</span> <span class="t-mi">0</span><span class="t-p">,</span> <span class="t-n">y</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">log</span><span class="t-p">(</span><span class="t-n">y</span> <span class="t-o">/</span> <span class="t-n">mu</span><span class="t-p">),</span> <span class="t-mi">0</span><span class="t-p">)</span> <span class="t-o">-</span> <span class="t-p">(</span><span class="t-n">y</span> <span class="t-o">-</span> <span class="t-n">mu</span><span class="t-p">))</span>
+<span class="t-k">for</span> <span class="t-n">name</span><span class="t-p">,</span> <span class="t-n">p</span> <span class="t-ow">in</span> <span class="t-p">[(</span><span class="t-s1">'least squares'</span><span class="t-p">,</span> <span class="t-n">ols</span><span class="t-p">),</span> <span class="t-p">(</span><span class="t-s1">'Poisson'</span><span class="t-p">,</span> <span class="t-n">poi</span><span class="t-p">)]:</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">name</span><span class="t-si">:</span><span class="t-s1">14s</span><span class="t-si">}</span><span class="t-s1"> negative predictions </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sum</span><span class="t-p">(</span><span class="t-n">p</span><span class="t-w"> </span><span class="t-o">&lt;</span><span class="t-w"> </span><span class="t-mi">0</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">3d</span><span class="t-si">}</span><span class="t-s1">   test MSE </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">((</span><span class="t-n">p</span><span class="t-w"> </span><span class="t-o">-</span><span class="t-w"> </span><span class="t-n">yb</span><span class="t-p">[</span><span class="t-n">b</span><span class="t-p">])</span><span class="t-w"> </span><span class="t-o">**</span><span class="t-w"> </span><span class="t-mi">2</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">8.0f</span><span class="t-si">}</span><span class="t-s1">'</span>
+          <span class="t-sa">f</span><span class="t-s1">'   Poisson deviance </span><span class="t-si">{</span><span class="t-fn">deviance</span><span class="t-p">(</span><span class="t-n">yb</span><span class="t-p">[</span><span class="t-n">b</span><span class="t-p">],</span><span class="t-w"> </span><span class="t-n">p</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">6.2f</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span>
+
+<span class="t-n">q10</span> <span class="t-o">=</span> <span class="t-fn">QuantileRegressor</span><span class="t-p">(</span><span class="t-n">quantile</span><span class="t-o">=</span><span class="t-mf">0.1</span><span class="t-p">,</span> <span class="t-n">alpha</span><span class="t-o">=</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-n">solver</span><span class="t-o">=</span><span class="t-s1">'highs'</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">Xa</span><span class="t-p">,</span> <span class="t-n">yb</span><span class="t-p">[</span><span class="t-n">a</span><span class="t-p">])</span><span class="t-o">.</span><span class="t-fn">predict</span><span class="t-p">(</span><span class="t-n">Xz</span><span class="t-p">)</span>
+<span class="t-n">q90</span> <span class="t-o">=</span> <span class="t-fn">QuantileRegressor</span><span class="t-p">(</span><span class="t-n">quantile</span><span class="t-o">=</span><span class="t-mf">0.9</span><span class="t-p">,</span> <span class="t-n">alpha</span><span class="t-o">=</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-n">solver</span><span class="t-o">=</span><span class="t-s1">'highs'</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">Xa</span><span class="t-p">,</span> <span class="t-n">yb</span><span class="t-p">[</span><span class="t-n">a</span><span class="t-p">])</span><span class="t-o">.</span><span class="t-fn">predict</span><span class="t-p">(</span><span class="t-n">Xz</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'10%-90% quantile band covers </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">((</span><span class="t-n">yb</span><span class="t-p">[</span><span class="t-n">b</span><span class="t-p">]</span><span class="t-w"> </span><span class="t-o">&gt;=</span><span class="t-w"> </span><span class="t-n">q10</span><span class="t-p">)</span><span class="t-w"> </span><span class="t-o">&amp;</span><span class="t-w"> </span><span class="t-p">(</span><span class="t-n">yb</span><span class="t-p">[</span><span class="t-n">b</span><span class="t-p">]</span><span class="t-w"> </span><span class="t-o">&lt;=</span><span class="t-w"> </span><span class="t-n">q90</span><span class="t-p">))</span><span class="t-si">:</span><span class="t-s1">.3f</span><span class="t-si">}</span><span class="t-s1"> of test hours (target 0.80);'</span>
+      <span class="t-sa">f</span><span class="t-s1">' below the band </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">(</span><span class="t-n">yb</span><span class="t-p">[</span><span class="t-n">b</span><span class="t-p">]</span><span class="t-w"> </span><span class="t-o">&lt;</span><span class="t-w"> </span><span class="t-n">q10</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">.3f</span><span class="t-si">}</span><span class="t-s1">, above </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">(</span><span class="t-n">yb</span><span class="t-p">[</span><span class="t-n">b</span><span class="t-p">]</span><span class="t-w"> </span><span class="t-o">&gt;</span><span class="t-w"> </span><span class="t-n">q90</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">.3f</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span></pre>
+<pre class="out">least squares  negative predictions 259   test MSE     5852   Poisson deviance  85.01
+Poisson        negative predictions   0   test MSE     4990   Poisson deviance  27.62
+10%-90% quantile band covers 0.786 of test hours (target 0.80); below the band 0.112, above 0.102</pre>
+</div>
+
+<p>Least squares predicts a negative number of riders for 259 of the 2,645 test hours. Poisson regression models the log of the expected count, so its predictions are always positive; it also captures that busy hours vary more than quiet ones, and it has lower test MSE even though it was not trained on squared error. Two quantile regressions give an 80% prediction band that covers 78.6% of test hours, with misses split almost evenly above and below: an interval forecast, which no mean model provides.</p>
+
+<div class="spot" id="sp5-3" data-kind="mc">
+<span class="lbl">spot check 5.3</span>
+<p class="q">Why can a least-squares model predict negative bike counts, while Poisson regression cannot?</p>
+<ul class="opts">
+<li data-ok>Least squares models the mean as a linear function, which can go below zero; Poisson regression models the log of the mean as linear, so the mean itself is an exponential and always positive.</li>
+<li data-oh="Both use the same features here.">Poisson regression uses better features.</li>
+<li data-oh="Neither model constrains its training data; the difference is in the link between the linear score and the prediction.">Least squares is trained on negative counts.</li>
+<li data-oh="Both are fitted with ordinary numerical optimisation.">Poisson regression is fitted by a special algorithm that forbids negatives.</li>
+</ul>
+<div class="hint">What is \(\mu\) as a function of the linear score in each model?</div>
+<div class="why">Poisson regression sets \(\mu=e^{w^\top x}\), the <strong>log link</strong>; logistic regression sets \(\mu=\sigma(w^\top x)\), the logit link. Each maps a linear score into the range the outcome lives in. Models built this way are <strong>generalised linear models</strong>, and their gradients all have the form \(X^\top(\mu-y)\) (Exercise 2).</div>
+</div>
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; Classification: the 0–1 loss and its surrogates</h2>
+
+<p>For classification the loss we care about is usually the 0–1 loss. With labels \(y=\pm1\) and score \(s=f(x)\), write the <strong>margin</strong> \(m=ys\): positive when the prediction is correct, large when it is correct and confident. The 0–1 loss is \(\mathbf 1[m\le0]\). It is a step function: flat almost everywhere, so its gradient is zero and gradient descent cannot move; and minimising it over linear classifiers is NP-hard in general. So we train on a convex <strong>surrogate</strong> \(\varphi(m)\) that upper-bounds the step and has useful gradients.</p>
+
+<div class="box def">
+<span class="lbl">definition 5.3 &mdash; margin losses</span>
+<ul>
+<li>Hinge \(\max(0,1-m)\) (support vector machines, Lecture 7);</li>
+<li>logistic \(\log_2(1+e^{-m})\) (logistic regression, rescaled to equal 1 at \(m=0\));</li>
+<li>exponential \(e^{-m}\) (AdaBoost, Lecture 8);</li>
+<li>squared \((1-m)^2\);</li>
+<li>perceptron \(\max(0,-m)\) (Lecture 4).</li>
+</ul>
+</div>
+
+<p>Which surrogates are safe? Fix \(x\) with \(\eta=P(Y=1\mid x)\). The best score at \(x\) minimises the <strong>conditional \(\varphi\)-risk</strong> \(C_\eta(s)=\eta\,\varphi(s)+(1-\eta)\,\varphi(-s)\). A surrogate is <strong>classification-calibrated</strong> if, for every \(\eta\ne\tfrac12\), this minimiser has the same sign as \(2\eta-1\): it points the same way as the Bayes classifier.</p>
+
+<div class="widget" id="w-loss">
+<h4>Surrogate losses and what they learn</h4>
+<p class="wtxt">Left: losses against the margin \(m=ys\); toggle them on and off. Right: for the selected loss and a point with \(P(Y=1\mid x)=\eta\), the conditional risk \(C_\eta(s)\) and its minimiser \(s^*\) (rose).</p>
+<div class="wrow">
+<svg id="lgSvgL" viewBox="0 0 320 270" width="320" height="270" role="img" aria-label="Margin losses plotted against the margin"></svg>
+<svg id="lgSvgR" viewBox="0 0 300 270" width="300" height="270" role="img" aria-label="Conditional risk of the selected loss against the score"></svg>
+</div>
+<div class="ctrls" id="lgToggles"></div>
+<div class="ctrls">
+<label><span>loss for the right panel</span><select class="ctl" id="lgSel"><option value="log">logistic</option><option value="hinge">hinge</option><option value="exp">exponential</option><option value="sq">squared</option><option value="perc">perceptron</option><option value="zo">0–1</option></select></label>
+<label><span>η = P(Y = 1 | x) = <span id="lgEv"></span></span><input type="range" id="lgE" min="0.02" max="0.98" step="0.01" value="0.75"></label>
+</div>
+<div class="readout" id="lgOut" role="status" aria-live="polite"></div>
+</div>
+
+<div class="box thm">
+<span class="lbl">theorem 5.5 &mdash; classification-calibration of convex losses (Bartlett, Jordan &amp; McAuliffe, 2006)</span>
+<p>A convex loss \(\varphi\) is classification-calibrated if and only if it is differentiable at 0 with \(\varphi'(0)&lt;0\).</p>
+<p>For such \(\varphi\) there is an increasing function \(\psi\) with \(\psi(0)=0\) such that, for every classifier \(f\),</p>
+$$\psi\big(R_{0\text{-}1}(f)-R^*\big)\ \le\ R_\varphi(f)-R_\varphi^*,$$
+<p>so driving the surrogate risk to its minimum drives the 0–1 risk to the Bayes risk.</p>
+<button class="sol-btn">show proof sketch</button>
+<div class="sol">
+<p><em>If.</em> Take \(\eta&gt;\tfrac12\). Then</p>
+$$C_\eta'(0)=\eta\varphi'(0)-(1-\eta)\varphi'(0)=(2\eta-1)\varphi'(0)&lt;0,$$
+<p>so \(C_\eta\) is strictly decreasing at 0. A convex function decreasing at 0 takes its values on \(s\le0\) no lower than \(C_\eta(0)\), which is strictly above its infimum; so every near-minimiser has \(s&gt;0\), the sign of the Bayes classifier. The case \(\eta&lt;\tfrac12\) is symmetric.</p>
+<p><em>Only if.</em> If \(\varphi\) is not differentiable at 0, or \(\varphi'(0)\ge0\), one can find \(\eta\ne\tfrac12\) for which \(s=0\) (or a wrong-signed \(s\)) minimises \(C_\eta\); the perceptron loss is the standard example, with \(s^*=0\) for every \(\eta\).</p>
+<p>The construction of \(\psi\) is in the paper (Bartlett et al., 2006, Section 2). \(\square\)</p>
+</div>
+</div>
+
+<p>Hinge, logistic, exponential and squared losses all qualify; the perceptron loss does not (try it in the widget: \(s^*=0\) whatever \(\eta\), so it never learns which way to lean). The surrogates also differ in what \(s^*\) means. For logistic loss \(s^*=\log\frac{\eta}{1-\eta}\), the log-odds, so the score can be turned back into a probability; exponential loss gives half the log-odds; squared loss gives \(2\eta-1\). The hinge loss gives only \(s^*=\operatorname{sign}(2\eta-1)\): it learns the Bayes classifier but throws away the probability, which is why support vector machines do not output probabilities without extra calibration.</p>
+
+<div class="spot" id="sp5-4" data-kind="mc">
+<span class="lbl">spot check 5.4</span>
+<p class="q">Which of these losses is <em>not</em> classification-calibrated?</p>
+<ul class="opts">
+<li data-ok>the perceptron loss \(\max(0,-m)\)</li>
+<li data-oh="Hinge is convex, differentiable at 0, and has φ′(0) = −1.">the hinge loss \(\max(0,1-m)\)</li>
+<li data-oh="Logistic loss has φ′(0) = −1/(2 ln 2) < 0.">the logistic loss</li>
+<li data-oh="Exponential loss has φ′(0) = −1.">the exponential loss \(e^{-m}\)</li>
+</ul>
+<div class="hint">Look at the slope at \(m=0\).</div>
+<div class="why">The perceptron loss has a kink at 0, with right-hand slope 0. For any \(\eta\), \(C_\eta(s)\) is minimised at \(s=0\), which says nothing about which class is more likely. The perceptron still works on separable data because it never reaches the population minimum: it stops when the training mistakes run out.</div>
+</div>
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; Scoring probabilities: proper scoring rules</h2>
+
+<p>When the output is a probability, the loss should reward telling the truth. Suppose a forecaster believes the chance of rain is \(p\). A good scoring rule should make reporting \(p\) the best strategy, in expectation, for every \(p\).</p>
+
+<div class="box def">
+<span class="lbl">definition 5.4 &mdash; proper scoring rule</span>
+<p>A scoring rule \(S(q,y)\) charges a forecaster who reports probability \(q\) for an event that then happens (\(y=1\)) or not (\(y=0\)).</p>
+<p>It is <strong>proper</strong> if, for every true probability \(p\), the expected charge</p>
+$$\mathbb E_{Y\sim\text{Bern}(p)}S(q,Y)$$
+<p>is minimised at \(q=p\), and <strong>strictly proper</strong> if \(q=p\) is the unique minimiser.</p>
+<p>The <strong>Brier score</strong> is</p>
+$$S(q,y)=(q-y)^2;$$
+<p>the <strong>log score</strong> is</p>
+$$S(q,y)=-y\log q-(1-y)\log(1-q).$$
+</div>
+
+<div class="box thm">
+<span class="lbl">theorem 5.6 &mdash; the Brier and log scores are strictly proper</span>
+<p>If \(Y\sim\mathrm{Bern}(p)\), then for the Brier score and the log score respectively</p>
+$$\mathbb E\,S(q,Y)=(q-p)^2+p(1-p),\qquad\mathbb E\,S(q,Y)=H(p)+\mathrm{KL}\big(\mathrm{Bern}(p)\,\|\,\mathrm{Bern}(q)\big).$$
+<p>Both are uniquely minimised at \(q=p\).</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Brier:</p>
+$$\mathbb E(q-Y)^2=p(q-1)^2+(1-p)q^2=q^2-2pq+p=(q-p)^2+p(1-p).$$
+<p>Log:</p>
+$$\mathbb E\,S=-p\log q-(1-p)\log(1-q)$$
+<p>is the cross-entropy of the two Bernoulli distributions, which equals entropy plus KL divergence (Definition 5.2) and is uniquely minimised at \(q=p\) by Gibbs' inequality. \(\square\)</p>
+</div>
+</div>
+
+<p>Not every natural-looking score is proper. The absolute score \(|q-y|\) has expected value \(p(1-q)+(1-p)q\), linear in \(q\), so it is minimised by reporting 0 or 1: it rewards exaggeration (Exercise 6). Proper scores combine two virtues. <strong>Calibration</strong>: among all occasions forecast at 70%, the event happens about 70% of the time. <strong>Sharpness</strong> (or resolution): forecasts are far from the base rate, so they actually distinguish occasions. Always forecasting the base rate is perfectly calibrated and useless.</p>
+
+<div class="box data">
+<span class="lbl">data &mdash; seventy years of NBA forecasts</span>
+<p>FiveThirtyEight's pre-game win probabilities from its NBA Elo model for every regular-season and playoff game from 1946–47 to 2014–15, 63,157 games, computed retrospectively from game results with the Elo rating system (Silver &amp; Fischer-Baum, 2015). Published in FiveThirtyEight's public data repository under CC BY 4.0. We take one row per game, from the home team's point of view.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">code &mdash; scoring 63,157 probability forecasts</span>
+<pre class="src"><span class="t-n">nba</span> <span class="t-o">=</span> <span class="t-n">pd</span><span class="t-o">.</span><span class="t-fn">read_csv</span><span class="t-p">(</span><span class="t-s1">'data/nbaallelo.csv'</span><span class="t-p">)</span>
+<span class="t-n">games</span> <span class="t-o">=</span> <span class="t-n">nba</span><span class="t-p">[</span><span class="t-n">nba</span><span class="t-p">[</span><span class="t-s1">'_iscopy'</span><span class="t-p">]</span> <span class="t-o">==</span> <span class="t-mi">0</span><span class="t-p">]</span>                    <span class="t-c1"># one row per game (the other row is the opponent's view)</span>
+<span class="t-n">p</span> <span class="t-o">=</span> <span class="t-n">games</span><span class="t-p">[</span><span class="t-s1">'forecast'</span><span class="t-p">]</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">()</span>                    <span class="t-c1"># FiveThirtyEight's pre-game win probability</span>
+<span class="t-n">y</span> <span class="t-o">=</span> <span class="t-p">(</span><span class="t-n">games</span><span class="t-p">[</span><span class="t-s1">'game_result'</span><span class="t-p">]</span> <span class="t-o">==</span> <span class="t-s1">'W'</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">(</span><span class="t-nb">float</span><span class="t-p">)</span>
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">brier</span><span class="t-p">(</span><span class="t-n">q</span><span class="t-p">):</span> <span class="t-k">return</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">((</span><span class="t-n">q</span> <span class="t-o">-</span> <span class="t-n">y</span><span class="t-p">)</span> <span class="t-o">**</span> <span class="t-mi">2</span><span class="t-p">)</span>
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">logscore</span><span class="t-p">(</span><span class="t-n">q</span><span class="t-p">):</span> <span class="t-k">return</span> <span class="t-o">-</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">(</span><span class="t-n">y</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">log</span><span class="t-p">(</span><span class="t-n">q</span><span class="t-p">)</span> <span class="t-o">+</span> <span class="t-p">(</span><span class="t-mi">1</span> <span class="t-o">-</span> <span class="t-n">y</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">log</span><span class="t-p">(</span><span class="t-mi">1</span> <span class="t-o">-</span> <span class="t-n">q</span><span class="t-p">))</span>
+<span class="t-n">base</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">full_like</span><span class="t-p">(</span><span class="t-n">p</span><span class="t-p">,</span> <span class="t-n">y</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">())</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">y</span><span class="t-p">)</span><span class="t-si">}</span><span class="t-s1"> games, </span><span class="t-si">{</span><span class="t-n">games</span><span class="t-o">.</span><span class="t-n">year_id</span><span class="t-o">.</span><span class="t-fn">min</span><span class="t-p">()</span><span class="t-si">}</span><span class="t-s1">-</span><span class="t-si">{</span><span class="t-n">games</span><span class="t-o">.</span><span class="t-n">year_id</span><span class="t-o">.</span><span class="t-fn">max</span><span class="t-p">()</span><span class="t-si">}</span><span class="t-s1">; the listed team won </span><span class="t-si">{</span><span class="t-n">y</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">()</span><span class="t-si">:</span><span class="t-s1">.3f</span><span class="t-si">}</span><span class="t-s1"> of them'</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'Elo forecast : Brier </span><span class="t-si">{</span><span class="t-fn">brier</span><span class="t-p">(</span><span class="t-n">p</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">.4f</span><span class="t-si">}</span><span class="t-s1">   log score </span><span class="t-si">{</span><span class="t-fn">logscore</span><span class="t-p">(</span><span class="t-n">p</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">.4f</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'constant </span><span class="t-si">{</span><span class="t-n">y</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">()</span><span class="t-si">:</span><span class="t-s1">.3f</span><span class="t-si">}</span><span class="t-s1">: Brier </span><span class="t-si">{</span><span class="t-fn">brier</span><span class="t-p">(</span><span class="t-n">base</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">.4f</span><span class="t-si">}</span><span class="t-s1">   log score </span><span class="t-si">{</span><span class="t-fn">logscore</span><span class="t-p">(</span><span class="t-n">base</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">.4f</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span>
+<span class="t-n">bins</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">clip</span><span class="t-p">((</span><span class="t-n">p</span> <span class="t-o">*</span> <span class="t-mi">10</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">astype</span><span class="t-p">(</span><span class="t-nb">int</span><span class="t-p">),</span> <span class="t-mi">0</span><span class="t-p">,</span> <span class="t-mi">9</span><span class="t-p">)</span>
+<span class="t-n">rel</span> <span class="t-o">=</span> <span class="t-n">pd</span><span class="t-o">.</span><span class="t-fn">DataFrame</span><span class="t-p">({</span><span class="t-s1">'bin'</span><span class="t-p">:</span> <span class="t-n">bins</span><span class="t-p">,</span> <span class="t-s1">'p'</span><span class="t-p">:</span> <span class="t-n">p</span><span class="t-p">,</span> <span class="t-s1">'y'</span><span class="t-p">:</span> <span class="t-n">y</span><span class="t-p">})</span><span class="t-o">.</span><span class="t-fn">groupby</span><span class="t-p">(</span><span class="t-s1">'bin'</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">agg</span><span class="t-p">(</span><span class="t-n">n</span><span class="t-o">=</span><span class="t-p">(</span><span class="t-s1">'y'</span><span class="t-p">,</span> <span class="t-s1">'size'</span><span class="t-p">),</span> <span class="t-n">forecast</span><span class="t-o">=</span><span class="t-p">(</span><span class="t-s1">'p'</span><span class="t-p">,</span> <span class="t-s1">'mean'</span><span class="t-p">),</span> <span class="t-n">won</span><span class="t-o">=</span><span class="t-p">(</span><span class="t-s1">'y'</span><span class="t-p">,</span> <span class="t-s1">'mean'</span><span class="t-p">))</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-n">rel</span><span class="t-o">.</span><span class="t-fn">round</span><span class="t-p">(</span><span class="t-mi">3</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">to_string</span><span class="t-p">())</span></pre>
+<pre class="out">63157 games, 1947-2015; the listed team won 0.622 of them
+Elo forecast : Brier 0.2038   log score 0.5931
+constant 0.622: Brier 0.2350   log score 0.6629
+         n  forecast    won
+bin                        
+0       23     0.092  0.087
+1      675     0.166  0.181
+2     2522     0.257  0.255
+3     5053     0.354  0.350
+4     7641     0.453  0.468
+5    10518     0.553  0.552
+6    13281     0.651  0.651
+7    12541     0.749  0.747
+8     8943     0.845  0.845
+9     1960     0.923  0.928</pre>
+</div>
+
+<figure>
+<svg viewBox="0 0 420 360" width="420" height="360" role="img" aria-labelledby="frelT"><title id="frelT">Reliability diagram: for each tenth of the forecast range, the average forecast against the fraction of games won; the points lie almost exactly on the diagonal</title><rect x="58" y="14" width="346" height="294" class="plot-bg"/><line x1="58.0" y1="14" x2="58.0" y2="308" class="gridline"/><text x="58.0" y="326" class="axtext" text-anchor="middle">0</text><line x1="58" y1="308.0" x2="404" y2="308.0" class="gridline"/><text x="50" y="312.0" class="axtext" text-anchor="end">0</text><line x1="144.5" y1="14" x2="144.5" y2="308" class="gridline"/><text x="144.5" y="326" class="axtext" text-anchor="middle">0.25</text><line x1="58" y1="234.5" x2="404" y2="234.5" class="gridline"/><text x="50" y="238.5" class="axtext" text-anchor="end">0.25</text><line x1="231.0" y1="14" x2="231.0" y2="308" class="gridline"/><text x="231.0" y="326" class="axtext" text-anchor="middle">0.5</text><line x1="58" y1="161.0" x2="404" y2="161.0" class="gridline"/><text x="50" y="165.0" class="axtext" text-anchor="end">0.5</text><line x1="317.5" y1="14" x2="317.5" y2="308" class="gridline"/><text x="317.5" y="326" class="axtext" text-anchor="middle">0.75</text><line x1="58" y1="87.5" x2="404" y2="87.5" class="gridline"/><text x="50" y="91.5" class="axtext" text-anchor="end">0.75</text><line x1="404.0" y1="14" x2="404.0" y2="308" class="gridline"/><text x="404.0" y="326" class="axtext" text-anchor="middle">1</text><line x1="58" y1="14.0" x2="404" y2="14.0" class="gridline"/><text x="50" y="18.0" class="axtext" text-anchor="end">1</text><line x1="58" y1="308" x2="404" y2="14" stroke="var(--axis)" stroke-dasharray="5 4"/><polyline points="89.8,282.4 115.4,254.8 146.9,233.0 180.5,205.1 214.7,170.4 249.3,145.7 283.2,116.6 317.2,88.4 350.4,59.6 377.4,35.2" fill="none" stroke="var(--sky)" stroke-width="2"/><circle cx="89.8" cy="282.4" r="3.3" fill="var(--sky)" opacity="0.75" stroke="var(--bg)"/><circle cx="115.4" cy="254.8" r="4.6" fill="var(--sky)" opacity="0.75" stroke="var(--bg)"/><circle cx="146.9" cy="233.0" r="6.1" fill="var(--sky)" opacity="0.75" stroke="var(--bg)"/><circle cx="180.5" cy="205.1" r="7.3" fill="var(--sky)" opacity="0.75" stroke="var(--bg)"/><circle cx="214.7" cy="170.4" r="8.3" fill="var(--sky)" opacity="0.75" stroke="var(--bg)"/><circle cx="249.3" cy="145.7" r="9.2" fill="var(--sky)" opacity="0.75" stroke="var(--bg)"/><circle cx="283.2" cy="116.6" r="10.0" fill="var(--sky)" opacity="0.75" stroke="var(--bg)"/><circle cx="317.2" cy="88.4" r="9.8" fill="var(--sky)" opacity="0.75" stroke="var(--bg)"/><circle cx="350.4" cy="59.6" r="8.7" fill="var(--sky)" opacity="0.75" stroke="var(--bg)"/><circle cx="377.4" cy="35.2" r="5.7" fill="var(--sky)" opacity="0.75" stroke="var(--bg)"/><text x="231.0" y="348" class="axtext" text-anchor="middle">average forecast win probability</text><text x="16" y="161.0" class="axtext" text-anchor="middle" transform="rotate(-90 16 161.0)">fraction of games won</text></svg>
+<figcaption>Reliability diagram for the Elo forecasts. Each dot is one tenth of the forecast range (dot area proportional to the number of games); a perfectly calibrated forecaster lies on the dashed diagonal.</figcaption>
+</figure>
+
+<p>The forecasts are remarkably well calibrated: games forecast at 65% were won 65.1% of the time, and every bin is within about two points of the diagonal. They are also sharp enough to beat the best constant, the home team's 62.2% win rate, by 13% in Brier score. For the constant forecast, the Brier score equals \(\bar y(1-\bar y)\), the irreducible "uncertainty" of a coin with that bias (Exercise 7).</p>
+
+<div class="spot" id="sp5-5" data-kind="num" data-ans="0.25">
+<span class="lbl">spot check 5.5</span>
+<p class="q">A forecaster always says 50%. What is their Brier score, whatever happens?</p>
+<div class="hint">Each game contributes \((0.5-y)^2\) with \(y\in\{0,1\}\).</div>
+<div class="why">\(0.25\) every time. Any useful forecaster of a balanced event must beat 0.25; the Elo model's 0.204 against the home-team constant's 0.235 shows how much skill there is in it.</div>
+</div>
+
+<div class="spot" id="sp5-6" data-kind="mc">
+<span class="lbl">spot check 5.6</span>
+<p class="q">You believe an event has probability 0.6. Under the Brier score, what happens to your expected score if you report 0.7 instead?</p>
+<ul class="opts">
+<li data-ok>It gets worse, by \((0.7-0.6)^2=0.01\).</li>
+<li data-oh="Exaggerating towards the more likely outcome is exactly what a proper score penalises.">It improves, because 0.7 is closer to the likely outcome.</li>
+<li data-oh="The expected score depends on the report through (q − p)².">It is unchanged.</li>
+<li data-oh="The penalty is the squared distance, not the distance.">It gets worse by 0.1.</li>
+</ul>
+<div class="hint">Use \(\mathbb E\,S=(q-p)^2+p(1-p)\).</div>
+<div class="why">Honest reporting gives \(0.24\); reporting 0.7 gives \(0.25\). Proper scores make honesty the best policy, which is why weather services, forecasting tournaments and probabilistic machine learning use them.</div>
+</div>
+
+<!-- =================== 6 =================== -->
+<h2 id="s6">6 &mdash; Bias and variance, precisely</h2>
+
+<p>Lecture 1 decomposed squared error at a single point. Averaging over test points gives the version used in practice. Fix a learning algorithm; let \(\hat f_S\) be its fit on a random training set \(S\), and \(\bar f(x)=\mathbb E_S\hat f_S(x)\) its average fit.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 5.7 &mdash; bias–variance decomposition</span>
+<p>If \(Y=f(X)+\varepsilon\) with \(\mathbb E[\varepsilon\mid X]=0\) and \(\mathrm{Var}(\varepsilon\mid X)=\sigma^2\), and the test point \((X,Y)\) is independent of \(S\), then</p>
+$$\mathbb E_{S,X,Y}\big[(Y-\hat f_S(X))^2\big]=\sigma^2+\underbrace{\mathbb E_X\big[(\bar f(X)-f(X))^2\big]}_{\text{bias}^2}+\underbrace{\mathbb E_X\big[\mathrm{Var}_S\,\hat f_S(X)\big]}_{\text{variance}}.$$
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Condition on \(X=x\). Proposition 1.2 gives</p>
+$$\mathbb E\big[(Y-\hat f_S(x))^2\mid X=x\big]=\sigma^2+(\bar f(x)-f(x))^2+\mathrm{Var}_S\hat f_S(x),$$
+<p>using the independence of \(S\) and the test noise. Averaging over \(X\) gives the result. \(\square\)</p>
+</div>
+</div>
+
+<p>To see the trade-off, simulate. The truth is \(f(x)=\sin2\pi x\) on \([0,1]\), each training set has 30 points with noise standard deviation 0.3, and the learner fits a polynomial of degree \(d\) by least squares.</p>
+
+<div class="box tool">
+<span class="lbl">code &mdash; bias and variance of polynomial fits, from 4000 training sets</span>
+<pre class="src"><span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">numpy.polynomial</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">legendre</span>
+
+<span class="t-n">rng</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-fn">default_rng</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">)</span>
+<span class="t-n">f</span> <span class="t-o">=</span> <span class="t-k">lambda</span> <span class="t-n">x</span><span class="t-p">:</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sin</span><span class="t-p">(</span><span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">pi</span> <span class="t-o">*</span> <span class="t-n">x</span><span class="t-p">)</span>                 <span class="t-c1"># the truth</span>
+<span class="t-n">sigma</span><span class="t-p">,</span> <span class="t-n">n</span> <span class="t-o">=</span> <span class="t-mf">0.3</span><span class="t-p">,</span> <span class="t-mi">30</span>
+<span class="t-n">xg</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">linspace</span><span class="t-p">(</span><span class="t-mf">0.05</span><span class="t-p">,</span> <span class="t-mf">0.95</span><span class="t-p">,</span> <span class="t-mi">91</span><span class="t-p">)</span>                    <span class="t-c1"># where we measure bias and variance</span>
+<span class="t-k">for</span> <span class="t-n">deg</span> <span class="t-ow">in</span> <span class="t-p">[</span><span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">3</span><span class="t-p">,</span> <span class="t-mi">5</span><span class="t-p">,</span> <span class="t-mi">7</span><span class="t-p">,</span> <span class="t-mi">9</span><span class="t-p">,</span> <span class="t-mi">11</span><span class="t-p">]:</span>
+    <span class="t-n">fits</span> <span class="t-o">=</span> <span class="t-p">[]</span>
+    <span class="t-k">for</span> <span class="t-n">rep</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-mi">4000</span><span class="t-p">):</span>                         <span class="t-c1"># 4000 independent training sets</span>
+        <span class="t-n">x</span> <span class="t-o">=</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-fn">uniform</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-n">n</span><span class="t-p">)</span>
+        <span class="t-n">y</span> <span class="t-o">=</span> <span class="t-fn">f</span><span class="t-p">(</span><span class="t-n">x</span><span class="t-p">)</span> <span class="t-o">+</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-fn">normal</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-n">sigma</span><span class="t-p">,</span> <span class="t-n">n</span><span class="t-p">)</span>
+        <span class="t-n">fits</span><span class="t-o">.</span><span class="t-fn">append</span><span class="t-p">(</span><span class="t-n">legendre</span><span class="t-o">.</span><span class="t-fn">legval</span><span class="t-p">(</span><span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">xg</span> <span class="t-o">-</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-n">legendre</span><span class="t-o">.</span><span class="t-fn">legfit</span><span class="t-p">(</span><span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">x</span> <span class="t-o">-</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-n">y</span><span class="t-p">,</span> <span class="t-n">deg</span><span class="t-p">)))</span>
+    <span class="t-n">fits</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">array</span><span class="t-p">(</span><span class="t-n">fits</span><span class="t-p">)</span>
+    <span class="t-n">bias2</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">((</span><span class="t-n">fits</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">(</span><span class="t-n">axis</span><span class="t-o">=</span><span class="t-mi">0</span><span class="t-p">)</span> <span class="t-o">-</span> <span class="t-fn">f</span><span class="t-p">(</span><span class="t-n">xg</span><span class="t-p">))</span> <span class="t-o">**</span> <span class="t-mi">2</span><span class="t-p">)</span>
+    <span class="t-n">var</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">(</span><span class="t-n">fits</span><span class="t-o">.</span><span class="t-fn">var</span><span class="t-p">(</span><span class="t-n">axis</span><span class="t-o">=</span><span class="t-mi">0</span><span class="t-p">))</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'degree </span><span class="t-si">{</span><span class="t-n">deg</span><span class="t-si">:</span><span class="t-s1">2d</span><span class="t-si">}</span><span class="t-s1">: bias^2 </span><span class="t-si">{</span><span class="t-n">bias2</span><span class="t-si">:</span><span class="t-s1">.4f</span><span class="t-si">}</span><span class="t-s1">   variance </span><span class="t-si">{</span><span class="t-n">var</span><span class="t-si">:</span><span class="t-s1">.4f</span><span class="t-si">}</span><span class="t-s1">   expected test MSE </span><span class="t-si">{</span><span class="t-n">sigma</span><span class="t-o">**</span><span class="t-mi">2</span><span class="t-w"> </span><span class="t-o">+</span><span class="t-w"> </span><span class="t-n">bias2</span><span class="t-w"> </span><span class="t-o">+</span><span class="t-w"> </span><span class="t-n">var</span><span class="t-si">:</span><span class="t-s1">.4f</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span></pre>
+<pre class="out">degree  1: bias^2 0.1528   variance 0.0203   expected test MSE 0.2631
+degree  3: bias^2 0.0030   variance 0.0129   expected test MSE 0.1059
+degree  5: bias^2 0.0000   variance 0.0248   expected test MSE 0.1148
+degree  7: bias^2 0.0000   variance 0.2300   expected test MSE 0.3201
+degree  9: bias^2 0.0108   variance 12.9336   expected test MSE 13.0344
+degree 11: bias^2 0.0148   variance 90.7140   expected test MSE 90.8188</pre>
+</div>
+
+<div class="widget" id="w-bv">
+<h4>The trade-off, live</h4>
+<p class="wtxt">Left: the truth (amber) and fits from 25 training sets (sky), with their average (moss). Right: bias², variance and expected test MSE for every degree (log scale), from 200 training sets. Change the degree and the training-set size.</p>
+<div class="wrow">
+<svg id="bvL" viewBox="0 0 330 270" width="330" height="270" role="img" aria-label="Polynomial fits from many training sets around the true curve"></svg>
+<svg id="bvR" viewBox="0 0 300 270" width="300" height="270" role="img" aria-label="Bias squared, variance and total error against polynomial degree"></svg>
+</div>
+<div class="ctrls">
+<label><span>degree d = <span id="bvDv"></span></span><input type="range" id="bvD" min="0" max="12" step="1" value="3"></label>
+<label><span>training points n = <span id="bvNv"></span></span><input type="range" id="bvN" min="15" max="120" step="5" value="30"></label>
+<button class="ctl" type="button" id="bvNew">draw new training sets</button>
+</div>
+<div class="readout" id="bvOut" role="status" aria-live="polite"></div>
+</div>
+
+<p>Degree 1 cannot bend (bias² 0.153); by degree 3 bias is nearly gone and variance is still small, so degree 3 has the lowest expected test error. Beyond that, bias stays near zero while variance explodes: at degree 11 it is 91, from fits that swing wildly near the ends of the interval. Increase \(n\) in the widget and watch the variance curve drop, letting higher degrees become affordable: more data buys more complexity.</p>
+
+<p>For ridge regression the two terms can be written down exactly, using the singular value decomposition of Lecture 2.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 5.8 &mdash; bias and variance of ridge regression</span>
+<p>Let the design \(X\) (\(n\times p\)) be fixed, with SVD</p>
+$$X=\sum_i\sigma_iu_iv_i^\top,$$
+<p>and \(y=X\beta+\varepsilon\) with \(\mathrm{Cov}(\varepsilon)=\sigma^2I\). The ridge fit \(\hat y_\lambda=X\hat\beta_\lambda\) has, averaged over the \(n\) training inputs,</p>
+$$\text{bias}^2(\lambda)=\frac1n\sum_i\Big(\frac{\lambda}{\sigma_i^2+\lambda}\Big)^2\big(u_i^\top X\beta\big)^2,\qquad\text{variance}(\lambda)=\frac{\sigma^2}{n}\sum_i\Big(\frac{\sigma_i^2}{\sigma_i^2+\lambda}\Big)^2.$$
+<p>Bias² increases and variance decreases as \(\lambda\) grows. At \(\lambda=0\) the variance is \(\sigma^2p/n\).</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>From Proposition 3.5,</p>
+$$\hat y_\lambda=\sum_is_i\,u_iu_i^\top y$$
+<p>with shrinkage factors \(s_i=\sigma_i^2/(\sigma_i^2+\lambda)\). Its mean is \(\sum_is_iu_iu_i^\top X\beta\); since \(X\beta\) lies in the span of the \(u_i\), \(X\beta=\sum_iu_iu_i^\top X\beta\), so the mean error is</p>
+$$-\sum_i(1-s_i)u_iu_i^\top X\beta,$$
+<p>with squared length \(\sum_i(1-s_i)^2(u_i^\top X\beta)^2\), and \(1-s_i=\lambda/(\sigma_i^2+\lambda)\).</p>
+<p>The fluctuation \(\sum_is_iu_iu_i^\top\varepsilon\) has covariance</p>
+$$\sigma^2\sum_is_i^2u_iu_i^\top,$$
+<p>whose trace is \(\sigma^2\sum_is_i^2\). Divide both by \(n\). Each \(1-s_i\) increases and each \(s_i\) decreases in \(\lambda\). \(\square\)</p>
+</div>
+</div>
+
+<div class="box tool">
+<span class="lbl">code &mdash; ridge bias and variance from the formula, checked by simulation</span>
+<pre class="src"><span class="t-n">rng</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-fn">default_rng</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">)</span>
+<span class="t-n">n</span><span class="t-p">,</span> <span class="t-n">p_</span><span class="t-p">,</span> <span class="t-n">sig</span> <span class="t-o">=</span> <span class="t-mi">50</span><span class="t-p">,</span> <span class="t-mi">10</span><span class="t-p">,</span> <span class="t-mf">3.0</span>
+<span class="t-n">C</span> <span class="t-o">=</span> <span class="t-mf">0.8</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">ones</span><span class="t-p">((</span><span class="t-n">p_</span><span class="t-p">,</span> <span class="t-n">p_</span><span class="t-p">))</span> <span class="t-o">+</span> <span class="t-mf">0.2</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">eye</span><span class="t-p">(</span><span class="t-n">p_</span><span class="t-p">)</span>       <span class="t-c1"># strongly correlated features</span>
+<span class="t-n">X</span> <span class="t-o">=</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-fn">normal</span><span class="t-p">(</span><span class="t-n">size</span><span class="t-o">=</span><span class="t-p">(</span><span class="t-n">n</span><span class="t-p">,</span> <span class="t-n">p_</span><span class="t-p">))</span> <span class="t-o">@</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">linalg</span><span class="t-o">.</span><span class="t-fn">cholesky</span><span class="t-p">(</span><span class="t-n">C</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-n">T</span>
+<span class="t-n">beta</span> <span class="t-o">=</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-fn">normal</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-n">p_</span><span class="t-p">)</span>
+<span class="t-n">U</span><span class="t-p">,</span> <span class="t-n">s</span><span class="t-p">,</span> <span class="t-n">Vt</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">linalg</span><span class="t-o">.</span><span class="t-fn">svd</span><span class="t-p">(</span><span class="t-n">X</span><span class="t-p">,</span> <span class="t-n">full_matrices</span><span class="t-o">=</span><span class="t-kc">False</span><span class="t-p">)</span>
+
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">ridge_bias_var</span><span class="t-p">(</span><span class="t-n">lam</span><span class="t-p">):</span>                            <span class="t-c1"># exact, from the SVD (Theorem 5.8)</span>
+    <span class="t-n">shrink</span> <span class="t-o">=</span> <span class="t-n">s</span> <span class="t-o">**</span> <span class="t-mi">2</span> <span class="t-o">/</span> <span class="t-p">(</span><span class="t-n">s</span> <span class="t-o">**</span> <span class="t-mi">2</span> <span class="t-o">+</span> <span class="t-n">lam</span><span class="t-p">)</span>
+    <span class="t-n">mean_fit</span> <span class="t-o">=</span> <span class="t-n">U</span> <span class="t-o">@</span> <span class="t-p">(</span><span class="t-n">shrink</span> <span class="t-o">*</span> <span class="t-p">(</span><span class="t-n">U</span><span class="t-o">.</span><span class="t-n">T</span> <span class="t-o">@</span> <span class="t-p">(</span><span class="t-n">X</span> <span class="t-o">@</span> <span class="t-n">beta</span><span class="t-p">)))</span>     <span class="t-c1"># E[X beta_hat]</span>
+    <span class="t-k">return</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">((</span><span class="t-n">mean_fit</span> <span class="t-o">-</span> <span class="t-n">X</span> <span class="t-o">@</span> <span class="t-n">beta</span><span class="t-p">)</span> <span class="t-o">**</span> <span class="t-mi">2</span><span class="t-p">),</span> <span class="t-n">sig</span> <span class="t-o">**</span> <span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sum</span><span class="t-p">(</span><span class="t-n">shrink</span> <span class="t-o">**</span> <span class="t-mi">2</span><span class="t-p">)</span> <span class="t-o">/</span> <span class="t-n">n</span>
+
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'singular values of X:'</span><span class="t-p">,</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">round</span><span class="t-p">(</span><span class="t-n">s</span><span class="t-p">,</span> <span class="t-mi">2</span><span class="t-p">))</span>
+<span class="t-k">for</span> <span class="t-n">lam</span> <span class="t-ow">in</span> <span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">3</span><span class="t-p">,</span> <span class="t-mi">10</span><span class="t-p">,</span> <span class="t-mi">30</span><span class="t-p">,</span> <span class="t-mi">100</span><span class="t-p">,</span> <span class="t-mi">1000</span><span class="t-p">]:</span>
+    <span class="t-n">b2</span><span class="t-p">,</span> <span class="t-n">v</span> <span class="t-o">=</span> <span class="t-fn">ridge_bias_var</span><span class="t-p">(</span><span class="t-n">lam</span><span class="t-p">)</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'lambda = </span><span class="t-si">{</span><span class="t-n">lam</span><span class="t-si">:</span><span class="t-s1">5</span><span class="t-si">}</span><span class="t-s1">: bias^2 </span><span class="t-si">{</span><span class="t-n">b2</span><span class="t-si">:</span><span class="t-s1">.4f</span><span class="t-si">}</span><span class="t-s1">   variance </span><span class="t-si">{</span><span class="t-n">v</span><span class="t-si">:</span><span class="t-s1">.4f</span><span class="t-si">}</span><span class="t-s1">   sum </span><span class="t-si">{</span><span class="t-n">b2</span><span class="t-w"> </span><span class="t-o">+</span><span class="t-w"> </span><span class="t-n">v</span><span class="t-si">:</span><span class="t-s1">.4f</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span>
+
+<span class="t-n">lam</span> <span class="t-o">=</span> <span class="t-mi">10</span>                                            <span class="t-c1"># Monte Carlo check at one lambda</span>
+<span class="t-n">fits</span> <span class="t-o">=</span> <span class="t-p">[]</span>
+<span class="t-k">for</span> <span class="t-n">rep</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-mi">20000</span><span class="t-p">):</span>
+    <span class="t-n">yy</span> <span class="t-o">=</span> <span class="t-n">X</span> <span class="t-o">@</span> <span class="t-n">beta</span> <span class="t-o">+</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-fn">normal</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-n">sig</span><span class="t-p">,</span> <span class="t-n">n</span><span class="t-p">)</span>
+    <span class="t-n">fits</span><span class="t-o">.</span><span class="t-fn">append</span><span class="t-p">(</span><span class="t-n">X</span> <span class="t-o">@</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">linalg</span><span class="t-o">.</span><span class="t-fn">solve</span><span class="t-p">(</span><span class="t-n">X</span><span class="t-o">.</span><span class="t-n">T</span> <span class="t-o">@</span> <span class="t-n">X</span> <span class="t-o">+</span> <span class="t-n">lam</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">eye</span><span class="t-p">(</span><span class="t-n">p_</span><span class="t-p">),</span> <span class="t-n">X</span><span class="t-o">.</span><span class="t-n">T</span> <span class="t-o">@</span> <span class="t-n">yy</span><span class="t-p">))</span>
+<span class="t-n">fits</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">array</span><span class="t-p">(</span><span class="t-n">fits</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'simulated at lambda = 10: bias^2'</span><span class="t-p">,</span> <span class="t-nb">round</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">((</span><span class="t-n">fits</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">)</span> <span class="t-o">-</span> <span class="t-n">X</span> <span class="t-o">@</span> <span class="t-n">beta</span><span class="t-p">)</span> <span class="t-o">**</span> <span class="t-mi">2</span><span class="t-p">),</span> <span class="t-mi">4</span><span class="t-p">),</span>
+      <span class="t-s1">'  variance'</span><span class="t-p">,</span> <span class="t-nb">round</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">(</span><span class="t-n">fits</span><span class="t-o">.</span><span class="t-fn">var</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">)),</span> <span class="t-mi">4</span><span class="t-p">))</span></pre>
+<pre class="out">singular values of X: [17.28  3.91  3.6   3.05  2.99  2.72  2.38  2.21  2.15  1.99]
+lambda =     0: bias^2 0.0000   variance 1.8000   sum 1.8000
+lambda =     1: bias^2 0.0256   variance 1.4151   sum 1.4407
+lambda =     3: bias^2 0.1562   variance 0.9865   sum 1.1427
+lambda =    10: bias^2 0.6763   variance 0.4817   sum 1.1580
+lambda =    30: bias^2 1.4478   variance 0.2260   sum 1.6737
+lambda =   100: bias^2 2.1635   variance 0.1114   sum 2.2749
+lambda =  1000: bias^2 3.5226   variance 0.0096   sum 3.5322
+simulated at lambda = 10: bias^2 0.6742   variance 0.4804</pre>
+</div>
+
+<p>With ten strongly correlated features (one large singular value and nine small ones) and noisy data, least squares has variance 1.80. A modest penalty, \(\lambda\) between 3 and 10, trades a little bias for a large drop in variance and cuts the total by more than a third; a large penalty over-shrinks. The simulation at \(\lambda=10\) agrees with the formula to two decimals.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 5.9 &mdash; bias and variance of kNN regression (fixed design)</span>
+<p>With fixed training inputs \(x_1,\dots,x_n\) and \(y_i=f(x_i)+\varepsilon_i\), the kNN prediction at \(x_0\) has</p>
+$$\text{bias}=\frac1k\sum_{i\in N_k(x_0)}f(x_i)-f(x_0),\qquad\text{variance}=\frac{\sigma^2}{k}.$$
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>With the inputs fixed, the neighbour set \(N_k(x_0)\) is fixed. The prediction</p>
+$$\frac1k\sum_{i\in N_k}(f(x_i)+\varepsilon_i)$$
+<p>has mean \(\frac1k\sum f(x_i)\) and, the \(\varepsilon_i\) being independent with variance \(\sigma^2\), variance \(\sigma^2/k\). \(\square\)</p>
+<p>This is the dartboard of Lecture 1 made exact: variance falls like \(1/k\), while bias grows as the neighbourhood reaches points where \(f\) differs.</p>
+</div>
+</div>
+
+<div class="spot" id="sp5-7" data-kind="select">
+<span class="lbl">spot check 5.7</span>
+<p class="q">As the ridge penalty \(\lambda\) increases, bias²
+<select class="sp" aria-label="bias"><option>choose</option><option data-ok>increases</option><option data-hint="Each factor λ/(σᵢ² + λ) grows with λ.">decreases</option></select>
+and variance
+<select class="sp" aria-label="variance"><option>choose</option><option data-hint="Each shrinkage factor σᵢ²/(σᵢ² + λ) falls with λ.">increases</option><option data-ok>decreases</option></select>;
+the directions shrunk most are those with
+<select class="sp" aria-label="directions"><option>choose</option><option data-ok>small singular values</option><option data-hint="Large σᵢ gives a factor near 1: barely shrunk.">large singular values</option></select>.</p>
+<div class="hint">Theorem 5.8.</div>
+<div class="why">Small singular values are directions the data barely pin down, where least squares is noisiest. Ridge shrinks exactly those, which is why it helps most when features are correlated.</div>
+</div>
+
+<div class="box idea">
+<span class="lbl">bias and variance for 0–1 loss</span>
+<p>The clean additive decomposition is special to squared loss. For classification with 0–1 loss, several competing definitions exist, and none adds up neatly. Worse, variance can <em>help</em>: at a point where the average classifier is on the wrong side of the Bayes boundary, random fluctuations sometimes push it to the right side (Friedman, 1997; James, 2003). This is one reason classifiers can tolerate a lot of variance in their scores, and one reason ensembles that average many unstable classifiers (Lecture 8) work so well.</p>
+</div>
+
+<!-- =================== 7 =================== -->
+<h2 id="s7">7 &mdash; Approximation, estimation, and choosing complexity</h2>
+
+<p>Bias and variance describe one algorithm averaged over training sets. A second decomposition, useful for reading theory papers, splits the excess risk of the predictor we actually get. Let \(R^*\) be the Bayes risk, \(h^*_{\mathcal H}\) the best predictor in the hypothesis class \(\mathcal H\), \(\hat h\) the exact empirical risk minimiser, and \(\tilde h\) what our optimiser actually returns. Then</p>
+$$R(\tilde h)-R^*=\underbrace{R(h^*_{\mathcal H})-R^*}_{\text{approximation}}+\underbrace{R(\hat h)-R(h^*_{\mathcal H})}_{\text{estimation}}+\underbrace{R(\tilde h)-R(\hat h)}_{\text{optimisation}}.$$
+<p>A richer class lowers the approximation error and raises the estimation error, the analogue of bias and variance; Lecture 6 bounds the estimation error in terms of the class's complexity. The optimisation term is a modern addition (Bottou &amp; Bousquet, 2008): with huge datasets it can be better to optimise a rich model roughly than a poor one exactly.</p>
+
+<p>In practice we choose complexity by cross-validation. A refinement guards against noise in the CV curve: the <strong>one-standard-error rule</strong> picks the simplest model whose CV error is within one standard error of the minimum.</p>
+
+<div class="box tool">
+<span class="lbl">code &mdash; the one-standard-error rule</span>
+<pre class="src"><span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">sklearn.model_selection</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">KFold</span>
+
+<span class="t-n">rng</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-fn">default_rng</span><span class="t-p">(</span><span class="t-mi">7</span><span class="t-p">)</span>
+<span class="t-n">x</span> <span class="t-o">=</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-fn">uniform</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">40</span><span class="t-p">);</span> <span class="t-n">y</span> <span class="t-o">=</span> <span class="t-fn">f</span><span class="t-p">(</span><span class="t-n">x</span><span class="t-p">)</span> <span class="t-o">+</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-fn">normal</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-n">sigma</span><span class="t-p">,</span> <span class="t-mi">40</span><span class="t-p">)</span>
+<span class="t-n">rows</span> <span class="t-o">=</span> <span class="t-p">[]</span>
+<span class="t-k">for</span> <span class="t-n">deg</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">13</span><span class="t-p">):</span>
+    <span class="t-n">errs</span> <span class="t-o">=</span> <span class="t-p">[]</span>
+    <span class="t-k">for</span> <span class="t-n">a_</span><span class="t-p">,</span> <span class="t-n">b_</span> <span class="t-ow">in</span> <span class="t-fn">KFold</span><span class="t-p">(</span><span class="t-mi">10</span><span class="t-p">,</span> <span class="t-n">shuffle</span><span class="t-o">=</span><span class="t-kc">True</span><span class="t-p">,</span> <span class="t-n">random_state</span><span class="t-o">=</span><span class="t-mi">0</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">split</span><span class="t-p">(</span><span class="t-n">x</span><span class="t-p">):</span>
+        <span class="t-n">c</span> <span class="t-o">=</span> <span class="t-n">legendre</span><span class="t-o">.</span><span class="t-fn">legfit</span><span class="t-p">(</span><span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">x</span><span class="t-p">[</span><span class="t-n">a_</span><span class="t-p">]</span> <span class="t-o">-</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-n">y</span><span class="t-p">[</span><span class="t-n">a_</span><span class="t-p">],</span> <span class="t-n">deg</span><span class="t-p">)</span>
+        <span class="t-n">errs</span><span class="t-o">.</span><span class="t-fn">append</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">((</span><span class="t-n">legendre</span><span class="t-o">.</span><span class="t-fn">legval</span><span class="t-p">(</span><span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">x</span><span class="t-p">[</span><span class="t-n">b_</span><span class="t-p">]</span> <span class="t-o">-</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-n">c</span><span class="t-p">)</span> <span class="t-o">-</span> <span class="t-n">y</span><span class="t-p">[</span><span class="t-n">b_</span><span class="t-p">])</span> <span class="t-o">**</span> <span class="t-mi">2</span><span class="t-p">))</span>
+    <span class="t-n">rows</span><span class="t-o">.</span><span class="t-fn">append</span><span class="t-p">((</span><span class="t-n">deg</span><span class="t-p">,</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">(</span><span class="t-n">errs</span><span class="t-p">),</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">std</span><span class="t-p">(</span><span class="t-n">errs</span><span class="t-p">)</span> <span class="t-o">/</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sqrt</span><span class="t-p">(</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">errs</span><span class="t-p">))))</span>   <span class="t-c1"># CV estimate and its standard error</span>
+<span class="t-n">best</span> <span class="t-o">=</span> <span class="t-nb">min</span><span class="t-p">(</span><span class="t-n">rows</span><span class="t-p">,</span> <span class="t-n">key</span><span class="t-o">=</span><span class="t-k">lambda</span> <span class="t-n">r</span><span class="t-p">:</span> <span class="t-n">r</span><span class="t-p">[</span><span class="t-mi">1</span><span class="t-p">])</span>
+<span class="t-n">one_se</span> <span class="t-o">=</span> <span class="t-nb">min</span><span class="t-p">(</span><span class="t-n">r</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">]</span> <span class="t-k">for</span> <span class="t-n">r</span> <span class="t-ow">in</span> <span class="t-n">rows</span> <span class="t-k">if</span> <span class="t-n">r</span><span class="t-p">[</span><span class="t-mi">1</span><span class="t-p">]</span> <span class="t-o">&lt;=</span> <span class="t-n">best</span><span class="t-p">[</span><span class="t-mi">1</span><span class="t-p">]</span> <span class="t-o">+</span> <span class="t-n">best</span><span class="t-p">[</span><span class="t-mi">2</span><span class="t-p">])</span>           <span class="t-c1"># simplest model within one SE of the best</span>
+<span class="t-k">for</span> <span class="t-n">deg</span><span class="t-p">,</span> <span class="t-n">m</span><span class="t-p">,</span> <span class="t-n">se</span> <span class="t-ow">in</span> <span class="t-n">rows</span><span class="t-p">[:</span><span class="t-mi">9</span><span class="t-p">]:</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'degree </span><span class="t-si">{</span><span class="t-n">deg</span><span class="t-si">:</span><span class="t-s1">2d</span><span class="t-si">}</span><span class="t-s1">: CV MSE </span><span class="t-si">{</span><span class="t-n">m</span><span class="t-si">:</span><span class="t-s1">.4f</span><span class="t-si">}</span><span class="t-s1"> (SE </span><span class="t-si">{</span><span class="t-n">se</span><span class="t-si">:</span><span class="t-s1">.4f</span><span class="t-si">}</span><span class="t-s1">)'</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'lowest CV error at degree'</span><span class="t-p">,</span> <span class="t-n">best</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">],</span> <span class="t-s1">'; one-standard-error rule picks degree'</span><span class="t-p">,</span> <span class="t-n">one_se</span><span class="t-p">)</span></pre>
+<pre class="out">degree  1: CV MSE 0.4119 (SE 0.0662)
+degree  2: CV MSE 0.4221 (SE 0.0679)
+degree  3: CV MSE 0.0669 (SE 0.0136)
+degree  4: CV MSE 0.0660 (SE 0.0134)
+degree  5: CV MSE 0.0620 (SE 0.0121)
+degree  6: CV MSE 0.0686 (SE 0.0124)
+degree  7: CV MSE 0.0739 (SE 0.0127)
+degree  8: CV MSE 0.0739 (SE 0.0107)
+degree  9: CV MSE 0.0747 (SE 0.0118)
+lowest CV error at degree 5 ; one-standard-error rule picks degree 3</pre>
+</div>
+
+<p>Degrees 3, 4 and 5 are statistically indistinguishable (differences of 0.005 against standard errors of 0.012); the rule prefers the simplest, degree 3, which matches the truth-based optimum of the simulation above.</p>
+
+<div class="spot" id="sp5-8" data-kind="mc">
+<span class="lbl">spot check 5.8</span>
+<p class="q">Why choose the simplest model within one standard error of the best CV score, rather than the best score itself?</p>
+<ul class="opts">
+<li data-ok>CV estimates are noisy; differences smaller than their standard error are not reliable, and among models that perform equally well, the simpler one has lower variance and is easier to interpret.</li>
+<li data-oh="The rule usually picks a model with slightly higher CV error, not lower.">The simpler model always has lower test error.</li>
+<li data-oh="It is a heuristic, not a theorem; it tends to work because of the noise in CV.">The rule is guaranteed to choose the Bayes-optimal model.</li>
+<li data-oh="Both choices use the same cross-validation folds.">It avoids using a validation set.</li>
+</ul>
+<div class="hint">How large are the differences between degrees 3, 4 and 5 compared with their standard errors?</div>
+<div class="why">The rule is a guard against chasing noise, popularised by Breiman et al. (1984) for tree pruning and by Hastie, Tibshirani and Friedman for the lasso.</div>
+</div>
+
+<p>The U-curve is not the end of the story. Very flexible models such as large neural networks often have more parameters than training points, interpolate the training data exactly, and still generalise well. As complexity grows past the interpolation point, test error can fall again: <strong>double descent</strong>. Lecture 6 shows it happening and explains part of why.</p>
+
+<div class="box causal">
+<span class="lbl">causal &mdash; a loss for something you never observe</span>
+<p>A treatment effect for one person, \(Y_i(1)-Y_i(0)\), is never observed, so there is no label to compute a loss against. Nie and Wager's (2021) <strong>R-learner</strong> manufactures one from the Frisch–Waugh–Lovell idea of Lecture 3. With \(\hat m(x)\) predicting the outcome and \(\hat e(x)\) predicting treatment (the propensity score of Lecture 4), estimate the effect function \(\tau(x)\) by minimising</p>
+$$\frac1n\sum_i\Big[\big(Y_i-\hat m(X_i)\big)-\big(T_i-\hat e(X_i)\big)\,\tau(X_i)\Big]^2+\text{penalty}(\tau).$$
+<p>This "R-loss" is minimised in expectation by the true effect function under unconfoundedness, so any method that minimises a loss (lasso, boosting, neural networks) can be turned into a heterogeneous-effect estimator. Designing the right loss is often the whole problem.</p>
+</div>
+
+<div class="box quantum">
+<span class="lbl">quantum &mdash; the loss decides whether a quantum circuit can learn at all</span>
+<p>Variational quantum algorithms train a parameterised circuit by minimising a cost function estimated from measurements. Cerezo et al. (2021) showed that the choice of cost matters dramatically. A <strong>global</strong> cost, such as one minus the overlap between the output state and a target state, has gradients that vanish exponentially in the number of qubits even for shallow circuits: a "barren plateau" where the landscape is flat everywhere the optimiser can see. A <strong>local</strong> cost, averaging terms that each involve one or a few qubits, has gradients that shrink only polynomially for shallow circuits, and is trainable. Both costs have the same minimiser. The lesson matches this lecture's: two losses with the same target can behave completely differently during training.</p>
+</div>
+
+<!-- =================== 8 =================== -->
+<h2 id="s8">8 &mdash; Losses you will meet later</h2>
+
+<div class="tscroll"><table>
+<tr><th>loss</th><th>what it is for</th><th>where</th></tr>
+<tr><td>pairwise ranking (logistic or hinge on score differences)</td><td>ordering search results and recommendations</td><td>Lecture 8 (LambdaMART)</td></tr>
+<tr><td>contrastive / InfoNCE</td><td>pull matching pairs together and push others apart, to learn embeddings without labels</td><td>Lectures 12, 14, 19</td></tr>
+<tr><td>negative ELBO</td><td>fit latent-variable models by maximising a lower bound on the likelihood</td><td>Lectures 16, 17</td></tr>
+<tr><td>focal loss</td><td>down-weight easy examples in very imbalanced classification</td><td>Lecture 19</td></tr>
+<tr><td>Bradley–Terry preference loss \(-\log\sigma(r(a)-r(b))\)</td><td>learn a reward from human comparisons "a is better than b"</td><td>Lecture 22</td></tr>
+</table></div>
+
+<div class="box big">
+<span class="lbl">big picture &mdash; choosing the loss is choosing the product</span>
+<p>Retail and logistics forecasters train neural networks on the pinball loss at several quantiles at once, because stocking decisions depend on the 90th or 95th percentile of demand, not its mean; Amazon's MQ-RNN (Wen et al., 2017) is a published example. Object detectors use the focal loss (Lin et al., 2017) because nearly every candidate box in an image is background. Every large language model is pre-trained on next-token cross-entropy, a proper scoring rule, which is part of why their raw probabilities are reasonably calibrated before fine-tuning. Chat models are then tuned with a Bradley–Terry loss on human preference comparisons. And weather centres verify their probability forecasts with proper scores, a practice that began with Glenn Brier's 1950 paper.</p>
+</div>
+
+<!-- =================== 9 =================== -->
+<h2 id="s9">9 &mdash; Summary, exercises, projects, reading</h2>
+
+<div class="box thm">
+<span class="lbl">summary</span>
+<ul>
+<li>The optimal action minimises expected loss under the predictive distribution (Theorem 5.1); with costs \(c_{\text{FN}},c_{\text{FP}}\), predict positive when
+$$\eta\ge c_{\text{FP}}/(c_{\text{FP}}+c_{\text{FN}}).$$</li>
+<li>Squared, absolute and pinball losses estimate the mean, median and quantiles (Theorem 5.2); on skewed data these differ greatly. Huber loss is a robust compromise. Each model wins on its own loss.</li>
+<li>Losses are negative log-likelihoods: Gaussian → squared, Laplace → absolute, Bernoulli → cross-entropy, Poisson → Poisson deviance (Proposition 5.3). Cross-entropy = entropy + KL divergence, and KL ≥ 0 (Proposition 5.4).</li>
+<li>Classifiers train on convex surrogates of the 0–1 loss; a convex surrogate recovers the Bayes classifier iff \(\varphi'(0)&lt;0\) (Theorem 5.5). Logistic loss also recovers probabilities; hinge loss does not.</li>
+<li>Proper scoring rules (Brier, log) make honest probabilities optimal (Theorem 5.6); good forecasts are calibrated and sharp.</li>
+<li>Expected test MSE = noise + bias² + variance (Theorem 5.7). For ridge both terms have closed forms in the singular values (Theorem 5.8); for kNN the variance is \(\sigma^2/k\) (Proposition 5.9).</li>
+<li>Excess risk = approximation + estimation + optimisation error. Choose complexity by cross-validation, with the one-standard-error rule as a guard against noise.</li>
+</ul>
+<p><strong>Next:</strong> Lecture 6 asks why a model that does well on its training data should do well on new data at all, and answers with PAC learning, VC dimension and Rademacher complexity.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 5</span>
+<ol>
+<li>For the data \(\{1,2,3,10\}\), find every constant minimising the squared, absolute and pinball (\(\tau=0.75\)) losses.
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>Squared: the mean, 4. Absolute: any \(c\in[2,3]\) (both middle values are medians). Pinball at 0.75: \(c\) with \(P(Y&lt;c)\le0.75\le P(Y\le c)\); \(P(Y\le c)\ge0.75\) needs \(c\ge3\), and \(P(Y&lt;c)\le0.75\) needs \(c\le10\), so any \(c\in[3,10]\). Small samples often have intervals of minimisers.</p></div></li>
+<li>Poisson regression sets \(\mu_i=\exp(w^\top x_i)\) and minimises \(\sum_i(\mu_i-y_i\log\mu_i)\). Show that its gradient is \(\sum_i(\mu_i-y_i)x_i\), the same "prediction minus label" form as least squares and logistic regression.
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>With \(s_i=w^\top x_i\), each term is \(e^{s_i}-y_is_i\), whose derivative in \(s_i\) is \(e^{s_i}-y_i=\mu_i-y_i\); multiply by \(\partial s_i/\partial w=x_i\). This happens for every generalised linear model with its "canonical" link, a property of exponential families.</p></div></li>
+<li>A missed fraud costs a bank $500 and investigating a legitimate transaction costs $10. Above what fraud probability should a transaction be investigated?
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>\(c_{\text{FP}}/(c_{\text{FP}}+c_{\text{FN}})=10/510\approx0.0196\). Investigate anything with at least a 2% chance of fraud. Thresholds this low are common, which is one reason fraud systems produce so many alerts.</p></div></li>
+<li>Show that the conditional hinge risk $$C_\eta(s)=\eta\max(0,1-s)+(1-\eta)\max(0,1+s)$$ is minimised at \(s=1\) when \(\eta&gt;\tfrac12\) and at \(s=-1\) when \(\eta&lt;\tfrac12\). Why does this mean an SVM score is not a probability?
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>\(C_\eta\) is piecewise linear with kinks at \(\pm1\). On \([-1,1]\) it equals \(\eta(1-s)+(1-\eta)(1+s)=1+(1-2\eta)s\), decreasing when \(\eta&gt;\tfrac12\); outside \([-1,1]\) it increases. So the minimum is at \(s=1\) (or \(-1\)), the same for \(\eta=0.51\) and \(\eta=0.99\): the minimiser carries the sign of \(2\eta-1\) and nothing else. To get probabilities from an SVM one fits a separate calibration map (Platt scaling).</p></div></li>
+<li>Show that \(\mathrm{KL}\big(\mathrm{Bern}(0.6)\,\|\,\mathrm{Bern}(0.5)\big)\approx0.0201\) nats, and that the expected excess log score from reporting \(q\) when the truth is \(p\) equals \(\mathrm{KL}(\mathrm{Bern}(p)\|\mathrm{Bern}(q))\).
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>\(0.6\log1.2+0.4\log0.8=0.1094-0.0893=0.0201\). The expected log score is \(H(p)+\mathrm{KL}(p\|q)\) (Theorem 5.6), and honest reporting scores \(H(p)\), so the excess is exactly the KL divergence.</p></div></li>
+<li>Show that the absolute score \(|q-y|\) is not proper: for \(p&gt;\tfrac12\) its expected value is minimised by reporting \(q=1\).
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>\(\mathbb E|q-Y|=p(1-q)+(1-p)q=p+q(1-2p)\), linear in \(q\) with slope \(1-2p&lt;0\) when \(p&gt;\tfrac12\), so it is minimised at \(q=1\). A forecaster judged this way should exaggerate every forecast to 0 or 1.</p></div></li>
+<li>Show that a forecaster who always reports the base rate \(\bar y\) has Brier score \(\bar y(1-\bar y)\). Check against the NBA output.
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>\(\frac1n\sum_i(\bar y-y_i)^2\) is the variance of the 0/1 outcomes, \(\bar y-\bar y^2=\bar y(1-\bar y)\). With \(\bar y=0.622\): \(0.622\times0.378\approx0.2351\), matching the printed 0.2350 (the difference is rounding of \(\bar y\)). In Murphy's decomposition, Brier = reliability − resolution + uncertainty, this is the uncertainty term; a forecaster beats it by having resolution.</p></div></li>
+<li>In one dimension with an orthonormal design, ridge returns \(z/(1+\lambda)\) where \(z\sim\mathcal N(\beta,\sigma^2)\). Find the \(\lambda\) minimising mean squared error, and interpret it as a prior variance.
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>MSE \(=\big(\tfrac\lambda{1+\lambda}\big)^2\beta^2+\tfrac{\sigma^2}{(1+\lambda)^2}\). Differentiating, the minimum is at \(\lambda=\sigma^2/\beta^2\). In Bayesian terms (Theorem 3.7) \(\lambda=\sigma^2/\tau^2\), so the best penalty corresponds to a prior variance \(\tau^2=\beta^2\): a prior whose scale matches the true effect size.</p></div></li>
+<li>Using Proposition 5.9, at what \(k\) does kNN regression on evenly spaced points \(x_i=i/n\) with \(f(x)=x^2\) balance bias² and variance at \(x_0=0.5\)? (Take the neighbours symmetric about \(x_0\), \(n=100\), \(\sigma=0.3\).)
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>The neighbours are \(x_0\pm j/n\) for \(j\) up to about \(k/2\). Averaging \(f(x_0+t)=x_0^2+2x_0t+t^2\) over symmetric \(t\) leaves bias \(\approx\overline{t^2}\approx\frac{(k/2n)^2}{3}=\frac{k^2}{12n^2}\). Bias² \(=k^4/(144n^4)\) and variance \(=\sigma^2/k\). Minimising the sum: \(4k^3/(144n^4)=\sigma^2/k^2\), so \(k^5=36\sigma^2n^4\), giving \(k=(36\cdot0.09\cdot10^8)^{1/5}\approx50\): half the data. With a gently curved function and noisy data, very wide neighbourhoods pay off; with sharper curvature \(k\) would be much smaller.</p></div></li>
+<li>In the bias–variance widget, set the degree to 9 and raise \(n\) from 30 to 120. By roughly what factor does the variance fall? Why is it more than the factor of 4 that \(\sigma^2/n\) scaling would suggest?
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>It falls by far more than 4 (by one to two orders of magnitude). Variance of a high-degree polynomial fit is dominated by a few training sets in which the points near the ends of the interval happen to be sparse, giving wild extrapolation; with more points such gaps become rare. The \(\sigma^2p/n\) rule holds for a fixed, well-spread design, not for random designs near the interpolation threshold, a first glimpse of why Lecture 6's double descent happens.</p></div></li>
+</ol>
+</div>
+
+<div class="box proj">
+<span class="lbl">student projects</span>
+<p>Each project uses this lecture's methods and public data, and has a clear result.</p>
+<h4>1. Honest intervals for bike demand</h4>
+<dl>
+<dt>question</dt><dd>Do quantile-regression prediction intervals for bike-share demand keep their promised coverage by hour, season and station?</dd>
+<dt>data</dt><dd>Citi Bike trip data for New York (monthly files from the operator), aggregated to station–hour counts, with weather from NOAA.</dd>
+<dt>method</dt><dd>Fit 10%–90% bands by linear quantile regression and by quantile gradient boosting; measure coverage and interval width by subgroup; compare with conformal prediction intervals.</dd>
+<dt>outcome</dt><dd>A map of where intervals fail (rush hour? rainy days? outer boroughs?), useful to operators planning rebalancing, and a clean comparison of interval methods.</dd>
+</dl>
+<h4>2. Who forecasts best?</h4>
+<dl>
+<dt>question</dt><dd>How well calibrated and how sharp are public probability forecasts, and does the answer depend on the scoring rule?</dd>
+<dt>data</dt><dd>FiveThirtyEight's archived sports forecasts (CC BY 4.0), National Weather Service probability-of-precipitation forecasts with verifying observations, or public forecasting-tournament data.</dd>
+<dt>method</dt><dd>Brier and log scores, reliability diagrams, Murphy's decomposition into reliability, resolution and uncertainty; bootstrap confidence intervals; compare forecasters on the same events.</dd>
+<dt>outcome</dt><dd>A scored league table of forecasters with honest uncertainty, and a clear demonstration of how improper scores would have changed the ranking.</dd>
+</dl>
+<h4>3. Robust losses for messy civic data</h4>
+<dl>
+<dt>question</dt><dd>How much do a few extreme records distort least-squares models of New York City service times, and do Huber or quantile losses fix it?</dd>
+<dt>data</dt><dd>NYC 311 service requests (time to close by agency and complaint type) or NYC taxi trip durations from the Taxi and Limousine Commission.</dd>
+<dt>method</dt><dd>Fit squared, absolute, Huber and quantile models; measure coefficient stability when the top 0.1% of durations are removed or corrupted; evaluate on held-out data with each loss.</dd>
+<dt>outcome</dt><dd>Practical guidance on loss choice for heavy-tailed administrative data, a common situation in public-sector analytics.</dd>
+</dl>
+</div>
+
+<h3>Reading and sources</h3>
+<ul class="refs">
+<li>T. Hastie, R. Tibshirani, J. Friedman, <em>The Elements of Statistical Learning</em> (2nd ed., Springer, 2009), Sections 2.4, 7.1–7.3 (bias, variance, model complexity) and 10.6 (loss functions and robustness).</li>
+<li>J. O. Berger, <em>Statistical Decision Theory and Bayesian Analysis</em> (2nd ed., Springer, 1985), ch. 1–2.</li>
+<li>T. Gneiting, A. E. Raftery, "Strictly proper scoring rules, prediction, and estimation", <em>JASA</em> 102(477), 359–378 (2007).</li>
+<li>P. L. Bartlett, M. I. Jordan, J. D. McAuliffe, "Convexity, classification, and risk bounds", <em>JASA</em> 101(473), 138–156 (2006); T. Zhang, "Statistical behavior and consistency of classification methods based on convex risk minimization", <em>Annals of Statistics</em> 32(1), 56–85 (2004).</li>
+<li>S. Geman, E. Bienenstock, R. Doursat, "Neural networks and the bias/variance dilemma", <em>Neural Computation</em> 4(1), 1–58 (1992).</li>
+<li>J. H. Friedman, "On bias, variance, 0/1-loss, and the curse-of-dimensionality", <em>Data Mining and Knowledge Discovery</em> 1(1), 55–77 (1997); G. M. James, "Variance and bias for general loss functions", <em>Machine Learning</em> 51(2), 115–135 (2003).</li>
+<li>L. Bottou, O. Bousquet, "The tradeoffs of large scale learning", <em>NeurIPS</em> 20 (2008).</li>
+<li>P. J. Huber, "Robust estimation of a location parameter", <em>Annals of Mathematical Statistics</em> 35(1), 73–101 (1964).</li>
+<li>R. Koenker, G. Bassett, "Regression quantiles", <em>Econometrica</em> 46(1), 33–50 (1978).</li>
+<li>G. W. Brier, "Verification of forecasts expressed in terms of probability", <em>Monthly Weather Review</em> 78(1), 1–3 (1950); A. H. Murphy, "A new vector partition of the probability score", <em>Journal of Applied Meteorology</em> 12(4), 595–600 (1973).</li>
+<li>X. Nie, S. Wager, "Quasi-oracle estimation of heterogeneous treatment effects", <em>Biometrika</em> 108(2), 299–319 (2021).</li>
+<li>M. Cerezo, A. Sone, T. Volkoff, L. Cincio, P. J. Coles, "Cost function dependent barren plateaus in shallow parametrized quantum circuits", <em>Nature Communications</em> 12, 1791 (2021).</li>
+<li>R. Wen, K. Torkkola, B. Narayanaswamy, D. Madeka, "A multi-horizon quantile recurrent forecaster", NeurIPS Time Series Workshop (2017), <a href="https://arxiv.org/abs/1711.11053">arXiv:1711.11053</a>; T.-Y. Lin, P. Goyal, R. Girshick, K. He, P. Dollár, "Focal loss for dense object detection", <em>ICCV</em> (2017).</li>
+<li>L. Breiman, J. Friedman, R. Olshen, C. Stone, <em>Classification and Regression Trees</em> (Wadsworth, 1984), for the one-standard-error rule.</li>
+</ul>
+<p><strong>Data.</strong> NYC flights: H. Wickham, <code>nycflights13</code>: Flights that departed NYC in 2013, R package (CC0), from the US Bureau of Transportation Statistics; via V. Arel-Bundock, <a href="https://github.com/vincentarelbundock/Rdatasets">Rdatasets</a>. Bike sharing: H. Fanaee-T, J. Gama, "Event labeling combining ensemble detectors and background knowledge", <em>Progress in Artificial Intelligence</em> 2, 113–127 (2014), as distributed in the <em>ISLP</em> package (James et al., 2023). NBA forecasts: N. Silver, R. Fischer-Baum, "How we calculate NBA Elo ratings", FiveThirtyEight (2015); data from <a href="https://github.com/fivethirtyeight/data">github.com/fivethirtyeight/data</a> (CC BY 4.0). Breast-cancer scores: Lecture 4.</p>
+<p class="kicker" style="margin-top:2.4em">every number in the text and widgets is computed in verify_L05.py; code-box outputs are pasted from actual runs</p>
+</div>
+
+<script>
+/* ---------- shared helpers ---------- */
+(function(){
+  var NS='http://www.w3.org/2000/svg';
+  window.L1 = {
+    el: function(svg,t,at,txt){ var e=document.createElementNS(NS,t); for(var k in at) e.setAttribute(k,at[k]); if(txt!=null) e.textContent=txt; svg.appendChild(e); return e; },
+    clear: function(svg){ while(svg.firstChild) svg.removeChild(svg.firstChild); },
+    col: ['var(--sky)','var(--rose)','var(--moss)'],
+    names: ['Adélie','Chinstrap','Gentoo'],
+    rng: function(seed){ var a=seed>>>0; return function(){ a=(a+0x6D2B79F5)>>>0; var t=a; t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return ((t^(t>>>14))>>>0)/4294967296; }; },
+    svgPoint: function(svg,evt){ var pt=svg.createSVGPoint(); pt.x=evt.clientX; pt.y=evt.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); },
+    f: function(x,d){ return x.toFixed(d); }
+  };
+})();
+</script>
+<script>
+window.L05DATA = {"delays":[-17.0,30.0,248.0,-39.0,-6.0,1.0,10.0,-9.0,-2.0,-13.0,13.0,-20.0,9.0,5.0,-30.0],"roc":{"s":[3.6e-05,0.00725,0.002227,1.0,0.067572,0.996336,0.024414,0.377359,0.018654,0.035096,5.5e-05,0.993157,1.0,0.001799,0.001331,0.008953,0.000534,0.905824,1.1e-05,0.000843,1.0,1.0,0.599833,0.0,0.000218,0.019258,0.999986,0.0,0.212605,0.000114,0.011823,1.0,0.305508,0.000215,0.063113,0.997756,5.8e-05,0.00094,0.999983,0.291101,0.000216,0.00066,0.026699,0.00149,0.998245,0.002414,0.026839,0.999821,0.002242,2.2e-05,0.999986,0.624586,0.999961,0.02111,1.0,0.998534,0.045381,0.991047,0.053049,0.000142,0.999484,0.007553,0.000126,0.000769,0.007092,0.101197,0.014808,0.000222,0.00615,0.715432,7e-06,2e-06,0.000204,0.999892,0.006944,0.031779,0.032515,0.016464,0.284298,0.133741,6.8e-05,0.783313,0.000528,0.0,0.404241,0.017753,0.003015,0.058362,2.1e-05,0.000368,0.999716,0.043201,0.00255,0.001413,0.450652,0.027688,0.002001,0.999951,0.000614,0.00012,7e-05,0.376226,0.010643,0.019588,1.0,1.3e-05,0.999997,0.000386,0.998091,0.999984,0.999747,0.069899,2.8e-05,0.99669,1.0,0.994294,0.55766,0.001848,0.999998,0.02374,0.542807,1.0,0.987189,1.0,0.003328,0.999999,1.0,0.999236,0.011946,0.899938,3.8e-05,0.999997,0.015617,9e-06,0.119732,0.999998,0.99993,0.999908,0.367323,0.002893,1.0,0.000465,0.454454,0.000204,0.999954,0.000371,0.002161,0.996803,0.999999,0.000105,0.999995,0.996362,0.000813,1e-05,9.8e-05,1.0,0.980752,0.999905,0.999995,0.500309,0.012009,0.997392,7.5e-05,1.7e-05,0.083684,0.99953,0.999999,0.008217,1.0,1.0,4e-06],"y":[0,0,0,1,0,1,0,0,0,0,0,1,1,0,0,0,0,1,0,0,1,1,0,0,0,0,1,0,0,0,0,1,0,0,0,1,0,0,1,0,0,0,0,0,1,0,0,1,0,0,1,0,1,0,1,1,0,1,0,0,1,0,0,0,0,1,0,0,0,1,0,0,0,1,0,1,0,0,0,1,0,1,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,1,0,1,1,1,0,0,1,1,1,1,0,1,0,0,1,1,1,0,1,1,1,0,1,0,1,0,0,0,1,1,1,0,0,1,0,1,0,1,0,0,1,1,0,1,1,0,0,0,1,1,1,1,0,0,1,0,0,0,1,1,0,1,1,0]}};
+</script>
+<script>
+/* ---------- W1: thresholds from costs ---------- */
+(function(){
+  var svg=document.getElementById('coSvg'); if(!svg) return; var L=window.L1, D=window.L05DATA.roc;
+  var n=D.s.length, srt=D.s.slice().sort(function(a,b){return a-b;}), cands=[0];
+  for(var i=0;i<n-1;i++) if(srt[i+1]>srt[i]) cands.push((srt[i]+srt[i+1])/2); cands.push(1.0000001);
+  function counts(t){ var fn=0, fp=0; for(var i=0;i<n;i++){ var pr=D.s[i]>=t; if(D.y[i]&&!pr) fn++; if(!D.y[i]&&pr) fp++; } return [fn,fp]; }
+  var PL=56, PR=546, PT=12, PB=240, X=function(v){return PL+v*(PR-PL);};
+  function g(id){return document.getElementById(id);}
+  function draw(){
+    var r=Math.pow(10,+g('coR').value), t=+g('coT').value, tb=1/(1+r); g('coRv').textContent=r.toFixed(1); g('coTv').textContent=t.toFixed(3);
+    var pts=[], cmax=0; for(var k=0;k<=400;k++){ var u=k/400, c=counts(u), v=r*c[0]+c[1]; pts.push([u,v]); if(v>cmax) cmax=v; }
+    var best=1e300, bt=0; cands.forEach(function(u){ var c=counts(u), v=r*c[0]+c[1]; if(v<best){best=v;bt=u;} });
+    var Y=function(v){return PB-v/(cmax*1.05)*(PB-PT);};
+    L.clear(svg); L.el(svg,'rect',{x:PL,y:PT,width:PR-PL,height:PB-PT,class:'plot-bg'});
+    for(var q=0;q<=4;q++){ var v=cmax*q/4; L.el(svg,'line',{x1:PL,y1:Y(v),x2:PR,y2:Y(v),class:'gridline'}); L.el(svg,'text',{x:PL-6,y:Y(v)+4,class:'axtext','text-anchor':'end'},Math.round(v)); }
+    [0,0.25,0.5,0.75,1].forEach(function(v){ L.el(svg,'text',{x:X(v),y:PB+16,class:'axtext','text-anchor':'middle'},v); });
+    L.el(svg,'text',{x:(PL+PR)/2,y:PB+36,class:'axtext','text-anchor':'middle'},'threshold on predicted P(malignant)');
+    L.el(svg,'text',{x:14,y:(PT+PB)/2,class:'axtext','text-anchor':'middle',transform:'rotate(-90 14 '+((PT+PB)/2)+')'},'total cost');
+    var d=''; pts.forEach(function(p,i){ d+=(i?'L':'M')+X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1); }); L.el(svg,'path',{d:d,fill:'none',stroke:'var(--sky)','stroke-width':2.2});
+    L.el(svg,'line',{x1:X(tb),y1:PT,x2:X(tb),y2:PB,stroke:'var(--moss)','stroke-width':2});
+    L.el(svg,'line',{x1:X(t),y1:PT,x2:X(t),y2:PB,stroke:'var(--amber)','stroke-width':2,'stroke-dasharray':'6 4'});
+    var c1=counts(t), cb=counts(tb), cbest=counts(bt);
+    g('coOut').innerHTML='your threshold '+t.toFixed(3)+': '+c1[0]+' missed, '+c1[1]+' false alarms, cost '+(r*c1[0]+c1[1]).toFixed(1)+
+      '<br>Bayes threshold '+tb.toFixed(3)+': '+cb[0]+' missed, '+cb[1]+' false alarms, cost '+(r*cb[0]+cb[1]).toFixed(1)+
+      ' &middot; best in hindsight: cost '+best.toFixed(1)+' at '+Math.min(bt,1).toFixed(3);
+    return {bayes:r*cb[0]+cb[1],best:best,fn:cb[0],fp:cb[1]};
+  }
+  ['coR','coT'].forEach(function(id){ g(id).addEventListener('input',draw); });
+  g('coBayes').addEventListener('click',function(){ g('coT').value=1/(1+Math.pow(10,+g('coR').value)); draw(); });
+  draw(); window.W5a={set:function(r){ g('coR').value=Math.log10(r); return draw(); }};
+})();
+</script>
+<script>
+/* ---------- W2: the loss chooses the target ---------- */
+(function(){
+  var svg=document.getElementById('taSvg'); if(!svg) return; var L=window.L1;
+  var pts=window.L05DATA.delays.slice(), c0=-60, c1=260, PL=56, PR=566;
+  var X=function(v){return PL+(v-c0)/(c1-c0)*(PR-PL);}, iX=function(p){return c0+(p-PL)/(PR-PL)*(c1-c0);};
+  function g(id){return document.getElementById(id);}
+  function loss(u){ var k=g('taLoss').value, tau=+g('taTau').value, del=+g('taDel').value;
+    if(k==='sq') return u*u; if(k==='abs') return Math.abs(u); if(k==='pin') return Math.max(tau*u,(tau-1)*u);
+    return Math.abs(u)<=del?0.5*u*u:del*(Math.abs(u)-del/2); }
+  function risk(c){ var s=0; pts.forEach(function(y){ s+=loss(y-c); }); return s/pts.length; }
+  function draw(){
+    g('taTauV').textContent=(+g('taTau').value).toFixed(2); g('taDelV').textContent=g('taDel').value;
+    var k=g('taLoss').value; g('taTau').disabled=(k!=='pin'); g('taDel').disabled=(k!=='hub');
+    L.clear(svg);
+    var srt=pts.slice().sort(function(a,b){return a-b;}), mean=pts.reduce(function(a,b){return a+b;},0)/pts.length, med=srt[(srt.length-1)/2];
+    L.el(svg,'line',{x1:PL,y1:44,x2:PR,y2:44,class:'axis'});
+    for(var v=-50;v<=250;v+=50){ L.el(svg,'line',{x1:X(v),y1:40,x2:X(v),y2:48,class:'axis'}); L.el(svg,'text',{x:X(v),y:66,class:'axtext','text-anchor':'middle'},v); }
+    L.el(svg,'text',{x:PR,y:84,class:'axtext','text-anchor':'end'},'arrival delay (minutes)');
+    L.el(svg,'line',{x1:X(mean),y1:18,x2:X(mean),y2:44,stroke:'var(--amber)','stroke-width':2.4}); L.el(svg,'text',{x:X(mean)+4,y:20,class:'axtext',fill:'var(--amber)'},'mean');
+    L.el(svg,'line',{x1:X(med),y1:18,x2:X(med),y2:44,stroke:'var(--moss)','stroke-width':2.4}); L.el(svg,'text',{x:X(med)-4,y:20,class:'axtext','text-anchor':'end',fill:'var(--moss)'},'median');
+    pts.forEach(function(y,i){ var c=L.el(svg,'circle',{cx:X(y),cy:44,r:6.5,fill:'var(--sky)',opacity:0.8,stroke:'var(--bg)','stroke-width':1.2,style:'cursor:ew-resize'}); c.dataset.i=i; });
+    var QT=104, QB=296, vals=[], lo=1e300, hi=-1e300, bc=0, bv=1e300;
+    for(var j=0;j<=1280;j++){ var c=c0+(c1-c0)*j/1280, r=risk(c); vals.push([c,r]); if(r<bv){bv=r;bc=c;} if(r>hi) hi=r; if(r<lo) lo=r; }
+    var Y=function(v){return QB-(v-lo)/(hi-lo||1)*(QB-QT);};
+    L.el(svg,'rect',{x:PL,y:QT,width:PR-PL,height:QB-QT,class:'plot-bg'});
+    var d=''; vals.forEach(function(p,i){ if(i%2===0||i===vals.length-1) d+=(d?'L':'M')+X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1); });
+    L.el(svg,'path',{d:d,fill:'none',stroke:'var(--sky)','stroke-width':2.4});
+    L.el(svg,'line',{x1:X(bc),y1:QT,x2:X(bc),y2:QB,stroke:'var(--rose)','stroke-width':1.5,'stroke-dasharray':'4 3'});
+    L.el(svg,'circle',{cx:X(bc),cy:Y(bv),r:6,fill:'var(--rose)',stroke:'var(--bg)','stroke-width':1.5});
+    L.el(svg,'text',{x:PL-6,y:QT+10,class:'axtext','text-anchor':'end'},'high'); L.el(svg,'text',{x:PL-6,y:QB,class:'axtext','text-anchor':'end'},'low');
+    L.el(svg,'text',{x:14,y:(QT+QB)/2,class:'axtext','text-anchor':'middle',transform:'rotate(-90 14 '+((QT+QB)/2)+')'},'average loss');
+    L.el(svg,'text',{x:(PL+PR)/2,y:QB+20,class:'axtext','text-anchor':'middle'},'constant prediction c (minutes)');
+    var tau=+g('taTau').value, qi=Math.ceil(tau*pts.length)-1, qtxt=k==='pin'?' &middot; sample '+(100*tau).toFixed(0)+'th percentile '+srt[Math.max(0,qi)].toFixed(1):'';
+    g('taOut').innerHTML='best constant '+bc.toFixed(1)+' min &middot; mean '+mean.toFixed(1)+' &middot; median '+med.toFixed(1)+qtxt;
+    return {best:bc,mean:mean,median:med};
+  }
+  var drag=null; svg.style.touchAction='none';
+  svg.addEventListener('pointerdown',function(ev){ var t=ev.target; if(t.dataset&&t.dataset.i!=null){ drag=+t.dataset.i; svg.setPointerCapture(ev.pointerId); ev.preventDefault(); } });
+  svg.addEventListener('pointermove',function(ev){ if(drag==null) return; var p=L.svgPoint(svg,ev); pts[drag]=Math.round(Math.max(c0,Math.min(c1,iX(p.x)))); draw(); });
+  ['pointerup','pointercancel'].forEach(function(e){ svg.addEventListener(e,function(){ drag=null; }); });
+  ['taTau','taDel'].forEach(function(id){ g(id).addEventListener('input',draw); }); g('taLoss').addEventListener('change',draw);
+  draw(); window.W5b={set:function(k,tau){ g('taLoss').value=k; if(tau) g('taTau').value=tau; return draw(); }};
+})();
+</script>
+<script>
+/* ---------- W3: surrogate losses ---------- */
+(function(){
+  var sl=document.getElementById('lgSvgL'), sr=document.getElementById('lgSvgR'); if(!sl) return; var L=window.L1;
+  var LS={zo:{name:'0–1',col:'var(--ink)',f:function(m){return m<=0?1:0;}},
+          hinge:{name:'hinge',col:'var(--amber)',f:function(m){return Math.max(0,1-m);}},
+          log:{name:'logistic',col:'var(--sky)',f:function(m){return Math.log(1+Math.exp(-m))/Math.LN2;}},
+          exp:{name:'exponential',col:'var(--rose)',f:function(m){return Math.exp(-m);}},
+          sq:{name:'squared',col:'var(--plum)',f:function(m){return (1-m)*(1-m);}},
+          perc:{name:'perceptron',col:'var(--moss)',f:function(m){return Math.max(0,-m);}}};
+  var on={zo:true,hinge:true,log:true,exp:true,sq:false,perc:true};
+  var tg=document.getElementById('lgToggles');
+  Object.keys(LS).forEach(function(k){ var b=document.createElement('button'); b.type='button'; b.className='ctl'+(on[k]?' on':''); b.textContent=LS[k].name; b.style.borderLeft='4px solid '+LS[k].col;
+    b.addEventListener('click',function(){ on[k]=!on[k]; b.classList.toggle('on',on[k]); draw(); }); tg.appendChild(b); });
+  function g(id){return document.getElementById(id);}
+  function panel(svg,x0,x1,y0,y1,xl,yl){ var PL=40, PR=svg.viewBox.baseVal.width-8, PT=10, PB=226;
+    var X=function(v){return PL+(v-x0)/(x1-x0)*(PR-PL);}, Y=function(v){return PB-(Math.min(v,y1)-y0)/(y1-y0)*(PB-PT);};
+    L.el(svg,'rect',{x:PL,y:PT,width:PR-PL,height:PB-PT,class:'plot-bg'});
+    for(var v=Math.ceil(x0);v<=x1;v++){ L.el(svg,'line',{x1:X(v),y1:PT,x2:X(v),y2:PB,class:v===0?'axis':'gridline'}); L.el(svg,'text',{x:X(v),y:PB+15,class:'axtext','text-anchor':'middle'},v); }
+    for(var w=y0;w<=y1;w++){ L.el(svg,'line',{x1:PL,y1:Y(w),x2:PR,y2:Y(w),class:'gridline'}); L.el(svg,'text',{x:PL-5,y:Y(w)+4,class:'axtext','text-anchor':'end'},w); }
+    L.el(svg,'text',{x:(PL+PR)/2,y:PB+34,class:'axtext','text-anchor':'middle'},xl);
+    return {X:X,Y:Y,PT:PT,PB:PB,PL:PL,PR:PR}; }
+  function draw(){
+    var eta=+g('lgE').value, key=g('lgSel').value; g('lgEv').textContent=eta.toFixed(2);
+    L.clear(sl); L.clear(sr);
+    var A=panel(sl,-2.5,2.5,0,4,'margin m = y·s');
+    Object.keys(LS).forEach(function(k){ if(!on[k]) return; var d='';
+      var pen=false; for(var i=0;i<=250;i++){ var m=-2.5+5*i/250, v=LS[k].f(m); if(v>4.15){ pen=false; continue; } if(k==='zo'&&i>0){ var mp=-2.5+5*(i-1)/250; if((mp<=0)!==(m<=0)) d+='L'+A.X(0).toFixed(1)+','+A.Y(LS[k].f(mp)).toFixed(1)+'L'+A.X(0).toFixed(1)+','+A.Y(v).toFixed(1); }
+        d+=(pen?'L':'M')+A.X(m).toFixed(1)+','+A.Y(v).toFixed(1); pen=true; }
+      L.el(sl,'path',{d:d,fill:'none',stroke:LS[k].col,'stroke-width':k==='zo'?2.6:2.2}); });
+    var f=LS[key].f, C=function(s){return eta*f(s)+(1-eta)*f(-s);}, ymax=0, best=1e300, bs=0, vals=[];
+    for(var i=0;i<=1200;i++){ var s=-3+6*i/1200, v=C(s); vals.push([s,v]); if(v>ymax) ymax=v; if(v<best-1e-12){best=v;bs=s;} }
+    if(key==='zo'){ bs=eta>0.5?1:(eta<0.5?-1:0); }
+    var B=panel(sr,-3,3,0,Math.max(1,Math.ceil(Math.min(ymax,6))),'score s');
+    var d2=''; vals.forEach(function(p,i){ d2+=(i?'L':'M')+B.X(p[0]).toFixed(1)+','+B.Y(p[1]).toFixed(1); });
+    L.el(sr,'path',{d:d2,fill:'none',stroke:LS[key].col,'stroke-width':2.4});
+    L.el(sr,'circle',{cx:B.X(bs),cy:B.Y(C(bs)),r:6,fill:'var(--rose)',stroke:'var(--bg)','stroke-width':1.5});
+    L.el(sr,'text',{x:B.PL+6,y:B.PT+14,class:'axtext'},'C(s) = η φ(s) + (1−η) φ(−s)');
+    var agree=(eta===0.5)?'η = ½: either sign is fine':((bs>1e-6)===(eta>0.5)&&Math.abs(bs)>1e-6?'same sign as the Bayes classifier':'<span style="color:var(--amber)">does not pick the Bayes sign</span>');
+    var back={log:1/(1+Math.exp(-bs)),exp:1/(1+Math.exp(-2*bs)),sq:(1+bs)/2}[key];
+    g('lgOut').innerHTML='loss: '+LS[key].name+' &middot; minimiser s* = '+(key==='zo'?(eta>0.5?'any s &gt; 0':(eta<0.5?'any s ≤ 0':'any s')):bs.toFixed(3))+' &middot; '+agree+
+      '<br>'+(back!==undefined?'probability recovered from s*: '+back.toFixed(3)+' (true η = '+eta.toFixed(2)+')':'s* does not determine η: this loss learns at most the sign');
+    return {s:bs};
+  }
+  g('lgE').addEventListener('input',draw); g('lgSel').addEventListener('change',draw);
+  draw(); window.W5c={set:function(k,e){ g('lgSel').value=k; g('lgE').value=e; return draw(); }};
+})();
+</script>
+<script>
+/* ---------- W4: bias and variance of polynomial fits ---------- */
+(function(){
+  var sl=document.getElementById('bvL'), sr=document.getElementById('bvR'); if(!sl) return; var L=window.L1;
+  var SIG=0.3, SETS=200, MAXD=12, f=function(x){return Math.sin(2*Math.PI*x);}, seed=1, XG=[];
+  for(var i=0;i<=90;i++) XG.push(0.05+0.9*i/90);
+  function leg(t,d){ var P=[1]; if(d>=1) P.push(t); for(var k=2;k<=d;k++) P.push(((2*k-1)*t*P[k-1]-(k-1)*P[k-2])/k); return P; }
+  function lsq(A,y){ var m=A.length, n=A[0].length, R=A.map(function(r){return r.slice();}), b=y.slice();
+    for(var k=0;k<n;k++){ var nrm=0; for(var i=k;i<m;i++) nrm+=R[i][k]*R[i][k]; nrm=Math.sqrt(nrm); if(nrm<1e-14) continue;
+      var a=R[k][k]>0?-nrm:nrm, v=[]; for(var i2=0;i2<m;i2++) v.push(i2<k?0:R[i2][k]); v[k]-=a; var vv=0; for(var i3=k;i3<m;i3++) vv+=v[i3]*v[i3]; if(vv<1e-30) continue;
+      for(var j=k;j<n;j++){ var s=0; for(var i4=k;i4<m;i4++) s+=v[i4]*R[i4][j]; s=2*s/vv; for(var i5=k;i5<m;i5++) R[i5][j]-=s*v[i5]; }
+      var sb=0; for(var i6=k;i6<m;i6++) sb+=v[i6]*b[i6]; sb=2*sb/vv; for(var i7=k;i7<m;i7++) b[i7]-=sb*v[i7]; }
+    var x=new Array(n).fill(0); for(var r=n-1;r>=0;r--){ var s2=b[r]; for(var c=r+1;c<n;c++) s2-=R[r][c]*x[c]; x[r]=Math.abs(R[r][r])>1e-14?s2/R[r][r]:0; } return x; }
+  var cache=null;
+  function simulate(n){ var rnd=L.rng(seed*7919+n), sets=[];
+    for(var s=0;s<SETS;s++){ var xs=[], ys=[]; for(var i=0;i<n;i++){ var x=rnd(), u1=Math.max(rnd(),1e-12), u2=rnd(); xs.push(x); ys.push(f(x)+SIG*Math.sqrt(-2*Math.log(u1))*Math.cos(2*Math.PI*u2)); } sets.push([xs,ys]); }
+    var res=[];
+    for(var d=0;d<=MAXD;d++){ var fits=[];
+      sets.forEach(function(st){ var A=st[0].map(function(x){return leg(2*x-1,d);}), c=lsq(A,st[1]);
+        fits.push(XG.map(function(x){ var P=leg(2*x-1,d), v=0; for(var k=0;k<=d;k++) v+=c[k]*P[k]; return v; })); });
+      var avg=XG.map(function(_,j){ var s=0; fits.forEach(function(F){s+=F[j];}); return s/fits.length; });
+      var b2=0, va=0; XG.forEach(function(x,j){ b2+=(avg[j]-f(x))*(avg[j]-f(x)); var m=avg[j], vv=0; fits.forEach(function(F){ vv+=(F[j]-m)*(F[j]-m); }); va+=vv/fits.length; });
+      res.push({b2:b2/XG.length,va:va/XG.length,fits:fits.slice(0,25),avg:avg}); }
+    return res; }
+  function g(id){return document.getElementById(id);}
+  function draw(recompute){
+    var d=+g('bvD').value, n=+g('bvN').value; g('bvDv').textContent=d; g('bvNv').textContent=n;
+    if(recompute||!cache||cache.n!==n) cache={n:n,res:simulate(n)};
+    var R=cache.res, cur=R[d]; L.clear(sl); L.clear(sr);
+    var PL=34, PR=322, PT=10, PB=230, X=function(v){return PL+v*(PR-PL);}, Y=function(v){return PB-(Math.max(-2.2,Math.min(2.2,v))+2.2)/4.4*(PB-PT);};
+    var cid='bvClip'+Math.floor(Math.random()*1e6), defs=L.el(sl,'defs',{}), cp=document.createElementNS('http://www.w3.org/2000/svg','clipPath'); cp.setAttribute('id',cid); defs.appendChild(cp);
+    var rc=document.createElementNS('http://www.w3.org/2000/svg','rect'); rc.setAttribute('x',PL); rc.setAttribute('y',PT); rc.setAttribute('width',PR-PL); rc.setAttribute('height',PB-PT); cp.appendChild(rc);
+    L.el(sl,'rect',{x:PL,y:PT,width:PR-PL,height:PB-PT,class:'plot-bg'});
+    [-2,-1,0,1,2].forEach(function(v){ L.el(sl,'line',{x1:PL,y1:Y(v),x2:PR,y2:Y(v),class:'gridline'}); L.el(sl,'text',{x:PL-5,y:Y(v)+4,class:'axtext','text-anchor':'end'},v); });
+    [0,0.5,1].forEach(function(v){ L.el(sl,'text',{x:X(v),y:PB+16,class:'axtext','text-anchor':'middle'},v); });
+    var gg=L.el(sl,'g',{'clip-path':'url(#'+cid+')'});
+    cur.fits.forEach(function(F){ var p=''; F.forEach(function(v,j){ p+=(j?'L':'M')+X(XG[j]).toFixed(1)+','+Y(v).toFixed(1); }); L.el(gg,'path',{d:p,fill:'none',stroke:'var(--sky)','stroke-width':1,opacity:0.4}); });
+    var pt=''; for(var i=0;i<=100;i++){ var x=i/100; pt+=(i?'L':'M')+X(x).toFixed(1)+','+Y(f(x)).toFixed(1); } L.el(gg,'path',{d:pt,fill:'none',stroke:'var(--amber)','stroke-width':2.6});
+    var pa=''; cur.avg.forEach(function(v,j){ pa+=(j?'L':'M')+X(XG[j]).toFixed(1)+','+Y(v).toFixed(1); }); L.el(gg,'path',{d:pa,fill:'none',stroke:'var(--moss)','stroke-width':2.4,'stroke-dasharray':'6 4'});
+    var QL=46, QR=292, QT=10, QB=230, e0=-3, e1=3, DX=function(k){return QL+k/MAXD*(QR-QL);}, DY=function(v){return QB-(Math.log10(Math.max(v,1e-3))-e0)/(e1-e0)*(QB-QT);};
+    L.el(sr,'rect',{x:QL,y:QT,width:QR-QL,height:QB-QT,class:'plot-bg'});
+    [0.001,0.01,0.1,1,10,100,1000].forEach(function(v){ L.el(sr,'line',{x1:QL,y1:DY(v),x2:QR,y2:DY(v),class:'gridline'}); L.el(sr,'text',{x:QL-5,y:DY(v)+4,class:'axtext','text-anchor':'end'},v); });
+    [0,3,6,9,12].forEach(function(k){ L.el(sr,'text',{x:DX(k),y:QB+16,class:'axtext','text-anchor':'middle'},k); });
+    L.el(sr,'text',{x:(QL+QR)/2,y:QB+34,class:'axtext','text-anchor':'middle'},'degree');
+    [['b2','var(--amber)'],['va','var(--sky)'],['tot','var(--rose)']].forEach(function(s){ var p='';
+      R.forEach(function(r,k){ var v=s[0]==='tot'?SIG*SIG+r.b2+r.va:r[s[0]]; p+=(k?'L':'M')+DX(k).toFixed(1)+','+DY(v).toFixed(1); });
+      L.el(sr,'path',{d:p,fill:'none',stroke:s[1],'stroke-width':2.2}); });
+    L.el(sr,'line',{x1:DX(d),y1:QT,x2:DX(d),y2:QB,stroke:'var(--ink)','stroke-width':1,opacity:0.5});
+    L.el(sr,'text',{x:QR-4,y:QT+14,class:'axtext','text-anchor':'end',fill:'var(--amber)'},'bias²'); L.el(sr,'text',{x:QR-4,y:QT+30,class:'axtext','text-anchor':'end',fill:'var(--sky)'},'variance'); L.el(sr,'text',{x:QR-4,y:QT+46,class:'axtext','text-anchor':'end',fill:'var(--rose)'},'test MSE');
+    var tot=SIG*SIG+cur.b2+cur.va, bestd=0, bv=1e300; R.forEach(function(r,k){ var t=SIG*SIG+r.b2+r.va; if(t<bv){bv=t;bestd=k;} });
+    g('bvOut').innerHTML='degree '+d+', n = '+n+' &middot; bias² '+cur.b2.toFixed(4)+' &middot; variance '+cur.va.toFixed(4)+' &middot; noise '+(SIG*SIG).toFixed(2)+' &middot; expected test MSE '+tot.toFixed(4)+'<br>lowest expected test MSE at degree '+bestd;
+    return {b2:cur.b2,va:cur.va,best:bestd};
+  }
+  g('bvD').addEventListener('input',function(){draw(false);}); g('bvN').addEventListener('input',function(){draw(false);});
+  g('bvNew').addEventListener('click',function(){ seed++; draw(true); });
+  draw(true); window.W5d={set:function(d,n){ g('bvD').value=d; g('bvN').value=n; return draw(false); }};
+})();
+</script>
+<script>
+/* ---------- spot checks ----------
+   <div class="spot" data-kind="num|mc|multi|select" ...> with p.q, div.hint, div.why
+   num:    data-ans="a|b" (any accepted), data-tol (absolute) or data-rtol (relative), data-show (text for show-answer)
+   mc:     ul.opts > li[data-ok] for the right option; li[data-oh] is a hint for that wrong option
+   multi:  ul.opts > li[data-ok] for every right option (all and only those must be chosen)
+   select: one or more select.sp in the question; option[data-ok] right, option[data-hint] hint
+   Green with the explanation when right; amber with a hint when wrong; "show answer" after two misses. */
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×|⋅/g,'*').replace(/,/g,'').replace(/\^/g,'**').replace(/\s+/g,'');
+    if(!s) return NaN;
+    var pct=false; if(/%$/.test(s)){pct=true; s=s.slice(0,-1);}
+    if(!/^(?:[0-9.e+\-*/()]|sqrt|pi|ln|log|exp)+$/.test(s.replace(/e[+\-]?\d/g,'0'))) return NaN;
+    s=s.replace(/sqrt/g,'Math.sqrt').replace(/\bpi\b/g,'Math.PI').replace(/\bln\b/g,'Math.log').replace(/\blog\b/g,'Math.log10').replace(/\bexp\b/g,'Math.exp');
+    try{ var v=Function('"use strict";return ('+s+');')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function tolFor(sp,a){
+    if(sp.dataset.tol) return parseFloat(sp.dataset.tol);
+    if(sp.dataset.rtol) return parseFloat(sp.dataset.rtol)*Math.abs(a);
+    if(Math.abs(a)>=2 && Math.abs(a-Math.round(a))<1e-12) return 1e-9;
+    if(Math.abs(a)>=0.1) return Math.max(0.005,0.005*Math.abs(a));
+    return Math.max(1e-12,0.02*Math.abs(a));
+  }
+  window.QFspot={evalNum:evalNum,tolFor:tolFor};
+  document.querySelectorAll('.spot').forEach(function(sp){
+    var kind=sp.dataset.kind||'num', misses=0;
+    var hint=sp.querySelector(':scope > .hint'), why=sp.querySelector(':scope > .why');
+    var fb=document.createElement('div'); fb.className='sr-only'; fb.setAttribute('aria-live','polite');
+    fb.style.cssText='position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)';
+    sp.appendChild(fb);
+    var ansBox=document.createElement('div'); ansBox.className='ans'; sp.appendChild(ansBox);
+    var row=document.createElement('div'); row.className='row';
+    var go=document.createElement('button'); go.className='ctl sp-go'; go.type='button'; go.textContent='check';
+    var show=document.createElement('button'); show.className='ctl sp-show'; show.type='button'; show.textContent='show answer'; show.hidden=true;
+    var defHint=hint?hint.innerHTML:'';
+    function setHint(h){ if(!hint) return; hint.innerHTML=h||defHint; if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([hint]); }
+    function right(){ sp.classList.remove('no'); sp.classList.add('ok'); if(hint) hint.classList.remove('on');
+      if(why) why.classList.add('on'); show.hidden=true; fb.textContent='Correct.'; }
+    function wrong(h){ misses++; sp.classList.remove('ok'); sp.classList.add('no'); setHint(h); if(hint) hint.classList.add('on');
+      if(misses>=2) show.hidden=false; fb.textContent='Not quite. '+(hint?hint.textContent:''); }
+    if(kind==='num'){
+      var inp=document.createElement('input'); inp.className='sp-in'; inp.type='text'; inp.setAttribute('inputmode','decimal');
+      inp.setAttribute('aria-label','your answer'); inp.placeholder='your answer'; inp.id=(sp.id||'sp')+'-in';
+      row.appendChild(inp);
+      if(sp.dataset.unit){var u=document.createElement('span'); u.className='unit'; u.textContent=sp.dataset.unit; row.appendChild(u);}
+      row.appendChild(go); row.appendChild(show);
+      var answers=sp.dataset.ans.split('|').map(evalNum);
+      function test(){ var v=evalNum(inp.value);
+        if(isNaN(v)){ wrong('Enter a number (fractions like 3/4, powers like 2^10, sqrt(2), pi and 1e-3 are fine).'); return; }
+        if(answers.some(function(a){return Math.abs(v-a)<=tolFor(sp,a);})) right(); else wrong(); }
+      go.addEventListener('click',test);
+      inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); test(); } });
+      show.addEventListener('click',function(){ ansBox.innerHTML=sp.dataset.show||sp.dataset.ans.split('|')[0]; ansBox.classList.add('on');
+        if(why) why.classList.add('on'); show.hidden=true; if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([ansBox]); });
+      sp.querySelector(':scope > .q').after(row);
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=sp.querySelector('ul.opts'), btns=[];
+      (function(){ var h=2166136261, id=sp.id||'', lis=Array.prototype.slice.call(ul.querySelectorAll(':scope > li'));
+        for(var c=0;c<id.length;c++){ h^=id.charCodeAt(c); h=Math.imul(h,16777619)>>>0; }
+        for(var k=lis.length-1;k>0;k--){ h=Math.imul(h^(h>>>13),1597334677)>>>0; var j=h%(k+1), t=lis[k]; lis[k]=lis[j]; lis[j]=t; }
+        lis.forEach(function(li){ ul.appendChild(li); }); })();
+      ul.querySelectorAll(':scope > li').forEach(function(li){
+        var b=document.createElement('button'); b.type='button'; b.className='opt'; b.setAttribute('aria-pressed','false');
+        while(li.firstChild) b.appendChild(li.firstChild); li.appendChild(b); b._ok=li.hasAttribute('data-ok'); b._oh=li.dataset.oh||'';
+        btns.push(b);
+        b.addEventListener('click',function(){
+          if(kind==='mc'){ btns.forEach(function(x){x.setAttribute('aria-pressed','false'); x.classList.remove('good','bad');});
+            b.setAttribute('aria-pressed','true');
+            if(b._ok){ b.classList.add('good'); right(); } else { b.classList.add('bad'); wrong(b._oh); } }
+          else { b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')==='true'?'false':'true'); btns.forEach(function(x){x.classList.remove('good','bad');}); }
+        });
+      });
+      if(kind==='multi'){ row.appendChild(go); row.appendChild(show); ul.after(row);
+        go.addEventListener('click',function(){
+          var chosen=btns.filter(function(x){return x.getAttribute('aria-pressed')==='true';});
+          var bad=btns.filter(function(x){return (x.getAttribute('aria-pressed')==='true')!==x._ok;});
+          if(!bad.length){ chosen.forEach(function(x){x.classList.add('good');}); right(); }
+          else { var wrongPick=bad.find(function(x){return !x._ok;}); wrong(wrongPick?wrongPick._oh:''); }
+        });
+      } else { row.appendChild(show); ul.after(row); }
+      show.addEventListener('click',function(){ btns.forEach(function(x){ x.classList.remove('bad'); if(x._ok){x.classList.add('good');} });
+        if(why) why.classList.add('on'); show.hidden=true; });
+    } else if(kind==='select'){
+      var sels=[].slice.call(sp.querySelectorAll('select.sp'));
+      sels.forEach(function(s,i){ if(!s.getAttribute('aria-label')) s.setAttribute('aria-label','choose'); s.id=(sp.id||'sp')+'-s'+i;
+        s.addEventListener('change',function(){ s.classList.remove('good','bad'); }); });
+      row.appendChild(go); row.appendChild(show); sp.querySelector(':scope > .q').after(row);
+      go.addEventListener('click',function(){ var allOk=true, h='';
+        sels.forEach(function(s){ var o=s.options[s.selectedIndex]; var ok=o && o.hasAttribute('data-ok');
+          s.classList.toggle('good',ok); s.classList.toggle('bad',!ok); if(!ok){ allOk=false; if(!h && o && o.dataset.hint) h=o.dataset.hint; } });
+        if(allOk) right(); else wrong(h); });
+      show.addEventListener('click',function(){ sels.forEach(function(s){ for(var i=0;i<s.options.length;i++) if(s.options[i].hasAttribute('data-ok')) s.selectedIndex=i;
+        s.classList.add('good'); s.classList.remove('bad'); }); if(why) why.classList.add('on'); show.hidden=true; });
+    }
+  });
+})();
+</script>
+<script>
+/* ---------- solution / proof toggles ---------- */
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  var noun=b.textContent.replace(/^show\s+/,'');
+  b.dataset.noun=noun; b.type='button';
+  b.setAttribute('aria-expanded','false');
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    b.textContent=(open?'hide ':'show ')+b.dataset.noun;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+});
+/* ---------- theme: follows the system (or the viewer's choice) until the button is pressed ---------- */
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement;
+ function current(){ var a=root.getAttribute('data-theme'); if(a==='light'||a==='dark') return a;
+   return (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark'; }
+ function label(){ t.textContent = current()==='light' ? 'dark' : 'light'; }
+ label();
+ t.addEventListener('click',function(){ var next=current()==='light'?'dark':'light'; root.setAttribute('data-theme',next); label(); });
+ if(window.matchMedia) window.matchMedia('(prefers-color-scheme: light)').addEventListener('change',label);
+})();
+</script>
+
+<script>/* keep the light/dark button label right when the site sets the theme */
+(function(){var t=document.getElementById("theme"),r=document.documentElement;if(!t||!window.MutationObserver)return;new MutationObserver(function(){var a=r.getAttribute("data-theme");if(a==="light"||a==="dark")t.textContent=(a==="light")?"dark":"light";}).observe(r,{attributes:true,attributeFilter:["data-theme"]});})();</script>
+</body>
+</html>

@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lecture 23 — Reading the Frontier · Machine Learning</title>
+<meta name="color-scheme" content="dark light">
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:(window.innerWidth<560?'0em':'1.2em'), fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-svg.js"></script>
+<style>
+  /* harbour theme (Quantum Frontiers notes): dark-first, light under prefers-color-scheme or the toggle.
+     layout: one 760px reading column; boxes by role; widgets as instruments in surface panels */
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade; --plum:#c3a6e8;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  @media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a; --plum:#5b3a8c; } }
+  :root[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a; --plum:#5b3a8c; }
+  *{box-sizing:border-box}
+  html{font-size:17.5px;background:var(--bg)}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  /* maths keeps text size: wide display equations scroll sideways instead of shrinking */
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%;
+    padding-bottom:4px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+  mjx-container{color:var(--ink)}
+  mjx-container svg{max-width:none !important}
+  .wrap{max-width:760px;margin:0 auto;padding-block:22px 110px;
+        padding-left:max(20px, env(safe-area-inset-left, 0px));padding-right:max(20px, env(safe-area-inset-right, 0px))}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em;text-wrap:balance}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px;text-wrap:balance}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0;min-width:0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)} .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid} .exr .lbl{color:var(--amber)}
+  .data{border-left-color:var(--cap);background:var(--surface2)} .data .lbl{color:var(--cap)}
+  /* machine-learning course additions, same family */
+  .big{border-left-color:var(--plum);background:var(--surface2)} .big .lbl{color:var(--plum)}
+  .causal{border-left-color:var(--moss);background:var(--surface2)} .causal .lbl{color:var(--moss)}
+  .bayes{border-left-color:var(--sky);background:var(--surface2)} .bayes .lbl{color:var(--sky)}
+  .quantum{border-left-color:var(--plum);border-left-style:double;border-left-width:4px;background:var(--surface2)} .quantum .lbl{color:var(--plum)}
+  .proj{border-left:3px dashed var(--rose);background:var(--surface2)} .proj .lbl{color:var(--rose)}
+  .proj h4{font-family:var(--mono);font-size:.95rem;color:var(--ink);margin:1.1em 0 .2em;font-weight:600}
+  .proj dl{margin:.1em 0 .4em} .proj dt{font-family:var(--mono);font-size:.84rem;color:var(--cap);margin-top:.35em}
+  .proj dd{margin:.05em 0 0 1em}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap);border-style:dashed}
+  /* syntax colours (build-time highlighting), drawn from the theme tokens */
+  .tool pre.src{border-left:3px solid var(--sky)}
+  .t-c,.t-c1,.t-cm,.t-ch,.t-cs{color:var(--muted);font-style:italic}
+  .t-k,.t-kd,.t-kr,.t-ow{color:var(--rose);font-weight:600}
+  .t-kn{color:var(--plum);font-weight:600}
+  .t-kc{color:var(--amber);font-weight:600}
+  .t-nb,.t-bp,.t-fm{color:var(--sky)}
+  .t-nf,.t-nc{color:var(--sky);font-weight:600}
+  .t-nn{color:var(--plum)}
+  .t-nd{color:var(--plum)}
+  .t-s,.t-s1,.t-s2,.t-sa,.t-sb,.t-sc,.t-sd,.t-se,.t-sh,.t-sx{color:var(--moss)}
+  .t-si{color:var(--amber)}
+  .t-m,.t-mi,.t-mf,.t-mh,.t-mo,.t-il{color:var(--amber)}
+  .t-o{color:var(--cap)}
+  .t-p{color:var(--muted)}
+  .t-n,.t-nv,.t-na{color:var(--ink)}
+  .t-fn{color:var(--sky)}
+  .notation dt{font-family:var(--mono);color:var(--sky);font-size:.92rem;margin-top:.5em}
+  .notation dd{margin:.05em 0 0 1em}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center;overflow-x:auto}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0;min-width:0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .widget .wtxt{font-size:.92rem;margin:.2em 0 .6em}
+  .widget > svg,.wrow > svg{display:block;margin:0 auto;touch-action:manipulation}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 150px;min-width:0}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.88rem;color:var(--ink);margin-top:8px;min-height:1.4em;line-height:1.6;font-variant-numeric:tabular-nums}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl:hover{border-color:var(--sky)}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  .wrow{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+  .wrow > *{flex:1 1 280px;min-width:0}
+  .legend{font-family:var(--mono);font-size:.8rem;color:var(--cap);display:flex;flex-wrap:wrap;gap:4px 14px;margin:.3em 0}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:0}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .tscroll{overflow-x:auto}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  .refs li{font-size:.95rem;margin-bottom:.55em}
+
+  /* ---- spot checks ---- */
+  .spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+        border-radius:0 8px 8px 0;padding:10px 16px 12px;margin:1.4em 0;transition:border-color .2s ease,background .2s ease}
+  .spot > .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.25em;color:var(--sky)}
+  .spot .q{margin:0 0 .55em}
+  .spot .hint,.spot .why,.spot .ans{display:none;font-size:.95rem;margin:.55em 0 0;padding:.45em .7em;border-radius:6px;line-height:1.6}
+  .spot .hint{border:1px solid var(--amber);color:var(--ink);background:var(--surface2)}
+  .spot .why{border:1px solid var(--moss);color:var(--ink);background:var(--surface2)}
+  .spot .ans{border:1px dashed var(--rule);color:var(--ink)}
+  .spot .hint::before{content:"not quite \2014  ";font-family:var(--mono);font-size:.82rem;color:var(--amber)}
+  .spot .why::before{content:"correct \2014  ";font-family:var(--mono);font-size:.82rem;color:var(--moss)}
+  .spot .ans::before{content:"answer \2014  ";font-family:var(--mono);font-size:.82rem;color:var(--cap)}
+  .spot.no{border-left-color:var(--amber);border-color:var(--amber)} .spot.no > .lbl{color:var(--amber)}
+  .spot.ok{border-left-color:var(--moss);border-color:var(--moss)} .spot.ok > .lbl{color:var(--moss)}
+  .spot.no .hint.on,.spot .why.on,.spot .ans.on{display:block}
+  .spot .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .spot input.sp-in{font-family:var(--mono);font-size:.95rem;background:var(--bg);color:var(--ink);
+        border:1px solid var(--rule);border-radius:6px;padding:6px 9px;width:11em;max-width:100%}
+  .spot.ok input.sp-in{border-color:var(--moss)} .spot.no input.sp-in{border-color:var(--amber)}
+  .spot select.sp{font-family:var(--mono);font-size:.9rem;background:var(--bg);color:var(--ink);
+        border:1px solid var(--rule);border-radius:6px;padding:3px 6px;margin:0 .15em;max-width:100%}
+  .spot select.sp.good{border-color:var(--moss)} .spot select.sp.bad{border-color:var(--amber)}
+  .spot ul.opts{list-style:none;padding:0;margin:.3em 0 .2em;display:grid;gap:7px}
+  .spot ul.opts li{margin:0}
+  .spot ul.opts button.opt{width:100%;text-align:left;font-family:var(--serif);font-size:1rem;line-height:1.55;
+        background:var(--bg);color:var(--ink);border:1px solid var(--rule);border-radius:7px;padding:7px 12px;cursor:pointer}
+  .spot ul.opts button.opt:hover{border-color:var(--sky)}
+  .spot ul.opts button.opt[aria-pressed="true"]{border-color:var(--sky);box-shadow:inset 3px 0 0 var(--sky)}
+  .spot ul.opts button.opt.good{border-color:var(--moss);box-shadow:inset 3px 0 0 var(--moss)}
+  .spot ul.opts button.opt.bad{border-color:var(--amber);box-shadow:inset 3px 0 0 var(--amber)}
+  .spot .unit{font-family:var(--mono);font-size:.9rem;color:var(--muted)}
+  .spot button.sp-show{border-style:dashed}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:16px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  /* formal statements: airy, clean spacing (added Oct 2026) */
+  mjx-container[display="true"]{margin:1.35em 0 !important}
+  .box.def,.box.thm{padding:18px 22px 16px}
+  .box.def > .lbl,.box.thm > .lbl{margin-bottom:.85em;padding-bottom:.5em;border-bottom:1px solid var(--rule)}
+  .box.def p,.box.thm p,.sol p{margin:.8em 0}
+  .box.def mjx-container[display="true"],.box.thm mjx-container[display="true"],.sol mjx-container[display="true"]{margin:1.6em 0 !important}
+  .box.def ul,.box.thm ul,.box.def ol,.box.thm ol{margin:.7em 0;padding-left:1.35em}
+  .box.def li,.box.thm li{margin:.55em 0}
+  .box .sol-btn{margin-top:1em}
+  .sol{margin-top:1.1em;padding-top:1.1em}
+  .box.def p.stmt,.box.thm p.stmt{margin:.9em 0 .9em 1.1em}
+  @media (max-width:520px){ .box.def,.box.thm{padding:13px 14px 12px} .box.def p.stmt,.box.thm p.stmt{margin-left:.4em} }
+</style>
+
+<script src="/assets/courses/common/course-nav.js" data-course="machine-learning" defer></script>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Machine Learning · Lecture 23</a>
+  <button class="ctl" id="theme" type="button">light</button>
+</div>
+<h1 id="top">Lecture 23<br>Reading the Frontier</h1>
+<p class="kicker">Part VII &middot; Onward &nbsp;|&nbsp; the anatomy of an ML paper, a notation decoder for the whole course, reading experiments critically (baselines, seeds, leakage, benchmark saturation), three guided dissections, reproducing a figure (grokking), the 2026 map of the field &nbsp;|&nbsp; reading: Lipton &amp; Steinhardt (2019); Henderson et al. (2018); Agarwal et al. (2021); Kapoor &amp; Narayanan (2023); Power et al. (2022)</p>
+
+<figure class="toon">
+<svg viewBox="0 0 600 210" width="600" height="210" role="img" aria-labelledby="c23t c23d">
+<title id="c23t">Cartoon: reading the small print</title><desc id="c23d">A stick figure holds a paper whose headline says "state of the art". A second figure with a magnifying glass looks at a footnote and says: on one seed, with tuned baselines missing.</desc>
+<defs><filter id="rough23" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="231" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough23)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<rect x="220" y="84" width="120" height="110" fill="var(--surface2)"/>
+<path d="M 234 104 L 326 104" stroke="var(--rose)" stroke-width="4"/><path d="M 234 122 L 326 122 M 234 134 L 326 134 M 234 146 L 310 146 M 234 158 L 326 158" stroke-width="1.2"/><path d="M 300 182 L 326 182" stroke-width="1"/>
+<circle cx="150" cy="128" r="10"/><path d="M 150 138 L 150 164 M 150 146 L 218 120 M 150 146 L 138 158 M 150 164 L 141 190 M 150 164 L 159 190"/>
+<circle cx="440" cy="128" r="10"/><path d="M 440 138 L 440 164 M 440 146 L 372 176 M 440 146 L 452 158 M 440 164 L 431 190 M 440 164 L 449 190"/>
+<circle cx="360" cy="182" r="14" stroke="var(--sky)"/><path d="M 370 192 L 378 200" stroke="var(--sky)"/>
+<rect x="8" y="12" width="200" height="48" rx="9" fill="var(--surface2)"/><rect x="372" y="12" width="220" height="66" rx="9" fill="var(--surface2)"/>
+<path d="M 10 200 L 590 200" stroke-width="1.6"/>
+</g>
+<text x="18" y="33" class="ctext">State of the art!</text><text x="18" y="51" class="ctext">Best result ever.</text>
+<text x="382" y="33" class="ctext">On one seed, and</text><text x="382" y="51" class="ctext">the baselines weren't</text><text x="382" y="69" class="ctext">tuned.</text>
+</svg>
+<figcaption class="tooncap">A paper's claim is only as strong as the experiment behind it: the course ends by turning methods into a reading skill</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">The anatomy of an ML paper</a></li>
+<li><a href="#s2">A notation decoder</a></li>
+<li><a href="#s3">Reading experiments critically</a></li>
+<li><a href="#s4">Three guided dissections</a></li>
+<li><a href="#s5">Reproducing a figure: grokking</a></li>
+<li><a href="#s6">The 2026 map, and a map of the course</a></li>
+<li><a href="#s7">Exercises, projects, reading</a></li>
+</ol>
+</div>
+
+<p>The aim of these notes, from the first lecture, has been that a reader can pick up a current paper from NeurIPS, ICML or ICLR and follow its methods. Twenty-two lectures have supplied the methods. This one supplies the habits: where to look in a paper, how to decode its notation, what to distrust in its experiments, and how to check a result yourself.</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; The anatomy of an ML paper</h2>
+
+<p>Most machine-learning papers follow the same plan, and each part answers one question.</p>
+<ul>
+<li><strong>Abstract and introduction: what is the claim?</strong> Write it down in one sentence before reading further, in the form "method M does X better than Y on task T, because Z".</li>
+<li><strong>Related work: what is new?</strong> Look for the closest earlier method; the contribution is the difference.</li>
+<li><strong>Method: what exactly is done?</strong> Find the objective being minimised, the model, and the algorithm. Most methods are one of the losses of Lecture 5 plus a model of Lectures 10&ndash;12, optimised as in Lecture 2.</li>
+<li><strong>Experiments: does the evidence support the claim?</strong> Check the baselines, the number of runs, the error bars, and whether the test data were ever used for choices.</li>
+<li><strong>Ablations: why does it work?</strong> An ablation removes one component; if removing the paper's key idea changes little, the "because Z" is doubtful.</li>
+<li><strong>Limitations: when does it fail?</strong> A paper that reports no failure cases has not looked for them.</li>
+</ul>
+<p>A useful order for a first reading is abstract, figures and tables, conclusion, then the method, and only then the rest. Lipton and Steinhardt (2019) list four common weaknesses in ML writing worth checking for: failing to separate explanation from speculation; failing to identify the source of an empirical gain; "mathiness" (equations that decorate rather than clarify); and misuse of language, such as suggestive names for ordinary techniques.</p>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; A notation decoder</h2>
+
+<p>Every symbol used in the course, with its meaning and where it first appears. Type in the box to filter the table.</p>
+
+<div class="widget" id="w-notation">
+<h4>Notation decoder</h4>
+<div class="ctrls"><label style="flex:1 1 100%"><span>search (symbol, word or lecture number)</span><input type="text" id="ndQ" placeholder="for example: KL, gradient, 17" style="width:100%" aria-label="search the notation table"></label></div>
+<div id="ndTab" style="max-height:460px;overflow-y:auto"></div>
+<div class="readout" id="ndRes" role="status" aria-live="polite"></div>
+</div>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; Reading experiments critically</h2>
+
+<p>Four questions catch most weak experiments.</p>
+<ul>
+<li><strong>Are the baselines strong and tuned?</strong> A new method tuned for weeks against baselines run with default settings proves little. Melis, Dyer and Blunsom (2018) found that a carefully tuned LSTM beat several newer, more elaborate language-model architectures.</li>
+<li><strong>How many runs, and how variable?</strong> Deep learning and especially RL vary a lot from seed to seed (Lecture 21b). Henderson et al. (2018) showed that two groups of five seeds of the same algorithm can differ "significantly"; Agarwal et al. (2021) recommend interval estimates and robust aggregate measures such as the interquartile mean.</li>
+<li><strong>Did information leak from the test set?</strong> Choosing features, hyperparameters or stopping points with the test data inflates results. Kapoor and Narayanan (2023) found leakage in hundreds of published ML-based scientific papers across many fields.</li>
+<li><strong>Is the benchmark still informative?</strong> Benchmarks saturate: once methods score near the ceiling, differences reflect noise, annotation errors or overfitting to the test set. Recht et al. (2019) collected new ImageNet test images following the original procedure, and every model lost 11&ndash;14 points of accuracy, although the ranking of models was largely preserved. Benchmarks scraped from the web may also appear in the training data of large models (contamination).</li>
+</ul>
+
+<div class="box tool">
+<span class="lbl">code &mdash; how often too few seeds pick the wrong winner; how leakage manufactures accuracy</span>
+<pre class="src"><span class="t-c1"># Reading experiments critically: how often three seeds pick the wrong winner, and how leakage manufactures accuracy</span>
+<span class="t-kn">import</span><span class="t-w"> </span><span class="t-nn">numpy</span><span class="t-w"> </span><span class="t-k">as</span><span class="t-w"> </span><span class="t-nn">np</span><span class="t-o">,</span><span class="t-w"> </span><span class="t-nn">time</span><span class="t-o">,</span><span class="t-w"> </span><span class="t-nn">warnings</span><span class="t-p">;</span> <span class="t-n">warnings</span><span class="t-o">.</span><span class="t-n">filterwarnings</span><span class="t-p">(</span><span class="t-s1">'ignore'</span><span class="t-p">)</span>
+<span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">sklearn.linear_model</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">LogisticRegression</span>
+<span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">sklearn.model_selection</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">cross_val_score</span>
+<span class="t-n">rng</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-n">default_rng</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s2">"method B is truly better than A by a gap d (in units of the seed-to-seed standard deviation); compare their means over n seeds"</span><span class="t-p">)</span>
+<span class="t-k">for</span> <span class="t-n">d</span> <span class="t-ow">in</span> <span class="t-p">(</span><span class="t-mf">0.25</span><span class="t-p">,</span> <span class="t-mf">0.5</span><span class="t-p">,</span> <span class="t-mf">1.0</span><span class="t-p">):</span>
+    <span class="t-n">row</span> <span class="t-o">=</span> <span class="t-p">[]</span>
+    <span class="t-k">for</span> <span class="t-n">n</span> <span class="t-ow">in</span> <span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">3</span><span class="t-p">,</span> <span class="t-mi">5</span><span class="t-p">,</span> <span class="t-mi">10</span><span class="t-p">):</span>
+        <span class="t-n">a</span> <span class="t-o">=</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-n">standard_normal</span><span class="t-p">((</span><span class="t-mi">100_000</span><span class="t-p">,</span> <span class="t-n">n</span><span class="t-p">))</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">);</span> <span class="t-n">b</span> <span class="t-o">=</span> <span class="t-p">(</span><span class="t-n">d</span> <span class="t-o">+</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-n">standard_normal</span><span class="t-p">((</span><span class="t-mi">100_000</span><span class="t-p">,</span> <span class="t-n">n</span><span class="t-p">)))</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">);</span> <span class="t-n">row</span><span class="t-o">.</span><span class="t-n">append</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">(</span><span class="t-n">a</span> <span class="t-o">&gt;</span> <span class="t-n">b</span><span class="t-p">))</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"  d = </span><span class="t-si">{</span><span class="t-n">d</span><span class="t-si">:</span><span class="t-s2">&lt;4</span><span class="t-si">}</span><span class="t-s2">: the worse method wins in </span><span class="t-si">{</span><span class="t-s1">', '</span><span class="t-o">.</span><span class="t-n">join</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">x</span><span class="t-si">:</span><span class="t-s1">.0%</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-w"> </span><span class="t-k">for</span><span class="t-w"> </span><span class="t-n">x</span><span class="t-w"> </span><span class="t-ow">in</span><span class="t-w"> </span><span class="t-n">row</span><span class="t-p">)</span><span class="t-si">}</span><span class="t-s2"> of comparisons with 1, 3, 5, 10 seeds"</span><span class="t-p">)</span>
+<span class="t-c1"># leakage: choose features using all the data, then cross-validate, on data with no signal at all</span>
+<span class="t-n">X</span> <span class="t-o">=</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-n">standard_normal</span><span class="t-p">((</span><span class="t-mi">100</span><span class="t-p">,</span> <span class="t-mi">5000</span><span class="t-p">));</span> <span class="t-n">y</span> <span class="t-o">=</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-n">integers</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-mi">2</span><span class="t-p">,</span> <span class="t-mi">100</span><span class="t-p">)</span>                 <span class="t-c1"># 100 samples, 5,000 noise features, random labels</span>
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">top_k</span><span class="t-p">(</span><span class="t-n">Xa</span><span class="t-p">,</span> <span class="t-n">ya</span><span class="t-p">,</span> <span class="t-n">k</span><span class="t-o">=</span><span class="t-mi">20</span><span class="t-p">):</span> <span class="t-k">return</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">argsort</span><span class="t-p">(</span><span class="t-o">-</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">abs</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">corrcoef</span><span class="t-p">(</span><span class="t-n">Xa</span><span class="t-o">.</span><span class="t-n">T</span><span class="t-p">,</span> <span class="t-n">ya</span><span class="t-p">)[</span><span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">,</span> <span class="t-p">:</span><span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">]))[:</span><span class="t-n">k</span><span class="t-p">]</span>
+<span class="t-n">leaky</span> <span class="t-o">=</span> <span class="t-n">cross_val_score</span><span class="t-p">(</span><span class="t-n">LogisticRegression</span><span class="t-p">(</span><span class="t-n">max_iter</span><span class="t-o">=</span><span class="t-mi">2000</span><span class="t-p">),</span> <span class="t-n">X</span><span class="t-p">[:,</span> <span class="t-n">top_k</span><span class="t-p">(</span><span class="t-n">X</span><span class="t-p">,</span> <span class="t-n">y</span><span class="t-p">)],</span> <span class="t-n">y</span><span class="t-p">,</span> <span class="t-n">cv</span><span class="t-o">=</span><span class="t-mi">5</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">()</span>
+<span class="t-n">honest</span> <span class="t-o">=</span> <span class="t-p">[]</span>
+<span class="t-k">for</span> <span class="t-n">f</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-mi">5</span><span class="t-p">):</span>
+    <span class="t-n">te</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">arange</span><span class="t-p">(</span><span class="t-n">f</span> <span class="t-o">*</span> <span class="t-mi">20</span><span class="t-p">,</span> <span class="t-p">(</span><span class="t-n">f</span> <span class="t-o">+</span> <span class="t-mi">1</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-mi">20</span><span class="t-p">);</span> <span class="t-n">tr</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">setdiff1d</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">arange</span><span class="t-p">(</span><span class="t-mi">100</span><span class="t-p">),</span> <span class="t-n">te</span><span class="t-p">);</span> <span class="t-n">k</span> <span class="t-o">=</span> <span class="t-n">top_k</span><span class="t-p">(</span><span class="t-n">X</span><span class="t-p">[</span><span class="t-n">tr</span><span class="t-p">],</span> <span class="t-n">y</span><span class="t-p">[</span><span class="t-n">tr</span><span class="t-p">])</span>
+    <span class="t-n">honest</span><span class="t-o">.</span><span class="t-n">append</span><span class="t-p">(</span><span class="t-n">LogisticRegression</span><span class="t-p">(</span><span class="t-n">max_iter</span><span class="t-o">=</span><span class="t-mi">2000</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-n">fit</span><span class="t-p">(</span><span class="t-n">X</span><span class="t-p">[</span><span class="t-n">tr</span><span class="t-p">][:,</span> <span class="t-n">k</span><span class="t-p">],</span> <span class="t-n">y</span><span class="t-p">[</span><span class="t-n">tr</span><span class="t-p">])</span><span class="t-o">.</span><span class="t-n">score</span><span class="t-p">(</span><span class="t-n">X</span><span class="t-p">[</span><span class="t-n">te</span><span class="t-p">][:,</span> <span class="t-n">k</span><span class="t-p">],</span> <span class="t-n">y</span><span class="t-p">[</span><span class="t-n">te</span><span class="t-p">]))</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"</span><span class="t-se">\n</span><span class="t-s2">pure noise (100 samples, 5,000 features, random labels): 5-fold accuracy </span><span class="t-si">{</span><span class="t-n">leaky</span><span class="t-si">:</span><span class="t-s2">.0%</span><span class="t-si">}</span><span class="t-s2"> if the 20 'best' features are chosen on all the data first;"</span>
+      <span class="t-sa">f</span><span class="t-s2">" </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">(</span><span class="t-n">honest</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s2">.0%</span><span class="t-si">}</span><span class="t-s2"> if they are chosen inside each fold (chance: 50%)"</span><span class="t-p">)</span></pre>
+<pre class="out">method B is truly better than A by a gap d (in units of the seed-to-seed standard deviation); compare their means over n seeds
+  d = 0.25: the worse method wins in 43%, 38%, 34%, 29% of comparisons with 1, 3, 5, 10 seeds
+  d = 0.5 : the worse method wins in 36%, 27%, 22%, 13% of comparisons with 1, 3, 5, 10 seeds
+  d = 1.0 : the worse method wins in 24%, 11%, 6%, 1% of comparisons with 1, 3, 5, 10 seeds
+
+pure noise (100 samples, 5,000 features, random labels): 5-fold accuracy 90% if the 20 'best' features are chosen on all the data first; 54% if they are chosen inside each fold (chance: 50%)</pre>
+</div>
+
+<p>Seeds first. When the better method's advantage is half a seed-to-seed standard deviation, a comparison on three seeds each picks the wrong winner 27% of the time, and even ten seeds get it wrong 13% of the time; for an advantage of a full standard deviation, three seeds still mislead 11% of the time. Leakage next. On data with no signal at all, choosing the 20 features most correlated with the labels on the whole data set and then cross-validating reports 90% accuracy; doing the same selection inside each training fold gives 54%, close to chance, as it should. Nothing in the leaky pipeline looks wrong at a glance, which is why this mistake is common in published work.</p>
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; Three guided dissections</h2>
+
+<p>Each dissection applies Section 1 to a well-known paper: the claim, the evidence that carries it, the check that matters most, and what the paper does not show.</p>
+
+<div class="box idea">
+<span class="lbl">dissection 1 (deep learning) &mdash; He, Zhang, Ren and Sun, "Deep residual learning for image recognition" (CVPR 2016)</span>
+<p><strong>Claim.</strong> Very deep networks become trainable if each block learns a residual \(F(x)\) added to its input, \(y=x+F(x)\), rather than a whole new mapping.</p>
+<p><strong>Key evidence.</strong> On ImageNet, a plain 34-layer network has <em>higher training error</em> than a plain 18-layer one, while the residual 34-layer network beats the residual 18-layer one. Because the comparison is on training error, the problem is optimisation, not overfitting: this "degradation" observation is the paper's central argument (Lecture 11).</p>
+<p><strong>The check that matters.</strong> Plain and residual networks have the same depth, width and number of parameters, so the shortcut connection is the only difference. The ablation over shortcut types (identity, or projection only where shapes change, or projection everywhere) shows that the identity shortcut alone gives most of the gain.</p>
+<p><strong>What it does not show.</strong> Why residual networks optimise more easily is argued informally; later work (for example on the loss landscape, and on residual networks as discretised differential equations) supplied explanations. The results are on image recognition (classification, plus detection on PASCAL VOC and COCO); the idea's spread to transformers was established by later papers, not this one.</p>
+</div>
+
+<div class="box idea">
+<span class="lbl">dissection 2 (causal) &mdash; Reisach, Seiler and Weichwald, "Beware of the simulated DAG! Causal discovery benchmarks may be easy to game" (NeurIPS 2021)</span>
+<p><strong>Claim.</strong> On common simulated benchmarks, continuous structure-learning methods such as NOTEARS succeed largely because variance increases along the causal order, a regularity they call varsortability, rather than because they reason about causal structure.</p>
+<p><strong>Key evidence.</strong> A trivial baseline that sorts variables by variance and regresses each on its predecessors matches the sophisticated methods, and rescaling the data (which leaves the causal structure unchanged) degrades the continuous methods sharply but not scale-invariant ones such as PC. Lecture 20b reproduced both findings.</p>
+<p><strong>The check that matters.</strong> The paper measures varsortability for the benchmarks themselves, so the explanation is tested, not just proposed; and it offers the baseline as a tool others can run.</p>
+<p><strong>What it does not show.</strong> It does not show that real data are never varsortable (in some physical systems variance really does accumulate downstream), nor that continuous methods are useless; it shows that benchmark success needs a stronger control.</p>
+</div>
+
+<div class="box idea">
+<span class="lbl">dissection 3 (quantum ML) &mdash; Tang, "A quantum-inspired classical algorithm for recommendation systems" (STOC 2019)</span>
+<p><strong>Claim.</strong> The quantum recommendation algorithm of Kerenidis and Prakash (2017), believed to give an exponential speed-up, can be matched by a classical algorithm whose running time is polynomial in the logarithm of the matrix size, if the classical algorithm gets comparable access to the data.</p>
+<p><strong>Key evidence.</strong> The quantum algorithm assumes the data are stored in a structure (QRAM, or a binary tree of partial sums) that lets it prepare states proportional to rows of the matrix. Tang shows that the same structure gives a classical computer "sample and query" access, enough to sample from a low-rank approximation by length-squared sampling, the randomised linear algebra of Lecture 16a.</p>
+<p><strong>The check that matters.</strong> Compare quantum and classical algorithms under the <em>same</em> input model. Much of the claimed exponential advantage came from the input assumptions, not the quantum processing.</p>
+<p><strong>What it does not show.</strong> The classical algorithm's polynomial dependence on rank and precision is much worse than the quantum one's, so the gap became polynomial rather than disappearing. Speed-ups for learning from quantum data, where the input is itself a quantum state, are not affected (Lecture 20a's classical shadows, and Huang et al., 2022).</p>
+</div>
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; Reproducing a figure: grokking</h2>
+
+<p>Power, Burda, Edwards, Babuschkin and Misra (2022) trained small transformers on tables such as \(a+b\bmod p\) and found that, long after the training accuracy reached 100%, the validation accuracy suddenly jumped from chance to near-perfect: the network "groks" the rule. Their first figure plots both accuracies against training steps on a log scale. Reproducing it is a good exercise: it is cheap, the claim is sharp, and the details (data fraction, weight decay) matter. Following Gromov (2023), we use a two-layer network with a quadratic activation instead of a transformer, which groks within a few thousand steps on a CPU.</p>
+
+<div class="box tool">
+<span class="lbl">code &mdash; grokking modular addition: training and test accuracy over time</span>
+<pre class="src"><span class="t-c1"># Reproducing a figure: "grokking" on modular addition (Power et al., 2022), with a small MLP in the style of Gromov (2023)</span>
+<span class="t-kn">import</span><span class="t-w"> </span><span class="t-nn">jax</span><span class="t-o">,</span><span class="t-w"> </span><span class="t-nn">jax.numpy</span><span class="t-w"> </span><span class="t-k">as</span><span class="t-w"> </span><span class="t-nn">jnp</span>
+<span class="t-n">p_</span> <span class="t-o">=</span> <span class="t-mi">97</span><span class="t-p">;</span> <span class="t-n">pairs_</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">array</span><span class="t-p">([(</span><span class="t-n">a</span><span class="t-p">,</span> <span class="t-n">b</span><span class="t-p">)</span> <span class="t-k">for</span> <span class="t-n">a</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-n">p_</span><span class="t-p">)</span> <span class="t-k">for</span> <span class="t-n">b</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-n">p_</span><span class="t-p">)]);</span> <span class="t-n">y_all</span> <span class="t-o">=</span> <span class="t-p">(</span><span class="t-n">pairs_</span><span class="t-p">[:,</span> <span class="t-mi">0</span><span class="t-p">]</span> <span class="t-o">+</span> <span class="t-n">pairs_</span><span class="t-p">[:,</span> <span class="t-mi">1</span><span class="t-p">])</span> <span class="t-o">%</span> <span class="t-n">p_</span>
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">onehot_pairs</span><span class="t-p">(</span><span class="t-n">pr</span><span class="t-p">):</span> <span class="t-k">return</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">concatenate</span><span class="t-p">([</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">eye</span><span class="t-p">(</span><span class="t-n">p_</span><span class="t-p">)[</span><span class="t-n">pr</span><span class="t-p">[:,</span> <span class="t-mi">0</span><span class="t-p">]],</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">eye</span><span class="t-p">(</span><span class="t-n">p_</span><span class="t-p">)[</span><span class="t-n">pr</span><span class="t-p">[:,</span> <span class="t-mi">1</span><span class="t-p">]]],</span> <span class="t-mi">1</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-n">astype</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">float32</span><span class="t-p">)</span>
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">grok</span><span class="t-p">(</span><span class="t-n">frac</span><span class="t-p">,</span> <span class="t-n">wd</span><span class="t-p">,</span> <span class="t-n">steps</span><span class="t-o">=</span><span class="t-mi">3000</span><span class="t-p">,</span> <span class="t-n">seed</span><span class="t-o">=</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-n">width</span><span class="t-o">=</span><span class="t-mi">256</span><span class="t-p">,</span> <span class="t-n">lr</span><span class="t-o">=</span><span class="t-mf">1e-3</span><span class="t-p">):</span>
+    <span class="t-n">g</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-n">default_rng</span><span class="t-p">(</span><span class="t-n">seed</span><span class="t-p">);</span> <span class="t-n">idx</span> <span class="t-o">=</span> <span class="t-n">g</span><span class="t-o">.</span><span class="t-n">permutation</span><span class="t-p">(</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">pairs_</span><span class="t-p">));</span> <span class="t-n">ntr</span> <span class="t-o">=</span> <span class="t-nb">int</span><span class="t-p">(</span><span class="t-n">frac</span> <span class="t-o">*</span> <span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">pairs_</span><span class="t-p">));</span> <span class="t-n">tr</span><span class="t-p">,</span> <span class="t-n">te</span> <span class="t-o">=</span> <span class="t-n">idx</span><span class="t-p">[:</span><span class="t-n">ntr</span><span class="t-p">],</span> <span class="t-n">idx</span><span class="t-p">[</span><span class="t-n">ntr</span><span class="t-p">:]</span>
+    <span class="t-n">Xtr</span><span class="t-p">,</span> <span class="t-n">ytr</span><span class="t-p">,</span> <span class="t-n">Xte</span><span class="t-p">,</span> <span class="t-n">yte</span> <span class="t-o">=</span> <span class="t-n">jnp</span><span class="t-o">.</span><span class="t-n">array</span><span class="t-p">(</span><span class="t-n">onehot_pairs</span><span class="t-p">(</span><span class="t-n">pairs_</span><span class="t-p">[</span><span class="t-n">tr</span><span class="t-p">])),</span> <span class="t-n">jnp</span><span class="t-o">.</span><span class="t-n">array</span><span class="t-p">(</span><span class="t-n">y_all</span><span class="t-p">[</span><span class="t-n">tr</span><span class="t-p">]),</span> <span class="t-n">jnp</span><span class="t-o">.</span><span class="t-n">array</span><span class="t-p">(</span><span class="t-n">onehot_pairs</span><span class="t-p">(</span><span class="t-n">pairs_</span><span class="t-p">[</span><span class="t-n">te</span><span class="t-p">])),</span> <span class="t-n">jnp</span><span class="t-o">.</span><span class="t-n">array</span><span class="t-p">(</span><span class="t-n">y_all</span><span class="t-p">[</span><span class="t-n">te</span><span class="t-p">])</span>
+    <span class="t-n">k1</span><span class="t-p">,</span> <span class="t-n">k2</span> <span class="t-o">=</span> <span class="t-n">jax</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-n">split</span><span class="t-p">(</span><span class="t-n">jax</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-n">PRNGKey</span><span class="t-p">(</span><span class="t-n">seed</span><span class="t-p">));</span> <span class="t-n">P</span> <span class="t-o">=</span> <span class="t-p">{</span><span class="t-s1">'W1'</span><span class="t-p">:</span> <span class="t-n">jax</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-n">normal</span><span class="t-p">(</span><span class="t-n">k1</span><span class="t-p">,</span> <span class="t-p">(</span><span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">p_</span><span class="t-p">,</span> <span class="t-n">width</span><span class="t-p">))</span> <span class="t-o">/</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">sqrt</span><span class="t-p">(</span><span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">p_</span><span class="t-p">),</span> <span class="t-s1">'W2'</span><span class="t-p">:</span> <span class="t-n">jax</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-n">normal</span><span class="t-p">(</span><span class="t-n">k2</span><span class="t-p">,</span> <span class="t-p">(</span><span class="t-n">width</span><span class="t-p">,</span> <span class="t-n">p_</span><span class="t-p">))</span> <span class="t-o">/</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">sqrt</span><span class="t-p">(</span><span class="t-n">width</span><span class="t-p">)}</span>
+    <span class="t-n">f</span> <span class="t-o">=</span> <span class="t-k">lambda</span> <span class="t-n">P</span><span class="t-p">,</span> <span class="t-n">X</span><span class="t-p">:</span> <span class="t-p">(</span><span class="t-n">X</span> <span class="t-o">@</span> <span class="t-n">P</span><span class="t-p">[</span><span class="t-s1">'W1'</span><span class="t-p">])</span> <span class="t-o">**</span> <span class="t-mi">2</span> <span class="t-o">@</span> <span class="t-n">P</span><span class="t-p">[</span><span class="t-s1">'W2'</span><span class="t-p">]</span>                      <span class="t-c1"># quadratic activation, as in Gromov (2023)</span>
+    <span class="t-n">loss</span> <span class="t-o">=</span> <span class="t-k">lambda</span> <span class="t-n">P</span><span class="t-p">,</span> <span class="t-n">X</span><span class="t-p">,</span> <span class="t-n">y</span><span class="t-p">:</span> <span class="t-o">-</span><span class="t-n">jnp</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">(</span><span class="t-n">jax</span><span class="t-o">.</span><span class="t-n">nn</span><span class="t-o">.</span><span class="t-n">log_softmax</span><span class="t-p">(</span><span class="t-n">f</span><span class="t-p">(</span><span class="t-n">P</span><span class="t-p">,</span> <span class="t-n">X</span><span class="t-p">))[</span><span class="t-n">jnp</span><span class="t-o">.</span><span class="t-n">arange</span><span class="t-p">(</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">y</span><span class="t-p">)),</span> <span class="t-n">y</span><span class="t-p">])</span>
+    <span class="t-n">acc</span> <span class="t-o">=</span> <span class="t-n">jax</span><span class="t-o">.</span><span class="t-n">jit</span><span class="t-p">(</span><span class="t-k">lambda</span> <span class="t-n">P</span><span class="t-p">,</span> <span class="t-n">X</span><span class="t-p">,</span> <span class="t-n">y</span><span class="t-p">:</span> <span class="t-n">jnp</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">(</span><span class="t-n">f</span><span class="t-p">(</span><span class="t-n">P</span><span class="t-p">,</span> <span class="t-n">X</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-n">argmax</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">)</span> <span class="t-o">==</span> <span class="t-n">y</span><span class="t-p">))</span>
+    <span class="t-nd">@jax</span><span class="t-o">.</span><span class="t-n">jit</span>
+    <span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">step</span><span class="t-p">(</span><span class="t-n">P</span><span class="t-p">,</span> <span class="t-n">m</span><span class="t-p">,</span> <span class="t-n">v</span><span class="t-p">,</span> <span class="t-n">t</span><span class="t-p">):</span>
+        <span class="t-n">gr</span> <span class="t-o">=</span> <span class="t-n">jax</span><span class="t-o">.</span><span class="t-n">grad</span><span class="t-p">(</span><span class="t-n">loss</span><span class="t-p">)(</span><span class="t-n">P</span><span class="t-p">,</span> <span class="t-n">Xtr</span><span class="t-p">,</span> <span class="t-n">ytr</span><span class="t-p">)</span>
+        <span class="t-n">m</span> <span class="t-o">=</span> <span class="t-n">jax</span><span class="t-o">.</span><span class="t-n">tree</span><span class="t-o">.</span><span class="t-n">map</span><span class="t-p">(</span><span class="t-k">lambda</span> <span class="t-n">m</span><span class="t-p">,</span> <span class="t-n">g</span><span class="t-p">:</span> <span class="t-mf">0.9</span> <span class="t-o">*</span> <span class="t-n">m</span> <span class="t-o">+</span> <span class="t-mf">0.1</span> <span class="t-o">*</span> <span class="t-n">g</span><span class="t-p">,</span> <span class="t-n">m</span><span class="t-p">,</span> <span class="t-n">gr</span><span class="t-p">);</span> <span class="t-n">v</span> <span class="t-o">=</span> <span class="t-n">jax</span><span class="t-o">.</span><span class="t-n">tree</span><span class="t-o">.</span><span class="t-n">map</span><span class="t-p">(</span><span class="t-k">lambda</span> <span class="t-n">v</span><span class="t-p">,</span> <span class="t-n">g</span><span class="t-p">:</span> <span class="t-mf">0.98</span> <span class="t-o">*</span> <span class="t-n">v</span> <span class="t-o">+</span> <span class="t-mf">0.02</span> <span class="t-o">*</span> <span class="t-n">g</span> <span class="t-o">*</span> <span class="t-n">g</span><span class="t-p">,</span> <span class="t-n">v</span><span class="t-p">,</span> <span class="t-n">gr</span><span class="t-p">)</span>
+        <span class="t-n">P</span> <span class="t-o">=</span> <span class="t-n">jax</span><span class="t-o">.</span><span class="t-n">tree</span><span class="t-o">.</span><span class="t-n">map</span><span class="t-p">(</span><span class="t-k">lambda</span> <span class="t-n">p</span><span class="t-p">,</span> <span class="t-n">m</span><span class="t-p">,</span> <span class="t-n">v</span><span class="t-p">:</span> <span class="t-n">p</span> <span class="t-o">-</span> <span class="t-n">lr</span> <span class="t-o">*</span> <span class="t-p">((</span><span class="t-n">m</span> <span class="t-o">/</span> <span class="t-p">(</span><span class="t-mi">1</span> <span class="t-o">-</span> <span class="t-mf">0.9</span> <span class="t-o">**</span> <span class="t-n">t</span><span class="t-p">))</span> <span class="t-o">/</span> <span class="t-p">(</span><span class="t-n">jnp</span><span class="t-o">.</span><span class="t-n">sqrt</span><span class="t-p">(</span><span class="t-n">v</span> <span class="t-o">/</span> <span class="t-p">(</span><span class="t-mi">1</span> <span class="t-o">-</span> <span class="t-mf">0.98</span> <span class="t-o">**</span> <span class="t-n">t</span><span class="t-p">))</span> <span class="t-o">+</span> <span class="t-mf">1e-8</span><span class="t-p">)</span> <span class="t-o">+</span> <span class="t-n">wd</span> <span class="t-o">*</span> <span class="t-n">p</span><span class="t-p">),</span> <span class="t-n">P</span><span class="t-p">,</span> <span class="t-n">m</span><span class="t-p">,</span> <span class="t-n">v</span><span class="t-p">)</span>   <span class="t-c1"># AdamW</span>
+        <span class="t-k">return</span> <span class="t-n">P</span><span class="t-p">,</span> <span class="t-n">m</span><span class="t-p">,</span> <span class="t-n">v</span>
+    <span class="t-n">m</span> <span class="t-o">=</span> <span class="t-n">jax</span><span class="t-o">.</span><span class="t-n">tree</span><span class="t-o">.</span><span class="t-n">map</span><span class="t-p">(</span><span class="t-n">jnp</span><span class="t-o">.</span><span class="t-n">zeros_like</span><span class="t-p">,</span> <span class="t-n">P</span><span class="t-p">);</span> <span class="t-n">v</span> <span class="t-o">=</span> <span class="t-n">jax</span><span class="t-o">.</span><span class="t-n">tree</span><span class="t-o">.</span><span class="t-n">map</span><span class="t-p">(</span><span class="t-n">jnp</span><span class="t-o">.</span><span class="t-n">zeros_like</span><span class="t-p">,</span> <span class="t-n">P</span><span class="t-p">);</span> <span class="t-n">log</span> <span class="t-o">=</span> <span class="t-p">[]</span>
+    <span class="t-k">for</span> <span class="t-n">t</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">,</span> <span class="t-n">steps</span> <span class="t-o">+</span> <span class="t-mi">1</span><span class="t-p">):</span>
+        <span class="t-n">P</span><span class="t-p">,</span> <span class="t-n">m</span><span class="t-p">,</span> <span class="t-n">v</span> <span class="t-o">=</span> <span class="t-n">step</span><span class="t-p">(</span><span class="t-n">P</span><span class="t-p">,</span> <span class="t-n">m</span><span class="t-p">,</span> <span class="t-n">v</span><span class="t-p">,</span> <span class="t-n">t</span><span class="t-p">)</span>
+        <span class="t-k">if</span> <span class="t-n">t</span> <span class="t-ow">in</span> <span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">2</span><span class="t-p">,</span> <span class="t-mi">5</span><span class="t-p">,</span> <span class="t-mi">10</span><span class="t-p">,</span> <span class="t-mi">20</span><span class="t-p">,</span> <span class="t-mi">30</span><span class="t-p">,</span> <span class="t-mi">50</span><span class="t-p">,</span> <span class="t-mi">70</span><span class="t-p">)</span> <span class="t-ow">or</span> <span class="t-n">t</span> <span class="t-o">%</span> <span class="t-mi">25</span> <span class="t-o">==</span> <span class="t-mi">0</span><span class="t-p">:</span> <span class="t-n">log</span><span class="t-o">.</span><span class="t-n">append</span><span class="t-p">((</span><span class="t-n">t</span><span class="t-p">,</span> <span class="t-nb">float</span><span class="t-p">(</span><span class="t-n">acc</span><span class="t-p">(</span><span class="t-n">P</span><span class="t-p">,</span> <span class="t-n">Xtr</span><span class="t-p">,</span> <span class="t-n">ytr</span><span class="t-p">)),</span> <span class="t-nb">float</span><span class="t-p">(</span><span class="t-n">acc</span><span class="t-p">(</span><span class="t-n">P</span><span class="t-p">,</span> <span class="t-n">Xte</span><span class="t-p">,</span> <span class="t-n">yte</span><span class="t-p">))))</span>
+    <span class="t-k">return</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">array</span><span class="t-p">(</span><span class="t-nb">sorted</span><span class="t-p">(</span><span class="t-nb">set</span><span class="t-p">(</span><span class="t-n">log</span><span class="t-p">)))</span>
+<span class="t-n">t0</span> <span class="t-o">=</span> <span class="t-n">time</span><span class="t-o">.</span><span class="t-n">time</span><span class="t-p">();</span> <span class="t-n">gk</span> <span class="t-o">=</span> <span class="t-p">{}</span>
+<span class="t-k">for</span> <span class="t-n">frac</span><span class="t-p">,</span> <span class="t-n">wd</span> <span class="t-ow">in</span> <span class="t-p">[(</span><span class="t-mf">0.5</span><span class="t-p">,</span> <span class="t-mf">1.0</span><span class="t-p">),</span> <span class="t-p">(</span><span class="t-mf">0.5</span><span class="t-p">,</span> <span class="t-mf">0.0</span><span class="t-p">),</span> <span class="t-p">(</span><span class="t-mf">0.3</span><span class="t-p">,</span> <span class="t-mf">1.0</span><span class="t-p">)]:</span>
+    <span class="t-n">gk</span><span class="t-p">[(</span><span class="t-n">frac</span><span class="t-p">,</span> <span class="t-n">wd</span><span class="t-p">)]</span> <span class="t-o">=</span> <span class="t-n">L</span> <span class="t-o">=</span> <span class="t-n">grok</span><span class="t-p">(</span><span class="t-n">frac</span><span class="t-p">,</span> <span class="t-n">wd</span><span class="t-p">)</span>
+    <span class="t-n">t_tr</span> <span class="t-o">=</span> <span class="t-nb">next</span><span class="t-p">((</span><span class="t-nb">int</span><span class="t-p">(</span><span class="t-n">t</span><span class="t-p">)</span> <span class="t-k">for</span> <span class="t-n">t</span><span class="t-p">,</span> <span class="t-n">a</span><span class="t-p">,</span> <span class="t-n">b</span> <span class="t-ow">in</span> <span class="t-n">L</span> <span class="t-k">if</span> <span class="t-n">a</span> <span class="t-o">&gt;=</span> <span class="t-mf">0.99</span><span class="t-p">),</span> <span class="t-kc">None</span><span class="t-p">);</span> <span class="t-n">t_te</span> <span class="t-o">=</span> <span class="t-nb">next</span><span class="t-p">((</span><span class="t-nb">int</span><span class="t-p">(</span><span class="t-n">t</span><span class="t-p">)</span> <span class="t-k">for</span> <span class="t-n">t</span><span class="t-p">,</span> <span class="t-n">a</span><span class="t-p">,</span> <span class="t-n">b</span> <span class="t-ow">in</span> <span class="t-n">L</span> <span class="t-k">if</span> <span class="t-n">b</span> <span class="t-o">&gt;=</span> <span class="t-mf">0.99</span><span class="t-p">),</span> <span class="t-kc">None</span><span class="t-p">)</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"train on </span><span class="t-si">{</span><span class="t-n">frac</span><span class="t-si">:</span><span class="t-s2">.0%</span><span class="t-si">}</span><span class="t-s2"> of the </span><span class="t-si">{</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">pairs_</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s2">,</span><span class="t-si">}</span><span class="t-s2"> sums mod </span><span class="t-si">{</span><span class="t-n">p_</span><span class="t-si">}</span><span class="t-s2">, weight decay </span><span class="t-si">{</span><span class="t-n">wd</span><span class="t-si">}</span><span class="t-s2">: train accuracy reaches 99% at step </span><span class="t-si">{</span><span class="t-n">t_tr</span><span class="t-si">}</span><span class="t-s2">; "</span>
+          <span class="t-o">+</span> <span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"test accuracy at step </span><span class="t-si">{</span><span class="t-n">t_te</span><span class="t-si">}</span><span class="t-s2">"</span> <span class="t-k">if</span> <span class="t-n">t_te</span> <span class="t-k">else</span> <span class="t-s2">"test accuracy never within 3,000 steps"</span><span class="t-p">)</span> <span class="t-o">+</span> <span class="t-sa">f</span><span class="t-s2">"; final test accuracy </span><span class="t-si">{</span><span class="t-n">L</span><span class="t-p">[</span><span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">,</span><span class="t-w"> </span><span class="t-mi">2</span><span class="t-p">]</span><span class="t-si">:</span><span class="t-s2">.1%</span><span class="t-si">}</span><span class="t-s2">"</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"time </span><span class="t-si">{</span><span class="t-n">time</span><span class="t-o">.</span><span class="t-n">time</span><span class="t-p">()</span><span class="t-w"> </span><span class="t-o">-</span><span class="t-w"> </span><span class="t-n">t0</span><span class="t-si">:</span><span class="t-s2">.0f</span><span class="t-si">}</span><span class="t-s2"> s"</span><span class="t-p">)</span></pre>
+<pre class="out">train on 50% of the 9,409 sums mod 97, weight decay 1.0: train accuracy reaches 99% at step 325; test accuracy at step 825; final test accuracy 100.0%
+train on 50% of the 9,409 sums mod 97, weight decay 0.0: train accuracy reaches 99% at step 300; test accuracy never within 3,000 steps; final test accuracy 79.9%
+train on 30% of the 9,409 sums mod 97, weight decay 1.0: train accuracy reaches 99% at step 275; test accuracy never within 3,000 steps; final test accuracy 98.9%
+time 588 s</pre>
+</div>
+
+<p>The figure reproduces the phenomenon. With half of the table for training and weight decay 1, training accuracy reaches 99% at step 325, but test accuracy only at step 825: for hundreds of steps the network has memorised the training sums without generalising. Without weight decay it memorises just as fast but never generalises fully (test accuracy 79.9% after 3,000 steps). With less data (30% of the table) generalisation is slower again: test accuracy climbs towards the training accuracy but has not passed 99% by step 3,000 (it ends at 98.9%). Weight decay and the amount of data control grokking, as Power et al. reported; the exact step counts differ from theirs, because the architecture and optimiser do.</p>
+
+<figure>
+<svg viewBox="0 0 640 358" width="640" height="358" role="img" aria-label="Grokking: training accuracy reaches 100% early, test accuracy jumps much later, and only with weight decay"><rect class="plot-bg" x="58" y="16" width="568" height="240"/><line class="gridline" x1="58.0" x2="58.0" y1="16" y2="256"/><text class="axtext" x="58.0" y="273" text-anchor="middle">1</text><line class="gridline" x1="221.4" x2="221.4" y1="16" y2="256"/><text class="axtext" x="221.4" y="273" text-anchor="middle">10</text><line class="gridline" x1="384.7" x2="384.7" y1="16" y2="256"/><text class="axtext" x="384.7" y="273" text-anchor="middle">100</text><line class="gridline" x1="548.1" x2="548.1" y1="16" y2="256"/><text class="axtext" x="548.1" y="273" text-anchor="middle">1,000</text><line class="gridline" x1="626.0" x2="626.0" y1="16" y2="256"/><text class="axtext" x="626.0" y="273" text-anchor="end">3,000</text><line class="gridline" x1="58" x2="626" y1="256.0" y2="256.0"/><text class="axtext" x="52" y="260.0" text-anchor="end">0%</text><line class="gridline" x1="58" x2="626" y1="197.2" y2="197.2"/><text class="axtext" x="52" y="201.2" text-anchor="end">25%</text><line class="gridline" x1="58" x2="626" y1="138.4" y2="138.4"/><text class="axtext" x="52" y="142.4" text-anchor="end">50%</text><line class="gridline" x1="58" x2="626" y1="79.5" y2="79.5"/><text class="axtext" x="52" y="83.5" text-anchor="end">75%</text><line class="gridline" x1="58" x2="626" y1="20.7" y2="20.7"/><text class="axtext" x="52" y="24.7" text-anchor="end">100%</text><line class="axis" x1="58" x2="626" y1="256" y2="256"/><line class="axis" x1="58" x2="58" y1="16" y2="256"/><text class="axtext" x="342.0" y="294" text-anchor="middle">optimisation step (log scale)</text><text class="axtext" transform="translate(14,136.0) rotate(-90)" text-anchor="middle">accuracy</text><path d="M58.0 253.3 L107.2 252.9 L172.2 251.4 L221.4 248.5 L270.5 244.0 L286.4 242.6 L299.3 241.4 L335.5 236.7 L359.4 228.2 L364.3 224.7 L384.7 189.1 L400.5 133.4 L413.5 90.5 L424.4 65.9 L433.9 51.6 L442.2 41.2 L449.7 33.3 L456.5 27.1 L462.6 23.3 L468.3 21.6 L473.6 20.9 L478.5 20.7 L483.1 20.7 L487.4 20.7 L491.4 20.7 L495.2 20.7 L498.9 20.7 L502.3 20.7 L505.6 20.7 L508.8 20.7 L511.8 20.7 L514.7 20.7 L517.5 20.7 L520.2 20.7 L522.8 20.7 L525.2 20.7 L527.7 20.7 L530.0 20.7 L532.2 20.7 L534.4 20.7 L536.5 20.7 L538.6 20.7 L540.6 20.7 L542.5 20.7 L544.4 20.7 L546.3 20.7 L548.1 20.7 L549.8 20.7 L551.5 20.7 L553.2 20.7 L554.8 20.7 L556.4 20.7 L558.0 20.7 L559.5 20.7 L561.0 20.7 L562.5 20.7 L563.9 20.7 L565.3 20.7 L566.7 20.7 L568.0 20.7 L569.4 20.7 L570.7 20.7 L571.9 20.7 L573.2 20.7 L574.4 20.7 L575.6 20.7 L576.8 20.7 L578.0 20.7 L579.2 20.7 L580.3 20.7 L581.4 20.7 L582.5 20.7 L583.6 20.7 L584.7 20.7 L585.7 20.7 L586.7 20.7 L587.8 20.7 L588.8 20.7 L589.8 20.7 L590.7 20.7 L591.7 20.7 L592.7 20.7 L593.6 20.7 L594.5 20.7 L595.4 20.7 L596.3 20.7 L597.2 20.7 L598.1 20.7 L599.0 20.7 L599.8 20.7 L600.7 20.7 L601.5 20.7 L602.4 20.7 L603.2 20.7 L604.0 20.7 L604.8 20.7 L605.6 20.7 L606.4 20.7 L607.2 20.7 L607.9 20.7 L608.7 20.7 L609.4 20.7 L610.2 20.7 L610.9 20.7 L611.6 20.7 L612.4 20.7 L613.1 20.7 L613.8 20.7 L614.5 20.7 L615.2 20.7 L615.8 20.7 L616.5 20.7 L617.2 20.7 L617.9 20.7 L618.5 20.7 L619.2 20.7 L619.8 20.7 L620.5 20.7 L621.1 20.7 L621.7 20.7 L622.4 20.7 L623.0 20.7 L623.6 20.7 L624.2 20.7 L624.8 20.7 L625.4 20.7 L626.0 20.7" fill="none" stroke="var(--sky)" stroke-width="2" stroke-dasharray="6 4"/><path d="M58.0 254.3 L107.2 254.3 L172.2 254.4 L221.4 254.8 L270.5 255.0 L286.4 255.2 L299.3 255.2 L335.5 255.1 L359.4 255.5 L364.3 255.5 L384.7 255.4 L400.5 255.4 L413.5 254.9 L424.4 254.3 L433.9 253.3 L442.2 251.3 L449.7 249.5 L456.5 245.4 L462.6 239.7 L468.3 232.1 L473.6 219.9 L478.5 207.5 L483.1 191.4 L487.4 175.3 L491.4 159.0 L495.2 143.7 L498.9 127.2 L502.3 112.4 L505.6 96.6 L508.8 82.8 L511.8 70.9 L514.7 60.0 L517.5 51.7 L520.2 44.0 L522.8 38.3 L525.2 33.7 L527.7 29.5 L530.0 26.9 L532.2 24.8 L534.4 22.9 L536.5 22.3 L538.6 21.5 L540.6 21.3 L542.5 21.2 L544.4 21.1 L546.3 21.0 L548.1 20.9 L549.8 20.9 L551.5 20.8 L553.2 20.8 L554.8 20.7 L556.4 20.7 L558.0 20.7 L559.5 20.7 L561.0 20.7 L562.5 20.7 L563.9 20.7 L565.3 20.7 L566.7 20.7 L568.0 20.7 L569.4 20.7 L570.7 20.7 L571.9 20.7 L573.2 20.7 L574.4 20.7 L575.6 20.7 L576.8 20.7 L578.0 20.7 L579.2 20.7 L580.3 20.7 L581.4 20.7 L582.5 20.7 L583.6 20.7 L584.7 20.7 L585.7 20.7 L586.7 20.7 L587.8 20.7 L588.8 20.7 L589.8 20.7 L590.7 20.7 L591.7 20.7 L592.7 20.7 L593.6 20.7 L594.5 20.7 L595.4 20.7 L596.3 20.7 L597.2 20.7 L598.1 20.7 L599.0 20.7 L599.8 20.7 L600.7 20.7 L601.5 20.7 L602.4 20.7 L603.2 20.7 L604.0 20.7 L604.8 20.7 L605.6 20.7 L606.4 20.7 L607.2 20.7 L607.9 20.7 L608.7 20.7 L609.4 20.7 L610.2 20.7 L610.9 20.7 L611.6 20.7 L612.4 20.7 L613.1 20.7 L613.8 20.7 L614.5 20.7 L615.2 20.7 L615.8 20.7 L616.5 20.7 L617.2 20.7 L617.9 20.7 L618.5 20.7 L619.2 20.7 L619.8 20.7 L620.5 20.7 L621.1 20.7 L621.7 20.7 L622.4 20.7 L623.0 20.7 L623.6 20.7 L624.2 20.7 L624.8 20.7 L625.4 20.7 L626.0 20.7" fill="none" stroke="var(--sky)" stroke-width="2.8"/><line x1="74" x2="94" y1="310" y2="310" stroke="var(--sky)" stroke-width="3"/><text class="axtext" x="100" y="314">50% of the table for training, weight decay 1</text><path d="M58.0 253.3 L107.2 252.9 L172.2 251.4 L221.4 248.5 L270.5 244.0 L286.4 242.7 L299.3 241.4 L335.5 236.5 L359.4 225.9 L364.3 221.3 L384.7 177.3 L400.5 119.0 L413.5 83.5 L424.4 62.4 L433.9 49.7 L442.2 38.6 L449.7 29.6 L456.5 23.7 L462.6 21.0 L468.3 20.7 L473.6 20.7 L478.5 20.7 L483.1 20.7 L487.4 20.7 L491.4 20.7 L495.2 20.7 L498.9 20.7 L502.3 20.7 L505.6 20.7 L508.8 20.7 L511.8 20.7 L514.7 20.7 L517.5 20.7 L520.2 20.7 L522.8 20.7 L525.2 20.7 L527.7 20.7 L530.0 20.7 L532.2 20.7 L534.4 20.7 L536.5 20.7 L538.6 20.7 L540.6 20.7 L542.5 20.7 L544.4 20.7 L546.3 20.7 L548.1 20.7 L549.8 20.7 L551.5 20.7 L553.2 20.7 L554.8 20.7 L556.4 20.7 L558.0 20.7 L559.5 20.7 L561.0 20.7 L562.5 20.7 L563.9 20.7 L565.3 20.7 L566.7 20.7 L568.0 20.7 L569.4 20.7 L570.7 20.7 L571.9 20.7 L573.2 20.7 L574.4 20.7 L575.6 20.7 L576.8 20.7 L578.0 20.7 L579.2 20.7 L580.3 20.7 L581.4 20.7 L582.5 20.7 L583.6 20.7 L584.7 20.7 L585.7 20.7 L586.7 20.7 L587.8 20.7 L588.8 20.7 L589.8 20.7 L590.7 20.7 L591.7 20.7 L592.7 20.7 L593.6 20.7 L594.5 20.7 L595.4 20.7 L596.3 20.7 L597.2 20.7 L598.1 20.7 L599.0 20.7 L599.8 20.7 L600.7 20.7 L601.5 20.7 L602.4 20.7 L603.2 20.7 L604.0 20.7 L604.8 20.7 L605.6 20.7 L606.4 20.7 L607.2 20.7 L607.9 20.7 L608.7 20.7 L609.4 20.7 L610.2 20.7 L610.9 20.7 L611.6 20.7 L612.4 20.7 L613.1 20.7 L613.8 20.7 L614.5 20.7 L615.2 20.7 L615.8 20.7 L616.5 20.7 L617.2 20.7 L617.9 20.7 L618.5 20.7 L619.2 20.7 L619.8 20.7 L620.5 20.7 L621.1 20.7 L621.7 20.7 L622.4 20.7 L623.0 20.7 L623.6 20.7 L624.2 20.7 L624.8 20.7 L625.4 20.7 L626.0 20.7" fill="none" stroke="var(--rose)" stroke-width="2" stroke-dasharray="6 4"/><path d="M58.0 254.3 L107.2 254.3 L172.2 254.4 L221.4 254.8 L270.5 255.0 L286.4 255.1 L299.3 255.2 L335.5 255.1 L359.4 255.5 L364.3 255.6 L384.7 255.7 L400.5 255.4 L413.5 255.0 L424.4 254.3 L433.9 253.6 L442.2 252.4 L449.7 251.0 L456.5 248.0 L462.6 244.6 L468.3 241.0 L473.6 236.7 L478.5 232.5 L483.1 227.3 L487.4 222.6 L491.4 217.7 L495.2 213.0 L498.9 207.9 L502.3 203.8 L505.6 200.3 L508.8 195.1 L511.8 190.4 L514.7 185.7 L517.5 180.6 L520.2 175.9 L522.8 171.3 L525.2 168.0 L527.7 164.0 L530.0 159.8 L532.2 155.8 L534.4 151.8 L536.5 148.4 L538.6 144.7 L540.6 141.1 L542.5 137.0 L544.4 133.5 L546.3 129.6 L548.1 126.7 L549.8 122.2 L551.5 118.5 L553.2 115.2 L554.8 111.2 L556.4 108.6 L558.0 106.1 L559.5 103.1 L561.0 101.2 L562.5 98.5 L563.9 96.1 L565.3 94.0 L566.7 92.0 L568.0 89.9 L569.4 87.8 L570.7 85.8 L571.9 84.6 L573.2 83.5 L574.4 82.3 L575.6 81.1 L576.8 80.3 L578.0 79.3 L579.2 78.7 L580.3 78.0 L581.4 77.5 L582.5 76.9 L583.6 76.4 L584.7 76.1 L585.7 75.5 L586.7 74.7 L587.8 74.2 L588.8 73.7 L589.8 73.2 L590.7 72.9 L591.7 72.5 L592.7 72.1 L593.6 71.8 L594.5 71.6 L595.4 71.2 L596.3 70.8 L597.2 70.7 L598.1 70.6 L599.0 70.5 L599.8 70.5 L600.7 70.2 L601.5 70.1 L602.4 70.1 L603.2 70.0 L604.0 69.9 L604.8 69.6 L605.6 69.4 L606.4 69.4 L607.2 69.2 L607.9 69.1 L608.7 68.9 L609.4 68.9 L610.2 68.8 L610.9 68.8 L611.6 68.7 L612.4 68.7 L613.1 68.6 L613.8 68.6 L614.5 68.5 L615.2 68.5 L615.8 68.4 L616.5 68.4 L617.2 68.3 L617.9 68.3 L618.5 68.2 L619.2 68.2 L619.8 68.2 L620.5 68.1 L621.1 68.1 L621.7 68.0 L622.4 68.0 L623.0 68.0 L623.6 68.0 L624.2 68.0 L624.8 68.0 L625.4 67.9 L626.0 68.0" fill="none" stroke="var(--rose)" stroke-width="2.8"/><line x1="74" x2="94" y1="328" y2="328" stroke="var(--rose)" stroke-width="3"/><text class="axtext" x="100" y="332">50% of the table for training, weight decay 0</text><path d="M58.0 252.9 L107.2 252.1 L172.2 248.4 L221.4 243.3 L270.5 235.3 L286.4 233.0 L299.3 231.3 L335.5 224.1 L359.4 216.5 L364.3 212.8 L384.7 176.0 L400.5 115.3 L413.5 69.4 L424.4 45.7 L433.9 34.2 L442.2 27.6 L449.7 23.4 L456.5 21.9 L462.6 21.3 L468.3 20.8 L473.6 20.7 L478.5 20.7 L483.1 20.7 L487.4 20.7 L491.4 20.7 L495.2 20.7 L498.9 20.7 L502.3 20.7 L505.6 20.7 L508.8 20.7 L511.8 20.7 L514.7 20.7 L517.5 20.7 L520.2 20.7 L522.8 20.7 L525.2 20.7 L527.7 20.7 L530.0 20.7 L532.2 20.7 L534.4 20.7 L536.5 20.7 L538.6 20.7 L540.6 20.7 L542.5 20.7 L544.4 20.7 L546.3 20.7 L548.1 20.7 L549.8 20.7 L551.5 20.7 L553.2 20.7 L554.8 20.7 L556.4 20.7 L558.0 20.7 L559.5 20.7 L561.0 20.7 L562.5 20.7 L563.9 20.7 L565.3 20.7 L566.7 20.7 L568.0 20.7 L569.4 20.7 L570.7 20.7 L571.9 20.7 L573.2 20.7 L574.4 20.7 L575.6 20.7 L576.8 20.7 L578.0 20.7 L579.2 20.7 L580.3 20.7 L581.4 20.7 L582.5 20.7 L583.6 20.7 L584.7 20.7 L585.7 20.7 L586.7 20.7 L587.8 20.7 L588.8 20.7 L589.8 20.7 L590.7 20.7 L591.7 20.7 L592.7 20.7 L593.6 20.7 L594.5 20.7 L595.4 20.7 L596.3 20.7 L597.2 20.7 L598.1 20.7 L599.0 20.7 L599.8 20.7 L600.7 20.7 L601.5 20.7 L602.4 20.7 L603.2 20.7 L604.0 20.7 L604.8 20.7 L605.6 20.7 L606.4 20.7 L607.2 20.7 L607.9 20.7 L608.7 20.7 L609.4 20.7 L610.2 20.7 L610.9 20.7 L611.6 20.7 L612.4 20.7 L613.1 20.7 L613.8 20.7 L614.5 20.7 L615.2 20.7 L615.8 20.7 L616.5 20.7 L617.2 20.7 L617.9 20.7 L618.5 20.7 L619.2 20.7 L619.8 20.7 L620.5 20.7 L621.1 20.7 L621.7 20.7 L622.4 20.7 L623.0 20.7 L623.6 20.7 L624.2 20.7 L624.8 20.7 L625.4 20.7 L626.0 20.7" fill="none" stroke="var(--moss)" stroke-width="2" stroke-dasharray="6 4"/><path d="M58.0 254.2 L107.2 254.1 L172.2 254.2 L221.4 254.4 L270.5 254.7 L286.4 254.7 L299.3 255.0 L335.5 255.2 L359.4 255.4 L364.3 255.4 L384.7 255.4 L400.5 255.3 L413.5 255.4 L424.4 255.5 L433.9 255.2 L442.2 254.9 L449.7 254.8 L456.5 254.7 L462.6 254.7 L468.3 254.6 L473.6 254.2 L478.5 254.1 L483.1 254.0 L487.4 253.6 L491.4 253.5 L495.2 253.4 L498.9 253.0 L502.3 252.7 L505.6 252.5 L508.8 252.0 L511.8 251.5 L514.7 251.1 L517.5 250.7 L520.2 250.4 L522.8 249.9 L525.2 249.5 L527.7 248.9 L530.0 248.0 L532.2 246.9 L534.4 245.8 L536.5 244.9 L538.6 244.2 L540.6 243.6 L542.5 242.4 L544.4 240.8 L546.3 239.3 L548.1 237.9 L549.8 236.1 L551.5 234.8 L553.2 233.5 L554.8 231.7 L556.4 230.0 L558.0 228.5 L559.5 226.1 L561.0 223.5 L562.5 221.5 L563.9 219.2 L565.3 216.2 L566.7 213.1 L568.0 210.7 L569.4 207.9 L570.7 204.6 L571.9 201.8 L573.2 199.0 L574.4 196.6 L575.6 193.2 L576.8 190.0 L578.0 186.9 L579.2 183.3 L580.3 179.0 L581.4 175.6 L582.5 171.3 L583.6 167.7 L584.7 163.7 L585.7 159.2 L586.7 154.8 L587.8 150.6 L588.8 145.9 L589.8 141.7 L590.7 137.3 L591.7 132.8 L592.7 128.1 L593.6 122.5 L594.5 118.7 L595.4 113.8 L596.3 108.9 L597.2 104.3 L598.1 100.2 L599.0 96.3 L599.8 92.0 L600.7 88.0 L601.5 83.8 L602.4 79.8 L603.2 75.6 L604.0 71.8 L604.8 68.3 L605.6 64.7 L606.4 61.0 L607.2 58.7 L607.9 55.6 L608.7 52.6 L609.4 50.0 L610.2 47.2 L610.9 45.0 L611.6 42.7 L612.4 40.6 L613.1 38.9 L613.8 37.2 L614.5 35.2 L615.2 33.5 L615.8 32.1 L616.5 31.2 L617.2 30.0 L617.9 28.9 L618.5 28.0 L619.2 27.0 L619.8 26.2 L620.5 25.8 L621.1 25.5 L621.7 25.2 L622.4 24.7 L623.0 24.4 L623.6 24.1 L624.2 23.7 L624.8 23.5 L625.4 23.3 L626.0 23.2" fill="none" stroke="var(--moss)" stroke-width="2.8"/><line x1="74" x2="94" y1="346" y2="346" stroke="var(--moss)" stroke-width="3"/><text class="axtext" x="100" y="350">30% of the table for training, weight decay 1</text><line x1="476" x2="496" y1="310" y2="310" stroke="var(--muted)" stroke-width="2" stroke-dasharray="6 4"/><text class="axtext" x="502" y="314">training accuracy</text><line x1="476" x2="496" y1="328" y2="328" stroke="var(--muted)" stroke-width="3"/><text class="axtext" x="502" y="332">test accuracy</text></svg>
+<figcaption>Training (dashed) and test (solid) accuracy for addition modulo 97, log-scaled steps, in the style of Figure 1 of Power et al. (2022), which shows division modulo 97. Each colour is one configuration of training fraction and weight decay.</figcaption>
+</figure>
+
+<p>Nanda et al. (2023) reverse-engineered grokked networks and found that they compute modular addition with discrete Fourier features (Lecture 18): the weights encode \(\cos(2\pi ka/p)\) and \(\sin(2\pi ka/p)\) for a few frequencies \(k\), and trigonometric identities combine them. They proposed "progress measures" that grow smoothly during the apparently sudden transition: the jump in test accuracy is the end of a gradual process, driven by weight decay slowly removing a memorising solution.</p>
+
+<!-- =================== 6 =================== -->
+<h2 id="s6">6 &mdash; The 2026 map, and a map of the course</h2>
+
+<p>Six active areas connect directly to this course.</p>
+<ul>
+<li><strong>Foundation models and scaling.</strong> Test loss falls as a power law in model size, data and compute (Kaplan et al., 2020); for a fixed compute budget, parameters and training tokens should grow together (Hoffmann et al., 2022). The transformer of Lecture 12, scaled up and adapted with the preference methods of Lecture 22b, is the basis of current assistants.</li>
+<li><strong>Reasoning and RL.</strong> Models trained with RL on verifiable rewards spend more computation at test time, writing long chains of thought (OpenAI, 2024; DeepSeek-AI, 2025): Lecture 22b's GRPO at scale. Open questions include how far such training generalises beyond checkable domains.</li>
+<li><strong>Mechanistic interpretability.</strong> Researchers decompose networks' internal activations into human-interpretable features with sparse autoencoders (Bricken et al., 2023; Templeton et al., 2024) and trace the circuits that combine them (Lindsey et al., 2025), as the Fourier analysis of grokking did for a tiny model.</li>
+<li><strong>Causal representation learning.</strong> Learning variables that support causal reasoning from raw data such as images, where Lecture 20b assumed the variables were given (Schölkopf et al., 2021).</li>
+<li><strong>Quantum machine learning and dequantisation.</strong> Claimed quantum advantages are tested against classical algorithms with the same data access (Tang, 2019); the clearest advantages are for learning from quantum experiments themselves (Huang et al., 2022).</li>
+<li><strong>AI for science.</strong> AlphaFold 2 predicts protein structures with accuracy often close to experiment (Jumper et al., 2021), recognised with part of the 2024 Nobel Prize in Chemistry; learned weather models such as GraphCast rival operational forecasts (Lam et al., 2023); the 2024 Nobel Prize in Physics went to John Hopfield and Geoffrey Hinton for foundational work on neural networks.</li>
+</ul>
+
+<div class="widget" id="w-map">
+<h4>A map of the course and its landmark papers</h4>
+<p class="wtxt">Choose a lecture or a theme to see the papers behind it: what each showed, and where it was published. The timeline places them in time; click a dot to jump to its paper.</p>
+<div class="ctrls">
+<label><span>lecture</span><select id="pmLec"></select></label>
+<label><span>theme</span><select id="pmTheme"></select></label>
+</div>
+<svg id="pmSvg" viewBox="0 0 620 120" width="620" height="120" role="img" aria-label="Timeline of landmark papers"></svg>
+<div id="pmList" style="max-height:560px;overflow-y:auto;padding-right:4px"></div>
+<div class="readout" id="pmRes" role="status" aria-live="polite"></div>
+</div>
+
+<!-- =================== 7 =================== -->
+<h2 id="s7">7 &mdash; Exercises, projects, reading</h2>
+
+<div class="box exr">
+<span class="lbl">exercises</span>
+<ol>
+<li>Pick a recent paper from NeurIPS, ICML or ICLR in an area of this course. Write its claim in the one-sentence form of Section 1, list its baselines and the number of runs behind its main table, and name the single experiment that would most change your mind about the claim.
+<button class="sol-btn">show guidance</button>
+<div class="sol">
+<p>A good answer is specific: "Method M improves accuracy on benchmark B by 2 points over baseline Y because of component Z; the main table reports the mean of three seeds without error bars; the most informative missing experiment is an ablation of Z with the baselines tuned with the same budget." If you cannot write the claim in one sentence, the paper may not make one.</p>
+</div></li>
+<li>Two methods differ by half a seed-to-seed standard deviation. Using the code of Section 3, how many seeds does each need before the worse method wins less than 5% of comparisons?
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The difference of two means of \(n\) seeds has standard deviation \(\sqrt{2/n}\), so the worse method wins with probability \(\Phi(-d\sqrt{n/2})\). For \(d=0.5\) we need \(0.5\sqrt{n/2}\ge1.645\), i.e. \(n\ge2(1.645/0.5)^2\approx21.6\), so 22 seeds each. Most papers use far fewer.</p>
+</div></li>
+<li>Explain why choosing features on the whole data set before cross-validation inflates accuracy, even when there is no signal. How should the pipeline be organised?
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Among thousands of noise features, some correlate with the labels by chance in this particular sample, including in the samples later used for testing. Selecting them on all the data lets the test folds influence the model. Every step that looks at labels (feature selection, tuning, early stopping) must happen inside each training fold, for example with a scikit-learn <code>Pipeline</code> passed to <code>cross_val_score</code>.</p>
+</div></li>
+<li>In the grokking experiment, why might weight decay be necessary for generalisation? What happens to the weight norm of the memorising and the generalising solutions?
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>Both solutions fit the training set. Memorising the table needs large, unstructured weights; the Fourier solution needs only a few frequencies and has a smaller norm. Weight decay continually shrinks the weights, so it slowly favours the smaller-norm, generalising solution once the training loss is near zero; without it, nothing pushes the network away from memorisation. Tracking the weight norm during training shows it falling as test accuracy rises.</p>
+</div></li>
+<li>A paper reports a quantum algorithm with an exponential speed-up for a machine-learning task. List three questions to ask before accepting the claim.
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>(1) What is the input model? If the data must be loaded into quantum memory, how long does that take, and would the same access help a classical algorithm (dequantisation)? (2) What does the output look like? A quantum state encoding the answer is not the answer; reading it out may cost as much as the speed-up saved. (3) Against which classical algorithm, under which assumptions on rank, condition number and precision, is the comparison made? Many speed-ups shrink when these are fixed.</p>
+</div></li>
+</ol>
+</div>
+
+<div class="box proj">
+<span class="lbl">student projects</span>
+<p>Each project produces a public, checkable result.</p>
+<h4>1. Reproduce a paper for the ML Reproducibility Challenge</h4>
+<dl>
+<dt>question</dt><dd>Does the main result of a recent paper hold up when reimplemented from its description, and which details does it depend on?</dd>
+<dt>data</dt><dd>A paper chosen from the challenge's list, with its data sets and, if available, its code.</dd>
+<dt>method</dt><dd>Reimplement the key experiment; run several seeds; add the ablations and baselines the paper omits; document every deviation.</dd>
+<dt>outcome</dt><dd>A report in the challenge's format; accepted reports are published in <em>Transactions on Machine Learning Research</em> and in <em>ReScience C</em>.</dd>
+</dl>
+<h4>2. A benchmark contamination audit</h4>
+<dl>
+<dt>question</dt><dd>Do items from a popular benchmark appear verbatim or nearly verbatim in public web text that language models are trained on?</dd>
+<dt>data</dt><dd>A public benchmark (for example a question-answering or maths set) and a public web corpus such as a Common Crawl sample.</dd>
+<dt>method</dt><dd>n-gram overlap and near-duplicate search (MinHash); manual checks of matches; comparison of model accuracy on contaminated and clean items, if model access allows.</dd>
+<dt>outcome</dt><dd>An estimate of the contaminated share, with examples and a recommendation for how the benchmark should be used.</dd>
+</dl>
+</div>
+
+<h3>Reading and sources</h3>
+<ul class="refs">
+<li>Z. C. Lipton, J. Steinhardt, "Troubling trends in machine learning scholarship", <em>ACM Queue</em> 17(1) (2019); P. Henderson et al., "Deep reinforcement learning that matters", <em>AAAI</em> (2018); R. Agarwal et al., "Deep reinforcement learning at the edge of the statistical precipice", <em>NeurIPS</em> 34 (2021); G. Melis, C. Dyer, P. Blunsom, "On the state of the art of evaluation in neural language models", <em>ICLR</em> (2018); S. Kapoor, A. Narayanan, "Leakage and the reproducibility crisis in machine-learning-based science", <em>Patterns</em> 4(9), 100804 (2023); B. Recht, R. Roelofs, L. Schmidt, V. Shankar, "Do ImageNet classifiers generalize to ImageNet?", <em>ICML</em> (2019).</li>
+<li>K. He, X. Zhang, S. Ren, J. Sun, "Deep residual learning for image recognition", <em>CVPR</em> (2016); A. G. Reisach, C. Seiler, S. Weichwald, "Beware of the simulated DAG! Causal discovery benchmarks may be easy to game", <em>NeurIPS</em> 34 (2021); E. Tang, "A quantum-inspired classical algorithm for recommendation systems", <em>STOC</em> (2019); I. Kerenidis, A. Prakash, "Quantum recommendation systems", <em>ITCS</em> (2017).</li>
+<li>A. Power, Y. Burda, H. Edwards, I. Babuschkin, V. Misra, "Grokking: generalization beyond overfitting on small algorithmic datasets", <a href="https://arxiv.org/abs/2201.02177">arXiv:2201.02177</a> (2022); A. Gromov, "Grokking modular arithmetic", <a href="https://arxiv.org/abs/2301.02679">arXiv:2301.02679</a> (2023); N. Nanda, L. Chan, T. Lieberum, J. Smith, J. Steinhardt, "Progress measures for grokking via mechanistic interpretability", <em>ICLR</em> (2023).</li>
+<li>J. Kaplan et al., "Scaling laws for neural language models", <a href="https://arxiv.org/abs/2001.08361">arXiv:2001.08361</a> (2020); J. Hoffmann et al., "Training compute-optimal large language models", <em>NeurIPS</em> 35 (2022); OpenAI, "OpenAI o1 system card" (2024); DeepSeek-AI, "DeepSeek-R1", <a href="https://arxiv.org/abs/2501.12948">arXiv:2501.12948</a> (2025); T. Bricken et al., "Towards monosemanticity: decomposing language models with dictionary learning", <em>Transformer Circuits Thread</em> (2023); A. Templeton et al., "Scaling monosemanticity: extracting interpretable features from Claude 3 Sonnet", <em>Transformer Circuits Thread</em> (2024); J. Lindsey et al., "On the biology of a large language model", <em>Transformer Circuits Thread</em> (2025).</li>
+<li>B. Schölkopf et al., "Toward causal representation learning", <em>Proceedings of the IEEE</em> 109(5), 612&ndash;634 (2021); H.-Y. Huang et al., "Quantum advantage in learning from experiments", <em>Science</em> 376, 1182&ndash;1186 (2022); J. Jumper et al., "Highly accurate protein structure prediction with AlphaFold", <em>Nature</em> 596, 583&ndash;589 (2021); R. Lam et al., "Learning skillful medium-range global weather forecasting", <em>Science</em> 382, 1416&ndash;1421 (2023).</li>
+</ul>
+<p class="kicker" style="margin-top:2.4em">numbers in the text not printed by a code box are computed in verify_L23.py, figures and widget data in figs_L23.py; code-box outputs are pasted from actual runs (numpy, scikit-learn and JAX on two CPU cores)</p>
+</div>
+
+<script>
+/* ---------- shared helpers ---------- */
+(function(){
+  var NS='http://www.w3.org/2000/svg';
+  window.L1 = {
+    el: function(svg,t,at,txt){ var e=document.createElementNS(NS,t); for(var k in at) e.setAttribute(k,at[k]); if(txt!=null) e.textContent=txt; svg.appendChild(e); return e; },
+    clear: function(svg){ while(svg.firstChild) svg.removeChild(svg.firstChild); },
+    col: ['var(--sky)','var(--rose)','var(--moss)'],
+    names: ['Adélie','Chinstrap','Gentoo'],
+    rng: function(seed){ var a=seed>>>0; return function(){ a=(a+0x6D2B79F5)>>>0; var t=a; t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return ((t^(t>>>14))>>>0)/4294967296; }; },
+    svgPoint: function(svg,evt){ var pt=svg.createSVGPoint(); pt.x=evt.clientX; pt.y=evt.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); },
+    f: function(x,d){ return x.toFixed(d); }
+  };
+})();
+</script>
+<script>
+window.L23 = {"papers": [{"year": 1950, "venue": "Mind", "authors": "A. M. Turing", "title": "Computing machinery and intelligence", "lec": ["1"], "theme": "foundations", "why": "Proposed the imitation game and argued that machines could learn rather than be programmed."}, {"year": 1958, "venue": "Psychological Review", "authors": "F. Rosenblatt", "title": "The perceptron: a probabilistic model for information storage and organization in the brain", "lec": ["1", "4"], "theme": "foundations", "why": "A trainable linear classifier, the ancestor of neural networks."}, {"year": 1959, "venue": "IBM Journal of Research and Development", "authors": "A. L. Samuel", "title": "Some studies in machine learning using the game of checkers", "lec": ["1", "21"], "theme": "decisions", "why": "Coined \"machine learning\"; a program that improved by playing itself."}, {"year": 1951, "venue": "Annals of Mathematical Statistics", "authors": "H. Robbins, S. Monro", "title": "A stochastic approximation method", "lec": ["2"], "theme": "foundations", "why": "The convergence theory behind stochastic gradient descent."}, {"year": 2015, "venue": "ICLR", "authors": "D. P. Kingma, J. Ba", "title": "Adam: a method for stochastic optimization", "lec": ["2", "10"], "theme": "foundations", "why": "The default optimiser of deep learning: momentum plus per-parameter step sizes."}, {"year": 1970, "venue": "Technometrics", "authors": "A. E. Hoerl, R. W. Kennard", "title": "Ridge regression: biased estimation for nonorthogonal problems", "lec": ["3"], "theme": "foundations", "why": "Shrinkage trades a little bias for much less variance."}, {"year": 1996, "venue": "JRSS B", "authors": "R. Tibshirani", "title": "Regression shrinkage and selection via the lasso", "lec": ["3", "20"], "theme": "foundations", "why": "The L1 penalty sets coefficients exactly to zero: sparse models."}, {"year": 1936, "venue": "Annals of Eugenics", "authors": "R. A. Fisher", "title": "The use of multiple measurements in taxonomic problems", "lec": ["4"], "theme": "foundations", "why": "Linear discriminant analysis, on the iris data."}, {"year": 1958, "venue": "JRSS B", "authors": "D. R. Cox", "title": "The regression analysis of binary sequences", "lec": ["4"], "theme": "foundations", "why": "Logistic regression as a model for binary outcomes."}, {"year": 1992, "venue": "Neural Computation", "authors": "S. Geman, E. Bienenstock, R. Doursat", "title": "Neural networks and the bias/variance dilemma", "lec": ["5"], "theme": "foundations", "why": "Made the bias-variance decomposition central to learning."}, {"year": 2019, "venue": "PNAS", "authors": "M. Belkin, D. Hsu, S. Ma, S. Mandal", "title": "Reconciling modern machine-learning practice and the classical bias-variance trade-off", "lec": ["5", "6"], "theme": "foundations", "why": "Double descent: test error can fall again past the interpolation point."}, {"year": 1984, "venue": "Communications of the ACM", "authors": "L. G. Valiant", "title": "A theory of the learnable", "lec": ["6"], "theme": "foundations", "why": "PAC learning: what can be learned from how many examples."}, {"year": 2017, "venue": "ICLR", "authors": "C. Zhang, S. Bengio, M. Hardt, B. Recht, O. Vinyals", "title": "Understanding deep learning requires rethinking generalization", "lec": ["6"], "theme": "foundations", "why": "Networks fit random labels, so capacity alone cannot explain generalisation."}, {"year": 1995, "venue": "Machine Learning", "authors": "C. Cortes, V. Vapnik", "title": "Support-vector networks", "lec": ["7"], "theme": "foundations", "why": "The soft-margin support vector machine."}, {"year": 2007, "venue": "NeurIPS", "authors": "A. Rahimi, B. Recht", "title": "Random features for large-scale kernel machines", "lec": ["7", "18"], "theme": "foundations", "why": "Approximate kernels with random Fourier features (Bochner's theorem)."}, {"year": 1997, "venue": "Journal of Computer and System Sciences", "authors": "Y. Freund, R. E. Schapire", "title": "A decision-theoretic generalization of on-line learning and an application to boosting", "lec": ["8"], "theme": "foundations", "why": "AdaBoost: combining weak learners into a strong one."}, {"year": 2001, "venue": "Machine Learning", "authors": "L. Breiman", "title": "Random forests", "lec": ["8"], "theme": "foundations", "why": "Averaging decorrelated trees."}, {"year": 2016, "venue": "KDD", "authors": "T. Chen, C. Guestrin", "title": "XGBoost: a scalable tree boosting system", "lec": ["8"], "theme": "foundations", "why": "Gradient boosting at scale, still a top method for tabular data."}, {"year": 2003, "venue": "ICML", "authors": "X. Zhu, Z. Ghahramani, J. Lafferty", "title": "Semi-supervised learning using Gaussian fields and harmonic functions", "lec": ["9"], "theme": "causal & graphs", "why": "Label propagation on a similarity graph."}, {"year": 2017, "venue": "ICLR", "authors": "T. N. Kipf, M. Welling", "title": "Semi-supervised classification with graph convolutional networks", "lec": ["9"], "theme": "causal & graphs", "why": "The graph convolutional network."}, {"year": 2019, "venue": "ICLR", "authors": "K. Xu, W. Hu, J. Leskovec, S. Jegelka", "title": "How powerful are graph neural networks?", "lec": ["9"], "theme": "causal & graphs", "why": "GNN expressiveness is bounded by the Weisfeiler-Lehman test; GIN reaches it."}, {"year": 1986, "venue": "Nature", "authors": "D. E. Rumelhart, G. E. Hinton, R. J. Williams", "title": "Learning representations by back-propagating errors", "lec": ["10"], "theme": "deep learning", "why": "Backpropagation trains hidden layers."}, {"year": 1989, "venue": "Mathematics of Control, Signals and Systems", "authors": "G. Cybenko", "title": "Approximation by superpositions of a sigmoidal function", "lec": ["10"], "theme": "deep learning", "why": "One hidden layer can approximate any continuous function."}, {"year": 2014, "venue": "JMLR", "authors": "N. Srivastava et al.", "title": "Dropout: a simple way to prevent neural networks from overfitting", "lec": ["10"], "theme": "deep learning", "why": "Randomly dropping units as regularisation."}, {"year": 1997, "venue": "Neural Computation", "authors": "S. Hochreiter, J. Schmidhuber", "title": "Long short-term memory", "lec": ["11"], "theme": "deep learning", "why": "Gated memory cells that carry information over long sequences."}, {"year": 1998, "venue": "Proceedings of the IEEE", "authors": "Y. LeCun, L. Bottou, Y. Bengio, P. Haffner", "title": "Gradient-based learning applied to document recognition", "lec": ["11"], "theme": "deep learning", "why": "Convolutional networks for handwritten digits (LeNet)."}, {"year": 2012, "venue": "NeurIPS", "authors": "A. Krizhevsky, I. Sutskever, G. E. Hinton", "title": "ImageNet classification with deep convolutional neural networks", "lec": ["11", "19"], "theme": "deep learning", "why": "AlexNet: the result that started the deep-learning era."}, {"year": 2016, "venue": "CVPR", "authors": "K. He, X. Zhang, S. Ren, J. Sun", "title": "Deep residual learning for image recognition", "lec": ["11", "23"], "theme": "deep learning", "why": "Residual connections make very deep networks trainable."}, {"year": 2015, "venue": "ICLR", "authors": "D. Bahdanau, K. Cho, Y. Bengio", "title": "Neural machine translation by jointly learning to align and translate", "lec": ["12"], "theme": "deep learning", "why": "Attention for sequence-to-sequence models."}, {"year": 2017, "venue": "NeurIPS", "authors": "A. Vaswani et al.", "title": "Attention is all you need", "lec": ["12"], "theme": "deep learning", "why": "The transformer."}, {"year": 2019, "venue": "NAACL", "authors": "J. Devlin, M.-W. Chang, K. Lee, K. Toutanova", "title": "BERT: pre-training of deep bidirectional transformers for language understanding", "lec": ["12", "13"], "theme": "deep learning", "why": "Masked-language-model pretraining, then fine-tuning."}, {"year": 2020, "venue": "NeurIPS", "authors": "T. Brown et al.", "title": "Language models are few-shot learners", "lec": ["12"], "theme": "deep learning", "why": "GPT-3: scale gives in-context learning."}, {"year": 2020, "venue": "NeurIPS", "authors": "P. Lewis et al.", "title": "Retrieval-augmented generation for knowledge-intensive NLP tasks", "lec": ["12"], "theme": "deep learning", "why": "Generation conditioned on retrieved documents."}, {"year": 2002, "venue": "EMNLP", "authors": "B. Pang, L. Lee, S. Vaithyanathan", "title": "Thumbs up? Sentiment classification using machine learning techniques", "lec": ["13"], "theme": "deep learning", "why": "Sentiment analysis as supervised classification."}, {"year": 2013, "venue": "NeurIPS", "authors": "T. Mikolov et al.", "title": "Distributed representations of words and phrases and their compositionality", "lec": ["13"], "theme": "deep learning", "why": "Word2vec embeddings."}, {"year": 2016, "venue": "NeurIPS", "authors": "T. Bolukbasi et al.", "title": "Man is to computer programmer as woman is to homemaker? Debiasing word embeddings", "lec": ["13"], "theme": "causal & graphs", "why": "Gender bias in word embeddings, and a debiasing method."}, {"year": 2000, "venue": "SIGMOD", "authors": "M. M. Breunig, H.-P. Kriegel, R. T. Ng, J. Sander", "title": "LOF: identifying density-based local outliers", "lec": ["14"], "theme": "unsupervised", "why": "Local outlier factor for anomaly detection."}, {"year": 2006, "venue": "Science", "authors": "G. E. Hinton, R. R. Salakhutdinov", "title": "Reducing the dimensionality of data with neural networks", "lec": ["14", "16"], "theme": "unsupervised", "why": "Deep autoencoders pretrained layer by layer."}, {"year": 2020, "venue": "ICML", "authors": "T. Chen, S. Kornblith, M. Norouzi, G. Hinton", "title": "A simple framework for contrastive learning of visual representations", "lec": ["14", "19"], "theme": "unsupervised", "why": "SimCLR: contrastive self-supervised learning."}, {"year": 1982, "venue": "IEEE Transactions on Information Theory", "authors": "S. P. Lloyd", "title": "Least squares quantization in PCM", "lec": ["15"], "theme": "unsupervised", "why": "The k-means algorithm (written in 1957)."}, {"year": 1996, "venue": "KDD", "authors": "M. Ester, H.-P. Kriegel, J. Sander, X. Xu", "title": "A density-based algorithm for discovering clusters in large spatial databases with noise", "lec": ["15"], "theme": "unsupervised", "why": "DBSCAN."}, {"year": 2002, "venue": "NeurIPS", "authors": "A. Y. Ng, M. I. Jordan, Y. Weiss", "title": "On spectral clustering: analysis and an algorithm", "lec": ["15"], "theme": "unsupervised", "why": "Clustering with the eigenvectors of a graph Laplacian."}, {"year": 1901, "venue": "Philosophical Magazine", "authors": "K. Pearson", "title": "On lines and planes of closest fit to systems of points in space", "lec": ["16"], "theme": "unsupervised", "why": "Principal component analysis."}, {"year": 2008, "venue": "JMLR", "authors": "L. van der Maaten, G. Hinton", "title": "Visualizing data using t-SNE", "lec": ["16"], "theme": "unsupervised", "why": "t-SNE embeddings."}, {"year": 2014, "venue": "ICLR", "authors": "D. P. Kingma, M. Welling", "title": "Auto-encoding variational Bayes", "lec": ["16"], "theme": "unsupervised", "why": "The variational autoencoder and the reparametrisation trick."}, {"year": 1977, "venue": "JRSS B", "authors": "A. P. Dempster, N. M. Laird, D. B. Rubin", "title": "Maximum likelihood from incomplete data via the EM algorithm", "lec": ["17"], "theme": "unsupervised", "why": "The EM algorithm."}, {"year": 2003, "venue": "JMLR", "authors": "D. M. Blei, A. Y. Ng, M. I. Jordan", "title": "Latent Dirichlet allocation", "lec": ["17"], "theme": "unsupervised", "why": "Topic models."}, {"year": 1959, "venue": "Publications de l'Institut de Statistique de l'Universit\u00e9 de Paris", "authors": "A. Sklar", "title": "Fonctions de r\u00e9partition \u00e0 n dimensions et leurs marges", "lec": ["17"], "theme": "unsupervised", "why": "Sklar's theorem: every joint distribution is its margins glued by a copula."}, {"year": 2000, "venue": "Journal of Fixed Income", "authors": "D. X. Li", "title": "On default correlation: a copula function approach", "lec": ["17"], "theme": "unsupervised", "why": "The Gaussian copula for credit risk; it has no tail dependence."}, {"year": 2009, "venue": "JMLR", "authors": "H. Liu, J. Lafferty, L. Wasserman", "title": "The nonparanormal: semiparametric estimation of high dimensional undirected graphs", "lec": ["17", "20"], "theme": "unsupervised", "why": "Graphical models for any monotone transformation of Gaussian data, from ranks."}, {"year": 1949, "venue": "Proceedings of the IRE", "authors": "C. E. Shannon", "title": "Communication in the presence of noise", "lec": ["18"], "theme": "signals & senses", "why": "The sampling theorem."}, {"year": 1965, "venue": "Mathematics of Computation", "authors": "J. W. Cooley, J. W. Tukey", "title": "An algorithm for the machine calculation of complex Fourier series", "lec": ["18"], "theme": "signals & senses", "why": "The fast Fourier transform."}, {"year": 1994, "venue": "Biometrika", "authors": "D. L. Donoho, I. M. Johnstone", "title": "Ideal spatial adaptation by wavelet shrinkage", "lec": ["18"], "theme": "signals & senses", "why": "Wavelet thresholding for denoising."}, {"year": 2016, "venue": "Physical Review Letters", "authors": "B. P. Abbott et al. (LIGO and Virgo)", "title": "Observation of gravitational waves from a binary black hole merger", "lec": ["18"], "theme": "signals & senses", "why": "GW150914, first flagged by a generic burst search and confirmed by matched filtering against relativity templates."}, {"year": 2020, "venue": "NeurIPS", "authors": "J. Ho, A. Jain, P. Abbeel", "title": "Denoising diffusion probabilistic models", "lec": ["19"], "theme": "signals & senses", "why": "Diffusion models generate by learning to denoise."}, {"year": 2021, "venue": "ICML", "authors": "A. Radford et al.", "title": "Learning transferable visual models from natural language supervision", "lec": ["19"], "theme": "signals & senses", "why": "CLIP and zero-shot classification."}, {"year": 2021, "venue": "ICLR", "authors": "A. Dosovitskiy et al.", "title": "An image is worth 16x16 words: transformers for image recognition at scale", "lec": ["19"], "theme": "signals & senses", "why": "The vision transformer."}, {"year": 2023, "venue": "ICML", "authors": "A. Radford et al.", "title": "Robust speech recognition via large-scale weak supervision", "lec": ["19"], "theme": "signals & senses", "why": "Whisper."}, {"year": 1995, "venue": "Biometrika", "authors": "J. Pearl", "title": "Causal diagrams for empirical research", "lec": ["20"], "theme": "causal & graphs", "why": "Causal graphs, d-separation and the back-door criterion."}, {"year": 2008, "venue": "Biostatistics", "authors": "J. Friedman, T. Hastie, R. Tibshirani", "title": "Sparse inverse covariance estimation with the graphical lasso", "lec": ["20"], "theme": "causal & graphs", "why": "The graphical lasso."}, {"year": 2018, "venue": "NeurIPS", "authors": "X. Zheng, B. Aragam, P. Ravikumar, E. P. Xing", "title": "DAGs with NO TEARS: continuous optimization for structure learning", "lec": ["20"], "theme": "causal & graphs", "why": "Acyclicity as a smooth constraint."}, {"year": 2021, "venue": "NeurIPS", "authors": "A. G. Reisach, C. Seiler, S. Weichwald", "title": "Beware of the simulated DAG! Causal discovery benchmarks may be easy to game", "lec": ["20", "23"], "theme": "causal & graphs", "why": "Varsortability explains benchmark success."}, {"year": 1992, "venue": "Machine Learning", "authors": "C. J. C. H. Watkins, P. Dayan", "title": "Q-learning", "lec": ["21"], "theme": "decisions", "why": "Convergence of Q-learning."}, {"year": 2002, "venue": "Machine Learning", "authors": "P. Auer, N. Cesa-Bianchi, P. Fischer", "title": "Finite-time analysis of the multiarmed bandit problem", "lec": ["21"], "theme": "decisions", "why": "UCB1 and its logarithmic regret."}, {"year": 2015, "venue": "Nature", "authors": "V. Mnih et al.", "title": "Human-level control through deep reinforcement learning", "lec": ["21"], "theme": "decisions", "why": "DQN on Atari."}, {"year": 1992, "venue": "Machine Learning", "authors": "R. J. Williams", "title": "Simple statistical gradient-following algorithms for connectionist reinforcement learning", "lec": ["22"], "theme": "decisions", "why": "REINFORCE."}, {"year": 2016, "venue": "Nature", "authors": "D. Silver et al.", "title": "Mastering the game of Go with deep neural networks and tree search", "lec": ["22"], "theme": "decisions", "why": "AlphaGo."}, {"year": 2017, "venue": "arXiv", "authors": "J. Schulman, F. Wolski, P. Dhariwal, A. Radford, O. Klimov", "title": "Proximal policy optimization algorithms", "lec": ["22"], "theme": "decisions", "why": "PPO."}, {"year": 2022, "venue": "NeurIPS", "authors": "L. Ouyang et al.", "title": "Training language models to follow instructions with human feedback", "lec": ["22"], "theme": "decisions", "why": "InstructGPT: RLHF for assistants."}, {"year": 2023, "venue": "NeurIPS", "authors": "R. Rafailov et al.", "title": "Direct preference optimization: your language model is secretly a reward model", "lec": ["22"], "theme": "decisions", "why": "DPO."}, {"year": 2025, "venue": "arXiv", "authors": "DeepSeek-AI", "title": "DeepSeek-R1: incentivizing reasoning capability in LLMs via reinforcement learning", "lec": ["22", "23"], "theme": "decisions", "why": "Reasoning from RL with verifiable rewards."}, {"year": 2019, "venue": "STOC", "authors": "E. Tang", "title": "A quantum-inspired classical algorithm for recommendation systems", "lec": ["23"], "theme": "foundations", "why": "Dequantisation of a claimed exponential speed-up."}, {"year": 2022, "venue": "arXiv", "authors": "A. Power, Y. Burda, H. Edwards, I. Babuschkin, V. Misra", "title": "Grokking: generalization beyond overfitting on small algorithmic datasets", "lec": ["23"], "theme": "deep learning", "why": "Delayed generalisation on modular arithmetic."}, {"year": 2020, "venue": "arXiv", "authors": "J. Kaplan et al.", "title": "Scaling laws for neural language models", "lec": ["23"], "theme": "deep learning", "why": "Loss falls as a power law in size, data and compute."}], "lectures": [["1", "Learning from data"], ["2", "The toolkit"], ["3", "Linear regression"], ["4", "Linear classification"], ["5", "Loss functions, bias and variance"], ["6", "Learning theory"], ["7", "Kernels and SVMs"], ["8", "Trees and boosting"], ["9", "Graphs and GNNs"], ["10", "Neural networks"], ["11", "ResNets, CNNs, RNNs"], ["12", "Attention and transformers"], ["13", "Sentiment and bias"], ["14", "Learning without labels"], ["15", "Clustering"], ["16", "Dimension reduction"], ["17", "Mixture models, EM and copulas"], ["18", "Signal processing"], ["19", "Image and sound learning"], ["20", "Learning graphs from data"], ["21", "RL: bandits to DQN"], ["22", "RL: policy gradients to RLHF"], ["23", "Reading the frontier"]], "themes": ["foundations", "deep learning", "unsupervised", "causal & graphs", "signals & senses", "decisions"]};
+/* W23a: notation decoder */
+(function(){
+  var g=function(id){return document.getElementById(id);}; if(!g('ndTab')) return;
+  var N=[
+ ['x, xᵢ, 𝐱','an input (a vector of features); xᵢ is the i-th example or the i-th coordinate','1'],
+ ['y, ŷ','the true label or target; ŷ ("y-hat") a prediction or estimate','1'],
+ ['θ, w, W','model parameters (weights); W a weight matrix','2'],
+ ['𝔼[X], 𝔼_{x∼p}[f(x)]','expectation: the average of X, or of f(x) when x is drawn from p','1'],
+ ['Var(X), σ²','variance; σ the standard deviation','1'],
+ ['P(A), p(x)','probability of an event; density or mass function','1'],
+ ['p(y | x)','conditional probability of y given x','1'],
+ ['x ∼ p','x is drawn from (distributed as) p','1'],
+ ['𝒩(μ, Σ)','Gaussian (normal) distribution with mean μ and covariance Σ','2'],
+ ['argmin_θ f(θ)','the θ at which f is smallest (argmax: largest)','2'],
+ ['‖x‖, ‖x‖₂, ‖x‖₁','length (Euclidean norm) of a vector; ‖x‖₁ the sum of absolute values','2'],
+ ['‖A‖_F','Frobenius norm of a matrix: square root of the sum of squared entries','16'],
+ ['xᵀ, Aᵀ','transpose: turn a column vector into a row, or swap rows and columns','2'],
+ ['xᵀy, ⟨x, y⟩','inner (dot) product','2'],
+ ['A⁻¹','matrix inverse','2'],
+ ['∇f, ∇_θ L','gradient: the vector of partial derivatives, pointing uphill','2'],
+ ['∂f/∂x','partial derivative','2'],
+ ['η, α (as a step size)','learning rate or step size','2'],
+ ['⊙, ∘','entrywise (Hadamard) product of two arrays of the same shape','10'],
+ ['σ(z)','the logistic sigmoid 1/(1+e^{−z}); also σ for a standard deviation','4'],
+ ['softmax(z)','exp(zᵢ)/Σⱼ exp(zⱼ): turns scores into probabilities','4'],
+ ['L, ℓ, 𝓛','a loss function; ℓ often a per-example loss','5'],
+ ['KL(p ‖ q)','Kullback–Leibler divergence: Σ p log(p/q), how different q is from p','5'],
+ ['H(p)','entropy −Σ p log p: the uncertainty of a distribution','5'],
+ ['𝒪(·), Θ(·), Ω(·)','big-O: grows at most / exactly / at least like, up to constants','6'],
+ ['𝓗','a hypothesis class (the set of models considered)','6'],
+ ['VC(𝓗), 𝔑(𝓗)','VC dimension; Rademacher complexity','6'],
+ ['k(x, x′)','a kernel: a similarity that equals an inner product of feature maps','7'],
+ ['φ(x)','a feature map','7'],
+ ['λ (as a penalty)','regularisation strength','3'],
+ ['𝟙[A], 𝟙(A)','indicator: 1 if A is true, 0 otherwise','4'],
+ ['A, D, L (graphs)','adjacency matrix, degree matrix, graph Laplacian L = D − A','9'],
+ ['h⁽ˡ⁾','hidden representation at layer l of a network','10'],
+ ['∗','convolution','11'],
+ ['Q, K, V (attention)','queries, keys and values in attention','12'],
+ ['d_k, d_model','dimension of keys; width of a transformer','12'],
+ ['ρ','correlation; also an importance-sampling ratio in RL','13'],
+ ['ĥ, KDE','kernel density estimate and its bandwidth','14'],
+ ['μ_k, Σ_k, π_k','mean, covariance and weight of mixture component k','17'],
+ ['γ_{ik}, r_{ik}','responsibility: posterior probability that point i came from component k','17'],
+ ['C(u, v)','a copula: the joint distribution function of two uniform variables (their dependence)','17'],
+ ['τ, ρ_S','Kendall\'s tau and Spearman\'s rho: rank correlations, functions of the copula alone','17'],
+ ['λ_L, λ_U','lower and upper tail dependence: the chance of joint extremes in the limit','17'],
+ ['X(f), F{x}','Fourier transform of a signal x','18'],
+ ['f_s','sampling rate','18'],
+ ['Θ = Σ⁻¹','precision matrix','20'],
+ ['X ⫫ Y | Z','X and Y are conditionally independent given Z','20'],
+ ['do(X = x)','an intervention that sets X to x','20'],
+ ['𝒮, 𝒜','state and action spaces','21'],
+ ['π(a | s)','a policy: probability of action a in state s','21'],
+ ['γ (in RL)','discount factor','21'],
+ ['G_t','return: discounted sum of future rewards','21'],
+ ['v_π(s), q_π(s, a)','state and action value functions','21'],
+ ['v*, q*, π*','optimal values and policy','21'],
+ ['δ_t','temporal-difference error','21'],
+ ['A_π(s, a), Â','advantage q − v, and an estimate of it','22'],
+ ['β (in RLHF)','strength of the KL penalty towards the reference policy','22'],
+ ['π_ref','reference policy (the model before RL)','22'],
+ ['y_w ≻ y_l','response y_w is preferred to y_l','22']];
+  function draw(){ var q=g('ndQ').value.trim().toLowerCase(), rows=N.filter(function(r){ return !q||r.join(' ').toLowerCase().indexOf(q)>=0||r[2]===q; });
+    g('ndTab').innerHTML='<table class="mono" style="width:100%;border-collapse:collapse;font-size:.86rem"><thead><tr><th style="text-align:left;padding:4px">symbol</th><th style="text-align:left;padding:4px">meaning</th><th style="text-align:right;padding:4px">lecture</th></tr></thead><tbody>'+
+      rows.map(function(r){ return '<tr style="border-top:1px solid var(--rule)"><td style="padding:5px 4px;white-space:nowrap">'+r[0]+'</td><td style="padding:5px 4px;font-family:var(--serif)">'+r[1]+'</td><td style="padding:5px 4px;text-align:right">'+r[2]+'</td></tr>'; }).join('')+'</tbody></table>';
+    g('ndRes').textContent=rows.length+' of '+N.length+' symbols'+(q?' match "'+q+'"':''); return rows.length; }
+  g('ndQ').addEventListener('input',draw); draw();
+  window.W23a={set:function(q){ g('ndQ').value=q; return draw(); }};
+})();
+/* W23b: paper map */
+(function(){
+  var g=function(id){return document.getElementById(id);}; if(!g('pmSvg')) return;
+  var P=L23.papers, lecs=L23.lectures, themes=L23.themes, col={'foundations':'var(--sky)','deep learning':'var(--rose)','unsupervised':'var(--moss)','causal & graphs':'var(--amber)','signals & senses':'var(--plum)','decisions':'var(--cap)'};
+  var ls=g('pmLec'), ts=g('pmTheme'), sel=-1;
+  [['all','all lectures']].concat(lecs.map(function(l){return [l[0],l[0]+' · '+l[1]];})).forEach(function(o){ var e=document.createElement('option'); e.value=o[0]; e.textContent=o[1]; ls.appendChild(e); });
+  ['all'].concat(themes).forEach(function(t){ var e=document.createElement('option'); e.value=t; e.textContent=t==='all'?'all themes':t; ts.appendChild(e); });
+  function draw(){ var L=ls.value, T=ts.value, rows=P.filter(function(p){ return (L==='all'||p.lec.indexOf(L)>=0)&&(T==='all'||p.theme===T); });
+    var svg=g('pmSvg'), W=620, x0=30, x1=W-20, y0=1890, y1=2026, sx=function(y){return x0+(y-y0)/(y1-y0)*(x1-x0);}; L1.clear(svg);
+    L1.el(svg,'line',{x1:x0,x2:x1,y1:70,y2:70,stroke:'var(--rule)','stroke-width':2});
+    [1900,1925,1950,1975,2000,2025].forEach(function(y){ L1.el(svg,'line',{x1:sx(y),x2:sx(y),y1:64,y2:76,stroke:'var(--muted)'}); L1.el(svg,'text',{'class':'axtext',x:sx(y),y:96,'text-anchor':'middle'},y); });
+    var stack={}; P.forEach(function(p,i){ var on=rows.indexOf(p)>=0, k=Math.round(sx(p.year)/6), lvl=stack[k]=(stack[k]||0)+1;
+      var c=L1.el(svg,'circle',{cx:sx(p.year),cy:70-((lvl-1)%6)*9-0.5,r:on?4.5:2.5,fill:on?col[p.theme]:'var(--muted)',opacity:on?0.95:0.3,style:'cursor:pointer'});
+      L1.el(c,'title',{},p.year+' · '+p.title); c.addEventListener('click',function(){ sel=i; ls.value='all'; ts.value='all'; draw(); var el=document.getElementById('pm-'+i); if(el) el.scrollIntoView({block:'nearest'}); }); });
+    rows.sort(function(a,b){return a.year-b.year;});
+    g('pmList').innerHTML=rows.map(function(p){ var i=P.indexOf(p); return '<div id="pm-'+i+'" style="border-left:3px solid '+col[p.theme]+';padding:6px 10px;margin:8px 0;background:'+(i===sel?'var(--surface2)':'transparent')+'"><div class="mono" style="font-size:.82rem;color:var(--muted)">'+p.year+' · '+p.venue+' · lecture '+p.lec.join(', ')+' · '+p.theme+'</div><div><strong>'+p.authors+'</strong>, "'+p.title+'"</div><div style="font-size:.95rem">'+p.why+'</div></div>'; }).join('');
+    g('pmRes').textContent=rows.length+' paper'+(rows.length===1?'':'s')+' shown of '+P.length; return rows.length; }
+  ls.addEventListener('change',function(){ sel=-1; draw(); }); ts.addEventListener('change',function(){ sel=-1; draw(); }); draw();
+  window.W23b={set:function(l,t){ ls.value=l; ts.value=t; return draw(); }};
+})();
+</script>
+
+<script>
+/* ---------- spot checks ----------
+   <div class="spot" data-kind="num|mc|multi|select" ...> with p.q, div.hint, div.why
+   num:    data-ans="a|b" (any accepted), data-tol (absolute) or data-rtol (relative), data-show (text for show-answer)
+   mc:     ul.opts > li[data-ok] for the right option; li[data-oh] is a hint for that wrong option
+   multi:  ul.opts > li[data-ok] for every right option (all and only those must be chosen)
+   select: one or more select.sp in the question; option[data-ok] right, option[data-hint] hint
+   Green with the explanation when right; amber with a hint when wrong; "show answer" after two misses. */
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×|⋅/g,'*').replace(/,/g,'').replace(/\^/g,'**').replace(/\s+/g,'');
+    if(!s) return NaN;
+    var pct=false; if(/%$/.test(s)){pct=true; s=s.slice(0,-1);}
+    if(!/^(?:[0-9.e+\-*/()]|sqrt|pi|ln|log|exp)+$/.test(s.replace(/e[+\-]?\d/g,'0'))) return NaN;
+    s=s.replace(/sqrt/g,'Math.sqrt').replace(/\bpi\b/g,'Math.PI').replace(/\bln\b/g,'Math.log').replace(/\blog\b/g,'Math.log10').replace(/\bexp\b/g,'Math.exp');
+    try{ var v=Function('"use strict";return ('+s+');')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function tolFor(sp,a){
+    if(sp.dataset.tol) return parseFloat(sp.dataset.tol);
+    if(sp.dataset.rtol) return parseFloat(sp.dataset.rtol)*Math.abs(a);
+    if(Math.abs(a)>=2 && Math.abs(a-Math.round(a))<1e-12) return 1e-9;
+    if(Math.abs(a)>=0.1) return Math.max(0.005,0.005*Math.abs(a));
+    return Math.max(1e-12,0.02*Math.abs(a));
+  }
+  window.QFspot={evalNum:evalNum,tolFor:tolFor};
+  document.querySelectorAll('.spot').forEach(function(sp){
+    var kind=sp.dataset.kind||'num', misses=0;
+    var hint=sp.querySelector(':scope > .hint'), why=sp.querySelector(':scope > .why');
+    var fb=document.createElement('div'); fb.className='sr-only'; fb.setAttribute('aria-live','polite');
+    fb.style.cssText='position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)';
+    sp.appendChild(fb);
+    var ansBox=document.createElement('div'); ansBox.className='ans'; sp.appendChild(ansBox);
+    var row=document.createElement('div'); row.className='row';
+    var go=document.createElement('button'); go.className='ctl sp-go'; go.type='button'; go.textContent='check';
+    var show=document.createElement('button'); show.className='ctl sp-show'; show.type='button'; show.textContent='show answer'; show.hidden=true;
+    var defHint=hint?hint.innerHTML:'';
+    function setHint(h){ if(!hint) return; hint.innerHTML=h||defHint; if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([hint]); }
+    function right(){ sp.classList.remove('no'); sp.classList.add('ok'); if(hint) hint.classList.remove('on');
+      if(why) why.classList.add('on'); show.hidden=true; fb.textContent='Correct.'; }
+    function wrong(h){ misses++; sp.classList.remove('ok'); sp.classList.add('no'); setHint(h); if(hint) hint.classList.add('on');
+      if(misses>=2) show.hidden=false; fb.textContent='Not quite. '+(hint?hint.textContent:''); }
+    if(kind==='num'){
+      var inp=document.createElement('input'); inp.className='sp-in'; inp.type='text'; inp.setAttribute('inputmode','decimal');
+      inp.setAttribute('aria-label','your answer'); inp.placeholder='your answer'; inp.id=(sp.id||'sp')+'-in';
+      row.appendChild(inp);
+      if(sp.dataset.unit){var u=document.createElement('span'); u.className='unit'; u.textContent=sp.dataset.unit; row.appendChild(u);}
+      row.appendChild(go); row.appendChild(show);
+      var answers=sp.dataset.ans.split('|').map(evalNum);
+      function test(){ var v=evalNum(inp.value);
+        if(isNaN(v)){ wrong('Enter a number (fractions like 3/4, powers like 2^10, sqrt(2), pi and 1e-3 are fine).'); return; }
+        if(answers.some(function(a){return Math.abs(v-a)<=tolFor(sp,a);})) right(); else wrong(); }
+      go.addEventListener('click',test);
+      inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); test(); } });
+      show.addEventListener('click',function(){ ansBox.innerHTML=sp.dataset.show||sp.dataset.ans.split('|')[0]; ansBox.classList.add('on');
+        if(why) why.classList.add('on'); show.hidden=true; if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([ansBox]); });
+      sp.querySelector(':scope > .q').after(row);
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=sp.querySelector('ul.opts'), btns=[];
+      (function(){ var h=2166136261, id=sp.id||'', lis=Array.prototype.slice.call(ul.querySelectorAll(':scope > li'));
+        for(var c=0;c<id.length;c++){ h^=id.charCodeAt(c); h=Math.imul(h,16777619)>>>0; }
+        for(var k=lis.length-1;k>0;k--){ h=Math.imul(h^(h>>>13),1597334677)>>>0; var j=h%(k+1), t=lis[k]; lis[k]=lis[j]; lis[j]=t; }
+        lis.forEach(function(li){ ul.appendChild(li); }); })();
+      ul.querySelectorAll(':scope > li').forEach(function(li){
+        var b=document.createElement('button'); b.type='button'; b.className='opt'; b.setAttribute('aria-pressed','false');
+        while(li.firstChild) b.appendChild(li.firstChild); li.appendChild(b); b._ok=li.hasAttribute('data-ok'); b._oh=li.dataset.oh||'';
+        btns.push(b);
+        b.addEventListener('click',function(){
+          if(kind==='mc'){ btns.forEach(function(x){x.setAttribute('aria-pressed','false'); x.classList.remove('good','bad');});
+            b.setAttribute('aria-pressed','true');
+            if(b._ok){ b.classList.add('good'); right(); } else { b.classList.add('bad'); wrong(b._oh); } }
+          else { b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')==='true'?'false':'true'); btns.forEach(function(x){x.classList.remove('good','bad');}); }
+        });
+      });
+      if(kind==='multi'){ row.appendChild(go); row.appendChild(show); ul.after(row);
+        go.addEventListener('click',function(){
+          var chosen=btns.filter(function(x){return x.getAttribute('aria-pressed')==='true';});
+          var bad=btns.filter(function(x){return (x.getAttribute('aria-pressed')==='true')!==x._ok;});
+          if(!bad.length){ chosen.forEach(function(x){x.classList.add('good');}); right(); }
+          else { var wrongPick=bad.find(function(x){return !x._ok;}); wrong(wrongPick?wrongPick._oh:''); }
+        });
+      } else { row.appendChild(show); ul.after(row); }
+      show.addEventListener('click',function(){ btns.forEach(function(x){ x.classList.remove('bad'); if(x._ok){x.classList.add('good');} });
+        if(why) why.classList.add('on'); show.hidden=true; });
+    } else if(kind==='select'){
+      var sels=[].slice.call(sp.querySelectorAll('select.sp'));
+      sels.forEach(function(s,i){ if(!s.getAttribute('aria-label')) s.setAttribute('aria-label','choose'); s.id=(sp.id||'sp')+'-s'+i;
+        s.addEventListener('change',function(){ s.classList.remove('good','bad'); }); });
+      row.appendChild(go); row.appendChild(show); sp.querySelector(':scope > .q').after(row);
+      go.addEventListener('click',function(){ var allOk=true, h='';
+        sels.forEach(function(s){ var o=s.options[s.selectedIndex]; var ok=o && o.hasAttribute('data-ok');
+          s.classList.toggle('good',ok); s.classList.toggle('bad',!ok); if(!ok){ allOk=false; if(!h && o && o.dataset.hint) h=o.dataset.hint; } });
+        if(allOk) right(); else wrong(h); });
+      show.addEventListener('click',function(){ sels.forEach(function(s){ for(var i=0;i<s.options.length;i++) if(s.options[i].hasAttribute('data-ok')) s.selectedIndex=i;
+        s.classList.add('good'); s.classList.remove('bad'); }); if(why) why.classList.add('on'); show.hidden=true; });
+    }
+  });
+})();
+</script>
+<script>
+/* ---------- solution / proof toggles ---------- */
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  var noun=b.textContent.replace(/^show\s+/,'');
+  b.dataset.noun=noun; b.type='button';
+  b.setAttribute('aria-expanded','false');
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    b.textContent=(open?'hide ':'show ')+b.dataset.noun;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+});
+/* ---------- theme: follows the system (or the viewer's choice) until the button is pressed ---------- */
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement;
+ function current(){ var a=root.getAttribute('data-theme'); if(a==='light'||a==='dark') return a;
+   return (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark'; }
+ function label(){ t.textContent = current()==='light' ? 'dark' : 'light'; }
+ label();
+ t.addEventListener('click',function(){ var next=current()==='light'?'dark':'light'; root.setAttribute('data-theme',next); label(); });
+ if(window.matchMedia) window.matchMedia('(prefers-color-scheme: light)').addEventListener('change',label);
+})();
+</script>
+
+<script>/* keep the light/dark button label right when the site sets the theme */
+(function(){var t=document.getElementById("theme"),r=document.documentElement;if(!t||!window.MutationObserver)return;new MutationObserver(function(){var a=r.getAttribute("data-theme");if(a==="light"||a==="dark")t.textContent=(a==="light")?"dark":"light";}).observe(r,{attributes:true,attributeFilter:["data-theme"]});})();</script>
+</body>
+</html>

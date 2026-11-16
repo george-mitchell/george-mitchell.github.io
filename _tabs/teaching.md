@@ -10,12 +10,13 @@ I teach mathematics, statistics and computer science at John Jay College, CUNY.
 
 ## Lecture Notes
 
-Using Claude, I have developed some interactive course notes below; all of them are free to read, link to, and use in your own teaching.
+For my own learning and teaching I have developed with Claude some course materials. All of them are free to read, link to, and use in your own teaching.
 
 
 - [**Precalculus**](/precalculus/) 
 - [**Probability and Statistics**](/probability-statistics/) 
 - [**Quantum Computing**](/quantum-computing/) 
+- [**Machine Learning**](/machine-learning/)
 - [**Applied Bayesian Inference**](/applied-bayesian-inference/)
 
 The notes are self-contained web pages. They work on a phone, they have a

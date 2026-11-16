@@ -1,0 +1,995 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lecture 10a — Neural Networks I: What Networks Compute · Machine Learning</title>
+<meta name="color-scheme" content="dark light">
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:(window.innerWidth<560?'0em':'1.2em'), fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-svg.js"></script>
+<style>
+  /* harbour theme (Quantum Frontiers notes): dark-first, light under prefers-color-scheme or the toggle.
+     layout: one 760px reading column; boxes by role; widgets as instruments in surface panels */
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade; --plum:#c3a6e8;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  @media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a; --plum:#5b3a8c; } }
+  :root[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a; --plum:#5b3a8c; }
+  *{box-sizing:border-box}
+  html{font-size:17.5px;background:var(--bg)}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  /* maths keeps text size: wide display equations scroll sideways instead of shrinking */
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%;
+    padding-bottom:4px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+  mjx-container{color:var(--ink)}
+  mjx-container svg{max-width:none !important}
+  .wrap{max-width:760px;margin:0 auto;padding-block:22px 110px;
+        padding-left:max(20px, env(safe-area-inset-left, 0px));padding-right:max(20px, env(safe-area-inset-right, 0px))}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em;text-wrap:balance}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px;text-wrap:balance}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0;min-width:0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)} .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid} .exr .lbl{color:var(--amber)}
+  .data{border-left-color:var(--cap);background:var(--surface2)} .data .lbl{color:var(--cap)}
+  /* machine-learning course additions, same family */
+  .big{border-left-color:var(--plum);background:var(--surface2)} .big .lbl{color:var(--plum)}
+  .causal{border-left-color:var(--moss);background:var(--surface2)} .causal .lbl{color:var(--moss)}
+  .bayes{border-left-color:var(--sky);background:var(--surface2)} .bayes .lbl{color:var(--sky)}
+  .quantum{border-left-color:var(--plum);border-left-style:double;border-left-width:4px;background:var(--surface2)} .quantum .lbl{color:var(--plum)}
+  .proj{border-left:3px dashed var(--rose);background:var(--surface2)} .proj .lbl{color:var(--rose)}
+  .proj h4{font-family:var(--mono);font-size:.95rem;color:var(--ink);margin:1.1em 0 .2em;font-weight:600}
+  .proj dl{margin:.1em 0 .4em} .proj dt{font-family:var(--mono);font-size:.84rem;color:var(--cap);margin-top:.35em}
+  .proj dd{margin:.05em 0 0 1em}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap);border-style:dashed}
+  /* syntax colours (build-time highlighting), drawn from the theme tokens */
+  .tool pre.src{border-left:3px solid var(--sky)}
+  .t-c,.t-c1,.t-cm,.t-ch,.t-cs{color:var(--muted);font-style:italic}
+  .t-k,.t-kd,.t-kr,.t-ow{color:var(--rose);font-weight:600}
+  .t-kn{color:var(--plum);font-weight:600}
+  .t-kc{color:var(--amber);font-weight:600}
+  .t-nb,.t-bp,.t-fm{color:var(--sky)}
+  .t-nf,.t-nc{color:var(--sky);font-weight:600}
+  .t-nn{color:var(--plum)}
+  .t-nd{color:var(--plum)}
+  .t-s,.t-s1,.t-s2,.t-sa,.t-sb,.t-sc,.t-sd,.t-se,.t-sh,.t-sx{color:var(--moss)}
+  .t-si{color:var(--amber)}
+  .t-m,.t-mi,.t-mf,.t-mh,.t-mo,.t-il{color:var(--amber)}
+  .t-o{color:var(--cap)}
+  .t-p{color:var(--muted)}
+  .t-n,.t-nv,.t-na{color:var(--ink)}
+  .t-fn{color:var(--sky)}
+  .notation dt{font-family:var(--mono);color:var(--sky);font-size:.92rem;margin-top:.5em}
+  .notation dd{margin:.05em 0 0 1em}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center;overflow-x:auto}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0;min-width:0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .widget .wtxt{font-size:.92rem;margin:.2em 0 .6em}
+  .widget > svg,.wrow > svg{display:block;margin:0 auto;touch-action:manipulation}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 150px;min-width:0}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.88rem;color:var(--ink);margin-top:8px;min-height:1.4em;line-height:1.6;font-variant-numeric:tabular-nums}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl:hover{border-color:var(--sky)}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  .wrow{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+  .wrow > *{flex:1 1 280px;min-width:0}
+  .legend{font-family:var(--mono);font-size:.8rem;color:var(--cap);display:flex;flex-wrap:wrap;gap:4px 14px;margin:.3em 0}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:0}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .tscroll{overflow-x:auto}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  .refs li{font-size:.95rem;margin-bottom:.55em}
+
+  /* ---- spot checks ---- */
+  .spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+        border-radius:0 8px 8px 0;padding:10px 16px 12px;margin:1.4em 0;transition:border-color .2s ease,background .2s ease}
+  .spot > .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.25em;color:var(--sky)}
+  .spot .q{margin:0 0 .55em}
+  .spot .hint,.spot .why,.spot .ans{display:none;font-size:.95rem;margin:.55em 0 0;padding:.45em .7em;border-radius:6px;line-height:1.6}
+  .spot .hint{border:1px solid var(--amber);color:var(--ink);background:var(--surface2)}
+  .spot .why{border:1px solid var(--moss);color:var(--ink);background:var(--surface2)}
+  .spot .ans{border:1px dashed var(--rule);color:var(--ink)}
+  .spot .hint::before{content:"not quite \2014  ";font-family:var(--mono);font-size:.82rem;color:var(--amber)}
+  .spot .why::before{content:"correct \2014  ";font-family:var(--mono);font-size:.82rem;color:var(--moss)}
+  .spot .ans::before{content:"answer \2014  ";font-family:var(--mono);font-size:.82rem;color:var(--cap)}
+  .spot.no{border-left-color:var(--amber);border-color:var(--amber)} .spot.no > .lbl{color:var(--amber)}
+  .spot.ok{border-left-color:var(--moss);border-color:var(--moss)} .spot.ok > .lbl{color:var(--moss)}
+  .spot.no .hint.on,.spot .why.on,.spot .ans.on{display:block}
+  .spot .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .spot input.sp-in{font-family:var(--mono);font-size:.95rem;background:var(--bg);color:var(--ink);
+        border:1px solid var(--rule);border-radius:6px;padding:6px 9px;width:11em;max-width:100%}
+  .spot.ok input.sp-in{border-color:var(--moss)} .spot.no input.sp-in{border-color:var(--amber)}
+  .spot select.sp{font-family:var(--mono);font-size:.9rem;background:var(--bg);color:var(--ink);
+        border:1px solid var(--rule);border-radius:6px;padding:3px 6px;margin:0 .15em;max-width:100%}
+  .spot select.sp.good{border-color:var(--moss)} .spot select.sp.bad{border-color:var(--amber)}
+  .spot ul.opts{list-style:none;padding:0;margin:.3em 0 .2em;display:grid;gap:7px}
+  .spot ul.opts li{margin:0}
+  .spot ul.opts button.opt{width:100%;text-align:left;font-family:var(--serif);font-size:1rem;line-height:1.55;
+        background:var(--bg);color:var(--ink);border:1px solid var(--rule);border-radius:7px;padding:7px 12px;cursor:pointer}
+  .spot ul.opts button.opt:hover{border-color:var(--sky)}
+  .spot ul.opts button.opt[aria-pressed="true"]{border-color:var(--sky);box-shadow:inset 3px 0 0 var(--sky)}
+  .spot ul.opts button.opt.good{border-color:var(--moss);box-shadow:inset 3px 0 0 var(--moss)}
+  .spot ul.opts button.opt.bad{border-color:var(--amber);box-shadow:inset 3px 0 0 var(--amber)}
+  .spot .unit{font-family:var(--mono);font-size:.9rem;color:var(--muted)}
+  .spot button.sp-show{border-style:dashed}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:16px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* formal statements: airy, clean spacing (added Oct 2026) */
+  mjx-container[display="true"]{margin:1.35em 0 !important}
+  .box.def,.box.thm{padding:18px 22px 16px}
+  .box.def > .lbl,.box.thm > .lbl{margin-bottom:.85em;padding-bottom:.5em;border-bottom:1px solid var(--rule)}
+  .box.def p,.box.thm p,.sol p{margin:.8em 0}
+  .box.def mjx-container[display="true"],.box.thm mjx-container[display="true"],.sol mjx-container[display="true"]{margin:1.6em 0 !important}
+  .box.def ul,.box.thm ul,.box.def ol,.box.thm ol{margin:.7em 0;padding-left:1.35em}
+  .box.def li,.box.thm li{margin:.55em 0}
+  .box .sol-btn{margin-top:1em}
+  .sol{margin-top:1.1em;padding-top:1.1em}
+  .box.def p.stmt,.box.thm p.stmt{margin:.9em 0 .9em 1.1em}
+  @media (max-width:520px){ .box.def,.box.thm{padding:13px 14px 12px} .box.def p.stmt,.box.thm p.stmt{margin-left:.4em} }
+</style>
+
+<script src="/assets/courses/common/course-nav.js" data-course="machine-learning" defer></script>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Machine Learning · Lecture 10a</a>
+  <button class="ctl" id="theme" type="button">light</button>
+</div>
+<h1 id="top">Lecture 10a<br>Neural Networks I: What Networks Compute</h1>
+<p class="kicker">Part III &middot; Deep learning &nbsp;|&nbsp; shallow networks, ReLU networks as piecewise-linear functions, linear regions and hyperplane arrangements, activation functions, composing networks, folding and clipping, deep networks and the power of depth, universal approximation &nbsp;|&nbsp; reading: Prince, <em>Understanding Deep Learning</em>, ch. 3–4 (and notebooks 3.1–3.4, 4.1–4.3); Telgarsky (2016)</p>
+
+<figure class="toon">
+<svg viewBox="0 0 600 210" width="600" height="210" role="img" aria-labelledby="c10t c10d">
+<title id="c10t">Cartoon: folding paper</title><desc id="c10d">A stick figure folds a strip of paper in half, then in half again; a zigzag line is drawn on it. The figure says: two folds, four pieces. A second stick figure says: and with ten folds?</desc>
+<defs><filter id="rough10" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="101" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough10)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<circle cx="70" cy="128" r="11"/><path d="M 70 139 L 70 166"/><path d="M 70 146 L 100 146"/><path d="M 70 146 L 56 160"/><path d="M 70 166 L 59 192"/><path d="M 70 166 L 81 192"/>
+<rect x="190" y="110" width="220" height="40" fill="var(--surface2)"/>
+<path d="M 245 110 L 245 150 M 300 110 L 300 150 M 355 110 L 355 150" stroke-dasharray="4 4" stroke-width="1.2"/>
+<path d="M 190 150 L 245 112 L 300 150 L 355 112 L 410 150" stroke="var(--sky)" stroke-width="2.6"/>
+<circle cx="530" cy="128" r="11"/><path d="M 530 139 L 530 166"/><path d="M 530 146 L 506 136"/><path d="M 530 146 L 544 160"/><path d="M 530 166 L 519 192"/><path d="M 530 166 L 541 192"/>
+<rect x="8" y="10" width="220" height="56" rx="9" fill="var(--surface2)"/><path d="M 52 64 L 64 104 L 84 64" fill="var(--surface2)" stroke-width="1.6"/>
+<rect x="392" y="10" width="200" height="56" rx="9" fill="var(--surface2)"/><path d="M 512 64 L 528 104 L 544 64" fill="var(--surface2)" stroke-width="1.6"/>
+<path d="M 10 200 L 590 200" stroke-width="1.6"/>
+</g>
+<text x="20" y="34" class="ctext">Two folds,</text><text x="20" y="53" class="ctext">four pieces.</text>
+<text x="404" y="34" class="ctext">And with ten</text><text x="404" y="53" class="ctext">folds?</text>
+</svg>
+<figcaption class="tooncap">Each layer of a deep ReLU network can fold its input space; the number of pieces doubles with each fold</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">Shallow networks</a></li>
+<li><a href="#s2">Linear regions</a></li>
+<li><a href="#s3">Activation functions</a></li>
+<li><a href="#s4">Composing networks: folding, clipping and depth</a></li>
+<li><a href="#s5">Universal approximation, and what depth buys</a></li>
+<li><a href="#s6">Summary, exercises, projects, reading</a></li>
+</ol>
+</div>
+
+<p>Logistic regression (Lecture 4) passes a linear function of the inputs through one fixed nonlinearity. A neural network does the same thing many times: it computes many linear functions of the inputs, passes each through a simple nonlinearity, and combines the results linearly; a deep network repeats this in layers, each feeding the next. This lecture asks what functions such networks can represent, before Lecture 10b asks how to train them. With the ReLU nonlinearity the answer is unusually concrete. A ReLU network is a continuous piecewise-linear function, and its power can be measured by counting its linear pieces. Width adds pieces one at a time; depth multiplies them, by folding the input space like paper. A one-hidden-layer network can approximate any continuous function, but some functions that a deep network computes with a handful of units need exponentially many units in one layer.</p>
+
+<p>By the end of this lecture you should be able to write down shallow and deep networks and count their parameters; explain why a ReLU network is piecewise linear and count the pieces of a shallow network in one dimension and the regions in higher dimensions; compare the common activation functions; build clipping and folding functions from ReLUs and explain how composition multiplies linear regions; and state the universal approximation theorem, prove its one-dimensional case, and explain what it does and does not promise.</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; Shallow networks</h2>
+
+<div class="box def">
+<span class="lbl">definition 10.1 &mdash; shallow neural network</span>
+<p>A <strong>shallow network</strong> (one hidden layer) with \(d\) inputs, \(D\) hidden units and one output computes</p>
+$$f(x)=\phi_0+\sum_{k=1}^D\phi_k\,a\big(\theta_{k0}+\theta_k^\top x\big),$$
+<p>where \(a\) is a fixed nonlinear <strong>activation function</strong>, \(h_k=a(\theta_{k0}+\theta_k^\top x)\) are the <strong>hidden units</strong>, \(\theta\) are the first-layer weights and biases, and \(\phi\) the output weights.</p>
+<p>It has \(D(d+1)+(D+1)\) parameters. The most common activation is the <strong>rectified linear unit</strong>,</p>
+$$\mathrm{ReLU}(z)=\max(0,z).$$
+</div>
+
+<p>Each ReLU unit is a "hinge": zero on one side of the point where \(\theta_{k0}+\theta_kx=0\) and linear on the other. A weighted sum of hinges is a continuous piecewise-linear function whose slope changes only where a unit switches on or off. In one dimension the switch points are the <strong>joints</strong> \(x=-\theta_{k0}/\theta_k\).</p>
+
+<div class="box thm">
+<span class="lbl">proposition 10.1 &mdash; shallow ReLU networks are piecewise linear</span>
+<p>A shallow ReLU network with one input and \(D\) hidden units is a continuous piecewise-linear function with at most \(D+1\) linear pieces. Conversely, every continuous piecewise-linear function on an interval \([\alpha,\beta]\) with \(D+1\) pieces is computed by such a network with at most \(D+1\) hidden units.</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Each unit is linear except at its joint, and a sum of functions that are linear on an interval is linear on it, so \(f\) is linear between consecutive joints: at most \(D\) joints, at most \(D+1\) pieces. It is continuous as a sum of continuous functions.</p>
+<p>Conversely, let \(g\) have breakpoints \(\alpha&lt;t_1&lt;\dots&lt;t_D&lt;\beta\), slope \(s_0\) on the first piece and slope change \(c_k\) at \(t_k\). On \([\alpha,\beta]\),</p>
+$$g(x)=g(\alpha)+s_0\,\mathrm{ReLU}(x-\alpha)+\sum_{k=1}^{D}c_k\,\mathrm{ReLU}(x-t_k):$$
+<p>the first unit supplies the initial slope (it is linear on the whole interval) and each other unit changes the slope at one breakpoint.</p>
+<p>That is \(D+1\) units, or \(D\) if the first piece is flat. \(\square\)</p>
+</div>
+</div>
+
+<div class="widget" id="w-shallow">
+<h4>Build a shallow network</h4>
+<p class="wtxt">Three ReLU units (dashed) and their sum plus a constant (sky), on Lecture 1's crash-helmet data. Each unit has a joint, a direction (switching on to the right of the joint, or to the left) and a slope. Try to fit the data by hand, then load the least-squares fit of the code box below.</p>
+<svg id="shSvg" viewBox="0 0 560 310" width="560" height="310" role="img" aria-label="Three ReLU units and their sum over the crash-helmet data"></svg>
+<div class="unitgrid">
+<fieldset><legend style="color:var(--rose)">unit 1</legend>
+<label>joint (ms) = <span id="shC0v"></span><input type="range" id="shC0" min="0" max="60" step="0.1" value="14"></label>
+<label>direction<select class="ctl" id="shD0"><option value="1" selected>on to the right</option><option value="-1">on to the left</option></select></label>
+<label>slope (g/ms) = <span id="shS0v"></span><input type="range" id="shS0" min="-50" max="50" step="0.1" value="-10"></label></fieldset>
+<fieldset><legend style="color:var(--moss)">unit 2</legend>
+<label>joint (ms) = <span id="shC1v"></span><input type="range" id="shC1" min="0" max="60" step="0.1" value="21"></label>
+<label>direction<select class="ctl" id="shD1"><option value="1" selected>on to the right</option><option value="-1">on to the left</option></select></label>
+<label>slope (g/ms) = <span id="shS1v"></span><input type="range" id="shS1" min="-50" max="50" step="0.1" value="20"></label></fieldset>
+<fieldset><legend style="color:var(--amber)">unit 3</legend>
+<label>joint (ms) = <span id="shC2v"></span><input type="range" id="shC2" min="0" max="60" step="0.1" value="30"></label>
+<label>direction<select class="ctl" id="shD2"><option value="1" selected>on to the right</option><option value="-1">on to the left</option></select></label>
+<label>slope (g/ms) = <span id="shS2v"></span><input type="range" id="shS2" min="-50" max="50" step="0.1" value="-10"></label></fieldset>
+</div>
+<div class="ctrls">
+<label><span>constant φ₀ = <span id="shBv"></span></span><input type="range" id="shB" min="-140" max="80" step="0.1" value="0"></label>
+<button class="ctl" type="button" id="shFit">load the least-squares fit</button>
+<button class="ctl" type="button" id="shZero">flatten</button>
+</div>
+<div class="readout" id="shOut" role="status" aria-live="polite"></div>
+</div>
+
+<p>Three units are exactly the right number for the crash curve: one joint where the head starts to decelerate (about 14 ms), one at the bottom of the dip (21 ms), one where it levels off (30 ms). The widget's slope is the product \(\phi_k|\theta_k|\) of the code's two parameters, which only ever appear multiplied together in one dimension.</p>
+
+<div class="box tool">
+<span class="lbl">code &mdash; shallow ReLU networks fitted to the crash-helmet data</span>
+<pre class="src"><span class="t-kn">import</span><span class="t-w"> </span><span class="t-nn">numpy</span><span class="t-w"> </span><span class="t-k">as</span><span class="t-w"> </span><span class="t-nn">np</span><span class="t-o">,</span><span class="t-w"> </span><span class="t-nn">pandas</span><span class="t-w"> </span><span class="t-k">as</span><span class="t-w"> </span><span class="t-nn">pd</span>
+<span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">scipy.optimize</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">least_squares</span>
+
+<span class="t-n">mc</span> <span class="t-o">=</span> <span class="t-n">pd</span><span class="t-o">.</span><span class="t-fn">read_csv</span><span class="t-p">(</span><span class="t-s1">'../data/mcycle.csv'</span><span class="t-p">)</span>                     <span class="t-c1"># Lecture 1's crash-helmet data</span>
+<span class="t-n">t</span><span class="t-p">,</span> <span class="t-n">y</span> <span class="t-o">=</span> <span class="t-n">mc</span><span class="t-p">[</span><span class="t-s1">'times'</span><span class="t-p">]</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">(),</span> <span class="t-n">mc</span><span class="t-p">[</span><span class="t-s1">'accel'</span><span class="t-p">]</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">()</span>
+
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">shallow</span><span class="t-p">(</span><span class="t-n">params</span><span class="t-p">,</span> <span class="t-n">x</span><span class="t-p">,</span> <span class="t-n">D</span><span class="t-p">):</span>
+<span class="t-w">    </span><span class="t-sd">"""y = phi_0 + sum_k phi_k ReLU(theta_k0 + theta_k1 x): one input, D hidden ReLU units, one output."""</span>
+    <span class="t-n">th0</span><span class="t-p">,</span> <span class="t-n">th1</span><span class="t-p">,</span> <span class="t-n">phi</span> <span class="t-o">=</span> <span class="t-n">params</span><span class="t-p">[:</span><span class="t-n">D</span><span class="t-p">],</span> <span class="t-n">params</span><span class="t-p">[</span><span class="t-n">D</span><span class="t-p">:</span><span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">D</span><span class="t-p">],</span> <span class="t-n">params</span><span class="t-p">[</span><span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">D</span><span class="t-p">:]</span>
+    <span class="t-n">H</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">maximum</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-n">th0</span><span class="t-p">[</span><span class="t-kc">None</span><span class="t-p">,</span> <span class="t-p">:]</span> <span class="t-o">+</span> <span class="t-n">th1</span><span class="t-p">[</span><span class="t-kc">None</span><span class="t-p">,</span> <span class="t-p">:]</span> <span class="t-o">*</span> <span class="t-n">x</span><span class="t-p">[:,</span> <span class="t-kc">None</span><span class="t-p">])</span>     <span class="t-c1"># hidden-unit activations, n x D</span>
+    <span class="t-k">return</span> <span class="t-n">phi</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">]</span> <span class="t-o">+</span> <span class="t-n">H</span> <span class="t-o">@</span> <span class="t-n">phi</span><span class="t-p">[</span><span class="t-mi">1</span><span class="t-p">:]</span>
+
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">fit</span><span class="t-p">(</span><span class="t-n">D</span><span class="t-p">,</span> <span class="t-n">restarts</span><span class="t-o">=</span><span class="t-mi">100</span><span class="t-p">,</span> <span class="t-n">seed</span><span class="t-o">=</span><span class="t-mi">0</span><span class="t-p">):</span>
+    <span class="t-n">rng</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-fn">default_rng</span><span class="t-p">(</span><span class="t-n">seed</span><span class="t-p">);</span> <span class="t-n">best</span> <span class="t-o">=</span> <span class="t-kc">None</span>
+    <span class="t-k">for</span> <span class="t-n">r</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-n">restarts</span><span class="t-p">):</span>                               <span class="t-c1"># several random starts: the problem is not convex</span>
+        <span class="t-n">joints</span> <span class="t-o">=</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-fn">uniform</span><span class="t-p">(</span><span class="t-n">t</span><span class="t-o">.</span><span class="t-fn">min</span><span class="t-p">(),</span> <span class="t-n">t</span><span class="t-o">.</span><span class="t-fn">max</span><span class="t-p">(),</span> <span class="t-n">D</span><span class="t-p">);</span> <span class="t-n">sign</span> <span class="t-o">=</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-fn">choice</span><span class="t-p">([</span><span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">],</span> <span class="t-n">D</span><span class="t-p">)</span>
+        <span class="t-n">p0</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">concatenate</span><span class="t-p">([</span><span class="t-o">-</span><span class="t-n">sign</span> <span class="t-o">*</span> <span class="t-n">joints</span><span class="t-p">,</span> <span class="t-n">sign</span> <span class="t-o">*</span> <span class="t-mf">1.0</span><span class="t-p">,</span> <span class="t-p">[</span><span class="t-n">y</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">()],</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-fn">normal</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-n">D</span><span class="t-p">)])</span>
+        <span class="t-n">res</span> <span class="t-o">=</span> <span class="t-fn">least_squares</span><span class="t-p">(</span><span class="t-k">lambda</span> <span class="t-n">p</span><span class="t-p">:</span> <span class="t-fn">shallow</span><span class="t-p">(</span><span class="t-n">p</span><span class="t-p">,</span> <span class="t-n">t</span><span class="t-p">,</span> <span class="t-n">D</span><span class="t-p">)</span> <span class="t-o">-</span> <span class="t-n">y</span><span class="t-p">,</span> <span class="t-n">p0</span><span class="t-p">)</span>
+        <span class="t-k">if</span> <span class="t-n">best</span> <span class="t-ow">is</span> <span class="t-kc">None</span> <span class="t-ow">or</span> <span class="t-n">res</span><span class="t-o">.</span><span class="t-n">cost</span> <span class="t-o">&lt;</span> <span class="t-n">best</span><span class="t-o">.</span><span class="t-n">cost</span><span class="t-p">:</span>
+            <span class="t-n">best</span> <span class="t-o">=</span> <span class="t-n">res</span>
+    <span class="t-k">return</span> <span class="t-n">best</span><span class="t-o">.</span><span class="t-n">x</span>
+
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'hidden units   parameters   training RMSE   joints (ms) where a unit switches on'</span><span class="t-p">)</span>
+<span class="t-k">for</span> <span class="t-n">D</span> <span class="t-ow">in</span> <span class="t-p">[</span><span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">2</span><span class="t-p">,</span> <span class="t-mi">3</span><span class="t-p">,</span> <span class="t-mi">5</span><span class="t-p">,</span> <span class="t-mi">10</span><span class="t-p">]:</span>
+    <span class="t-n">p</span> <span class="t-o">=</span> <span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">D</span><span class="t-p">)</span>
+    <span class="t-n">rmse</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sqrt</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">((</span><span class="t-fn">shallow</span><span class="t-p">(</span><span class="t-n">p</span><span class="t-p">,</span> <span class="t-n">t</span><span class="t-p">,</span> <span class="t-n">D</span><span class="t-p">)</span> <span class="t-o">-</span> <span class="t-n">y</span><span class="t-p">)</span> <span class="t-o">**</span> <span class="t-mi">2</span><span class="t-p">))</span>
+    <span class="t-n">joints</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sort</span><span class="t-p">(</span><span class="t-o">-</span><span class="t-n">p</span><span class="t-p">[:</span><span class="t-n">D</span><span class="t-p">]</span> <span class="t-o">/</span> <span class="t-n">p</span><span class="t-p">[</span><span class="t-n">D</span><span class="t-p">:</span><span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">D</span><span class="t-p">])</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">D</span><span class="t-si">:</span><span class="t-s1">12d</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-mi">3</span><span class="t-w"> </span><span class="t-o">*</span><span class="t-w"> </span><span class="t-n">D</span><span class="t-w"> </span><span class="t-o">+</span><span class="t-w"> </span><span class="t-mi">1</span><span class="t-si">:</span><span class="t-s1">10d</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">rmse</span><span class="t-si">:</span><span class="t-s1">13.2f</span><span class="t-si">}</span><span class="t-s1">   '</span> <span class="t-o">+</span> <span class="t-s1">' '</span><span class="t-o">.</span><span class="t-fn">join</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">j</span><span class="t-si">:</span><span class="t-s1">.1f</span><span class="t-si">}</span><span class="t-s1">'</span> <span class="t-k">for</span> <span class="t-n">j</span> <span class="t-ow">in</span> <span class="t-n">joints</span> <span class="t-k">if</span> <span class="t-n">t</span><span class="t-o">.</span><span class="t-fn">min</span><span class="t-p">()</span> <span class="t-o">&lt;=</span> <span class="t-n">j</span> <span class="t-o">&lt;=</span> <span class="t-n">t</span><span class="t-o">.</span><span class="t-fn">max</span><span class="t-p">()))</span>
+
+<span class="t-n">p20</span> <span class="t-o">=</span> <span class="t-fn">fit</span><span class="t-p">(</span><span class="t-mi">10</span><span class="t-p">,</span> <span class="t-n">restarts</span><span class="t-o">=</span><span class="t-mi">20</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'10 units, best of only 20 random starts: training RMSE </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sqrt</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">((</span><span class="t-fn">shallow</span><span class="t-p">(</span><span class="t-n">p20</span><span class="t-p">,</span><span class="t-w"> </span><span class="t-n">t</span><span class="t-p">,</span><span class="t-w"> </span><span class="t-mi">10</span><span class="t-p">)</span><span class="t-w"> </span><span class="t-o">-</span><span class="t-w"> </span><span class="t-n">y</span><span class="t-p">)</span><span class="t-w"> </span><span class="t-o">**</span><span class="t-w"> </span><span class="t-mi">2</span><span class="t-p">))</span><span class="t-si">:</span><span class="t-s1">.2f</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span></pre>
+<pre class="out">hidden units   parameters   training RMSE   joints (ms) where a unit switches on
+           1            4           43.31   21.4
+           2            7           27.79   23.4 28.4
+           3           10           22.56   13.8 21.0 29.8
+           5           16           22.40   13.9 14.4 21.0 29.9 40.0
+          10           31           22.05   2.5 14.1 17.6 20.0 22.5 29.4
+10 units, best of only 20 random starts: training RMSE 26.32</pre>
+</div>
+
+<p>One unit is a single hinge (RMSE 43); two capture the dip (28); three capture the dip and the rebound (22.6). Beyond that the gains are small: five units reach 22.4 and ten 22.0, and the extra joints mostly fine-tune the dip. The last line is a warning for Lecture 10b. Fitting a network is not a convex problem: with only 20 random starting points, the best ten-unit fit found was <em>worse</em> than the three-unit fit, although the ten-unit network can represent every three-unit one. Which minimum the optimiser finds depends on where it starts.</p>
+
+<div class="spot" id="sp10-1" data-kind="num" data-ans="6" data-tol="0.5">
+<span class="lbl">spot check 10.1</span>
+<p class="q">A shallow ReLU network has one input and 5 hidden units. What is the largest possible number of linear pieces?</p>
+<div class="hint">Each unit contributes at most one joint.</div>
+<div class="why">\(5+1=6\). Two units with the same joint give fewer; a unit whose joint lies outside the data range adds nothing visible.</div>
+</div>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; Linear regions</h2>
+
+<p>With \(d\) inputs, each hidden unit switches on or off across a hyperplane \(\theta_{k0}+\theta_k^\top x=0\) in input space. The \(D\) hyperplanes cut the space into regions; within a region every unit is either on or off, so the network is a single linear function there. The number of regions is the multidimensional version of "number of pieces".</p>
+
+<div class="box thm">
+<span class="lbl">theorem 10.2 &mdash; Zaslavsky's count</span>
+<p>\(D\) hyperplanes in general position cut \(\mathbb R^d\) into exactly</p>
+$$r(D,d)=\sum_{j=0}^d\binom Dj$$
+<p>regions. So a shallow ReLU network with \(d\) inputs and \(D\) hidden units has at most</p>
+$$\sum_{j=0}^d\binom Dj$$
+<p>linear regions, and this number is attained. For \(D\le d\) it is \(2^D\); for fixed \(d\) it grows like \(D^d/d!\).</p>
+<button class="sol-btn">show proof sketch</button>
+<div class="sol">
+<p>Add the hyperplanes one at a time. The \(D\)-th hyperplane \(H\) is itself a copy of \(\mathbb R^{d-1}\), and the previous \(D-1\) hyperplanes cut it (in general position) into \(r(D-1,d-1)\) pieces. Each piece of \(H\) splits one existing region into two, so</p>
+$$r(D,d)=r(D-1,d)+r(D-1,d-1),$$
+<p>with \(r(0,d)=1\) and \(r(D,0)=1\). The binomial sums satisfy the same recursion (Pascal's rule), hence they are equal. This is a special case of Zaslavsky's (1975) theorem on hyperplane arrangements. \(\square\)</p>
+</div>
+</div>
+
+<div class="widget" id="w-regions">
+<h4>Linear regions of a random ReLU network</h4>
+<p class="wtxt">A ReLU network with 2 inputs, random weights, and the chosen width and depth, drawn on \([-3,3]^2\). Each colour is one activation pattern, that is one linear region. Compare one wide layer with several narrow ones that use the same number of units.</p>
+<canvas id="rgCanvas" class="wcanvas" width="560" height="300" aria-label="Linear regions of a random ReLU network, each region a different colour"></canvas>
+<div class="ctrls">
+<label><span>units per layer = <span id="rgWv"></span></span><input type="range" id="rgW" min="1" max="32" step="1" value="8"></label>
+<label><span>layers = <span id="rgDv"></span></span><input type="range" id="rgD" min="1" max="5" step="1" value="1"></label>
+<button class="ctl" type="button" id="rgNew">new random weights</button>
+</div>
+<div class="readout" id="rgOut" role="status" aria-live="polite"></div>
+</div>
+
+<div class="spot" id="sp10-2" data-kind="num" data-ans="11" data-tol="0.5">
+<span class="lbl">spot check 10.2</span>
+<p class="q">At most how many linear regions can a shallow ReLU network with 2 inputs and 4 hidden units have?</p>
+<div class="hint">\(\binom40+\binom41+\binom42\).</div>
+<div class="why">\(1+4+6=11\): four lines in general position cut the plane into 11 regions.</div>
+</div>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; Activation functions</h2>
+
+<p>Without a nonlinearity, a network of any depth collapses to a single linear map (a product of matrices is a matrix). The choice of nonlinearity changes both the functions a network represents and, as Lecture 10b shows, how well gradients flow through it during training.</p>
+
+<div class="tscroll"><table>
+<tr><th>activation</th><th>\(a(z)\)</th><th>notes</th></tr>
+<tr><td>sigmoid</td><td>\(1/(1+e^{-z})\)</td><td>the original choice; saturates at 0 and 1, derivative at most ¼, so gradients shrink through many layers</td></tr>
+<tr><td>tanh</td><td>\(\tanh z\)</td><td>zero-centred sigmoid; saturates; still used in recurrent networks (Lecture 11)</td></tr>
+<tr><td>ReLU</td><td>\(\max(0,z)\)</td><td>cheap, no saturation for \(z&gt;0\), piecewise linear; a unit stuck at \(z&lt;0\) for every input gets no gradient ("dead ReLU")</td></tr>
+<tr><td>leaky ReLU</td><td>\(\max(\alpha z,z)\), \(\alpha\approx0.01\)–\(0.1\)</td><td>keeps a small gradient for \(z&lt;0\)</td></tr>
+<tr><td>ELU</td><td>\(z\) for \(z&gt;0\), \(e^z-1\) otherwise</td><td>smooth negative part, outputs closer to zero mean</td></tr>
+<tr><td>GELU</td><td>\(z\,\Phi(z)\), \(\Phi\) the normal CDF</td><td>a smooth ReLU; the standard in BERT and GPT models</td></tr>
+<tr><td>SiLU (swish)</td><td>\(z\,\sigma(z)\)</td><td>similar to GELU; used in many vision models and, inside SwiGLU, in Llama-style language models</td></tr>
+<tr><td>softplus</td><td>\(\log(1+e^z)\)</td><td>smooth version of ReLU; its derivative is the sigmoid</td></tr>
+</table></div>
+
+<div class="widget" id="w-act">
+<h4>Activation functions and their derivatives</h4>
+<p class="wtxt">The function (sky) and its derivative (amber, dashed). The derivative is what backpropagation multiplies by at every layer (Lecture 10b), so its size matters as much as the function's shape.</p>
+<svg id="acSvg" viewBox="0 0 560 290" width="560" height="290" role="img" aria-label="An activation function and its derivative"></svg>
+<div class="ctrls">
+<label><span>activation</span><select class="ctl" id="acF"><option value="relu">ReLU</option><option value="leaky">leaky ReLU</option><option value="elu">ELU</option><option value="gelu">GELU</option><option value="silu">SiLU / swish</option><option value="softplus">softplus</option><option value="sigmoid">sigmoid</option><option value="tanh">tanh</option></select></label>
+</div>
+<div class="readout" id="acOut" role="status" aria-live="polite"></div>
+</div>
+
+<p>The smooth activations (GELU, SiLU, softplus) are not piecewise linear, so the region-counting picture applies to them only approximately; in practice they behave like softened ReLUs. The sigmoid's derivative is at most 0.25 and is only 0.045 at \(z=-3\), which, multiplied over ten layers, shrinks a gradient by a factor of at least a million. That is the "vanishing gradient" problem that held back deep networks until ReLUs became standard around 2010.</p>
+
+<div class="spot" id="sp10-3" data-kind="select">
+<span class="lbl">spot check 10.3</span>
+<p class="q">The largest value of the sigmoid's derivative is
+<select class="sp" aria-label="sigmoid"><option>choose</option><option data-ok>0.25</option><option data-hint="σ′(z) = σ(z)(1 − σ(z)), largest where σ = ½.">0.5</option><option data-hint="That is tanh′(0).">1</option></select>,
+and the derivative of tanh at 0 is
+<select class="sp" aria-label="tanh"><option>choose</option><option data-hint="tanh′ = 1 − tanh².">0.25</option><option data-ok>1</option><option data-hint="tanh(0) = 0 and tanh′(0) = 1 − 0.">0</option></select>.</p>
+<div class="hint">Use \(\sigma'=\sigma(1-\sigma)\) and \(\tanh'=1-\tanh^2\); the widget shows both.</div>
+<div class="why">\(\sigma'(0)=\tfrac12\cdot\tfrac12=\tfrac14\), and \(\tanh z=2\sigma(2z)-1\) gives \(\tanh'(0)=4\sigma'(0)=1\).</div>
+</div>
+
+<div class="box hist">
+<span class="lbl">history &mdash; from logical neurons to a Nobel Prize</span>
+<p>Warren McCulloch and Walter Pitts modelled neurons as threshold logic units in 1943 and showed that networks of them can compute any logical function. Frank Rosenblatt's perceptron (1958, Lecture 4) learned the weights of one such unit. Marvin Minsky and Seymour Papert's <em>Perceptrons</em> (1969) proved what a single layer cannot do (such as XOR, Exercise 1), and with no way to train hidden layers interest collapsed. Backpropagation (Lecture 10b) revived it in the 1980s, and in 1989 George Cybenko and, independently, Kurt Hornik, Maxwell Stinchcombe and Halbert White proved that one hidden layer suffices to approximate any continuous function. The rectifier was used by Kunihiko Fukushima in 1969, but became the default only after Nair and Hinton (2010) and Glorot, Bordes and Bengio (2011). In 2024 John Hopfield and Geoffrey Hinton received the Nobel Prize in Physics "for foundational discoveries and inventions that enable machine learning with artificial neural networks".</p>
+</div>
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; Composing networks: folding, clipping and depth</h2>
+
+<div class="box def">
+<span class="lbl">definition 10.2 &mdash; deep (fully connected) network</span>
+<p>A <strong>deep network</strong>, or multilayer perceptron, with \(K\) hidden layers computes</p>
+$$h^{(0)}=x,\qquad h^{(k)}=a\big(\beta^{(k)}+\Omega^{(k)}h^{(k-1)}\big)\ \ (k=1,\dots,K),\qquad f(x)=\beta^{(K+1)}+\Omega^{(K+1)}h^{(K)},$$
+<p>with weight matrices \(\Omega^{(k)}\), bias vectors \(\beta^{(k)}\), and the activation applied entrywise. Layer \(k\) has width \(D_k\) (the length of \(h^{(k)}\)); the depth is \(K\).</p>
+<p>It is a composition of shallow networks: the outputs of one layer are the inputs of the next.</p>
+</div>
+
+<p>Two small ReLU constructions explain what composition does. A <strong>clipping function</strong> keeps a value inside a range:</p>
+$$\operatorname{clip}(z;0,1)=\mathrm{ReLU}(z)-\mathrm{ReLU}(z-1),$$
+<p>zero below 0, the identity on \([0,1]\), one above 1. And a <strong>fold</strong>, the "tent map",</p>
+$$T(x)=2\,\mathrm{ReLU}(x)-4\,\mathrm{ReLU}\big(x-\tfrac12\big),$$
+<p>maps \([0,\tfrac12]\) up onto \([0,1]\) and \([\tfrac12,1]\) back down onto \([0,1]\): it folds the unit interval in half. Feed its output into a second network \(g\), and \(g\) is applied to both halves of the input, mirrored: whatever \(g\) does on \([0,1]\) now happens twice. Composing \(T\) with itself \(L\) times folds the interval \(L\) times.</p>
+
+<div class="widget" id="w-fold">
+<h4>Folding with depth</h4>
+<p class="wtxt">The tent map composed with itself \(L\) times (sky), with the earlier compositions in grey. Each composition is one more layer of two ReLU units.</p>
+<svg id="fdSvg" viewBox="0 0 560 300" width="560" height="300" role="img" aria-label="Repeated compositions of the tent map"></svg>
+<div class="ctrls">
+<label><span>layers L = <span id="fdLv"></span></span><input type="range" id="fdL" min="0" max="7" step="1" value="3"></label>
+</div>
+<div class="readout" id="fdOut" role="status" aria-live="polite"></div>
+</div>
+
+<div class="box thm">
+<span class="lbl">theorem 10.3 &mdash; depth multiplies linear pieces</span>
+<p>The \(L\)-fold composition</p>
+$$T^{(L)}=T\circ\dots\circ T$$
+<p>is computed by a deep ReLU network with \(L\) hidden layers of 2 units and has exactly \(2^L\) linear pieces on \([0,1]\) (a sawtooth with \(2^{L-1}\) teeth).</p>
+<p>A shallow ReLU network needs at least \(2^L-1\) hidden units to compute it exactly, and \(2^L\) suffice.</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>By induction on \(L\): suppose \(T^{(L)}\) has \(2^L\) pieces, each mapping its interval linearly onto all of \([0,1]\) (true for \(L=1\)). Composing with \(T\) splits each piece at the point that maps to \(\tfrac12\), and each half again maps linearly onto \([0,1]\): \(2^{L+1}\) such pieces. Each \(T\) is a layer of two ReLU units (the clipping of the input to \([0,1]\) is automatic since every intermediate value lies in \([0,1]\)).</p>
+<p>The lower bound for shallow networks follows from Proposition 10.1: \(2^L\) pieces need \(2^L-1\) joints. \(\square\)</p>
+</div>
+</div>
+
+<p>With 10 layers of 2 units (20 units, 61 parameters) the sawtooth has 1,024 pieces; a shallow network needs 1,023 units. Exact representation could be too strict a test, but Telgarsky (2016) proved that depth separations survive approximation: there are functions computed by networks with \(\Theta(k^3)\) layers of constant width that no network with \(O(k)\) layers can approximate (in \(L^1\)) unless it has at least \(2^k\) units. In \(d\) dimensions, Montúfar et al. (2014) showed that a network with \(L\) layers of width \(n\ge d\) can have a number of regions that grows exponentially in \(L\), roughly \((n/d)^{d(L-1)}n^d\).</p>
+
+<div class="box tool">
+<span class="lbl">code &mdash; the sawtooth, and what a shallow network needs to match it</span>
+<pre class="src"><span class="t-c1"># The "tent" fold: a two-unit network mapping [0, 1] onto itself, up and back down</span>
+<span class="t-n">tent</span> <span class="t-o">=</span> <span class="t-k">lambda</span> <span class="t-n">x</span><span class="t-p">:</span> <span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">maximum</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-n">x</span><span class="t-p">)</span> <span class="t-o">-</span> <span class="t-mi">4</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">maximum</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-n">x</span> <span class="t-o">-</span> <span class="t-mf">0.5</span><span class="t-p">)</span>
+<span class="t-n">x</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">linspace</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">200001</span><span class="t-p">)</span>
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">pieces</span><span class="t-p">(</span><span class="t-n">f</span><span class="t-p">):</span>                                               <span class="t-c1"># count linear pieces from changes of slope</span>
+    <span class="t-n">s</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">diff</span><span class="t-p">(</span><span class="t-n">f</span><span class="t-p">)</span> <span class="t-o">/</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">diff</span><span class="t-p">(</span><span class="t-n">x</span><span class="t-p">)</span>
+    <span class="t-k">return</span> <span class="t-mi">1</span> <span class="t-o">+</span> <span class="t-nb">int</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sum</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">abs</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">diff</span><span class="t-p">(</span><span class="t-n">s</span><span class="t-p">))</span> <span class="t-o">&gt;</span> <span class="t-mf">1e-6</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">abs</span><span class="t-p">(</span><span class="t-n">s</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">max</span><span class="t-p">()))</span>
+
+<span class="t-n">f</span> <span class="t-o">=</span> <span class="t-n">x</span><span class="t-o">.</span><span class="t-fn">copy</span><span class="t-p">()</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'compositions   hidden units   linear pieces'</span><span class="t-p">)</span>
+<span class="t-k">for</span> <span class="t-n">L</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">7</span><span class="t-p">):</span>
+    <span class="t-n">f</span> <span class="t-o">=</span> <span class="t-fn">tent</span><span class="t-p">(</span><span class="t-n">f</span><span class="t-p">)</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">L</span><span class="t-si">:</span><span class="t-s1">12d</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-mi">2</span><span class="t-w"> </span><span class="t-o">*</span><span class="t-w"> </span><span class="t-n">L</span><span class="t-si">:</span><span class="t-s1">12d</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-fn">pieces</span><span class="t-p">(</span><span class="t-n">f</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">13d</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span>
+
+<span class="t-c1"># A shallow network needs about one unit per piece to match the depth-5 sawtooth (32 pieces)</span>
+<span class="t-n">target</span> <span class="t-o">=</span> <span class="t-n">x</span><span class="t-o">.</span><span class="t-fn">copy</span><span class="t-p">()</span>
+<span class="t-k">for</span> <span class="t-n">_</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-mi">5</span><span class="t-p">):</span>
+    <span class="t-n">target</span> <span class="t-o">=</span> <span class="t-fn">tent</span><span class="t-p">(</span><span class="t-n">target</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'</span><span class="t-se">\n</span><span class="t-s1">shallow units (joints evenly spaced, output weights by least squares)   max error'</span><span class="t-p">)</span>
+<span class="t-k">for</span> <span class="t-n">D</span> <span class="t-ow">in</span> <span class="t-p">[</span><span class="t-mi">8</span><span class="t-p">,</span> <span class="t-mi">16</span><span class="t-p">,</span> <span class="t-mi">30</span><span class="t-p">,</span> <span class="t-mi">31</span><span class="t-p">,</span> <span class="t-mi">63</span><span class="t-p">]:</span>
+    <span class="t-n">knots</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">arange</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">,</span> <span class="t-n">D</span> <span class="t-o">+</span> <span class="t-mi">1</span><span class="t-p">)</span> <span class="t-o">/</span> <span class="t-p">(</span><span class="t-n">D</span> <span class="t-o">+</span> <span class="t-mi">1</span><span class="t-p">)</span>
+    <span class="t-n">H</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">column_stack</span><span class="t-p">([</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">ones_like</span><span class="t-p">(</span><span class="t-n">x</span><span class="t-p">),</span> <span class="t-n">x</span><span class="t-p">]</span> <span class="t-o">+</span> <span class="t-p">[</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">maximum</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-n">x</span> <span class="t-o">-</span> <span class="t-n">k</span><span class="t-p">)</span> <span class="t-k">for</span> <span class="t-n">k</span> <span class="t-ow">in</span> <span class="t-n">knots</span><span class="t-p">])</span>
+    <span class="t-n">w</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">linalg</span><span class="t-o">.</span><span class="t-fn">lstsq</span><span class="t-p">(</span><span class="t-n">H</span><span class="t-p">[::</span><span class="t-mi">50</span><span class="t-p">],</span> <span class="t-n">target</span><span class="t-p">[::</span><span class="t-mi">50</span><span class="t-p">],</span> <span class="t-n">rcond</span><span class="t-o">=</span><span class="t-kc">None</span><span class="t-p">)[</span><span class="t-mi">0</span><span class="t-p">]</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">D</span><span class="t-si">:</span><span class="t-s1">70d</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">abs</span><span class="t-p">(</span><span class="t-n">H</span><span class="t-w"> </span><span class="t-o">@</span><span class="t-w"> </span><span class="t-n">w</span><span class="t-w"> </span><span class="t-o">-</span><span class="t-w"> </span><span class="t-n">target</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">max</span><span class="t-p">()</span><span class="t-si">:</span><span class="t-s1">.4f</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span></pre>
+<pre class="out">compositions   hidden units   linear pieces
+           1              2               2
+           2              4               4
+           3              6               8
+           4              8              16
+           5             10              32
+           6             12              64
+
+shallow units (joints evenly spaced, output weights by least squares)   max error
+                                                                     8   0.5071
+                                                                    16   0.5029
+                                                                    30   0.5226
+                                                                    31   0.0000
+                                                                    63   0.0000</pre>
+</div>
+
+<p>The counts double exactly with each layer. Fitting the depth-5 sawtooth (10 units) with a shallow network whose joints are evenly spaced: 8, 16 or 30 units leave a maximum error of about 0.5, no better than a constant; 31 units, one per joint (plus a linear term, which one more unit would supply), fit it exactly. But exponential counts are a <em>maximum</em>. The code below counts the regions that randomly initialised networks actually create in the plane.</p>
+
+<div class="box tool">
+<span class="lbl">code &mdash; how many regions do random networks have?</span>
+<pre class="src"><span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">math</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">comb</span>
+
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">regions</span><span class="t-p">(</span><span class="t-n">widths</span><span class="t-p">,</span> <span class="t-n">seed</span><span class="t-p">,</span> <span class="t-n">R</span><span class="t-o">=</span><span class="t-mf">3.0</span><span class="t-p">,</span> <span class="t-n">m</span><span class="t-o">=</span><span class="t-mi">1500</span><span class="t-p">):</span>
+<span class="t-w">    </span><span class="t-sd">"""Count the linear regions of a random ReLU network on [-R, R]^2 by counting distinct</span>
+<span class="t-sd">    activation patterns on an m x m grid (a lower bound: tiny regions can be missed)."""</span>
+    <span class="t-n">rng</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-fn">default_rng</span><span class="t-p">(</span><span class="t-n">seed</span><span class="t-p">)</span>
+    <span class="t-n">g</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">linspace</span><span class="t-p">(</span><span class="t-o">-</span><span class="t-n">R</span><span class="t-p">,</span> <span class="t-n">R</span><span class="t-p">,</span> <span class="t-n">m</span><span class="t-p">);</span> <span class="t-n">Xg</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">stack</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">meshgrid</span><span class="t-p">(</span><span class="t-n">g</span><span class="t-p">,</span> <span class="t-n">g</span><span class="t-p">),</span> <span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">reshape</span><span class="t-p">(</span><span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">2</span><span class="t-p">)</span>
+    <span class="t-n">h</span><span class="t-p">,</span> <span class="t-n">codes</span><span class="t-p">,</span> <span class="t-n">d_in</span> <span class="t-o">=</span> <span class="t-n">Xg</span><span class="t-p">,</span> <span class="t-p">[],</span> <span class="t-mi">2</span>
+    <span class="t-k">for</span> <span class="t-n">w</span> <span class="t-ow">in</span> <span class="t-n">widths</span><span class="t-p">:</span>                                         <span class="t-c1"># He-initialised weights, small random biases</span>
+        <span class="t-n">W</span> <span class="t-o">=</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-fn">normal</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sqrt</span><span class="t-p">(</span><span class="t-mi">2</span> <span class="t-o">/</span> <span class="t-n">d_in</span><span class="t-p">),</span> <span class="t-p">(</span><span class="t-n">d_in</span><span class="t-p">,</span> <span class="t-n">w</span><span class="t-p">));</span> <span class="t-n">b</span> <span class="t-o">=</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-fn">normal</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-mf">0.5</span><span class="t-p">,</span> <span class="t-n">w</span><span class="t-p">)</span>
+        <span class="t-n">z</span> <span class="t-o">=</span> <span class="t-n">h</span> <span class="t-o">@</span> <span class="t-n">W</span> <span class="t-o">+</span> <span class="t-n">b</span><span class="t-p">;</span> <span class="t-n">codes</span><span class="t-o">.</span><span class="t-fn">append</span><span class="t-p">(</span><span class="t-n">z</span> <span class="t-o">&gt;</span> <span class="t-mi">0</span><span class="t-p">);</span> <span class="t-n">h</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">maximum</span><span class="t-p">(</span><span class="t-n">z</span><span class="t-p">,</span> <span class="t-mi">0</span><span class="t-p">);</span> <span class="t-n">d_in</span> <span class="t-o">=</span> <span class="t-n">w</span>
+    <span class="t-n">pattern</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">packbits</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">concatenate</span><span class="t-p">(</span><span class="t-n">codes</span><span class="t-p">,</span> <span class="t-n">axis</span><span class="t-o">=</span><span class="t-mi">1</span><span class="t-p">),</span> <span class="t-n">axis</span><span class="t-o">=</span><span class="t-mi">1</span><span class="t-p">)</span>
+    <span class="t-k">return</span> <span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">unique</span><span class="t-p">(</span><span class="t-n">pattern</span><span class="t-p">,</span> <span class="t-n">axis</span><span class="t-o">=</span><span class="t-mi">0</span><span class="t-p">))</span>
+
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'architecture                 units   regions found   Zaslavsky maximum for that many units in one layer'</span><span class="t-p">)</span>
+<span class="t-k">for</span> <span class="t-n">widths</span> <span class="t-ow">in</span> <span class="t-p">[[</span><span class="t-mi">4</span><span class="t-p">],</span> <span class="t-p">[</span><span class="t-mi">8</span><span class="t-p">],</span> <span class="t-p">[</span><span class="t-mi">16</span><span class="t-p">],</span> <span class="t-p">[</span><span class="t-mi">32</span><span class="t-p">],</span> <span class="t-p">[</span><span class="t-mi">4</span><span class="t-p">,</span> <span class="t-mi">4</span><span class="t-p">],</span> <span class="t-p">[</span><span class="t-mi">4</span><span class="t-p">,</span> <span class="t-mi">4</span><span class="t-p">,</span> <span class="t-mi">4</span><span class="t-p">],</span> <span class="t-p">[</span><span class="t-mi">4</span><span class="t-p">,</span> <span class="t-mi">4</span><span class="t-p">,</span> <span class="t-mi">4</span><span class="t-p">,</span> <span class="t-mi">4</span><span class="t-p">],</span> <span class="t-p">[</span><span class="t-mi">8</span><span class="t-p">,</span> <span class="t-mi">8</span><span class="t-p">],</span> <span class="t-p">[</span><span class="t-mi">8</span><span class="t-p">,</span> <span class="t-mi">8</span><span class="t-p">,</span> <span class="t-mi">8</span><span class="t-p">,</span> <span class="t-mi">8</span><span class="t-p">],</span> <span class="t-p">[</span><span class="t-mi">16</span><span class="t-p">,</span> <span class="t-mi">16</span><span class="t-p">]]:</span>
+    <span class="t-n">n_units</span> <span class="t-o">=</span> <span class="t-nb">sum</span><span class="t-p">(</span><span class="t-n">widths</span><span class="t-p">)</span>
+    <span class="t-n">found</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">([</span><span class="t-fn">regions</span><span class="t-p">(</span><span class="t-n">widths</span><span class="t-p">,</span> <span class="t-n">s</span><span class="t-p">)</span> <span class="t-k">for</span> <span class="t-n">s</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-mi">3</span><span class="t-p">)])</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-nb">str</span><span class="t-p">(</span><span class="t-n">widths</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">26s</span><span class="t-si">}</span><span class="t-s1"> </span><span class="t-si">{</span><span class="t-n">n_units</span><span class="t-si">:</span><span class="t-s1">6d</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">found</span><span class="t-si">:</span><span class="t-s1">13.1f</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-mi">1</span><span class="t-w"> </span><span class="t-o">+</span><span class="t-w"> </span><span class="t-n">n_units</span><span class="t-w"> </span><span class="t-o">+</span><span class="t-w"> </span><span class="t-fn">comb</span><span class="t-p">(</span><span class="t-n">n_units</span><span class="t-p">,</span><span class="t-w"> </span><span class="t-mi">2</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">10d</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span></pre>
+<pre class="out">architecture                 units   regions found   Zaslavsky maximum for that many units in one layer
+[4]                             4            10.3           11
+[8]                             8            31.3           37
+[16]                           16           118.7          137
+[32]                           32           433.0          529
+[4, 4]                          8            24.7           37
+[4, 4, 4]                      12            38.7           79
+[4, 4, 4, 4]                   16            44.0          137
+[8, 8]                         16            90.7          137
+[8, 8, 8, 8]                   32           248.3          529
+[16, 16]                       32           415.0          529</pre>
+</div>
+
+<p>Single layers come close to Zaslavsky's maximum (433 regions found for 32 units against 529, some intersections falling outside the window). Deep networks with the same number of units have <em>fewer</em> regions at random initialisation: four layers of 4 units make 44 regions, one layer of 16 makes 119. Hanin and Rolnick (2019) proved that this is typical: for randomly initialised networks, and empirically during training, the number of regions per unit of input volume grows only polynomially with the total number of units, whatever the depth. Depth gives the <em>capacity</em> for exponentially many regions, which training may or may not use; the sawtooth needs carefully coordinated weights. Explore this in the widget of Section 2.</p>
+
+<div class="spot" id="sp10-4" data-kind="num" data-ans="63" data-tol="0.5">
+<span class="lbl">spot check 10.4</span>
+<p class="q">The tent map composed 6 times is computed by a network with 6 layers of 2 units. At least how many hidden units does a <em>shallow</em> ReLU network need to compute it exactly?</p>
+<div class="hint">Count the pieces, then use Proposition 10.1.</div>
+<div class="why">\(2^6=64\) pieces need \(63\) joints, so at least 63 units (64 suffice), against 12 in the deep network.</div>
+</div>
+
+<div class="box big">
+<span class="lbl">big picture &mdash; the multilayer perceptron inside every transformer</span>
+<p>The fully connected network of Definition 10.2 is not a museum piece. Every layer of a transformer (Lecture 12) contains a two-layer "feed-forward" MLP applied to each token separately: expand the representation to about four times its width, apply GELU or SwiGLU, project back. These MLP blocks hold about two-thirds of a transformer's parameters (\(8d^2\) of the \(12d^2\) per layer, against \(4d^2\) for attention). Interpretability research reads their hidden units as key–value memories that store facts (Geva et al., 2021). Small MLPs also sit at the end of convolutional networks and inside graph networks (Lecture 9's GIN), and they remain strong baselines for tabular data once well regularised.</p>
+</div>
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; Universal approximation, and what depth buys</h2>
+
+<div class="box thm">
+<span class="lbl">theorem 10.4 &mdash; universal approximation</span>
+<p>Let \(a\) be continuous. Shallow networks with activation \(a\) can approximate every continuous function on every compact set \(K\subset\mathbb R^d\) arbitrarily well in the supremum norm (for every \(g\in C(K)\) and \(\varepsilon&gt;0\) there is a shallow network \(f\) with \(\sup_K|f-g|&lt;\varepsilon\)) if and only if \(a\) is not a polynomial (Cybenko, 1989, for sigmoids; Hornik, Stinchcombe and White, 1989; Leshno, Lin, Pinkus and Schocken, 1993, in this form).</p>
+<button class="sol-btn">show proof for ReLU in one dimension</button>
+<div class="sol">
+<p>Let \(g\) be continuous on \([0,1]\), hence uniformly continuous: for \(\varepsilon&gt;0\) there is \(h\) with</p>
+$$|g(x)-g(x')|&lt;\varepsilon/2$$
+<p>whenever \(|x-x'|\le h\).</p>
+<p>Take knots \(0=k_0&lt;k_1&lt;\dots&lt;k_D=1\) spaced at most \(h\) apart, and let \(f\) be the piecewise-linear interpolant of \(g\) at the knots. By Proposition 10.1, \(f\) is a shallow ReLU network with \(D\) units (here the knot at 0 supplies the initial slope):</p>
+$$f(x)=g(0)+\sum_{j=0}^{D-1}\phi_j\mathrm{ReLU}(x-k_j),$$
+<p>where \(\phi_0\) is the first slope and \(\phi_j\) the change of slope at \(k_j\).</p>
+<p>On each interval \([k_j,k_{j+1}]\), \(f(x)\) lies between \(g(k_j)\) and \(g(k_{j+1})\), each within \(\varepsilon/2\) of \(g(x)\), so \(|f(x)-g(x)|&lt;\varepsilon\). \(\square\)</p>
+</div>
+</div>
+
+<div class="box tool">
+<span class="lbl">code &mdash; approximating a curve with ReLU units</span>
+<pre class="src"><span class="t-c1"># Universal approximation in one dimension: a shallow ReLU network that interpolates g at D + 1 knots</span>
+<span class="t-n">g</span> <span class="t-o">=</span> <span class="t-k">lambda</span> <span class="t-n">x</span><span class="t-p">:</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sin</span><span class="t-p">(</span><span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">pi</span> <span class="t-o">*</span> <span class="t-n">x</span><span class="t-p">)</span> <span class="t-o">+</span> <span class="t-mf">0.5</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">cos</span><span class="t-p">(</span><span class="t-mi">6</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">pi</span> <span class="t-o">*</span> <span class="t-n">x</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-n">x</span>
+<span class="t-n">x</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">linspace</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">100001</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'hidden units   max |network - g|   error x units^2'</span><span class="t-p">)</span>
+<span class="t-k">for</span> <span class="t-n">D</span> <span class="t-ow">in</span> <span class="t-p">[</span><span class="t-mi">4</span><span class="t-p">,</span> <span class="t-mi">8</span><span class="t-p">,</span> <span class="t-mi">16</span><span class="t-p">,</span> <span class="t-mi">32</span><span class="t-p">,</span> <span class="t-mi">64</span><span class="t-p">,</span> <span class="t-mi">128</span><span class="t-p">]:</span>
+    <span class="t-n">k</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">linspace</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-n">D</span> <span class="t-o">+</span> <span class="t-mi">1</span><span class="t-p">)</span>                             <span class="t-c1"># knots</span>
+    <span class="t-n">slopes</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">diff</span><span class="t-p">(</span><span class="t-fn">g</span><span class="t-p">(</span><span class="t-n">k</span><span class="t-p">))</span> <span class="t-o">/</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">diff</span><span class="t-p">(</span><span class="t-n">k</span><span class="t-p">)</span>
+    <span class="t-n">phi</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">concatenate</span><span class="t-p">([[</span><span class="t-n">slopes</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">]],</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">diff</span><span class="t-p">(</span><span class="t-n">slopes</span><span class="t-p">)])</span>     <span class="t-c1"># each unit changes the slope at its knot</span>
+    <span class="t-n">net</span> <span class="t-o">=</span> <span class="t-fn">g</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">)</span> <span class="t-o">+</span> <span class="t-nb">sum</span><span class="t-p">(</span><span class="t-n">p</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">maximum</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-n">x</span> <span class="t-o">-</span> <span class="t-n">kk</span><span class="t-p">)</span> <span class="t-k">for</span> <span class="t-n">p</span><span class="t-p">,</span> <span class="t-n">kk</span> <span class="t-ow">in</span> <span class="t-nb">zip</span><span class="t-p">(</span><span class="t-n">phi</span><span class="t-p">,</span> <span class="t-n">k</span><span class="t-p">[:</span><span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">]))</span>
+    <span class="t-n">err</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">abs</span><span class="t-p">(</span><span class="t-n">net</span> <span class="t-o">-</span> <span class="t-fn">g</span><span class="t-p">(</span><span class="t-n">x</span><span class="t-p">))</span><span class="t-o">.</span><span class="t-fn">max</span><span class="t-p">()</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">D</span><span class="t-si">:</span><span class="t-s1">12d</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">err</span><span class="t-si">:</span><span class="t-s1">17.5f</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">err</span><span class="t-w"> </span><span class="t-o">*</span><span class="t-w"> </span><span class="t-n">D</span><span class="t-o">**</span><span class="t-mi">2</span><span class="t-si">:</span><span class="t-s1">15.3f</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span></pre>
+<pre class="out">hidden units   max |network - g|   error x units^2
+           4             0.81348            13.016
+           8             0.29319            18.764
+          16             0.08740            22.376
+          32             0.02177            22.293
+          64             0.00558            22.855
+         128             0.00140            22.959</pre>
+</div>
+
+<p>The construction is the proof, and its error falls like \(1/D^2\): error times \(D^2\) settles near 23, in line with the interpolation bound \(\frac{h^2}8\max|g''|\) (Exercise 7). Three cautions keep the theorem in proportion. It is about <em>existence</em>: it says nothing about whether gradient descent will find the weights. It says nothing about the <em>number</em> of units, which for a general \(d\)-dimensional function may have to grow like \(\varepsilon^{-d}\), the curse of dimensionality again. And polynomials, splines, kernels with the RBF kernel and decision trees are universal approximators too. What makes networks special is not universality but which functions they represent <em>efficiently</em>, and the sawtooth shows that depth matters for that.</p>
+
+<div class="spot" id="sp10-5" data-kind="mc">
+<span class="lbl">spot check 10.5</span>
+<p class="q">Which statement does the universal approximation theorem support?</p>
+<ul class="opts">
+<li data-ok>For any continuous function on a compact set and any tolerance, some shallow network with a non-polynomial activation is within that tolerance everywhere.</li>
+<li data-oh="The theorem is silent about training; Section 1's code shows gradient-based fitting can get stuck.">Gradient descent will find a network within any tolerance.</li>
+<li data-oh="The number of units needed can grow exponentially with the dimension.">A network with \(d\) inputs needs only about \(d\) hidden units.</li>
+<li data-oh="Polynomial activations fail: a network with polynomial activations of degree m computes only polynomials of bounded degree.">Any activation function, including \(a(z)=z^2\), works.</li>
+</ul>
+<div class="hint">What does the theorem assume, and what does it conclude?</div>
+<div class="why">It is a density statement: such networks exist. With \(a(z)=z^2\), a shallow network computes only quadratic polynomials, which are not dense in \(C(K)\).</div>
+</div>
+
+<div class="box bayes">
+<span class="lbl">bayes &mdash; infinitely wide networks are Gaussian processes</span>
+<p>Give a shallow network independent random weights, with output weights scaled by \(1/\sqrt D\). For a fixed input \(x\), the output is a sum of \(D\) independent terms, so by the central limit theorem it becomes Gaussian as \(D\to\infty\), and jointly over any finite set of inputs: the network becomes a Gaussian process (Neal, 1996), with a kernel determined by the activation. For ReLU it is the arc-cosine kernel of Cho and Saul (2009). The same holds layer by layer for deep networks (Lee et al., 2018; Matthews et al., 2018). So the prior over functions that a random wide network represents is exactly one of Lecture 7's Gaussian processes, and exact Bayesian inference with an infinitely wide network is GP regression. Trained finite networks differ from this limit precisely because they learn features, the theme of Lecture 7's neural tangent kernel.</p>
+</div>
+
+<div class="box quantum">
+<span class="lbl">quantum &mdash; neural networks as quantum states</span>
+<p>A quantum state of \(N\) spins is a vector of \(2^N\) complex amplitudes \(\psi(s)\), one per spin configuration \(s\in\{\pm1\}^N\): far too many to store for \(N\) beyond about 40. Carleo and Troyer (2017) represented \(\psi(s)\) by a neural network that takes the configuration \(s\) as input, a restricted Boltzmann machine with a polynomial number of parameters, and optimised it to minimise the energy by sampling configurations (variational Monte Carlo). These <strong>neural-network quantum states</strong> matched or beat the best existing methods on ground states of spin models, and have since been extended to deep convolutional and transformer networks for molecules and frustrated magnets. The question of this lecture, which functions a network represents efficiently, becomes a physics question: which entangled states have compact neural representations? Restricted Boltzmann machines with long-range connections can represent states with volume-law entanglement, which tensor-network methods cannot represent compactly (Deng, Li and Das Sarma, 2017).</p>
+</div>
+
+<!-- =================== 6 =================== -->
+<h2 id="s6">6 &mdash; Summary, exercises, projects, reading</h2>
+
+<div class="box thm">
+<span class="lbl">summary</span>
+<ul>
+<li>A shallow network computes \(\phi_0+\sum_k\phi_ka(\theta_{k0}+\theta_k^\top x)\) (Definition 10.1). With ReLU it is continuous piecewise linear: in one dimension each unit adds a joint, so \(D\) units give at most \(D+1\) pieces, and every such function is a shallow network (Proposition 10.1).</li>
+<li>In \(d\) dimensions each unit adds a hyperplane, and \(D\) units make at most \(\sum_{j\le d}\binom Dj\) regions (Zaslavsky, Theorem 10.2).</li>
+<li>Activation functions differ in shape and in their derivatives: sigmoids saturate (derivative at most ¼); ReLU and its smooth relatives (GELU, SiLU) dominate modern practice.</li>
+<li>A deep network composes layers (Definition 10.2). Clipping and folding are two-unit ReLU networks; composing \(L\) folds gives \(2^L\) pieces, which a shallow network needs \(2^L-1\) units to match (Theorem 10.3). Random networks use far fewer regions than the maximum.</li>
+<li>Shallow networks with any non-polynomial activation are universal approximators (Theorem 10.4), but the theorem says nothing about training or efficiency; depth separations say some functions need exponentially many shallow units.</li>
+</ul>
+<p><strong>Next:</strong> Lecture 10b trains these networks: backpropagation, initialisation, optimisers and regularisation.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 10a</span>
+<ol>
+<li>Show that \(\mathrm{ReLU}(z)-\mathrm{ReLU}(-z)=z\), \(|z|=\mathrm{ReLU}(z)+\mathrm{ReLU}(-z)\) and \(\max(u,v)=u+\mathrm{ReLU}(v-u)\). Use them to build a network with two inputs that computes XOR on \(\{0,1\}^2\), which no single linear threshold unit can.
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>The identities follow by checking \(z\ge0\) and \(z&lt;0\). XOR: \(f(x_1,x_2)=\mathrm{ReLU}(x_1+x_2)-2\,\mathrm{ReLU}(x_1+x_2-1)\) gives 0, 1, 1, 0 on \((0,0),(0,1),(1,0),(1,1)\). A single threshold unit cannot: its positive set is a half-plane, and the two "1" points have midpoint \((\tfrac12,\tfrac12)\), also the midpoint of the two "0" points, so the classes' convex hulls meet.</p></div></li>
+<li>Express \(\operatorname{clip}(z;\alpha,\beta)\) for \(\alpha&lt;\beta\) with two ReLUs, and the tent map with two ReLUs, and check that \(T\) maps \([0,1]\) onto itself twice.
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>\(\operatorname{clip}(z;\alpha,\beta)=\alpha+\mathrm{ReLU}(z-\alpha)-\mathrm{ReLU}(z-\beta)\). \(T(x)=2\mathrm{ReLU}(x)-4\mathrm{ReLU}(x-\tfrac12)\) equals \(2x\) on \([0,\tfrac12]\) and \(2-2x\) on \([\tfrac12,1]\): each half maps onto \([0,1]\).</p></div></li>
+<li>Count the parameters of an MLP with 784 inputs, two hidden layers of 256 units and 10 outputs.
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>\(784\cdot256+256=200{,}960\); \(256\cdot256+256=65{,}792\); \(256\cdot10+10=2{,}570\). Total 269,322. This is the network Lecture 10b trains on Fashion-MNIST.</p></div></li>
+<li>Derive \(r(D,2)=1+D+\binom D2\) from the recursion \(r(D,2)=r(D-1,2)+r(D-1,1)\) with \(r(D,1)=D+1\).
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>\(r(D,2)=r(0,2)+\sum_{m=0}^{D-1}(m+1)=1+\frac{D(D+1)}2=1+D+\binom D2\). Each new line crosses the previous \(D-1\) lines at \(D-1\) points, cutting it into \(D\) pieces, each of which splits a region.</p></div></li>
+<li>Show that \(T^{(L)}\) has exactly \(2^L\) linear pieces by a different argument: count the points \(x\in[0,1]\) where \(T^{(L)}(x)=0\) or \(1\).
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>\(T^{(L)}(x)\in\{0,1\}\) exactly at the points \(x=j/2^L\), \(j=0,\dots,2^L\) (it equals \(\tfrac12\) at the midpoints between them). Between consecutive such points the function goes monotonically and linearly between 0 and 1, so the pieces are the \(2^L\) intervals \([j/2^L,(j+1)/2^L]\).</p></div></li>
+<li>Yarotsky (2017) showed that \(x^2=x-\sum_{s\ge1}T^{(s)}(x)/4^s\) on \([0,1]\). Truncating after \(m\) terms gives a deep ReLU network with \(O(m)\) units and error \(2^{-2m-2}\). Check the identity at \(x=\tfrac12\) and \(x=\tfrac14\), and explain why a shallow network needs about \(2^m\) units for the same error.
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>At \(x=\tfrac12\): \(T(\tfrac12)=1\), then \(T^{(s)}=0\) for \(s\ge2\), so the right side is \(\tfrac12-\tfrac14=\tfrac14\). At \(x=\tfrac14\): \(T=\tfrac12\), \(T^{(2)}=1\), then 0: \(\tfrac14-\tfrac18-\tfrac1{16}=\tfrac1{16}\). A shallow network is piecewise linear with \(D+1\) pieces, and the best piecewise-linear approximation of \(x^2\) with \(N\) equal pieces has error \(1/(8N^2)\), so error \(2^{-2m-2}\) needs \(N\approx2^{m}/\sqrt2\) pieces.</p></div></li>
+<li>Show that piecewise-linear interpolation with knot spacing \(h\) has error at most \(\frac{h^2}8\max|g''|\), and compare with the code's \(D^2\times\)error \(\approx23\).
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>On \([k,k+h]\), the error \(e=g-f\) vanishes at both ends; by the standard interpolation remainder, \(e(x)=\tfrac12g''(\xi)(x-k)(x-k-h)\), and \(|(x-k)(x-k-h)|\le h^2/4\). With \(h=1/D\), \(D^2\cdot\text{error}\le\max|g''|/8\). For the code's \(g\), \(\max|g''|\approx184\), giving a bound of \(184/8\approx23.0\). The observed 22.96 essentially attains it: for small \(h\), \(g''\) is nearly constant across the knot interval where it is largest, which is exactly when the bound is tight.</p></div></li>
+<li>Show that \(\mathrm{GELU}(sz)/s\to\mathrm{ReLU}(z)\) as \(s\to\infty\), and that the softplus satisfies \(\log(1+e^{sz})/s\to\mathrm{ReLU}(z)\). What does this say about networks with smooth activations and large weights?
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>\(\mathrm{GELU}(sz)/s=z\Phi(sz)\), and \(\Phi(sz)\to1\) for \(z&gt;0\), \(\to0\) for \(z&lt;0\). Softplus: for \(z&gt;0\), \(\log(1+e^{sz})/s=z+\log(1+e^{-sz})/s\to z\); for \(z&lt;0\) it tends to 0. With large weights, smooth-activation networks behave like ReLU networks, so the piecewise-linear picture describes them approximately.</p></div></li>
+</ol>
+</div>
+
+<div class="box proj">
+<span class="lbl">student projects</span>
+<p>Each project uses this lecture's methods and public data, and has a clear result.</p>
+<h4>1. How many regions do trained networks use?</h4>
+<dl>
+<dt>question</dt><dd>How does the number of linear regions a network uses near its data change during training, and does it predict generalisation?</dd>
+<dt>data</dt><dd>Fashion-MNIST or MNIST, and small tabular datasets.</dd>
+<dt>method</dt><dd>Count regions crossed by line segments between data points (an exact one-dimensional count) and in two-dimensional slices through the data, through training, for networks of varying depth and width; relate to test error and to the predictions of Hanin and Rolnick (2019).</dd>
+<dt>outcome</dt><dd>An empirical map of how trained networks spend their representational capacity, extending published results to new architectures and data.</dd>
+</dl>
+<h4>2. Depth separations in practice</h4>
+<dl>
+<dt>question</dt><dd>When a target function has a compact deep representation (sawtooth, Yarotsky's \(x^2\), parity), do trained deep networks actually find it, and how many samples do shallow and deep networks need?</dd>
+<dt>data</dt><dd>Synthetic targets with known depth requirements, plus a real signal with periodic structure (for example, hourly electricity demand).</dd>
+<dt>method</dt><dd>Train networks of equal parameter count and different depth with several optimisers and initialisations; measure error against sample size and how often training reaches the compact solution.</dd>
+<dt>outcome</dt><dd>Evidence on the gap between what depth can represent and what gradient descent can learn, a central open question.</dd>
+</dl>
+</div>
+
+<h3>Reading and sources</h3>
+<ul class="refs">
+<li>S. J. D. Prince, <em>Understanding Deep Learning</em> (MIT Press, 2023), ch. 3–4, with notebooks 3.1–3.4 and 4.1–4.3; free online.</li>
+<li>W. S. McCulloch, W. Pitts, "A logical calculus of the ideas immanent in nervous activity", <em>Bulletin of Mathematical Biophysics</em> 5, 115–133 (1943); M. Minsky, S. Papert, <em>Perceptrons</em> (MIT Press, 1969).</li>
+<li>G. Cybenko, "Approximation by superpositions of a sigmoidal function", <em>Mathematics of Control, Signals and Systems</em> 2, 303–314 (1989); K. Hornik, M. Stinchcombe, H. White, "Multilayer feedforward networks are universal approximators", <em>Neural Networks</em> 2(5), 359–366 (1989); M. Leshno, V. Ya. Lin, A. Pinkus, S. Schocken, "Multilayer feedforward networks with a nonpolynomial activation function can approximate any function", <em>Neural Networks</em> 6(6), 861–867 (1993).</li>
+<li>T. Zaslavsky, "Facing up to arrangements: face-count formulas for partitions of space by hyperplanes", <em>Memoirs of the AMS</em> 154 (1975).</li>
+<li>G. Montúfar, R. Pascanu, K. Cho, Y. Bengio, "On the number of linear regions of deep neural networks", <em>NeurIPS</em> 27 (2014); M. Telgarsky, "Benefits of depth in neural networks", <em>COLT</em> (2016); D. Yarotsky, "Error bounds for approximations with deep ReLU networks", <em>Neural Networks</em> 94, 103–114 (2017); B. Hanin, D. Rolnick, "Complexity of linear regions in deep networks", <em>ICML</em> (2019).</li>
+<li>K. Fukushima, "Visual feature extraction by a multilayered network of analog threshold elements", <em>IEEE Trans. Systems Science and Cybernetics</em> 5(4), 322–333 (1969); V. Nair, G. E. Hinton, "Rectified linear units improve restricted Boltzmann machines", <em>ICML</em> (2010); X. Glorot, A. Bordes, Y. Bengio, "Deep sparse rectifier neural networks", <em>AISTATS</em> (2011).</li>
+<li>D. Hendrycks, K. Gimpel, "Gaussian error linear units (GELUs)", <a href="https://arxiv.org/abs/1606.08415">arXiv:1606.08415</a> (2016); P. Ramachandran, B. Zoph, Q. V. Le, "Searching for activation functions", <a href="https://arxiv.org/abs/1710.05941">arXiv:1710.05941</a> (2017); D.-A. Clevert, T. Unterthiner, S. Hochreiter, "Fast and accurate deep network learning by exponential linear units (ELUs)", <em>ICLR</em> (2016); N. Shazeer, "GLU variants improve transformer", <a href="https://arxiv.org/abs/2002.05202">arXiv:2002.05202</a> (2020).</li>
+<li>M. Geva, R. Schuster, J. Berant, O. Levy, "Transformer feed-forward layers are key-value memories", <em>EMNLP</em> (2021).</li>
+<li>R. M. Neal, <em>Bayesian Learning for Neural Networks</em> (Springer, 1996); Y. Cho, L. K. Saul, "Kernel methods for deep learning", <em>NeurIPS</em> 22 (2009); J. Lee et al., "Deep neural networks as Gaussian processes", <em>ICLR</em> (2018); A. G. de G. Matthews et al., "Gaussian process behaviour in wide deep neural networks", <em>ICLR</em> (2018).</li>
+<li>G. Carleo, M. Troyer, "Solving the quantum many-body problem with artificial neural networks", <em>Science</em> 355(6325), 602–606 (2017); D.-L. Deng, X. Li, S. Das Sarma, "Quantum entanglement in neural network states", <em>Physical Review X</em> 7, 021021 (2017).</li>
+<li>The Nobel Prize in Physics 2024, press release, Royal Swedish Academy of Sciences (8 October 2024).</li>
+</ul>
+<p><strong>Data.</strong> Crash-helmet data: B. W. Silverman, <em>JRSS B</em> 47(1), 1–52 (1985), as <code>MASS::mcycle</code> via Rdatasets.</p>
+<p class="kicker" style="margin-top:2.4em">every number in the text and widgets is computed in verify_L10a.py; code-box outputs are pasted from actual runs</p>
+</div>
+
+<script>
+/* ---------- shared helpers ---------- */
+(function(){
+  var NS='http://www.w3.org/2000/svg';
+  window.L1 = {
+    el: function(svg,t,at,txt){ var e=document.createElementNS(NS,t); for(var k in at) e.setAttribute(k,at[k]); if(txt!=null) e.textContent=txt; svg.appendChild(e); return e; },
+    clear: function(svg){ while(svg.firstChild) svg.removeChild(svg.firstChild); },
+    col: ['var(--sky)','var(--rose)','var(--moss)'],
+    names: ['Adélie','Chinstrap','Gentoo'],
+    rng: function(seed){ var a=seed>>>0; return function(){ a=(a+0x6D2B79F5)>>>0; var t=a; t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return ((t^(t>>>14))>>>0)/4294967296; }; },
+    svgPoint: function(svg,evt){ var pt=svg.createSVGPoint(); pt.x=evt.clientX; pt.y=evt.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); },
+    f: function(x,d){ return x.toFixed(d); }
+  };
+})();
+</script>
+<style>
+.wcanvas{display:block;margin:0 auto;max-width:100%;height:auto;border-radius:6px}
+.unitgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:6px 14px;margin-top:8px}
+.unitgrid fieldset{border:1px solid var(--rule);border-radius:8px;padding:4px 10px 8px}
+.unitgrid legend{font-family:var(--mono);font-size:.82rem;padding:0 4px}
+.unitgrid label{display:flex;flex-direction:column;font-family:var(--mono);font-size:.78rem;margin-top:4px}
+</style>
+<script>
+window.L10ADATA = {"mc": {"t": [2.4, 2.6, 3.2, 3.6, 4.0, 6.2, 6.6, 6.8, 7.8, 8.2, 8.8, 8.8, 9.6, 10.0, 10.2, 10.6, 11.0, 11.4, 13.2, 13.6, 13.8, 14.6, 14.6, 14.6, 14.6, 14.6, 14.6, 14.8, 15.4, 15.4, 15.4, 15.4, 15.6, 15.6, 15.8, 15.8, 16.0, 16.0, 16.2, 16.2, 16.2, 16.4, 16.4, 16.6, 16.8, 16.8, 16.8, 17.6, 17.6, 17.6, 17.6, 17.8, 17.8, 18.6, 18.6, 19.2, 19.4, 19.4, 19.6, 20.2, 20.4, 21.2, 21.4, 21.8, 22.0, 23.2, 23.4, 24.0, 24.2, 24.2, 24.6, 25.0, 25.0, 25.4, 25.4, 25.6, 26.0, 26.2, 26.2, 26.4, 27.0, 27.2, 27.2, 27.2, 27.6, 28.2, 28.4, 28.4, 28.6, 29.4, 30.2, 31.0, 31.2, 32.0, 32.0, 32.8, 33.4, 33.8, 34.4, 34.8, 35.2, 35.2, 35.4, 35.6, 35.6, 36.2, 36.2, 38.0, 38.0, 39.2, 39.4, 40.0, 40.4, 41.6, 41.6, 42.4, 42.8, 42.8, 43.0, 44.0, 44.4, 45.0, 46.6, 47.8, 47.8, 48.8, 50.6, 52.0, 53.2, 55.0, 55.0, 55.4, 57.6], "a": [0.0, -1.3, -2.7, 0.0, -2.7, -2.7, -2.7, -1.3, -2.7, -2.7, -1.3, -2.7, -2.7, -2.7, -5.4, -2.7, -5.4, 0.0, -2.7, -2.7, 0.0, -13.3, -5.4, -5.4, -9.3, -16.0, -22.8, -2.7, -22.8, -32.1, -53.5, -54.9, -40.2, -21.5, -21.5, -50.8, -42.9, -26.8, -21.5, -50.8, -61.7, -5.4, -80.4, -59.0, -71.0, -91.1, -77.7, -37.5, -85.6, -123.1, -101.9, -99.1, -104.4, -112.5, -50.8, -123.1, -85.6, -72.3, -127.2, -123.1, -117.9, -134.0, -101.9, -108.4, -123.1, -123.1, -128.5, -112.5, -95.1, -81.8, -53.5, -64.4, -57.6, -72.3, -44.3, -26.8, -5.4, -107.1, -21.5, -65.6, -16.0, -45.6, -24.2, 9.5, 4.0, 12.0, -21.5, 37.5, 46.9, -17.4, 36.2, 75.0, 8.1, 54.9, 48.2, 46.9, 16.0, 45.6, 1.3, 75.0, -16.0, -54.9, 69.6, 34.8, 32.1, -37.5, 22.8, 46.9, 10.7, 5.4, -1.3, -21.5, -13.3, 30.8, -10.7, 29.4, 0.0, -10.7, 14.7, -1.3, 0.0, 10.7, 10.7, -26.8, -14.7, -13.3, 0.0, 10.7, -14.7, -2.7, 10.7, -2.7, 10.7]}, "fit3": {"b": -2.2428590069139904, "units": [{"c": 21.01568640997177, "dir": 1, "slope": 39.08471421091783}, {"c": 29.789748222045574, "dir": 1, "slope": -21.25786585710319}, {"c": 13.843341887428341, "dir": 1, "slope": -19.456390114832356}], "rmse": 22.560082666152358}};
+window.L10act = {
+  relu:{name:'ReLU',f:function(z){return Math.max(0,z);},d:function(z){return z>0?1:0;}},
+  leaky:{name:'leaky ReLU (0.1)',f:function(z){return z>0?z:0.1*z;},d:function(z){return z>0?1:0.1;}},
+  elu:{name:'ELU',f:function(z){return z>0?z:Math.exp(z)-1;},d:function(z){return z>0?1:Math.exp(z);}},
+  gelu:{name:'GELU',f:function(z){return z*0.5*(1+window.L10erf(z/Math.SQRT2));},d:function(z){return 0.5*(1+window.L10erf(z/Math.SQRT2))+z*Math.exp(-z*z/2)/Math.sqrt(2*Math.PI);}},
+  silu:{name:'SiLU / swish',f:function(z){return z/(1+Math.exp(-z));},d:function(z){var s=1/(1+Math.exp(-z)); return s+z*s*(1-s);}},
+  softplus:{name:'softplus',f:function(z){return Math.log(1+Math.exp(z));},d:function(z){return 1/(1+Math.exp(-z));}},
+  sigmoid:{name:'sigmoid',f:function(z){return 1/(1+Math.exp(-z));},d:function(z){var s=1/(1+Math.exp(-z)); return s*(1-s);}},
+  tanh:{name:'tanh',f:function(z){return Math.tanh(z);},d:function(z){var t=Math.tanh(z); return 1-t*t;}}
+};
+window.L10erf = function(x){ // Abramowitz-Stegun 7.1.26 (error < 1.5e-7)
+  var s=x<0?-1:1; x=Math.abs(x); var t=1/(1+0.3275911*x);
+  var y=1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-0.284496736)*t+0.254829592)*t*Math.exp(-x*x); return s*y; };
+window.L10randn = function(r){ var u=1-r(), v=r(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); };
+</script>
+<script>
+/* ---------- W1: build a shallow network ---------- */
+(function(){
+  var svg=document.getElementById('shSvg'); if(!svg) return; var L=window.L1, D=window.L10ADATA;
+  function g(id){return document.getElementById(id);}
+  var COL=['var(--rose)','var(--moss)','var(--amber)'];
+  var PL=50, PR=548, PT=10, PB=270, X=function(v){return PL+v/60*(PR-PL);}, Y=function(v){return PB-(v+150)/250*(PB-PT);};
+  function val(k,tt){ var c=+g('shC'+k).value, dir=+g('shD'+k).value, s=+g('shS'+k).value; return s*Math.max(0,dir*(tt-c)); }
+  function draw(){
+    var b=+g('shB').value; g('shBv').textContent=b.toFixed(1);
+    for(var k=0;k<3;k++){ g('shC'+k+'v').textContent=(+g('shC'+k).value).toFixed(1); g('shS'+k+'v').textContent=(+g('shS'+k).value).toFixed(1); }
+    L.clear(svg); L.el(svg,'rect',{x:PL,y:PT,width:PR-PL,height:PB-PT,class:'plot-bg'});
+    for(var v=-100;v<=50;v+=50){ L.el(svg,'line',{x1:PL,y1:Y(v),x2:PR,y2:Y(v),class:'gridline'}); L.el(svg,'text',{x:PL-6,y:Y(v)+4,class:'axtext','text-anchor':'end'},v); }
+    for(var tt=0;tt<=60;tt+=10) L.el(svg,'text',{x:X(tt),y:PB+16,class:'axtext','text-anchor':'middle'},tt);
+    L.el(svg,'text',{x:PR,y:PB+32,class:'axtext','text-anchor':'end'},'time after impact (ms)');
+    L.el(svg,'text',{x:14,y:(PT+PB)/2,class:'axtext','text-anchor':'middle',transform:'rotate(-90 14 '+((PT+PB)/2)+')'},'acceleration (g)');
+    D.mc.t.forEach(function(tt,i){ L.el(svg,'circle',{cx:X(tt),cy:Y(D.mc.a[i]),r:2.6,fill:'var(--muted)',opacity:0.8}); });
+    var cp=L.el(svg,'clipPath',{id:'shClip'}); L.el(cp,'rect',{x:PL,y:PT,width:PR-PL,height:PB-PT});
+    for(var k2=0;k2<3;k2++){ var d=''; for(var s=0;s<=300;s++){ var x=s/5; d+=(s?'L':'M')+X(x).toFixed(1)+','+Y(val(k2,x)).toFixed(1); }
+      L.el(svg,'path',{d:d,fill:'none',stroke:COL[k2],'stroke-width':1.6,'stroke-dasharray':'5 4','clip-path':'url(#shClip)'});
+      var c=+g('shC'+k2).value; if(c>0&&c<60) L.el(svg,'circle',{cx:X(c),cy:Y(b+[0,1,2].reduce(function(a,j){return a+val(j,c);},0)),r:5,fill:COL[k2],stroke:'var(--bg)','stroke-width':1.5}); }
+    var dd='', sse=0; for(var s2=0;s2<=300;s2++){ var x2=s2/5, f=b+val(0,x2)+val(1,x2)+val(2,x2); dd+=(s2?'L':'M')+X(x2).toFixed(1)+','+Y(f).toFixed(1); }
+    L.el(svg,'path',{d:dd,fill:'none',stroke:'var(--sky)','stroke-width':2.6,'clip-path':'url(#shClip)'});
+    D.mc.t.forEach(function(tt,i){ var f=b+val(0,tt)+val(1,tt)+val(2,tt); sse+=(f-D.mc.a[i])*(f-D.mc.a[i]); });
+    var inside=[0,1,2].filter(function(j){ var c=+g('shC'+j).value; return c>2.4&&c<57.6&&+g('shS'+j).value!==0; }).length;
+    var rmse=Math.sqrt(sse/D.mc.t.length);
+    g('shOut').innerHTML='network: '+b.toFixed(1)+' + '+[0,1,2].map(function(j){ var dir=+g('shD'+j).value; return (+g('shS'+j).value).toFixed(1)+'·ReLU('+(dir>0?'t − ':'')+(+g('shC'+j).value).toFixed(1)+(dir>0?'':' − t')+')'; }).join(' + ')+
+      '<br>'+(inside+1)+' linear pieces on the data range &middot; RMSE against the 133 measurements: '+rmse.toFixed(2)+' g';
+    return {rmse:rmse};
+  }
+  function load(f){ g('shB').value=f.b; f.units.forEach(function(u,k){ g('shC'+k).value=u.c; g('shD'+k).value=u.dir; g('shS'+k).value=u.slope; }); }
+  ['shB','shC0','shC1','shC2','shS0','shS1','shS2'].forEach(function(id){ g(id).addEventListener('input',draw); });
+  ['shD0','shD1','shD2'].forEach(function(id){ g(id).addEventListener('change',draw); });
+  g('shFit').addEventListener('click',function(){ load(D.fit3); draw(); });
+  g('shZero').addEventListener('click',function(){ g('shB').value=0; [0,1,2].forEach(function(k){ g('shS'+k).value=0; }); draw(); });
+  draw(); window.W10a={fit:function(){ load(D.fit3); return draw(); }};
+})();
+</script>
+<script>
+/* ---------- W2: linear regions of a random ReLU network ---------- */
+(function(){
+  var cv=document.getElementById('rgCanvas'); if(!cv) return; var L=window.L1;
+  function g(id){return document.getElementById(id);}
+  var seed=1;
+  function binom(n,k){ var r=1; for(var i=1;i<=k;i++) r=r*(n-k+i)/i; return Math.round(r); }
+  function draw(){
+    var w=+g('rgW').value, d=+g('rgD').value; g('rgWv').textContent=w; g('rgDv').textContent=d;
+    var r=L.rng(seed*7919+w*31+d), layers=[], din=2;
+    for(var l=0;l<d;l++){ var W=[], b=[]; for(var j=0;j<w;j++){ var col=[]; for(var i=0;i<din;i++) col.push(window.L10randn(r)*Math.sqrt(2/din)); W.push(col); b.push(window.L10randn(r)*0.5); } layers.push({W:W,b:b}); din=w; }
+    var N=150, R=3, ctx=cv.getContext('2d'), cw=cv.width/N, ch=cv.height/N, seen={}, count=0;
+    for(var a=0;a<N;a++) for(var c=0;c<N;c++){ var h=[-R+2*R*(c+0.5)/N, R-2*R*(a+0.5)/N], key='';
+      layers.forEach(function(ly){ var nh=[]; for(var j=0;j<ly.W.length;j++){ var z=ly.b[j]; for(var i=0;i<h.length;i++) z+=ly.W[j][i]*h[i]; key+=z>0?'1':'0'; nh.push(Math.max(0,z)); } h=nh; });
+      if(!(key in seen)){ seen[key]=count++; }
+      var id=seen[key], hue=(id*137.508)%360; ctx.fillStyle='hsl('+hue+',55%,'+(45+(id%3)*8)+'%)'; ctx.fillRect(c*cw,a*ch,cw+0.6,ch+0.6); }
+    var units=w*d;
+    g('rgOut').innerHTML=w+' units per layer × '+d+' layer'+(d>1?'s':'')+' = '+units+' ReLUs &middot; distinct regions found on the 150 × 150 grid: '+count+
+      '<br>a single layer of '+units+' units can make at most 1 + '+units+' + C('+units+', 2) = '+(1+units+binom(units,2))+' regions in the plane (Theorem 10.2)';
+    return {regions:count};
+  }
+  ['rgW','rgD'].forEach(function(id){ g(id).addEventListener('input',draw); });
+  g('rgNew').addEventListener('click',function(){ seed++; draw(); });
+  draw(); window.W10b={set:function(w,d){ g('rgW').value=w; g('rgD').value=d; return draw(); }};
+})();
+</script>
+<script>
+/* ---------- W3: folding ---------- */
+(function(){
+  var svg=document.getElementById('fdSvg'); if(!svg) return; var L=window.L1;
+  function g(id){return document.getElementById(id);}
+  var tent=function(x){ return 2*Math.max(0,x)-4*Math.max(0,x-0.5); };
+  var PL=50, PR=548, PT=10, PB=260, X=function(v){return PL+v*(PR-PL);}, Y=function(v){return PB-v*(PB-PT);};
+  function draw(){
+    var Ln=+g('fdL').value; g('fdLv').textContent=Ln;
+    L.clear(svg); L.el(svg,'rect',{x:PL,y:PT,width:PR-PL,height:PB-PT,class:'plot-bg'});
+    [0,0.5,1].forEach(function(v){ L.el(svg,'text',{x:X(v),y:PB+16,class:'axtext','text-anchor':'middle'},v); L.el(svg,'text',{x:PL-6,y:Y(v)+4,class:'axtext','text-anchor':'end'},v); });
+    L.el(svg,'text',{x:(PL+PR)/2,y:PB+34,class:'axtext','text-anchor':'middle'},'input x');
+    for(var l=0;l<=Ln;l++){ var d=''; for(var s=0;s<=2048;s++){ var x=s/2048, f=x; for(var k=0;k<l;k++) f=tent(f); d+=(s?'L':'M')+X(x).toFixed(1)+','+Y(f).toFixed(1); }
+      L.el(svg,'path',{d:d,fill:'none',stroke:l===Ln?'var(--sky)':'var(--muted)','stroke-width':l===Ln?2.4:1,opacity:l===Ln?1:0.45}); }
+    var pieces=Math.pow(2,Ln);
+    g('fdOut').innerHTML=Ln+' composition'+(Ln===1?'':'s')+' of the two-unit fold: '+(2*Ln)+' hidden units in '+Ln+' layer'+(Ln===1?'':'s')+', '+pieces+' linear piece'+(pieces>1?'s':'')+
+      '<br>a one-hidden-layer network needs at least '+(pieces-1)+' units to make the same '+pieces+' pieces (Proposition 10.1)';
+    return {pieces:pieces};
+  }
+  g('fdL').addEventListener('input',draw); draw(); window.W10c={set:function(l){ g('fdL').value=l; return draw(); }};
+})();
+</script>
+<script>
+/* ---------- W4: activation functions ---------- */
+(function(){
+  var svg=document.getElementById('acSvg'); if(!svg) return; var L=window.L1, A=window.L10act;
+  function g(id){return document.getElementById(id);}
+  var PL=50, PR=548, PT=10, PB=260, X=function(v){return PL+(v+4)/8*(PR-PL);}, Y=function(v){return PB-(v+1.5)/5.5*(PB-PT);};
+  function draw(){
+    var k=g('acF').value, F=A[k];
+    L.clear(svg); L.el(svg,'rect',{x:PL,y:PT,width:PR-PL,height:PB-PT,class:'plot-bg'});
+    for(var v=-1;v<=4;v++){ L.el(svg,'line',{x1:PL,y1:Y(v),x2:PR,y2:Y(v),class:'gridline'}); L.el(svg,'text',{x:PL-6,y:Y(v)+4,class:'axtext','text-anchor':'end'},v); }
+    for(var u=-4;u<=4;u+=2) L.el(svg,'text',{x:X(u),y:PB+16,class:'axtext','text-anchor':'middle'},u);
+    L.el(svg,'line',{x1:X(0),y1:PT,x2:X(0),y2:PB,class:'axis'}); L.el(svg,'line',{x1:PL,y1:Y(0),x2:PR,y2:Y(0),class:'axis'});
+    [['f','var(--sky)',2.6],['d','var(--amber)',2]].forEach(function(o){ var d=''; for(var s=0;s<=400;s++){ var z=-4+8*s/400, val=Math.max(-1.5,Math.min(4,F[o[0]](z))); d+=(s?'L':'M')+X(z).toFixed(1)+','+Y(val).toFixed(1); }
+      L.el(svg,'path',{d:d,fill:'none',stroke:o[1],'stroke-width':o[2],'stroke-dasharray':o[0]==='d'?'6 4':''}); });
+    L.el(svg,'text',{x:PL+8,y:PT+16,class:'axtext',fill:'var(--sky)'},F.name+'  a(z)'); L.el(svg,'text',{x:PL+8,y:PT+34,class:'axtext',fill:'var(--amber)'},'derivative a′(z)');
+    g('acOut').innerHTML=F.name+': a(0) = '+F.f(0).toFixed(3)+', a′(0) = '+F.d(0).toFixed(3)+' &middot; a′(−3) = '+F.d(-3).toFixed(4)+', a′(3) = '+F.d(3).toFixed(4)+' &middot; a(−3) = '+F.f(-3).toFixed(4);
+    return {d0:F.d(0),dm3:F.d(-3),fm3:F.f(-3)};
+  }
+  g('acF').addEventListener('change',draw); draw(); window.W10d={set:function(k){ g('acF').value=k; return draw(); }};
+})();
+</script>
+<script>
+/* ---------- spot checks ----------
+   <div class="spot" data-kind="num|mc|multi|select" ...> with p.q, div.hint, div.why
+   num:    data-ans="a|b" (any accepted), data-tol (absolute) or data-rtol (relative), data-show (text for show-answer)
+   mc:     ul.opts > li[data-ok] for the right option; li[data-oh] is a hint for that wrong option
+   multi:  ul.opts > li[data-ok] for every right option (all and only those must be chosen)
+   select: one or more select.sp in the question; option[data-ok] right, option[data-hint] hint
+   Green with the explanation when right; amber with a hint when wrong; "show answer" after two misses. */
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×|⋅/g,'*').replace(/,/g,'').replace(/\^/g,'**').replace(/\s+/g,'');
+    if(!s) return NaN;
+    var pct=false; if(/%$/.test(s)){pct=true; s=s.slice(0,-1);}
+    if(!/^(?:[0-9.e+\-*/()]|sqrt|pi|ln|log|exp)+$/.test(s.replace(/e[+\-]?\d/g,'0'))) return NaN;
+    s=s.replace(/sqrt/g,'Math.sqrt').replace(/\bpi\b/g,'Math.PI').replace(/\bln\b/g,'Math.log').replace(/\blog\b/g,'Math.log10').replace(/\bexp\b/g,'Math.exp');
+    try{ var v=Function('"use strict";return ('+s+');')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function tolFor(sp,a){
+    if(sp.dataset.tol) return parseFloat(sp.dataset.tol);
+    if(sp.dataset.rtol) return parseFloat(sp.dataset.rtol)*Math.abs(a);
+    if(Math.abs(a)>=2 && Math.abs(a-Math.round(a))<1e-12) return 1e-9;
+    if(Math.abs(a)>=0.1) return Math.max(0.005,0.005*Math.abs(a));
+    return Math.max(1e-12,0.02*Math.abs(a));
+  }
+  window.QFspot={evalNum:evalNum,tolFor:tolFor};
+  document.querySelectorAll('.spot').forEach(function(sp){
+    var kind=sp.dataset.kind||'num', misses=0;
+    var hint=sp.querySelector(':scope > .hint'), why=sp.querySelector(':scope > .why');
+    var fb=document.createElement('div'); fb.className='sr-only'; fb.setAttribute('aria-live','polite');
+    fb.style.cssText='position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)';
+    sp.appendChild(fb);
+    var ansBox=document.createElement('div'); ansBox.className='ans'; sp.appendChild(ansBox);
+    var row=document.createElement('div'); row.className='row';
+    var go=document.createElement('button'); go.className='ctl sp-go'; go.type='button'; go.textContent='check';
+    var show=document.createElement('button'); show.className='ctl sp-show'; show.type='button'; show.textContent='show answer'; show.hidden=true;
+    var defHint=hint?hint.innerHTML:'';
+    function setHint(h){ if(!hint) return; hint.innerHTML=h||defHint; if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([hint]); }
+    function right(){ sp.classList.remove('no'); sp.classList.add('ok'); if(hint) hint.classList.remove('on');
+      if(why) why.classList.add('on'); show.hidden=true; fb.textContent='Correct.'; }
+    function wrong(h){ misses++; sp.classList.remove('ok'); sp.classList.add('no'); setHint(h); if(hint) hint.classList.add('on');
+      if(misses>=2) show.hidden=false; fb.textContent='Not quite. '+(hint?hint.textContent:''); }
+    if(kind==='num'){
+      var inp=document.createElement('input'); inp.className='sp-in'; inp.type='text'; inp.setAttribute('inputmode','decimal');
+      inp.setAttribute('aria-label','your answer'); inp.placeholder='your answer'; inp.id=(sp.id||'sp')+'-in';
+      row.appendChild(inp);
+      if(sp.dataset.unit){var u=document.createElement('span'); u.className='unit'; u.textContent=sp.dataset.unit; row.appendChild(u);}
+      row.appendChild(go); row.appendChild(show);
+      var answers=sp.dataset.ans.split('|').map(evalNum);
+      function test(){ var v=evalNum(inp.value);
+        if(isNaN(v)){ wrong('Enter a number (fractions like 3/4, powers like 2^10, sqrt(2), pi and 1e-3 are fine).'); return; }
+        if(answers.some(function(a){return Math.abs(v-a)<=tolFor(sp,a);})) right(); else wrong(); }
+      go.addEventListener('click',test);
+      inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); test(); } });
+      show.addEventListener('click',function(){ ansBox.innerHTML=sp.dataset.show||sp.dataset.ans.split('|')[0]; ansBox.classList.add('on');
+        if(why) why.classList.add('on'); show.hidden=true; if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([ansBox]); });
+      sp.querySelector(':scope > .q').after(row);
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=sp.querySelector('ul.opts'), btns=[];
+      (function(){ var h=2166136261, id=sp.id||'', lis=Array.prototype.slice.call(ul.querySelectorAll(':scope > li'));
+        for(var c=0;c<id.length;c++){ h^=id.charCodeAt(c); h=Math.imul(h,16777619)>>>0; }
+        for(var k=lis.length-1;k>0;k--){ h=Math.imul(h^(h>>>13),1597334677)>>>0; var j=h%(k+1), t=lis[k]; lis[k]=lis[j]; lis[j]=t; }
+        lis.forEach(function(li){ ul.appendChild(li); }); })();
+      ul.querySelectorAll(':scope > li').forEach(function(li){
+        var b=document.createElement('button'); b.type='button'; b.className='opt'; b.setAttribute('aria-pressed','false');
+        while(li.firstChild) b.appendChild(li.firstChild); li.appendChild(b); b._ok=li.hasAttribute('data-ok'); b._oh=li.dataset.oh||'';
+        btns.push(b);
+        b.addEventListener('click',function(){
+          if(kind==='mc'){ btns.forEach(function(x){x.setAttribute('aria-pressed','false'); x.classList.remove('good','bad');});
+            b.setAttribute('aria-pressed','true');
+            if(b._ok){ b.classList.add('good'); right(); } else { b.classList.add('bad'); wrong(b._oh); } }
+          else { b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')==='true'?'false':'true'); btns.forEach(function(x){x.classList.remove('good','bad');}); }
+        });
+      });
+      if(kind==='multi'){ row.appendChild(go); row.appendChild(show); ul.after(row);
+        go.addEventListener('click',function(){
+          var chosen=btns.filter(function(x){return x.getAttribute('aria-pressed')==='true';});
+          var bad=btns.filter(function(x){return (x.getAttribute('aria-pressed')==='true')!==x._ok;});
+          if(!bad.length){ chosen.forEach(function(x){x.classList.add('good');}); right(); }
+          else { var wrongPick=bad.find(function(x){return !x._ok;}); wrong(wrongPick?wrongPick._oh:''); }
+        });
+      } else { row.appendChild(show); ul.after(row); }
+      show.addEventListener('click',function(){ btns.forEach(function(x){ x.classList.remove('bad'); if(x._ok){x.classList.add('good');} });
+        if(why) why.classList.add('on'); show.hidden=true; });
+    } else if(kind==='select'){
+      var sels=[].slice.call(sp.querySelectorAll('select.sp'));
+      sels.forEach(function(s,i){ if(!s.getAttribute('aria-label')) s.setAttribute('aria-label','choose'); s.id=(sp.id||'sp')+'-s'+i;
+        s.addEventListener('change',function(){ s.classList.remove('good','bad'); }); });
+      row.appendChild(go); row.appendChild(show); sp.querySelector(':scope > .q').after(row);
+      go.addEventListener('click',function(){ var allOk=true, h='';
+        sels.forEach(function(s){ var o=s.options[s.selectedIndex]; var ok=o && o.hasAttribute('data-ok');
+          s.classList.toggle('good',ok); s.classList.toggle('bad',!ok); if(!ok){ allOk=false; if(!h && o && o.dataset.hint) h=o.dataset.hint; } });
+        if(allOk) right(); else wrong(h); });
+      show.addEventListener('click',function(){ sels.forEach(function(s){ for(var i=0;i<s.options.length;i++) if(s.options[i].hasAttribute('data-ok')) s.selectedIndex=i;
+        s.classList.add('good'); s.classList.remove('bad'); }); if(why) why.classList.add('on'); show.hidden=true; });
+    }
+  });
+})();
+</script>
+<script>
+/* ---------- solution / proof toggles ---------- */
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  var noun=b.textContent.replace(/^show\s+/,'');
+  b.dataset.noun=noun; b.type='button';
+  b.setAttribute('aria-expanded','false');
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    b.textContent=(open?'hide ':'show ')+b.dataset.noun;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+});
+/* ---------- theme: follows the system (or the viewer's choice) until the button is pressed ---------- */
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement;
+ function current(){ var a=root.getAttribute('data-theme'); if(a==='light'||a==='dark') return a;
+   return (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark'; }
+ function label(){ t.textContent = current()==='light' ? 'dark' : 'light'; }
+ label();
+ t.addEventListener('click',function(){ var next=current()==='light'?'dark':'light'; root.setAttribute('data-theme',next); label(); });
+ if(window.matchMedia) window.matchMedia('(prefers-color-scheme: light)').addEventListener('change',label);
+})();
+</script>
+
+<script>/* keep the light/dark button label right when the site sets the theme */
+(function(){var t=document.getElementById("theme"),r=document.documentElement;if(!t||!window.MutationObserver)return;new MutationObserver(function(){var a=r.getAttribute("data-theme");if(a==="light"||a==="dark")t.textContent=(a==="light")?"dark":"light";}).observe(r,{attributes:true,attributeFilter:["data-theme"]});})();</script>
+</body>
+</html>

@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lecture 7 — Kernels and Support Vector Machines · Machine Learning</title>
+<meta name="color-scheme" content="dark light">
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:(window.innerWidth<560?'0em':'1.2em'), fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-svg.js"></script>
+<style>
+  /* harbour theme (Quantum Frontiers notes): dark-first, light under prefers-color-scheme or the toggle.
+     layout: one 760px reading column; boxes by role; widgets as instruments in surface panels */
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade; --plum:#c3a6e8;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  @media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a; --plum:#5b3a8c; } }
+  :root[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a; --plum:#5b3a8c; }
+  *{box-sizing:border-box}
+  html{font-size:17.5px;background:var(--bg)}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  /* maths keeps text size: wide display equations scroll sideways instead of shrinking */
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%;
+    padding-bottom:4px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+  mjx-container{color:var(--ink)}
+  mjx-container svg{max-width:none !important}
+  .wrap{max-width:760px;margin:0 auto;padding-block:22px 110px;
+        padding-left:max(20px, env(safe-area-inset-left, 0px));padding-right:max(20px, env(safe-area-inset-right, 0px))}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em;text-wrap:balance}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px;text-wrap:balance}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0;min-width:0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)} .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid} .exr .lbl{color:var(--amber)}
+  .data{border-left-color:var(--cap);background:var(--surface2)} .data .lbl{color:var(--cap)}
+  /* machine-learning course additions, same family */
+  .big{border-left-color:var(--plum);background:var(--surface2)} .big .lbl{color:var(--plum)}
+  .causal{border-left-color:var(--moss);background:var(--surface2)} .causal .lbl{color:var(--moss)}
+  .bayes{border-left-color:var(--sky);background:var(--surface2)} .bayes .lbl{color:var(--sky)}
+  .quantum{border-left-color:var(--plum);border-left-style:double;border-left-width:4px;background:var(--surface2)} .quantum .lbl{color:var(--plum)}
+  .proj{border-left:3px dashed var(--rose);background:var(--surface2)} .proj .lbl{color:var(--rose)}
+  .proj h4{font-family:var(--mono);font-size:.95rem;color:var(--ink);margin:1.1em 0 .2em;font-weight:600}
+  .proj dl{margin:.1em 0 .4em} .proj dt{font-family:var(--mono);font-size:.84rem;color:var(--cap);margin-top:.35em}
+  .proj dd{margin:.05em 0 0 1em}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap);border-style:dashed}
+  /* syntax colours (build-time highlighting), drawn from the theme tokens */
+  .tool pre.src{border-left:3px solid var(--sky)}
+  .t-c,.t-c1,.t-cm,.t-ch,.t-cs{color:var(--muted);font-style:italic}
+  .t-k,.t-kd,.t-kr,.t-ow{color:var(--rose);font-weight:600}
+  .t-kn{color:var(--plum);font-weight:600}
+  .t-kc{color:var(--amber);font-weight:600}
+  .t-nb,.t-bp,.t-fm{color:var(--sky)}
+  .t-nf,.t-nc{color:var(--sky);font-weight:600}
+  .t-nn{color:var(--plum)}
+  .t-nd{color:var(--plum)}
+  .t-s,.t-s1,.t-s2,.t-sa,.t-sb,.t-sc,.t-sd,.t-se,.t-sh,.t-sx{color:var(--moss)}
+  .t-si{color:var(--amber)}
+  .t-m,.t-mi,.t-mf,.t-mh,.t-mo,.t-il{color:var(--amber)}
+  .t-o{color:var(--cap)}
+  .t-p{color:var(--muted)}
+  .t-n,.t-nv,.t-na{color:var(--ink)}
+  .t-fn{color:var(--sky)}
+  .notation dt{font-family:var(--mono);color:var(--sky);font-size:.92rem;margin-top:.5em}
+  .notation dd{margin:.05em 0 0 1em}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center;overflow-x:auto}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0;min-width:0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .widget .wtxt{font-size:.92rem;margin:.2em 0 .6em}
+  .widget > svg,.wrow > svg{display:block;margin:0 auto;touch-action:manipulation}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 150px;min-width:0}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.88rem;color:var(--ink);margin-top:8px;min-height:1.4em;line-height:1.6;font-variant-numeric:tabular-nums}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl:hover{border-color:var(--sky)}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  .wrow{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+  .wrow > *{flex:1 1 280px;min-width:0}
+  .legend{font-family:var(--mono);font-size:.8rem;color:var(--cap);display:flex;flex-wrap:wrap;gap:4px 14px;margin:.3em 0}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:0}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .tscroll{overflow-x:auto}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  .refs li{font-size:.95rem;margin-bottom:.55em}
+
+  /* ---- spot checks ---- */
+  .spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+        border-radius:0 8px 8px 0;padding:10px 16px 12px;margin:1.4em 0;transition:border-color .2s ease,background .2s ease}
+  .spot > .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.25em;color:var(--sky)}
+  .spot .q{margin:0 0 .55em}
+  .spot .hint,.spot .why,.spot .ans{display:none;font-size:.95rem;margin:.55em 0 0;padding:.45em .7em;border-radius:6px;line-height:1.6}
+  .spot .hint{border:1px solid var(--amber);color:var(--ink);background:var(--surface2)}
+  .spot .why{border:1px solid var(--moss);color:var(--ink);background:var(--surface2)}
+  .spot .ans{border:1px dashed var(--rule);color:var(--ink)}
+  .spot .hint::before{content:"not quite \2014  ";font-family:var(--mono);font-size:.82rem;color:var(--amber)}
+  .spot .why::before{content:"correct \2014  ";font-family:var(--mono);font-size:.82rem;color:var(--moss)}
+  .spot .ans::before{content:"answer \2014  ";font-family:var(--mono);font-size:.82rem;color:var(--cap)}
+  .spot.no{border-left-color:var(--amber);border-color:var(--amber)} .spot.no > .lbl{color:var(--amber)}
+  .spot.ok{border-left-color:var(--moss);border-color:var(--moss)} .spot.ok > .lbl{color:var(--moss)}
+  .spot.no .hint.on,.spot .why.on,.spot .ans.on{display:block}
+  .spot .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .spot input.sp-in{font-family:var(--mono);font-size:.95rem;background:var(--bg);color:var(--ink);
+        border:1px solid var(--rule);border-radius:6px;padding:6px 9px;width:11em;max-width:100%}
+  .spot.ok input.sp-in{border-color:var(--moss)} .spot.no input.sp-in{border-color:var(--amber)}
+  .spot select.sp{font-family:var(--mono);font-size:.9rem;background:var(--bg);color:var(--ink);
+        border:1px solid var(--rule);border-radius:6px;padding:3px 6px;margin:0 .15em;max-width:100%}
+  .spot select.sp.good{border-color:var(--moss)} .spot select.sp.bad{border-color:var(--amber)}
+  .spot ul.opts{list-style:none;padding:0;margin:.3em 0 .2em;display:grid;gap:7px}
+  .spot ul.opts li{margin:0}
+  .spot ul.opts button.opt{width:100%;text-align:left;font-family:var(--serif);font-size:1rem;line-height:1.55;
+        background:var(--bg);color:var(--ink);border:1px solid var(--rule);border-radius:7px;padding:7px 12px;cursor:pointer}
+  .spot ul.opts button.opt:hover{border-color:var(--sky)}
+  .spot ul.opts button.opt[aria-pressed="true"]{border-color:var(--sky);box-shadow:inset 3px 0 0 var(--sky)}
+  .spot ul.opts button.opt.good{border-color:var(--moss);box-shadow:inset 3px 0 0 var(--moss)}
+  .spot ul.opts button.opt.bad{border-color:var(--amber);box-shadow:inset 3px 0 0 var(--amber)}
+  .spot .unit{font-family:var(--mono);font-size:.9rem;color:var(--muted)}
+  .spot button.sp-show{border-style:dashed}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:16px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+/* formal statements: airy, clean spacing (added Oct 2026) */
+  mjx-container[display="true"]{margin:1.35em 0 !important}
+  .box.def,.box.thm{padding:18px 22px 16px}
+  .box.def > .lbl,.box.thm > .lbl{margin-bottom:.85em;padding-bottom:.5em;border-bottom:1px solid var(--rule)}
+  .box.def p,.box.thm p,.sol p{margin:.8em 0}
+  .box.def mjx-container[display="true"],.box.thm mjx-container[display="true"],.sol mjx-container[display="true"]{margin:1.6em 0 !important}
+  .box.def ul,.box.thm ul,.box.def ol,.box.thm ol{margin:.7em 0;padding-left:1.35em}
+  .box.def li,.box.thm li{margin:.55em 0}
+  .box .sol-btn{margin-top:1em}
+  .sol{margin-top:1.1em;padding-top:1.1em}
+  .box.def p.stmt,.box.thm p.stmt{margin:.9em 0 .9em 1.1em}
+  @media (max-width:520px){ .box.def,.box.thm{padding:13px 14px 12px} .box.def p.stmt,.box.thm p.stmt{margin-left:.4em} }
+</style>
+
+<script src="/assets/courses/common/course-nav.js" data-course="machine-learning" defer></script>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Machine Learning · Lecture 7</a>
+  <button class="ctl" id="theme" type="button">light</button>
+</div>
+<h1 id="top">Lecture 7<br>Kernels and Support Vector Machines</h1>
+<p class="kicker">Part II &middot; Kernels and graphs &nbsp;|&nbsp; maximum-margin classifiers, Lagrange duality and the KKT conditions, the dual SVM and support vectors, soft margins and the hinge loss, feature maps and the kernel trick, positive semi-definite kernels, Mercer's theorem and reproducing kernel Hilbert spaces, the representer theorem, kernel ridge regression, Gaussian processes, random features and the neural tangent kernel, quantum kernels &nbsp;|&nbsp; reading: Schölkopf &amp; Smola, <em>Learning with Kernels</em>, ch. 1–2 and 7; Rasmussen &amp; Williams, <em>Gaussian Processes for Machine Learning</em>, ch. 2 and 5</p>
+
+<figure class="toon">
+<svg viewBox="0 0 600 210" width="600" height="210" role="img" aria-labelledby="c7t c7d">
+<title id="c7t">Cartoon: the widest street</title><desc id="c7d">Two groups of houses sit on either side of a road. A stick figure with a measuring tape says: I'll build the road as wide as the houses allow. A second stick figure points at the few houses touching the kerb and says: so only those houses decide where it goes?</desc>
+<defs><filter id="rough7" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="71" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough7)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<path d="M 170 200 L 300 80 M 250 200 L 380 80" stroke-width="1.6" stroke-dasharray="7 5"/>
+<path d="M 210 200 L 340 80" stroke-width="1.2" stroke-dasharray="2 6"/>
+<path d="M 140 168 l 12 -12 l 12 12 l 0 14 l -24 0 z" fill="var(--surface2)"/>
+<path d="M 196 130 l 12 -12 l 12 12 l 0 14 l -24 0 z" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2.6"/>
+<path d="M 110 120 l 12 -12 l 12 12 l 0 14 l -24 0 z" fill="var(--surface2)"/>
+<path d="M 300 178 l 12 -12 l 12 12 l 0 14 l -24 0 z" fill="var(--surface2)" stroke="var(--amber)" stroke-width="2.6"/>
+<path d="M 372 152 l 12 -12 l 12 12 l 0 14 l -24 0 z" fill="var(--surface2)"/>
+<path d="M 400 110 l 12 -12 l 12 12 l 0 14 l -24 0 z" fill="var(--surface2)"/>
+<circle cx="50" cy="128" r="11"/><path d="M 50 139 L 50 166"/><path d="M 50 146 L 74 152"/><path d="M 50 146 L 36 160"/><path d="M 50 166 L 39 192"/><path d="M 50 166 L 61 192"/>
+<circle cx="545" cy="128" r="11"/><path d="M 545 139 L 545 166"/><path d="M 545 146 L 512 136"/><path d="M 545 146 L 559 160"/><path d="M 545 166 L 534 192"/><path d="M 545 166 L 556 192"/>
+<rect x="8" y="10" width="256" height="56" rx="9" fill="var(--surface2)"/><path d="M 40 64 L 48 104 L 70 64" fill="var(--surface2)" stroke-width="1.6"/>
+<rect x="336" y="10" width="256" height="56" rx="9" fill="var(--surface2)"/><path d="M 520 64 L 536 104 L 552 64" fill="var(--surface2)" stroke-width="1.6"/>
+<path d="M 10 200 L 590 200" stroke-width="1.6"/>
+</g>
+<text x="20" y="34" class="ctext">I'll make the road as wide</text><text x="20" y="53" class="ctext">as the houses allow.</text>
+<text x="348" y="34" class="ctext">So only the houses on the</text><text x="348" y="53" class="ctext">kerb decide where it goes?</text>
+</svg>
+<figcaption class="tooncap">The support vector machine finds the widest street between two classes; only the points on its edges matter</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">The widest street</a></li>
+<li><a href="#s2">Constrained optimisation: Lagrange multipliers, duality and KKT</a></li>
+<li><a href="#s3">The dual SVM, support vectors and soft margins</a></li>
+<li><a href="#s4">Feature maps and the kernel trick</a></li>
+<li><a href="#s5">Which functions are kernels?</a></li>
+<li><a href="#s6">The representer theorem and kernel ridge regression</a></li>
+<li><a href="#s7">Gaussian processes</a></li>
+<li><a href="#s8">Kernels at scale, in deep learning and on quantum computers</a></li>
+<li><a href="#s9">Summary, exercises, projects, reading</a></li>
+</ol>
+</div>
+
+<p>Lecture 6 ended with a margin bound: a linear classifier generalises well when it separates the data with a wide margin relative to the size of its weights, whatever the dimension. The support vector machine turns that into an algorithm: find the separating line with the widest margin. Solving that problem through its dual reveals two surprises. The answer depends only on a few training points, the support vectors. And the data enter only through inner products \(x_i^\top x_j\), so we can replace them by a <em>kernel</em> \(k(x_i,x_j)\), an inner product in a much richer feature space that we never compute directly. That one substitution turns linear methods into flexible nonlinear ones, and leads to kernel ridge regression and to Gaussian processes, the Bayesian version of the same idea.</p>
+
+<p>By the end of this lecture you should be able to set up the hard- and soft-margin SVM, derive its dual with Lagrange multipliers, and read off the support vectors from the KKT conditions; relate the soft-margin SVM to hinge loss with a ridge penalty; explain the kernel trick and check whether a function is a valid kernel; state Mercer's theorem and the representer theorem and prove the latter; fit kernel ridge regression and Gaussian process regression, and explain why they give the same predictions; choose kernel hyperparameters by cross-validation or marginal likelihood; and say what random features, the neural tangent kernel and quantum kernels have to do with all this.</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; The widest street</h2>
+
+<p>Take two classes that a line can separate. Infinitely many lines do it. The perceptron of Lecture 4 stops at the first one it finds; logistic regression keeps pushing until the probabilities saturate. The SVM picks the line that stays as far as possible from both classes, the middle of the widest street that fits between them. Points near the boundary are the hard cases, and a boundary that leaves them room is less likely to be wrong on nearby new points; Lecture 6's margin bound makes that precise.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 7.1 &mdash; distance to a hyperplane</span>
+<p>The distance from a point \(x\) to the hyperplane \(\{z:w^\top z+b=0\}\) is</p>
+$$|w^\top x+b|/\|w\|.$$
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>The closest point of the hyperplane to \(x\) is \(x-tw\) for the \(t\) with \(w^\top(x-tw)+b=0\), that is</p>
+$$t=(w^\top x+b)/\|w\|^2.$$
+<p>The distance is</p>
+$$\|tw\|=|w^\top x+b|/\|w\|.\ \square$$
+</div>
+</div>
+
+<p>With labels \(y_i\in\{-1,+1\}\), the hyperplane classifies \(x_i\) correctly with room to spare when \(y_i(w^\top x_i+b)&gt;0\), and its distance from the boundary is \(y_i(w^\top x_i+b)/\|w\|\). Rescaling \(w\) and \(b\) together does not change the hyperplane, so we may fix the scale by requiring the closest points to satisfy \(y_i(w^\top x_i+b)=1\). Then the margin on each side is \(1/\|w\|\), the street has width \(2/\|w\|\), and maximising the width means minimising \(\|w\|\).</p>
+
+<div class="box def">
+<span class="lbl">definition 7.1 &mdash; the hard-margin SVM</span>
+<p>Given linearly separable data \((x_i,y_i)\), \(y_i\in\{\pm1\}\), the <strong>hard-margin support vector machine</strong> solves</p>
+$$\min_{w,b}\ \tfrac12\|w\|^2\quad\text{subject to}\quad y_i(w^\top x_i+b)\ge1,\quad i=1,\dots,n.$$
+<p>The lines \(w^\top x+b=\pm1\) are the edges of the street, and the classifier is \(\operatorname{sign}(w^\top x+b)\).</p>
+</div>
+
+<div class="widget" id="w-margin">
+<h4>The widest street</h4>
+<p class="wtxt">Drag the points. The black line is the SVM boundary and the dashed lines are the edges of the street; amber rings mark the support vectors. With a large \(C\) the SVM insists on a clean separation (hard margin); lower \(C\) to let points inside the street in exchange for a wider one (Section 3).</p>
+<svg id="mgSvg" viewBox="0 0 560 310" width="560" height="310" role="img" aria-label="Two classes of points with the SVM boundary and margins"></svg>
+<div class="ctrls">
+<label><span>C = <span id="mgCv"></span></span><input type="range" id="mgC" min="-2" max="3" step="0.01" value="2"></label>
+<button class="ctl" type="button" id="mgReset">reset points</button>
+</div>
+<div class="readout" id="mgOut" role="status" aria-live="polite"></div>
+</div>
+
+<p>Move a point that is not ringed, anywhere outside the street, and nothing changes. Move a ringed one and the whole street moves. With the default points and \(C=100\) there are exactly two support vectors, one from each class; drop \(C\) to 1 and the street widens to swallow two more.</p>
+
+<div class="spot" id="sp7-1" data-kind="num" data-ans="0.4" data-tol="0.0005">
+<span class="lbl">spot check 7.1</span>
+<p class="q">An SVM in the plane has \(w=(3,4)\). How wide is its street?</p>
+<div class="hint">The width is \(2/\|w\|\).</div>
+<div class="why">\(\|w\|=5\), so the width is \(2/5=0.4\): each support vector is \(0.2\) from the boundary.</div>
+</div>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; Constrained optimisation: Lagrange multipliers, duality and KKT</h2>
+
+<p>The SVM is a minimisation with inequality constraints. Gradient descent alone does not handle constraints, so we need the standard toolkit, which is worth learning once because it appears all over machine learning papers.</p>
+
+<p>Start with the picture. Minimise a convex function \(f\) over a region cut out by constraints \(g_i(x)\le0\). If the minimum is inside the region, \(\nabla f=0\) there. If it is on the boundary, the downhill direction \(-\nabla f\) must point out of the region (otherwise we could keep going), and that means \(-\nabla f\) is a nonnegative combination of the outward normals \(\nabla g_i\) of the constraints that are active, those holding with equality. Think of a ball rolling downhill until it rests against walls: the walls push back with forces \(\mu_i\ge0\), and only the walls it touches can push.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 7.2 &mdash; Karush–Kuhn–Tucker conditions</span>
+<p>Consider \(\min_xf(x)\) subject to \(g_i(x)\le0\), \(i=1,\dots,m\), with \(f\) and the \(g_i\) convex and differentiable, and suppose some \(x\) satisfies every constraint strictly (Slater's condition).</p>
+<p>Then \(x^*\) is optimal if and only if there are multipliers \(\mu_1,\dots,\mu_m\) with</p>
+$$\nabla f(x^*)+\sum_i\mu_i\nabla g_i(x^*)=0,\qquad g_i(x^*)\le0,\qquad \mu_i\ge0,\qquad \mu_ig_i(x^*)=0.$$
+<p>These are stationarity, primal feasibility, dual feasibility and <strong>complementary slackness</strong>: a multiplier can be nonzero only if its constraint is active.</p>
+<button class="sol-btn">show proof of sufficiency</button>
+<div class="sol">
+<p>Suppose the conditions hold and \(x\) is any feasible point. The Lagrangian</p>
+$$\mathcal L(x,\mu)=f(x)+\sum_i\mu_ig_i(x)$$
+<p>is convex in \(x\) (a sum of convex functions with nonnegative weights), and stationarity says \(\nabla_x\mathcal L(x^*,\mu)=0\), so \(x^*\) minimises \(\mathcal L(\cdot,\mu)\). Then</p>
+$$f(x)\ \ge\ f(x)+\sum_i\mu_ig_i(x)=\mathcal L(x,\mu)\ \ge\ \mathcal L(x^*,\mu)=f(x^*)+\sum_i\mu_ig_i(x^*)=f(x^*),$$
+<p>using \(\mu_i\ge0\) and \(g_i(x)\le0\) in the first step and complementary slackness in the last.</p>
+<p>Necessity, which needs Slater's condition, is the harder direction; see Boyd and Vandenberghe (2004), Section 5.5. \(\square\)</p>
+</div>
+</div>
+
+<p>The multipliers also define a second optimisation problem. The <strong>dual function</strong> \(q(\mu)=\min_x\mathcal L(x,\mu)\) is a lower bound on the optimum for every \(\mu\ge0\), and the <strong>dual problem</strong> is to find the best lower bound.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 7.3 &mdash; weak and strong duality</span>
+<p>For every \(\mu\ge0\), \(q(\mu)\le f(x)\) for every feasible \(x\) (weak duality), so</p>
+$$\max_{\mu\ge0}q(\mu)\le\min_{x\text{ feasible}}f(x).$$
+<p>Under the conditions of Theorem 7.2 the two are equal (strong duality), and the KKT multipliers solve the dual problem.</p>
+<button class="sol-btn">show proof of weak duality</button>
+<div class="sol">
+<p>For feasible \(x\) and \(\mu\ge0\):</p>
+$$q(\mu)\le\mathcal L(x,\mu)=f(x)+\sum\mu_ig_i(x)\le f(x).$$
+<p>For strong duality, the chain in the proof of Theorem 7.2 with \(x=x^*\) shows \(q(\mu)=\mathcal L(x^*,\mu)=f(x^*)\) for the KKT multipliers. \(\square\)</p>
+</div>
+</div>
+
+<div class="spot" id="sp7-2" data-kind="select">
+<span class="lbl">spot check 7.2</span>
+<p class="q">At the optimum, a constraint that holds with strict inequality, \(g_i(x^*)&lt;0\), has multiplier
+<select class="sp" aria-label="slack"><option>choose</option><option data-ok>\(\mu_i=0\)</option><option data-hint="Complementary slackness: μ_i g_i(x*) = 0.">\(\mu_i&gt;0\)</option><option data-hint="Multipliers of inequality constraints are never negative.">\(\mu_i&lt;0\)</option></select>,
+and removing that constraint would
+<select class="sp" aria-label="remove"><option>choose</option><option data-ok>not change the solution</option><option data-hint="A wall the ball is not touching does not hold it in place.">move the solution</option></select>.</p>
+<div class="hint">Which walls push on the resting ball?</div>
+<div class="why">Complementary slackness forces \(\mu_i=0\) for inactive constraints, and the KKT conditions without that constraint are still satisfied by \(x^*\). In the SVM this will say that points strictly outside the street have no influence.</div>
+</div>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; The dual SVM, support vectors and soft margins</h2>
+
+<div class="box thm">
+<span class="lbl">theorem 7.4 &mdash; the dual of the hard-margin SVM</span>
+<p>The hard-margin SVM (Definition 7.1) has the dual problem</p>
+$$\max_{\alpha\ge0}\ \sum_{i=1}^n\alpha_i-\frac12\sum_{i,j}\alpha_i\alpha_jy_iy_j\,x_i^\top x_j\qquad\text{subject to}\qquad\sum_i\alpha_iy_i=0.$$
+<p>At the optimum,</p>
+$$w=\sum_i\alpha_iy_ix_i,$$
+<p>and \(\alpha_i&gt;0\) only for points on the edges of the street, \(y_i(w^\top x_i+b)=1\): the <strong>support vectors</strong>.</p>
+<p>The offset is \(b=y_s-w^\top x_s\) for any support vector \(x_s\), and the classifier is</p>
+$$f(x)=\operatorname{sign}\Big(\sum_{i}\alpha_iy_i\,x_i^\top x+b\Big).$$
+<button class="sol-btn">show derivation</button>
+<div class="sol">
+<p>Write the constraints as \(g_i=1-y_i(w^\top x_i+b)\le0\). The Lagrangian is</p>
+$$\mathcal L(w,b,\alpha)=\tfrac12\|w\|^2-\sum_i\alpha_i\big[y_i(w^\top x_i+b)-1\big].$$
+<p>For fixed \(\alpha\ge0\), minimise over \(w\) and \(b\). Setting</p>
+$$\nabla_w\mathcal L=w-\sum_i\alpha_iy_ix_i=0$$
+<p>gives \(w=\sum_i\alpha_iy_ix_i\). The Lagrangian is linear in \(b\) with slope \(-\sum_i\alpha_iy_i\); unless that is zero the minimum over \(b\) is \(-\infty\), so the dual is only interesting when \(\sum\alpha_iy_i=0\). Substituting,</p>
+$$\mathcal L=\tfrac12\Big\|\sum_i\alpha_iy_ix_i\Big\|^2-\sum_{i,j}\alpha_i\alpha_jy_iy_jx_i^\top x_j+\sum_i\alpha_i=\sum_i\alpha_i-\tfrac12\sum_{i,j}\alpha_i\alpha_jy_iy_jx_i^\top x_j.$$
+<p>The problem is convex with affine constraints, so strong duality holds whenever the data are separable.</p>
+<p>Complementary slackness,</p>
+$$\alpha_i\big[y_i(w^\top x_i+b)-1\big]=0,$$
+<p>says \(\alpha_i&gt;0\) only when the constraint is tight, which gives the support vectors and the formula for \(b\). \(\square\)</p>
+</div>
+</div>
+
+<p>The dual has two features that matter more than the derivation. The solution is a weighted combination of the support vectors alone, often a small fraction of the data. And the data appear only through the inner products \(x_i^\top x_j\) and \(x_i^\top x\). Hold on to the second point; it is the door to Section 4.</p>
+
+<p>Real data are rarely separable. The <strong>soft-margin SVM</strong> (Cortes and Vapnik, 1995) lets point \(i\) violate its constraint by a slack \(\xi_i\ge0\), at a price \(C\) per unit:</p>
+$$\min_{w,b,\xi}\ \tfrac12\|w\|^2+C\sum_i\xi_i\qquad\text{subject to}\qquad y_i(w^\top x_i+b)\ge1-\xi_i,\quad\xi_i\ge0.$$
+
+<div class="box thm">
+<span class="lbl">proposition 7.5 &mdash; the soft margin is hinge loss plus a ridge penalty</span>
+<p>The soft-margin SVM is equivalent to the unconstrained problem</p>
+$$\min_{w,b}\ \sum_i\max\big(0,1-y_i(w^\top x_i+b)\big)+\frac1{2C}\|w\|^2,$$
+<p>hinge loss (Lecture 5) with an \(\ell_2\) penalty.</p>
+<p>Its dual is the hard-margin dual with the extra box constraint \(0\le\alpha_i\le C\). At the optimum,</p>
+<ul>
+<li>points outside the street have \(\alpha_i=0\);</li>
+<li>points with \(0&lt;\alpha_i&lt;C\) lie exactly on its edges (a point on an edge may have any \(\alpha_i\in[0,C]\));</li>
+<li>points inside it or misclassified have \(\alpha_i=C\).</li>
+</ul>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>For fixed \(w,b\), the best slack is the smallest allowed,</p>
+$$\xi_i=\max(0,1-y_i(w^\top x_i+b));$$
+<p>substituting and dividing by \(C\) gives the hinge form.</p>
+<p>For the dual, the Lagrangian gains terms</p>
+$$C\sum\xi_i-\sum\alpha_i\xi_i-\sum\nu_i\xi_i$$
+<p>with \(\nu_i\ge0\) for the constraints \(\xi_i\ge0\). Setting its derivative in \(\xi_i\) to zero gives \(\alpha_i=C-\nu_i\le C\), and the \(\xi\) terms then vanish, leaving the same dual objective.</p>
+<p>Complementary slackness on the two families of constraints gives the three cases: \(\alpha_i&lt;C\) forces \(\nu_i&gt;0\), so \(\xi_i=0\); \(\alpha_i&gt;0\) forces the margin constraint to be tight. \(\square\)</p>
+</div>
+</div>
+
+<p>So \(C\) is an inverse regularisation strength. Small \(C\) means a wide street and many points allowed inside it (high bias, low variance); large \(C\) approaches the hard margin. Here is the breast-cancer data of Lectures 4–6 with standardised features.</p>
+
+<div class="box data">
+<span class="lbl">data &mdash; Wisconsin diagnostic breast cancer</span>
+<p>569 breast-mass biopsies, 212 malignant, with 30 features of the cell nuclei (Street, Wolberg and Mangasarian, 1993; UCI, via scikit-learn). Same 398/171 stratified split as Lectures 4–6, features standardised on the training set.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">code &mdash; linear SVMs on the breast-cancer data</span>
+<pre class="src"><span class="t-kn">import</span><span class="t-w"> </span><span class="t-nn">numpy</span><span class="t-w"> </span><span class="t-k">as</span><span class="t-w"> </span><span class="t-nn">np</span>
+<span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">sklearn.datasets</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">load_breast_cancer</span>
+<span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">sklearn.model_selection</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">train_test_split</span>
+<span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">sklearn.preprocessing</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">StandardScaler</span>
+<span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">sklearn.svm</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">SVC</span>
+
+<span class="t-n">bc</span> <span class="t-o">=</span> <span class="t-fn">load_breast_cancer</span><span class="t-p">()</span>
+<span class="t-n">X</span><span class="t-p">,</span> <span class="t-n">y</span> <span class="t-o">=</span> <span class="t-n">bc</span><span class="t-o">.</span><span class="t-n">data</span><span class="t-p">,</span> <span class="t-mi">1</span> <span class="t-o">-</span> <span class="t-n">bc</span><span class="t-o">.</span><span class="t-n">target</span>                          <span class="t-c1"># malignant = 1, as in Lectures 4-6</span>
+<span class="t-n">Xtr</span><span class="t-p">,</span> <span class="t-n">Xte</span><span class="t-p">,</span> <span class="t-n">ytr</span><span class="t-p">,</span> <span class="t-n">yte</span> <span class="t-o">=</span> <span class="t-fn">train_test_split</span><span class="t-p">(</span><span class="t-n">X</span><span class="t-p">,</span> <span class="t-n">y</span><span class="t-p">,</span> <span class="t-n">test_size</span><span class="t-o">=</span><span class="t-mf">0.3</span><span class="t-p">,</span> <span class="t-n">stratify</span><span class="t-o">=</span><span class="t-n">y</span><span class="t-p">,</span> <span class="t-n">random_state</span><span class="t-o">=</span><span class="t-mi">0</span><span class="t-p">)</span>
+<span class="t-n">sc</span> <span class="t-o">=</span> <span class="t-fn">StandardScaler</span><span class="t-p">()</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">Xtr</span><span class="t-p">)</span>
+<span class="t-n">Ztr</span><span class="t-p">,</span> <span class="t-n">Zte</span> <span class="t-o">=</span> <span class="t-n">sc</span><span class="t-o">.</span><span class="t-fn">transform</span><span class="t-p">(</span><span class="t-n">Xtr</span><span class="t-p">),</span> <span class="t-n">sc</span><span class="t-o">.</span><span class="t-fn">transform</span><span class="t-p">(</span><span class="t-n">Xte</span><span class="t-p">)</span>
+
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'     C   support vectors   margin width 2/||w||   train acc.   test acc.'</span><span class="t-p">)</span>
+<span class="t-k">for</span> <span class="t-n">C</span> <span class="t-ow">in</span> <span class="t-p">[</span><span class="t-mf">0.001</span><span class="t-p">,</span> <span class="t-mf">0.01</span><span class="t-p">,</span> <span class="t-mf">0.1</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">10</span><span class="t-p">,</span> <span class="t-mi">100</span><span class="t-p">]:</span>
+    <span class="t-n">svm</span> <span class="t-o">=</span> <span class="t-fn">SVC</span><span class="t-p">(</span><span class="t-n">kernel</span><span class="t-o">=</span><span class="t-s1">'linear'</span><span class="t-p">,</span> <span class="t-n">C</span><span class="t-o">=</span><span class="t-n">C</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">Ztr</span><span class="t-p">,</span> <span class="t-n">ytr</span><span class="t-p">)</span>
+    <span class="t-n">w</span> <span class="t-o">=</span> <span class="t-n">svm</span><span class="t-o">.</span><span class="t-n">coef_</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">]</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">C</span><span class="t-si">:</span><span class="t-s1">6g</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">svm</span><span class="t-o">.</span><span class="t-n">n_support_</span><span class="t-o">.</span><span class="t-fn">sum</span><span class="t-p">()</span><span class="t-si">:</span><span class="t-s1">15d</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-mi">2</span><span class="t-w"> </span><span class="t-o">/</span><span class="t-w"> </span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">linalg</span><span class="t-o">.</span><span class="t-fn">norm</span><span class="t-p">(</span><span class="t-n">w</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">20.3f</span><span class="t-si">}</span><span class="t-s1">'</span>
+          <span class="t-sa">f</span><span class="t-s1">'   </span><span class="t-si">{</span><span class="t-n">svm</span><span class="t-o">.</span><span class="t-fn">score</span><span class="t-p">(</span><span class="t-n">Ztr</span><span class="t-p">,</span><span class="t-w"> </span><span class="t-n">ytr</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">10.3f</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">svm</span><span class="t-o">.</span><span class="t-fn">score</span><span class="t-p">(</span><span class="t-n">Zte</span><span class="t-p">,</span><span class="t-w"> </span><span class="t-n">yte</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">9.3f</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span>
+
+<span class="t-c1"># The weights are a combination of the support vectors only: w = sum_i alpha_i y_i x_i</span>
+<span class="t-n">svm</span> <span class="t-o">=</span> <span class="t-fn">SVC</span><span class="t-p">(</span><span class="t-n">kernel</span><span class="t-o">=</span><span class="t-s1">'linear'</span><span class="t-p">,</span> <span class="t-n">C</span><span class="t-o">=</span><span class="t-mf">0.1</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">Ztr</span><span class="t-p">,</span> <span class="t-n">ytr</span><span class="t-p">)</span>
+<span class="t-n">w_from_sv</span> <span class="t-o">=</span> <span class="t-n">svm</span><span class="t-o">.</span><span class="t-n">dual_coef_</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">]</span> <span class="t-o">@</span> <span class="t-n">svm</span><span class="t-o">.</span><span class="t-n">support_vectors_</span>     <span class="t-c1"># dual_coef_ holds alpha_i * y_i (y = +-1)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'max |w - sum alpha_i y_i x_i| ='</span><span class="t-p">,</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">abs</span><span class="t-p">(</span><span class="t-n">w_from_sv</span> <span class="t-o">-</span> <span class="t-n">svm</span><span class="t-o">.</span><span class="t-n">coef_</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">])</span><span class="t-o">.</span><span class="t-fn">max</span><span class="t-p">())</span>
+<span class="t-n">alpha</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">abs</span><span class="t-p">(</span><span class="t-n">svm</span><span class="t-o">.</span><span class="t-n">dual_coef_</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">])</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'C = 0.1: </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sum</span><span class="t-p">(</span><span class="t-n">alpha</span><span class="t-w"> </span><span class="t-o">&lt;</span><span class="t-w"> </span><span class="t-mf">0.1</span><span class="t-w"> </span><span class="t-o">-</span><span class="t-w"> </span><span class="t-mf">1e-8</span><span class="t-p">)</span><span class="t-si">}</span><span class="t-s1"> support vectors on the margin (0 &lt; alpha &lt; C),'</span>
+      <span class="t-sa">f</span><span class="t-s1">' </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sum</span><span class="t-p">(</span><span class="t-n">alpha</span><span class="t-w"> </span><span class="t-o">&gt;=</span><span class="t-w"> </span><span class="t-mf">0.1</span><span class="t-w"> </span><span class="t-o">-</span><span class="t-w"> </span><span class="t-mf">1e-8</span><span class="t-p">)</span><span class="t-si">}</span><span class="t-s1"> inside it or misclassified (alpha = C)'</span><span class="t-p">)</span></pre>
+<pre class="out">     C   support vectors   margin width 2/||w||   train acc.   test acc.
+ 0.001               194                  6.367        0.932       0.953
+  0.01                91                  3.033        0.975       0.965
+   0.1                49                  1.385        0.990       0.959
+     1                31                  0.619        0.995       0.942
+    10                22                  0.324        0.995       0.953
+   100                21                  0.114        1.000       0.942
+max |w - sum alpha_i y_i x_i| = 0.0
+C = 0.1: 12 support vectors on the margin (0 &lt; alpha &lt; C), 37 inside it or misclassified (alpha = C)</pre>
+</div>
+
+<p>As \(C\) grows the street narrows (from 6.4 to 0.11 in standardised units), the number of support vectors falls from 194 to 21, and training accuracy rises to 100%. Test accuracy peaks at \(C=0.01\) and then wobbles between 94% and 96%, differences of two or three patients. The identity \(w=\sum\alpha_iy_ix_i\) holds to machine precision, and the split of support vectors into "on the edge" and "inside the street" follows Proposition 7.5.</p>
+
+<div class="spot" id="sp7-3" data-kind="mc">
+<span class="lbl">spot check 7.3</span>
+<p class="q">A training point has \(y_i(w^\top x_i+b)=2.5\) at the soft-margin optimum. What is its \(\alpha_i\), and what happens to the classifier if the point is deleted and the SVM refitted?</p>
+<ul class="opts">
+<li data-ok>\(\alpha_i=0\), and nothing changes: it is not a support vector.</li>
+<li data-oh="A point with margin above 1 is outside the street.">\(\alpha_i=C\), and the boundary moves toward it.</li>
+<li data-oh="0 < α < C happens only for points exactly on the edge of the street.">\(0&lt;\alpha_i&lt;C\), and the street narrows.</li>
+<li data-oh="w is a combination of points with α > 0 only.">\(\alpha_i=0\), but the boundary still moves because \(w\) depends on all points.</li>
+</ul>
+<div class="hint">Proposition 7.5 lists three cases by where the point sits relative to the street.</div>
+<div class="why">Margin above 1 means strictly outside the street, so \(\alpha_i=0\) by complementary slackness. Deleting it leaves the KKT conditions satisfied by the same \(w,b\).</div>
+</div>
+
+<div class="box hist">
+<span class="lbl">history &mdash; from the generalised portrait to the kernel era</span>
+<p>Vapnik and Lerner's "generalised portrait" algorithm (1963) already found the maximum-margin hyperplane. The kernel idea appeared separately in 1964, when Aizerman, Braverman and Rozonoer, at the same Moscow Institute of Control Sciences, interpreted "potential functions" as inner products in a feature space. The two were combined only in 1992, when Bernhard Boser, Isabelle Guyon and Vapnik at AT&amp;T Bell Labs applied the kernel trick to maximum-margin classifiers; Corinna Cortes and Vapnik added the soft margin in 1995. SVMs then matched hand-engineered systems on digit recognition with no image-specific design, and the 2000s became the "kernel era" of machine learning, until deep networks overtook them on images and speech around 2012. Platt's SMO algorithm (1998), which solves the dual two multipliers at a time, made them practical; LIBSVM, still behind scikit-learn's <code>SVC</code>, uses a refined version, as do this lecture's widgets.</p>
+</div>
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; Feature maps and the kernel trick</h2>
+
+<p>A line cannot separate points that are positive far from the origin and negative near it. But give each point a second coordinate, its square, and the classes become separable by a horizontal line in the new plane. A linear classifier on the lifted features \(\varphi(x)=(x,x^2)\) is a quadratic classifier on \(x\).</p>
+
+<div class="widget" id="w-lift">
+<h4>Lifting a line into a parabola</h4>
+<p class="wtxt">Slide the lift from 0 (the points on the line) to 1 (each point raised to \((x,x^2)\)). Then move the amber line. A horizontal line in the lifted plane is a pair of thresholds back on the axis.</p>
+<svg id="lfSvg" viewBox="0 0 560 310" width="560" height="310" role="img" aria-label="Points on a line lifted onto a parabola"></svg>
+<div class="ctrls">
+<label><span>lift t = <span id="lfTv"></span></span><input type="range" id="lfT" min="0" max="1" step="0.01" value="0.5"></label>
+<label><span>line height = <span id="lfCv"></span></span><input type="range" id="lfC" min="0" max="6" step="0.05" value="1"></label>
+</div>
+<div class="readout" id="lfOut" role="status" aria-live="polite"></div>
+</div>
+
+<p>Any feature map \(\varphi:\mathcal X\to\mathbb R^D\) can be fed to the SVM by replacing \(x\) with \(\varphi(x)\). The catch is that rich feature maps are huge: all monomials of degree at most 3 in 30 variables already number 5,456. Theorem 7.4 shows the way out. The dual and the classifier use the data <em>only through inner products</em>, so all we ever need is the function</p>
+$$k(x,z)=\varphi(x)^\top\varphi(z),$$
+<p>and if \(k\) can be computed without forming \(\varphi\), the dimension never matters. This is the <strong>kernel trick</strong>. The kernel SVM solves the dual with \(x_i^\top x_j\) replaced by \(k(x_i,x_j)\) and predicts with \(\operatorname{sign}\big(\sum_i\alpha_iy_ik(x_i,x)+b\big)\).</p>
+
+<div class="box thm">
+<span class="lbl">proposition 7.6 &mdash; the polynomial kernel</span>
+<p>For \(x,z\in\mathbb R^p\) and an integer \(d\ge1\),</p>
+$$k(x,z)=(x^\top z+1)^d$$
+<p>equals \(\varphi(x)^\top\varphi(z)\) for a feature map \(\varphi\) whose coordinates are all monomials of degree at most \(d\) in \(x\), each multiplied by the square root of a multinomial coefficient.</p>
+<p>For \(p=2\), \(d=2\):</p>
+$$\varphi(x)=\big(1,\ \sqrt2x_1,\ \sqrt2x_2,\ x_1^2,\ x_2^2,\ \sqrt2x_1x_2\big).$$
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Write \(x^\top z+1=\sum_{j=0}^px_jz_j\) with \(x_0=z_0=1\). By the multinomial theorem,</p>
+$$(\sum_jx_jz_j)^d=\sum_{|m|=d}\binom d{m}\prod_j(x_jz_j)^{m_j}=\sum_{|m|=d}\Big(\sqrt{\tbinom dm}\prod_jx_j^{m_j}\Big)\Big(\sqrt{\tbinom dm}\prod_jz_j^{m_j}\Big),$$
+<p>a sum of products of matching features. Dropping \(x_0=1\), each \(m\) gives a monomial of degree at most \(d\) in \(x_1,\dots,x_p\). \(\square\)</p>
+</div>
+</div>
+
+<p>Computing \((x^\top z+1)^3\) on 30 features costs about 30 multiplications instead of 5,456. The most widely used kernel goes further. The <strong>Gaussian</strong> or <strong>RBF kernel</strong></p>
+$$k(x,z)=\exp\big(-\gamma\|x-z\|^2\big)$$
+<p>corresponds to an <em>infinite</em>-dimensional feature map: in one dimension, \(e^{-\gamma(x-z)^2}=e^{-\gamma x^2}e^{-\gamma z^2}\sum_{m\ge0}\frac{(2\gamma)^m}{m!}x^mz^m\), an inner product of the features \(e^{-\gamma x^2}\sqrt{(2\gamma)^m/m!}\,x^m\), \(m=0,1,2,\dots\). The RBF classifier \(\sum\alpha_iy_ie^{-\gamma\|x_i-x\|^2}+b\) is a sum of bumps centred on the support vectors, and \(\gamma\) sets their width. Small \(\gamma\) gives wide bumps and a smooth, nearly linear boundary; large \(\gamma\) gives narrow bumps that can wrap around individual points. It is a bias–variance dial, like \(k\) in nearest neighbours.</p>
+
+<div class="widget" id="w-rbf">
+<h4>An RBF SVM on two moons</h4>
+<p class="wtxt">100 training points from scikit-learn's two-moons generator (noise 0.25). The shading is the sign of the SVM's decision function, darker where it is more confident; amber rings are support vectors. Test accuracy is on 400 fresh points from the same generator.</p>
+<svg id="rbSvg" viewBox="0 0 560 300" width="560" height="300" role="img" aria-label="Decision regions of an RBF SVM on the two-moons data"></svg>
+<div class="ctrls">
+<label><span>γ = <span id="rbGv"></span></span><input type="range" id="rbG" min="-2.30103" max="1.69897" step="0.05" value="0.69897"></label>
+<label><span>C = <span id="rbCv"></span></span><input type="range" id="rbC" min="-2" max="3" step="0.05" value="1"></label>
+</div>
+<div class="readout" id="rbOut" role="status" aria-live="polite"></div>
+</div>
+
+<p>With \(\gamma=5\) and \(C=10\) the boundary follows the moons, uses 30 support vectors, and gets 92.75% of new points right. Push to \(\gamma=50\), \(C=100\): every training point is classified correctly, 93 of the 100 are support vectors, and test accuracy falls to 91.5%. A large fraction of support vectors is a warning sign of overfitting. On the breast-cancer data, the kernel buys little:</p>
+
+<div class="box tool">
+<span class="lbl">code &mdash; choosing C and γ by cross-validation</span>
+<pre class="src"><span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">sklearn.model_selection</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">GridSearchCV</span>
+
+<span class="t-n">grid</span> <span class="t-o">=</span> <span class="t-p">{</span><span class="t-s1">'C'</span><span class="t-p">:</span> <span class="t-p">[</span><span class="t-mf">0.1</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">10</span><span class="t-p">,</span> <span class="t-mi">100</span><span class="t-p">],</span> <span class="t-s1">'gamma'</span><span class="t-p">:</span> <span class="t-p">[</span><span class="t-mf">0.001</span><span class="t-p">,</span> <span class="t-mf">0.01</span><span class="t-p">,</span> <span class="t-mf">0.1</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">]}</span>
+<span class="t-n">cv</span> <span class="t-o">=</span> <span class="t-fn">GridSearchCV</span><span class="t-p">(</span><span class="t-fn">SVC</span><span class="t-p">(</span><span class="t-n">kernel</span><span class="t-o">=</span><span class="t-s1">'rbf'</span><span class="t-p">),</span> <span class="t-n">grid</span><span class="t-p">,</span> <span class="t-n">cv</span><span class="t-o">=</span><span class="t-mi">5</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">Ztr</span><span class="t-p">,</span> <span class="t-n">ytr</span><span class="t-p">)</span>
+<span class="t-n">res</span> <span class="t-o">=</span> <span class="t-n">cv</span><span class="t-o">.</span><span class="t-n">cv_results_</span><span class="t-p">[</span><span class="t-s1">'mean_test_score'</span><span class="t-p">]</span><span class="t-o">.</span><span class="t-fn">reshape</span><span class="t-p">(</span><span class="t-mi">4</span><span class="t-p">,</span> <span class="t-mi">4</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'5-fold CV accuracy (rows C, columns gamma = 0.001, 0.01, 0.1, 1)'</span><span class="t-p">)</span>
+<span class="t-k">for</span> <span class="t-n">C</span><span class="t-p">,</span> <span class="t-n">row</span> <span class="t-ow">in</span> <span class="t-nb">zip</span><span class="t-p">(</span><span class="t-n">grid</span><span class="t-p">[</span><span class="t-s1">'C'</span><span class="t-p">],</span> <span class="t-n">res</span><span class="t-p">):</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'C = </span><span class="t-si">{</span><span class="t-n">C</span><span class="t-si">:</span><span class="t-s1">5g</span><span class="t-si">}</span><span class="t-s1">: '</span> <span class="t-o">+</span> <span class="t-s1">'  '</span><span class="t-o">.</span><span class="t-fn">join</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">v</span><span class="t-si">:</span><span class="t-s1">.3f</span><span class="t-si">}</span><span class="t-s1">'</span> <span class="t-k">for</span> <span class="t-n">v</span> <span class="t-ow">in</span> <span class="t-n">row</span><span class="t-p">))</span>
+<span class="t-n">best</span> <span class="t-o">=</span> <span class="t-n">cv</span><span class="t-o">.</span><span class="t-n">best_estimator_</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'best:'</span><span class="t-p">,</span> <span class="t-n">cv</span><span class="t-o">.</span><span class="t-n">best_params_</span><span class="t-p">,</span> <span class="t-s1">' support vectors:'</span><span class="t-p">,</span> <span class="t-n">best</span><span class="t-o">.</span><span class="t-n">n_support_</span><span class="t-o">.</span><span class="t-fn">sum</span><span class="t-p">(),</span> <span class="t-s1">' test accuracy:'</span><span class="t-p">,</span> <span class="t-nb">round</span><span class="t-p">(</span><span class="t-n">best</span><span class="t-o">.</span><span class="t-fn">score</span><span class="t-p">(</span><span class="t-n">Zte</span><span class="t-p">,</span> <span class="t-n">yte</span><span class="t-p">),</span> <span class="t-mi">3</span><span class="t-p">))</span>
+<span class="t-n">lin</span> <span class="t-o">=</span> <span class="t-fn">GridSearchCV</span><span class="t-p">(</span><span class="t-fn">SVC</span><span class="t-p">(</span><span class="t-n">kernel</span><span class="t-o">=</span><span class="t-s1">'linear'</span><span class="t-p">),</span> <span class="t-p">{</span><span class="t-s1">'C'</span><span class="t-p">:</span> <span class="t-p">[</span><span class="t-mf">0.001</span><span class="t-p">,</span> <span class="t-mf">0.01</span><span class="t-p">,</span> <span class="t-mf">0.1</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">10</span><span class="t-p">]},</span> <span class="t-n">cv</span><span class="t-o">=</span><span class="t-mi">5</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">Ztr</span><span class="t-p">,</span> <span class="t-n">ytr</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'linear SVM, C chosen by CV:'</span><span class="t-p">,</span> <span class="t-n">lin</span><span class="t-o">.</span><span class="t-n">best_params_</span><span class="t-p">,</span> <span class="t-s1">' test accuracy:'</span><span class="t-p">,</span> <span class="t-nb">round</span><span class="t-p">(</span><span class="t-n">lin</span><span class="t-o">.</span><span class="t-fn">score</span><span class="t-p">(</span><span class="t-n">Zte</span><span class="t-p">,</span> <span class="t-n">yte</span><span class="t-p">),</span> <span class="t-mi">3</span><span class="t-p">))</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'</span><span class="t-se">\n</span><span class="t-s1">gamma    train acc.   test acc.   (C = 10)'</span><span class="t-p">)</span>
+<span class="t-k">for</span> <span class="t-n">g</span> <span class="t-ow">in</span> <span class="t-p">[</span><span class="t-mf">0.0001</span><span class="t-p">,</span> <span class="t-mf">0.01</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">100</span><span class="t-p">]:</span>
+    <span class="t-n">m</span> <span class="t-o">=</span> <span class="t-fn">SVC</span><span class="t-p">(</span><span class="t-n">kernel</span><span class="t-o">=</span><span class="t-s1">'rbf'</span><span class="t-p">,</span> <span class="t-n">C</span><span class="t-o">=</span><span class="t-mi">10</span><span class="t-p">,</span> <span class="t-n">gamma</span><span class="t-o">=</span><span class="t-n">g</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">Ztr</span><span class="t-p">,</span> <span class="t-n">ytr</span><span class="t-p">)</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">g</span><span class="t-si">:</span><span class="t-s1">&lt;7g</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">m</span><span class="t-o">.</span><span class="t-fn">score</span><span class="t-p">(</span><span class="t-n">Ztr</span><span class="t-p">,</span><span class="t-w"> </span><span class="t-n">ytr</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">9.3f</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">m</span><span class="t-o">.</span><span class="t-fn">score</span><span class="t-p">(</span><span class="t-n">Zte</span><span class="t-p">,</span><span class="t-w"> </span><span class="t-n">yte</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">9.3f</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span></pre>
+<pre class="out">5-fold CV accuracy (rows C, columns gamma = 0.001, 0.01, 0.1, 1)
+C =   0.1: 0.688  0.937  0.940  0.628
+C =     1: 0.940  0.972  0.970  0.628
+C =    10: 0.970  0.982  0.967  0.628
+C =   100: 0.980  0.975  0.967  0.628
+best: {'C': 10, 'gamma': 0.01}  support vectors: 48  test accuracy: 0.953
+linear SVM, C chosen by CV: {'C': 1}  test accuracy: 0.942
+
+gamma    train acc.   test acc.   (C = 10)
+0.0001        0.947       0.953
+0.01          0.995       0.953
+1             1.000       0.626
+100           1.000       0.626</pre>
+</div>
+
+<p>Cross-validation picks \(C=10\), \(\gamma=0.01\), a wide bump (in 30 standardised dimensions, typical squared distances between patients are 40 to 60, so \(\gamma\|x-z\|^2\) is of order 1). Test accuracy 95.3% against 94.2% for the linear SVM: two patients, well within noise. The last table shows the dial at its extremes. With \(\gamma=1\) each bump is so narrow that the classifier memorises the training set and predicts "benign" for every new patient, which is right 62.6% of the time only because 107 of the 171 test patients are benign.</p>
+
+<div class="spot" id="sp7-4" data-kind="num" data-ans="5456" data-tol="0.5">
+<span class="lbl">spot check 7.4</span>
+<p class="q">How many monomials of degree at most 3 are there in 30 variables? (This is the dimension of the feature space of \((x^\top z+1)^3\) on the breast-cancer data.)</p>
+<div class="hint">Monomials of degree at most \(d\) in \(p\) variables correspond to multisets of size \(d\) from \(p+1\) symbols (one symbol for "1"): \(\binom{p+d}d\).</div>
+<div class="why">\(\binom{33}3=\frac{33\cdot32\cdot31}6=5456\). For degree 10 it would be \(\binom{40}{10}\approx8.5\times10^8\); the kernel still costs 30 multiplications and one power.</div>
+</div>
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; Which functions are kernels?</h2>
+
+<p>We can now design \(k\) directly, as a similarity between objects: strings, graphs, molecules, images. But not every similarity is an inner product in some feature space, and the SVM's optimisation is only convex if it is.</p>
+
+<div class="box def">
+<span class="lbl">definition 7.2 &mdash; positive semi-definite kernel</span>
+<p>A symmetric function \(k:\mathcal X\times\mathcal X\to\mathbb R\) is a <strong>(positive semi-definite) kernel</strong> if for every \(n\) and every \(x_1,\dots,x_n\in\mathcal X\), the <strong>Gram matrix</strong> \(K_{ij}=k(x_i,x_j)\) is positive semi-definite:</p>
+$$c^\top Kc=\sum_{i,j}c_ic_jk(x_i,x_j)\ge0$$
+<p>for all \(c\in\mathbb R^n\).</p>
+</div>
+
+<div class="box thm">
+<span class="lbl">theorem 7.7 &mdash; kernels are exactly inner products of feature maps</span>
+<p>\(k\) is a positive semi-definite kernel if and only if there is a Hilbert space \(\mathcal H\) and a map \(\varphi:\mathcal X\to\mathcal H\) with</p>
+$$k(x,z)=\langle\varphi(x),\varphi(z)\rangle_{\mathcal H}.$$
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>(\(\Leftarrow\))</p>
+$$\sum_{i,j}c_ic_j\langle\varphi(x_i),\varphi(x_j)\rangle=\big\|\sum_ic_i\varphi(x_i)\big\|^2\ge0.$$
+<p>(\(\Rightarrow\), sketch; Aronszajn, 1950.) Take \(\varphi(x)=k(x,\cdot)\), the function "similarity to \(x\)". On finite combinations \(f=\sum_ia_ik(x_i,\cdot)\) and \(g=\sum_jb_jk(z_j,\cdot)\) define</p>
+$$\langle f,g\rangle=\sum_{i,j}a_ib_jk(x_i,z_j).$$
+<p>Positive semi-definiteness makes this a valid inner product (the Cauchy–Schwarz inequality shows \(\langle f,f\rangle=0\) forces \(f=0\)), and by construction</p>
+$$\langle k(x,\cdot),k(z,\cdot)\rangle=k(x,z).$$
+<p>Completing the space gives \(\mathcal H\). \(\square\)</p>
+</div>
+</div>
+
+<p>The space built in the proof deserves a name, because papers use it constantly.</p>
+
+<div class="box def">
+<span class="lbl">definition 7.3 &mdash; reproducing kernel Hilbert space</span>
+<p>The <strong>RKHS</strong> \(\mathcal H_k\) of a kernel \(k\) is the completion of the span of the functions \(k(x,\cdot)\), with the inner product above.</p>
+<p>Its defining property is the <strong>reproducing property</strong>: for every \(f\in\mathcal H_k\) and \(x\in\mathcal X\),</p>
+$$f(x)=\langle f,k(x,\cdot)\rangle_{\mathcal H_k}.$$
+<p>The norm \(\|f\|_{\mathcal H_k}\) measures how "rough" \(f\) is relative to the kernel: for the RBF kernel, functions with small RKHS norm are smooth on the length scale \(1/\sqrt\gamma\).</p>
+</div>
+
+<p>Proving a function is a kernel from the definition is tedious. In practice one builds kernels from simpler ones.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 7.8 &mdash; building kernels</span>
+<p>If \(k_1,k_2\) are kernels, \(c\ge0\) and \(f:\mathcal X\to\mathbb R\), then these are kernels: \(ck_1\), \(k_1+k_2\), \(k_1k_2\), \(f(x)k_1(x,z)f(z)\), any limit of kernels, and \(\exp(k_1)\).</p>
+<p>Consequently \(x^\top z\), \((x^\top z+1)^d\) and \(\exp(-\gamma\|x-z\|^2)\) are kernels.</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Scaling and sums:</p>
+$$c^\top(aK_1+K_2)c=ac^\top K_1c+c^\top K_2c\ge0.$$
+<p>Products: the Gram matrix of \(k_1k_2\) is the elementwise (Schur) product \(K_1\circ K_2\). Writing \(K_2=\sum_\ell\lambda_\ell u_\ell u_\ell^\top\) with \(\lambda_\ell\ge0\),</p>
+$$c^\top(K_1\circ K_2)c=\sum_\ell\lambda_\ell(c\circ u_\ell)^\top K_1(c\circ u_\ell)\ge0.$$
+<p>The \(f\) rule: \(c^\top Kc\) with \(c_i\) replaced by \(c_if(x_i)\). Limits preserve \(\ge0\). \(\exp(k_1)=\sum_m k_1^m/m!\) is a limit of sums of products.</p>
+<p>Finally,</p>
+$$e^{-\gamma\|x-z\|^2}=e^{-\gamma\|x\|^2}\,e^{2\gamma x^\top z}\,e^{-\gamma\|z\|^2},$$
+<p>the \(f\) rule applied to \(\exp(2\gamma x^\top z)\). \(\square\)</p>
+</div>
+</div>
+
+<div class="box tool">
+<span class="lbl">code &mdash; checking feature maps and Gram matrices</span>
+<pre class="src"><span class="t-c1"># The polynomial kernel (x.z + 1)^2 is an inner product of explicit 6-dimensional features</span>
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">phi</span><span class="t-p">(</span><span class="t-n">v</span><span class="t-p">):</span>
+    <span class="t-n">a</span><span class="t-p">,</span> <span class="t-n">b</span> <span class="t-o">=</span> <span class="t-n">v</span>
+    <span class="t-k">return</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">array</span><span class="t-p">([</span><span class="t-mi">1</span><span class="t-p">,</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sqrt</span><span class="t-p">(</span><span class="t-mi">2</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-n">a</span><span class="t-p">,</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sqrt</span><span class="t-p">(</span><span class="t-mi">2</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-n">b</span><span class="t-p">,</span> <span class="t-n">a</span> <span class="t-o">*</span> <span class="t-n">a</span><span class="t-p">,</span> <span class="t-n">b</span> <span class="t-o">*</span> <span class="t-n">b</span><span class="t-p">,</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sqrt</span><span class="t-p">(</span><span class="t-mi">2</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-n">a</span> <span class="t-o">*</span> <span class="t-n">b</span><span class="t-p">])</span>
+<span class="t-n">x</span><span class="t-p">,</span> <span class="t-n">z</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">array</span><span class="t-p">([</span><span class="t-mf">1.0</span><span class="t-p">,</span> <span class="t-mf">2.0</span><span class="t-p">]),</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">array</span><span class="t-p">([</span><span class="t-o">-</span><span class="t-mf">0.5</span><span class="t-p">,</span> <span class="t-mf">3.0</span><span class="t-p">])</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'phi(x).phi(z) ='</span><span class="t-p">,</span> <span class="t-fn">phi</span><span class="t-p">(</span><span class="t-n">x</span><span class="t-p">)</span> <span class="t-o">@</span> <span class="t-fn">phi</span><span class="t-p">(</span><span class="t-n">z</span><span class="t-p">),</span> <span class="t-s1">'   (x.z + 1)^2 ='</span><span class="t-p">,</span> <span class="t-p">(</span><span class="t-n">x</span> <span class="t-o">@</span> <span class="t-n">z</span> <span class="t-o">+</span> <span class="t-mi">1</span><span class="t-p">)</span> <span class="t-o">**</span> <span class="t-mi">2</span><span class="t-p">)</span>
+
+<span class="t-c1"># Gram matrices of valid kernels are positive semi-definite; the "sigmoid kernel" is not always a kernel</span>
+<span class="t-n">S</span> <span class="t-o">=</span> <span class="t-n">Ztr</span><span class="t-p">[:</span><span class="t-mi">200</span><span class="t-p">]</span>
+<span class="t-n">sq</span> <span class="t-o">=</span> <span class="t-p">((</span><span class="t-n">S</span><span class="t-p">[:,</span> <span class="t-kc">None</span><span class="t-p">,</span> <span class="t-p">:]</span> <span class="t-o">-</span> <span class="t-n">S</span><span class="t-p">[</span><span class="t-kc">None</span><span class="t-p">,</span> <span class="t-p">:,</span> <span class="t-p">:])</span> <span class="t-o">**</span> <span class="t-mi">2</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">sum</span><span class="t-p">(</span><span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">)</span>
+<span class="t-n">grams</span> <span class="t-o">=</span> <span class="t-p">{</span><span class="t-s1">'RBF exp(-||x-z||^2 / 30)'</span><span class="t-p">:</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">exp</span><span class="t-p">(</span><span class="t-o">-</span><span class="t-n">sq</span> <span class="t-o">/</span> <span class="t-mi">30</span><span class="t-p">),</span>
+         <span class="t-s1">'polynomial (x.z/30 + 1)^3'</span><span class="t-p">:</span> <span class="t-p">(</span><span class="t-n">S</span> <span class="t-o">@</span> <span class="t-n">S</span><span class="t-o">.</span><span class="t-n">T</span> <span class="t-o">/</span> <span class="t-mi">30</span> <span class="t-o">+</span> <span class="t-mi">1</span><span class="t-p">)</span> <span class="t-o">**</span> <span class="t-mi">3</span><span class="t-p">,</span>
+         <span class="t-s1">'sigmoid tanh(x.z/30 - 1)'</span><span class="t-p">:</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">tanh</span><span class="t-p">(</span><span class="t-n">S</span> <span class="t-o">@</span> <span class="t-n">S</span><span class="t-o">.</span><span class="t-n">T</span> <span class="t-o">/</span> <span class="t-mi">30</span> <span class="t-o">-</span> <span class="t-mi">1</span><span class="t-p">)}</span>
+<span class="t-k">for</span> <span class="t-n">name</span><span class="t-p">,</span> <span class="t-n">K</span> <span class="t-ow">in</span> <span class="t-n">grams</span><span class="t-o">.</span><span class="t-fn">items</span><span class="t-p">():</span>
+    <span class="t-n">ev</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">linalg</span><span class="t-o">.</span><span class="t-fn">eigvalsh</span><span class="t-p">(</span><span class="t-n">K</span><span class="t-p">)</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">name</span><span class="t-si">:</span><span class="t-s1">28s</span><span class="t-si">}</span><span class="t-s1"> smallest eigenvalue </span><span class="t-si">{</span><span class="t-n">ev</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">]</span><span class="t-si">:</span><span class="t-s1"> .3e</span><span class="t-si">}</span><span class="t-s1">   largest </span><span class="t-si">{</span><span class="t-n">ev</span><span class="t-p">[</span><span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">]</span><span class="t-si">:</span><span class="t-s1">.3e</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span></pre>
+<pre class="out">phi(x).phi(z) = 42.25    (x.z + 1)^2 = 42.25
+RBF exp(-||x-z||^2 / 30)     smallest eigenvalue  2.872e-03   largest 7.222e+01
+polynomial (x.z/30 + 1)^3    smallest eigenvalue  3.332e-03   largest 2.741e+03
+sigmoid tanh(x.z/30 - 1)     smallest eigenvalue -1.398e+02   largest 4.672e+01</pre>
+</div>
+
+<p>The explicit six features reproduce the polynomial kernel exactly. On 200 patients, the RBF and polynomial Gram matrices have all eigenvalues positive. The "sigmoid kernel" \(\tanh(a\,x^\top z+c)\), offered by many libraries because it mimics a neural network unit, has an eigenvalue of \(-140\): it is not a kernel for these parameters, and an SVM trained with it solves a non-convex problem.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 7.9 &mdash; Mercer's theorem</span>
+<p>Let \(\mathcal X\) be a compact set with a finite measure \(\mu\) and \(k\) a continuous kernel. Then there are nonnegative eigenvalues \(\lambda_1\ge\lambda_2\ge\cdots\to0\) and orthonormal eigenfunctions \(e_j\) of the integral operator</p>
+$$(T_kf)(x)=\int k(x,z)f(z)\,d\mu(z)$$
+<p>such that</p>
+$$k(x,z)=\sum_{j\ge1}\lambda_j\,e_j(x)\,e_j(z),$$
+<p>with absolute and uniform convergence.</p>
+<p>So \(\varphi(x)=(\sqrt{\lambda_j}\,e_j(x))_{j\ge1}\) is an explicit feature map (Mercer, 1909).</p>
+</div>
+
+<p>Mercer's theorem is the spectral theorem of Lecture 2 for an infinite matrix. It also explains what the RKHS norm penalises: writing \(f=\sum_ja_je_j\), one has \(\|f\|_{\mathcal H_k}^2=\sum_ja_j^2/\lambda_j\), so components along eigenfunctions with small eigenvalues (for the RBF kernel, the wiggly ones) are expensive.</p>
+
+<div class="spot" id="sp7-5" data-kind="mc">
+<span class="lbl">spot check 7.5</span>
+<p class="q">Which of these is <em>not</em> a positive semi-definite kernel on \(\mathbb R\)?</p>
+<ul class="opts">
+<li data-ok>\(k(x,z)=-|x-z|\)</li>
+<li data-oh="A product of two kernels is a kernel (Proposition 7.8).">\(k(x,z)=xz\,e^{-(x-z)^2}\)</li>
+<li data-oh="f(x)f(z) is the kernel of the one-dimensional feature map f.">\(k(x,z)=\cos x\cos z\)</li>
+<li data-oh="This is (xz + 1)^2, a polynomial kernel.">\(k(x,z)=x^2z^2+2xz+1\)</li>
+</ul>
+<div class="hint">A Gram matrix of a kernel has nonnegative diagonal entries \(k(x,x)\).</div>
+<div class="why">\(k(x,x)=0\) for every \(x\), and for two points the Gram matrix \(\begin{pmatrix}0&amp;-d\\-d&amp;0\end{pmatrix}\) has eigenvalue \(-d&lt;0\). (Minus a distance is only "conditionally" positive definite, a weaker property.)</div>
+</div>
+
+<!-- =================== 6 =================== -->
+<h2 id="s6">6 &mdash; The representer theorem and kernel ridge regression</h2>
+
+<p>Why should the solution of a learning problem in an infinite-dimensional space be a combination of kernels centred at the training points? It was for the SVM by duality, and the same holds for a whole family of problems.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 7.10 &mdash; the representer theorem</span>
+<p>Let \(L\) be any loss of the predictions on the training points and \(\Omega\) a strictly increasing function. Every minimiser over \(f\in\mathcal H_k\) of</p>
+$$L\big(f(x_1),\dots,f(x_n)\big)+\Omega\big(\|f\|_{\mathcal H_k}\big)$$
+<p>has the form</p>
+$$f(x)=\sum_{i=1}^n\alpha_ik(x_i,x)$$
+<p>(Kimeldorf and Wahba, 1971; Schölkopf, Herbrich and Smola, 2001).</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Split any \(f\in\mathcal H_k\) as \(f=f_\parallel+f_\perp\), where \(f_\parallel\) lies in the span of \(k(x_1,\cdot),\dots,k(x_n,\cdot)\) and \(f_\perp\) is orthogonal to it.</p>
+<p>By the reproducing property,</p>
+$$f(x_i)=\langle f_\parallel+f_\perp,k(x_i,\cdot)\rangle=f_\parallel(x_i),$$
+<p>so the loss does not see \(f_\perp\). But</p>
+$$\|f\|^2=\|f_\parallel\|^2+\|f_\perp\|^2,$$
+<p>so \(\Omega\) strictly prefers \(f_\perp=0\). Hence every minimiser has \(f_\perp=0\). \(\square\)</p>
+</div>
+</div>
+
+<p>An infinite-dimensional problem becomes an \(n\)-dimensional one. With squared loss it can be solved in closed form.</p>
+
+<div class="box thm">
+<span class="lbl">proposition 7.11 &mdash; kernel ridge regression</span>
+<p>The minimiser of</p>
+$$\sum_i\big(y_i-f(x_i)\big)^2+\lambda\|f\|_{\mathcal H_k}^2$$
+<p>is</p>
+$$\hat f(x)=\sum_i\alpha_ik(x_i,x)=k(x)^\top\alpha,$$
+<p>with</p>
+$$\alpha=(K+\lambda I)^{-1}y,$$
+<p>where \(K\) is the Gram matrix and \(k(x)=(k(x_1,x),\dots,k(x_n,x))^\top\).</p>
+<p>With the linear kernel \(k(x,z)=x^\top z\) this is exactly the ridge regression of Lecture 3.</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>By Theorem 7.10, \(f=\sum_j\alpha_jk(x_j,\cdot)\), so \(f(x_i)=(K\alpha)_i\) and \(\|f\|^2=\alpha^\top K\alpha\). The objective \(\|y-K\alpha\|^2+\lambda\alpha^\top K\alpha\) has gradient</p>
+$$-2K(y-K\alpha)+2\lambda K\alpha=-2K\big(y-(K+\lambda I)\alpha\big),$$
+<p>which vanishes at \(\alpha=(K+\lambda I)^{-1}y\).</p>
+<p>For the linear kernel, \(K=XX^\top\) and</p>
+$$\hat f(x)=x^\top X^\top(XX^\top+\lambda I)^{-1}y=x^\top(X^\top X+\lambda I)^{-1}X^\top y$$
+<p>by the identity of Exercise 6. \(\square\)</p>
+</div>
+</div>
+
+<p>Back to Lecture 1's crash-helmet data: 133 measurements of head acceleration after a simulated motorcycle crash. Kernel ridge regression with an RBF kernel \(\exp(-(t-t')^2/(2\ell^2))\) has a length scale \(\ell\) (in milliseconds) and a penalty \(\lambda\).</p>
+
+<div class="box tool">
+<span class="lbl">code &mdash; kernel ridge regression on the crash-helmet data</span>
+<pre class="src"><span class="t-kn">import</span><span class="t-w"> </span><span class="t-nn">pandas</span><span class="t-w"> </span><span class="t-k">as</span><span class="t-w"> </span><span class="t-nn">pd</span>
+<span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">sklearn.model_selection</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">KFold</span>
+
+<span class="t-n">mc</span> <span class="t-o">=</span> <span class="t-n">pd</span><span class="t-o">.</span><span class="t-fn">read_csv</span><span class="t-p">(</span><span class="t-s1">'data/mcycle.csv'</span><span class="t-p">)</span>                       <span class="t-c1"># the crash-helmet data of Lecture 1</span>
+<span class="t-n">t</span><span class="t-p">,</span> <span class="t-n">acc</span> <span class="t-o">=</span> <span class="t-n">mc</span><span class="t-p">[</span><span class="t-s1">'times'</span><span class="t-p">]</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">(),</span> <span class="t-n">mc</span><span class="t-p">[</span><span class="t-s1">'accel'</span><span class="t-p">]</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">()</span>
+
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">krr_fit_predict</span><span class="t-p">(</span><span class="t-n">t_tr</span><span class="t-p">,</span> <span class="t-n">y_tr</span><span class="t-p">,</span> <span class="t-n">t_new</span><span class="t-p">,</span> <span class="t-n">ell</span><span class="t-p">,</span> <span class="t-n">lam</span><span class="t-p">):</span>
+    <span class="t-n">K</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">exp</span><span class="t-p">(</span><span class="t-o">-</span><span class="t-p">(</span><span class="t-n">t_tr</span><span class="t-p">[:,</span> <span class="t-kc">None</span><span class="t-p">]</span> <span class="t-o">-</span> <span class="t-n">t_tr</span><span class="t-p">[</span><span class="t-kc">None</span><span class="t-p">,</span> <span class="t-p">:])</span> <span class="t-o">**</span> <span class="t-mi">2</span> <span class="t-o">/</span> <span class="t-p">(</span><span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">ell</span><span class="t-o">**</span><span class="t-mi">2</span><span class="t-p">))</span>
+    <span class="t-n">alpha</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">linalg</span><span class="t-o">.</span><span class="t-fn">solve</span><span class="t-p">(</span><span class="t-n">K</span> <span class="t-o">+</span> <span class="t-n">lam</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">eye</span><span class="t-p">(</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">t_tr</span><span class="t-p">)),</span> <span class="t-n">y_tr</span> <span class="t-o">-</span> <span class="t-n">y_tr</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">())</span>   <span class="t-c1"># (K + lambda I) alpha = y</span>
+    <span class="t-k">return</span> <span class="t-n">y_tr</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">()</span> <span class="t-o">+</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">exp</span><span class="t-p">(</span><span class="t-o">-</span><span class="t-p">(</span><span class="t-n">t_new</span><span class="t-p">[:,</span> <span class="t-kc">None</span><span class="t-p">]</span> <span class="t-o">-</span> <span class="t-n">t_tr</span><span class="t-p">[</span><span class="t-kc">None</span><span class="t-p">,</span> <span class="t-p">:])</span> <span class="t-o">**</span> <span class="t-mi">2</span> <span class="t-o">/</span> <span class="t-p">(</span><span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">ell</span><span class="t-o">**</span><span class="t-mi">2</span><span class="t-p">))</span> <span class="t-o">@</span> <span class="t-n">alpha</span>
+
+<span class="t-n">folds</span> <span class="t-o">=</span> <span class="t-nb">list</span><span class="t-p">(</span><span class="t-fn">KFold</span><span class="t-p">(</span><span class="t-mi">5</span><span class="t-p">,</span> <span class="t-n">shuffle</span><span class="t-o">=</span><span class="t-kc">True</span><span class="t-p">,</span> <span class="t-n">random_state</span><span class="t-o">=</span><span class="t-mi">0</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">split</span><span class="t-p">(</span><span class="t-n">t</span><span class="t-p">))</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'length-scale   lambda   5-fold CV RMSE'</span><span class="t-p">)</span>
+<span class="t-n">scores</span> <span class="t-o">=</span> <span class="t-p">{}</span>
+<span class="t-k">for</span> <span class="t-n">ell</span> <span class="t-ow">in</span> <span class="t-p">[</span><span class="t-mf">0.5</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">2</span><span class="t-p">,</span> <span class="t-mi">4</span><span class="t-p">,</span> <span class="t-mi">8</span><span class="t-p">]:</span>
+    <span class="t-k">for</span> <span class="t-n">lam</span> <span class="t-ow">in</span> <span class="t-p">[</span><span class="t-mf">0.1</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">10</span><span class="t-p">]:</span>
+        <span class="t-n">err</span> <span class="t-o">=</span> <span class="t-p">[</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">((</span><span class="t-fn">krr_fit_predict</span><span class="t-p">(</span><span class="t-n">t</span><span class="t-p">[</span><span class="t-n">a</span><span class="t-p">],</span> <span class="t-n">acc</span><span class="t-p">[</span><span class="t-n">a</span><span class="t-p">],</span> <span class="t-n">t</span><span class="t-p">[</span><span class="t-n">b</span><span class="t-p">],</span> <span class="t-n">ell</span><span class="t-p">,</span> <span class="t-n">lam</span><span class="t-p">)</span> <span class="t-o">-</span> <span class="t-n">acc</span><span class="t-p">[</span><span class="t-n">b</span><span class="t-p">])</span> <span class="t-o">**</span> <span class="t-mi">2</span><span class="t-p">)</span> <span class="t-k">for</span> <span class="t-n">a</span><span class="t-p">,</span> <span class="t-n">b</span> <span class="t-ow">in</span> <span class="t-n">folds</span><span class="t-p">]</span>
+        <span class="t-n">scores</span><span class="t-p">[</span><span class="t-n">ell</span><span class="t-p">,</span> <span class="t-n">lam</span><span class="t-p">]</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sqrt</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">(</span><span class="t-n">err</span><span class="t-p">))</span>
+<span class="t-k">for</span> <span class="t-p">(</span><span class="t-n">ell</span><span class="t-p">,</span> <span class="t-n">lam</span><span class="t-p">),</span> <span class="t-n">s</span> <span class="t-ow">in</span> <span class="t-n">scores</span><span class="t-o">.</span><span class="t-fn">items</span><span class="t-p">():</span>
+    <span class="t-k">if</span> <span class="t-n">lam</span> <span class="t-o">==</span> <span class="t-mi">1</span> <span class="t-ow">or</span> <span class="t-n">s</span> <span class="t-o">==</span> <span class="t-nb">min</span><span class="t-p">(</span><span class="t-n">scores</span><span class="t-o">.</span><span class="t-fn">values</span><span class="t-p">()):</span>
+        <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">ell</span><span class="t-si">:</span><span class="t-s1">12g</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">lam</span><span class="t-si">:</span><span class="t-s1">6g</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">s</span><span class="t-si">:</span><span class="t-s1">14.2f</span><span class="t-si">}</span><span class="t-s1">'</span> <span class="t-o">+</span> <span class="t-p">(</span><span class="t-s1">'   &lt;- best'</span> <span class="t-k">if</span> <span class="t-n">s</span> <span class="t-o">==</span> <span class="t-nb">min</span><span class="t-p">(</span><span class="t-n">scores</span><span class="t-o">.</span><span class="t-fn">values</span><span class="t-p">())</span> <span class="t-k">else</span> <span class="t-s1">''</span><span class="t-p">))</span></pre>
+<pre class="out">length-scale   lambda   5-fold CV RMSE
+         0.5        1            32.32
+           1        1            26.89
+           2        1            24.27
+           4        1            23.38   &lt;- best
+           8        1            27.01</pre>
+</div>
+
+<p>A length scale of 4 ms gives a cross-validated error of 23.4 (in units of g), about as good as Lecture 3's penalised spline. Too short (0.5 ms) chases the noise; too long (8 ms) smooths away the sharp dip after impact. The fit is ten lines of linear algebra, and the same code works for any kernel and any input type.</p>
+
+<p>The margin theory of Lecture 6 carries over directly, with the RKHS in place of \(\mathbb R^p\).</p>
+
+<div class="box thm">
+<span class="lbl">proposition 7.12 &mdash; complexity of a kernel class</span>
+<p>For \(\mathcal F_B=\{f\in\mathcal H_k:\|f\|_{\mathcal H_k}\le B\}\) and a sample \(x_1,\dots,x_n\),</p>
+$$\widehat{\mathfrak R}_S(\mathcal F_B)\le\frac Bn\sqrt{\operatorname{tr}K}=\frac Bn\sqrt{\sum_ik(x_i,x_i)}.$$
+<p>For the RBF kernel \(k(x,x)=1\), so the bound is \(B/\sqrt n\) in any dimension, and the margin bound (Theorem 6.13) applies to kernel SVMs with \(\|w\|\) replaced by \(\|f\|_{\mathcal H_k}\).</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>The proof of Proposition 6.11 with \(x_i\) replaced by \(\varphi(x_i)=k(x_i,\cdot)\):</p>
+$$\sup_{\|f\|\le B}\frac1n\sum\sigma_if(x_i)=\sup\frac1n\langle f,\sum\sigma_ik(x_i,\cdot)\rangle=\frac Bn\|\sum_i\sigma_ik(x_i,\cdot)\|,$$
+<p>and</p>
+$$\mathbb E\|\sum\sigma_ik(x_i,\cdot)\|^2=\sum_ik(x_i,x_i).\ \square$$
+</div>
+</div>
+
+<div class="spot" id="sp7-6" data-kind="num" data-ans="133" data-tol="0.5">
+<span class="lbl">spot check 7.6</span>
+<p class="q">Kernel ridge regression with an RBF kernel is fitted to all 133 crash-helmet measurements. The RBF feature space is infinite-dimensional; how many numbers does the fitted function need besides the training inputs and the kernel?</p>
+<div class="hint">Theorem 7.10.</div>
+<div class="why">One coefficient \(\alpha_i\) per training point: 133. The price of the kernel trick is that prediction cost and memory grow with \(n\) rather than with the feature dimension, and solving \((K+\lambda I)\alpha=y\) costs \(O(n^3)\), which is why Section 8 matters.</div>
+</div>
+
+<!-- =================== 7 =================== -->
+<h2 id="s7">7 &mdash; Gaussian processes</h2>
+
+<p>Kernel ridge regression gives a single function. The Bayesian version gives a distribution over functions, and with it, error bars. The idea is to put a prior directly on the unknown function: a random function whose values at any finite set of points are jointly Gaussian, with the kernel as their covariance.</p>
+
+<div class="box def">
+<span class="lbl">definition 7.4 &mdash; Gaussian process</span>
+<p>A <strong>Gaussian process</strong> \(f\sim\mathcal{GP}(m,k)\) is a random function such that for every finite set of inputs \(x_1,\dots,x_n\), the vector</p>
+$$(f(x_1),\dots,f(x_n))$$
+<p>is multivariate normal with mean \((m(x_i))_i\) and covariance matrix \(K_{ij}=k(x_i,x_j)\).</p>
+<p>The kernel must be positive semi-definite, since covariance matrices are.</p>
+</div>
+
+<p>The kernel encodes what we believe about the function before seeing data. An RBF kernel with length scale \(\ell\) says the function is smooth and varies on scales of about \(\ell\); a periodic kernel says it repeats; a sum of kernels says the function is a sum of independent components of those kinds. Observing \(y_i=f(x_i)+\varepsilon_i\) with Gaussian noise of variance \(\sigma^2\) and conditioning gives the posterior in closed form.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 7.13 &mdash; the GP posterior, and its link to kernel ridge regression</span>
+<p>Let \(f\sim\mathcal{GP}(0,k)\) and \(y_i=f(x_i)+\varepsilon_i\) with \(\varepsilon_i\sim\mathcal N(0,\sigma^2)\) independent. Given the data, \(f(x)\) is Gaussian with</p>
+$$\mathbb E[f(x)\mid y]=k(x)^\top(K+\sigma^2I)^{-1}y,\qquad\operatorname{Var}[f(x)\mid y]=k(x,x)-k(x)^\top(K+\sigma^2I)^{-1}k(x).$$
+<p>The posterior mean is exactly the kernel ridge regression prediction with \(\lambda=\sigma^2\).</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>The vector \((f(x),y)\) is jointly Gaussian with mean zero and covariance</p>
+$$\begin{pmatrix}k(x,x)&amp;k(x)^\top\\k(x)&amp;K+\sigma^2I\end{pmatrix},$$
+<p>since \(\operatorname{Cov}(f(x),y_i)=k(x,x_i)\) and \(\operatorname{Cov}(y)=K+\sigma^2I\).</p>
+<p>The conditional distribution of one block of a Gaussian vector given another is Gaussian with mean \(\Sigma_{12}\Sigma_{22}^{-1}y\) and variance \(\Sigma_{11}-\Sigma_{12}\Sigma_{22}^{-1}\Sigma_{21}\) (the regression formulas of Lecture 3).</p>
+<p>Comparing with Proposition 7.11, \(\alpha=(K+\sigma^2I)^{-1}y\). \(\square\)</p>
+</div>
+</div>
+
+<p>The posterior variance does not depend on \(y\): it measures only how close \(x\) is, in the kernel's sense, to where data were collected. Kernel hyperparameters (length scales, signal and noise variances) can be chosen by maximising the <strong>marginal likelihood</strong> of the data, the probability of \(y\) with \(f\) integrated out:</p>
+$$\log p(y)=-\tfrac12y^\top(K+\sigma^2I)^{-1}y-\tfrac12\log\det(K+\sigma^2I)-\tfrac n2\log2\pi.$$
+<p>The first term rewards fitting the data; the second penalises flexible kernels, which spread their prior probability over many possible data sets. It is Occam's razor built into Bayes' rule, and it replaces cross-validation with a single optimisation.</p>
+
+<div class="widget" id="w-gp">
+<h4>Gaussian process regression</h4>
+<p class="wtxt">Click on the plot to add an observation; click an observation to remove it. The line is the posterior mean and the band its 95% interval for the function \(f\). The prior is an RBF kernel with signal variance 1; set its length scale and the noise standard deviation and watch the marginal likelihood.</p>
+<svg id="gpSvg" viewBox="0 0 560 290" width="560" height="290" role="img" aria-label="Gaussian process posterior mean and band"></svg>
+<div class="ctrls">
+<label><span>length scale ℓ = <span id="gpLv"></span></span><input type="range" id="gpL" min="-1" max="1" step="0.01" value="0"></label>
+<label><span>noise σ = <span id="gpSv"></span></span><input type="range" id="gpS" min="0.01" max="1" step="0.01" value="0.1"></label>
+<button class="ctl" type="button" id="gpReset">reset points</button>
+<button class="ctl" type="button" id="gpClear">clear</button>
+</div>
+<div class="readout" id="gpOut" role="status" aria-live="polite"></div>
+</div>
+
+<p>Far from the data the band widens back to the prior (±1.96) and the mean returns to zero: a GP knows where it has not looked. With the default six points, a length scale of 1 and noise 0.1, the log marginal likelihood is −7.18; shortening the length scale to 0.5 and raising the noise to 0.3 lowers it to −7.41. Clear the plot and add points along a straight line, and you will see the marginal likelihood prefer long length scales.</p>
+
+<div class="box data">
+<span class="lbl">data &mdash; the Keeling curve</span>
+<p>Monthly mean atmospheric CO₂ concentration (parts per million) measured at Mauna Loa Observatory, Hawaii, from March 1958 to August 2026: 822 months with data. Begun by Charles David Keeling of Scripps Institution of Oceanography; now maintained by NOAA Global Monitoring Laboratory (P. Tans) and Scripps (R. Keeling). We use the copy in the <code>datasets/co2-ppm</code> repository (Open Data Commons PDDL), which mirrors NOAA's monthly file.</p>
+</div>
+
+<p>Rasmussen and Williams (2006, Section 5.4.3) made this data set the standard GP demonstration, with a kernel built from parts: a smooth long-term trend, a yearly cycle that may slowly change shape, medium-term irregularities and noise. We fit it to the data up to 2015 and forecast the next ten and a half years.</p>
+
+<div class="box tool">
+<span class="lbl">code &mdash; forecasting CO₂ with a composite kernel</span>
+<pre class="src"><span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">sklearn.gaussian_process</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">GaussianProcessRegressor</span>
+<span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">sklearn.gaussian_process.kernels</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">RBF</span><span class="t-p">,</span> <span class="t-n">ExpSineSquared</span><span class="t-p">,</span> <span class="t-n">RationalQuadratic</span><span class="t-p">,</span> <span class="t-n">WhiteKernel</span><span class="t-p">,</span> <span class="t-n">ConstantKernel</span> <span class="t-k">as</span> <span class="t-n">Cst</span>
+
+<span class="t-n">co2</span> <span class="t-o">=</span> <span class="t-n">pd</span><span class="t-o">.</span><span class="t-fn">read_csv</span><span class="t-p">(</span><span class="t-s1">'data/co2-mm-mlo.csv'</span><span class="t-p">,</span> <span class="t-n">header</span><span class="t-o">=</span><span class="t-kc">None</span><span class="t-p">,</span> <span class="t-n">skiprows</span><span class="t-o">=</span><span class="t-mi">1</span><span class="t-p">,</span>
+                  <span class="t-n">names</span><span class="t-o">=</span><span class="t-p">[</span><span class="t-s1">'month'</span><span class="t-p">,</span> <span class="t-s1">'year'</span><span class="t-p">,</span> <span class="t-s1">'ppm'</span><span class="t-p">,</span> <span class="t-s1">'deseasonalised'</span><span class="t-p">,</span> <span class="t-s1">'days'</span><span class="t-p">,</span> <span class="t-s1">'sd'</span><span class="t-p">,</span> <span class="t-s1">'unc'</span><span class="t-p">])</span>
+<span class="t-n">co2</span> <span class="t-o">=</span> <span class="t-n">co2</span><span class="t-p">[</span><span class="t-n">co2</span><span class="t-p">[</span><span class="t-s1">'ppm'</span><span class="t-p">]</span> <span class="t-o">&gt;</span> <span class="t-mi">0</span><span class="t-p">]</span>                                   <span class="t-c1"># a few early months are missing (-99.99)</span>
+<span class="t-n">train</span><span class="t-p">,</span> <span class="t-n">test</span> <span class="t-o">=</span> <span class="t-n">co2</span><span class="t-p">[</span><span class="t-n">co2</span><span class="t-p">[</span><span class="t-s1">'year'</span><span class="t-p">]</span> <span class="t-o">&lt;</span> <span class="t-mi">2016</span><span class="t-p">],</span> <span class="t-n">co2</span><span class="t-p">[</span><span class="t-n">co2</span><span class="t-p">[</span><span class="t-s1">'year'</span><span class="t-p">]</span> <span class="t-o">&gt;=</span> <span class="t-mi">2016</span><span class="t-p">]</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">co2</span><span class="t-p">)</span><span class="t-si">}</span><span class="t-s1"> months, </span><span class="t-si">{</span><span class="t-n">co2</span><span class="t-o">.</span><span class="t-n">month</span><span class="t-o">.</span><span class="t-n">iloc</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">]</span><span class="t-si">}</span><span class="t-s1"> to </span><span class="t-si">{</span><span class="t-n">co2</span><span class="t-o">.</span><span class="t-n">month</span><span class="t-o">.</span><span class="t-n">iloc</span><span class="t-p">[</span><span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">]</span><span class="t-si">}</span><span class="t-s1">; train to 2015 (</span><span class="t-si">{</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">train</span><span class="t-p">)</span><span class="t-si">}</span><span class="t-s1">), test from 2016 (</span><span class="t-si">{</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">test</span><span class="t-p">)</span><span class="t-si">}</span><span class="t-s1">)'</span><span class="t-p">)</span>
+
+<span class="t-n">kernel</span> <span class="t-o">=</span> <span class="t-p">(</span><span class="t-fn">Cst</span><span class="t-p">(</span><span class="t-mf">50.0</span><span class="t-o">**</span><span class="t-mi">2</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-fn">RBF</span><span class="t-p">(</span><span class="t-mf">50.0</span><span class="t-p">)</span>                                         <span class="t-c1"># long-term rise</span>
+          <span class="t-o">+</span> <span class="t-fn">Cst</span><span class="t-p">(</span><span class="t-mf">2.0</span><span class="t-o">**</span><span class="t-mi">2</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-fn">RBF</span><span class="t-p">(</span><span class="t-mf">100.0</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-fn">ExpSineSquared</span><span class="t-p">(</span><span class="t-mf">1.0</span><span class="t-p">,</span> <span class="t-mf">1.0</span><span class="t-p">,</span> <span class="t-n">periodicity_bounds</span><span class="t-o">=</span><span class="t-s1">'fixed'</span><span class="t-p">)</span>   <span class="t-c1"># yearly cycle</span>
+          <span class="t-o">+</span> <span class="t-fn">Cst</span><span class="t-p">(</span><span class="t-mf">0.5</span><span class="t-o">**</span><span class="t-mi">2</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-fn">RationalQuadratic</span><span class="t-p">(</span><span class="t-mf">1.0</span><span class="t-p">,</span> <span class="t-mf">1.0</span><span class="t-p">)</span>                          <span class="t-c1"># medium-term wiggles</span>
+          <span class="t-o">+</span> <span class="t-fn">Cst</span><span class="t-p">(</span><span class="t-mf">0.1</span><span class="t-o">**</span><span class="t-mi">2</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-fn">RBF</span><span class="t-p">(</span><span class="t-mf">0.1</span><span class="t-p">)</span> <span class="t-o">+</span> <span class="t-fn">WhiteKernel</span><span class="t-p">(</span><span class="t-mf">0.1</span><span class="t-o">**</span><span class="t-mi">2</span><span class="t-p">))</span>                      <span class="t-c1"># noise</span>
+<span class="t-n">gp</span> <span class="t-o">=</span> <span class="t-fn">GaussianProcessRegressor</span><span class="t-p">(</span><span class="t-n">kernel</span><span class="t-p">,</span> <span class="t-n">normalize_y</span><span class="t-o">=</span><span class="t-kc">True</span><span class="t-p">,</span> <span class="t-n">random_state</span><span class="t-o">=</span><span class="t-mi">0</span><span class="t-p">)</span>
+<span class="t-n">gp</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">train</span><span class="t-p">[[</span><span class="t-s1">'year'</span><span class="t-p">]]</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">(),</span> <span class="t-n">train</span><span class="t-p">[</span><span class="t-s1">'ppm'</span><span class="t-p">]</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">())</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'learned kernel:'</span><span class="t-p">,</span> <span class="t-n">gp</span><span class="t-o">.</span><span class="t-n">kernel_</span><span class="t-p">)</span>
+<span class="t-n">mean</span><span class="t-p">,</span> <span class="t-n">sd</span> <span class="t-o">=</span> <span class="t-n">gp</span><span class="t-o">.</span><span class="t-fn">predict</span><span class="t-p">(</span><span class="t-n">test</span><span class="t-p">[[</span><span class="t-s1">'year'</span><span class="t-p">]]</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">(),</span> <span class="t-n">return_std</span><span class="t-o">=</span><span class="t-kc">True</span><span class="t-p">)</span>
+<span class="t-n">y_te</span> <span class="t-o">=</span> <span class="t-n">test</span><span class="t-p">[</span><span class="t-s1">'ppm'</span><span class="t-p">]</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">()</span>
+<span class="t-n">inside</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">abs</span><span class="t-p">(</span><span class="t-n">y_te</span> <span class="t-o">-</span> <span class="t-n">mean</span><span class="t-p">)</span> <span class="t-o">&lt;=</span> <span class="t-mf">1.96</span> <span class="t-o">*</span> <span class="t-n">sd</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'forecast RMSE 2016-</span><span class="t-si">{</span><span class="t-n">test</span><span class="t-o">.</span><span class="t-n">month</span><span class="t-o">.</span><span class="t-n">iloc</span><span class="t-p">[</span><span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">][:</span><span class="t-mi">4</span><span class="t-p">]</span><span class="t-si">}</span><span class="t-s1">: </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sqrt</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">((</span><span class="t-n">mean</span><span class="t-w"> </span><span class="t-o">-</span><span class="t-w"> </span><span class="t-n">y_te</span><span class="t-p">)</span><span class="t-w"> </span><span class="t-o">**</span><span class="t-w"> </span><span class="t-mi">2</span><span class="t-p">))</span><span class="t-si">:</span><span class="t-s1">.2f</span><span class="t-si">}</span><span class="t-s1"> ppm;'</span>
+      <span class="t-sa">f</span><span class="t-s1">' observed inside the 95% band: </span><span class="t-si">{</span><span class="t-n">inside</span><span class="t-o">.</span><span class="t-fn">mean</span><span class="t-p">()</span><span class="t-si">:</span><span class="t-s1">.1%</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span>
+<span class="t-k">for</span> <span class="t-n">m</span> <span class="t-ow">in</span> <span class="t-p">[</span><span class="t-s1">'2016-05'</span><span class="t-p">,</span> <span class="t-s1">'2021-05'</span><span class="t-p">,</span> <span class="t-n">test</span><span class="t-o">.</span><span class="t-n">month</span><span class="t-o">.</span><span class="t-n">iloc</span><span class="t-p">[</span><span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">]]:</span>
+    <span class="t-n">i</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">where</span><span class="t-p">(</span><span class="t-n">test</span><span class="t-o">.</span><span class="t-n">month</span><span class="t-o">.</span><span class="t-fn">to_numpy</span><span class="t-p">()</span> <span class="t-o">==</span> <span class="t-n">m</span><span class="t-p">)[</span><span class="t-mi">0</span><span class="t-p">][</span><span class="t-mi">0</span><span class="t-p">]</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">m</span><span class="t-si">}</span><span class="t-s1">: forecast </span><span class="t-si">{</span><span class="t-n">mean</span><span class="t-p">[</span><span class="t-n">i</span><span class="t-p">]</span><span class="t-si">:</span><span class="t-s1">.2f</span><span class="t-si">}</span><span class="t-s1"> ± </span><span class="t-si">{</span><span class="t-mf">1.96</span><span class="t-w"> </span><span class="t-o">*</span><span class="t-w"> </span><span class="t-n">sd</span><span class="t-p">[</span><span class="t-n">i</span><span class="t-p">]</span><span class="t-si">:</span><span class="t-s1">.2f</span><span class="t-si">}</span><span class="t-s1">, observed </span><span class="t-si">{</span><span class="t-n">y_te</span><span class="t-p">[</span><span class="t-n">i</span><span class="t-p">]</span><span class="t-si">:</span><span class="t-s1">.2f</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span></pre>
+<pre class="out">822 months, 1958-03 to 2026-08; train to 2015 (694), test from 2016 (128)
+learned kernel: 6.52**2 * RBF(length_scale=114) + 0.112**2 * RBF(length_scale=148) * ExpSineSquared(length_scale=1.54, periodicity=1) + 0.489**2 * RationalQuadratic(alpha=0.000709, length_scale=20.9) + 0.00739**2 * RBF(length_scale=0.12) + WhiteKernel(noise_level=5.85e-05)
+forecast RMSE 2016-2026: 2.47 ppm; observed inside the 95% band: 66.4%
+2016-05: forecast 406.49 ± 0.86, observed 407.90
+2021-05: forecast 417.13 ± 2.45, observed 419.09
+2026-08: forecast 423.88 ± 3.79, observed 427.55</pre>
+</div>
+
+<p>The learned kernel is readable: a trend varying over about a century, a yearly cycle whose shape drifts over about 150 years, and irregularities on a 20-year scale. The forecasts are good for a year (406.5 forecast against 407.9 in May 2016) but fall steadily behind: by August 2026 the forecast is 423.9 and the truth 427.6. Only 66% of the observed months fall inside the 95% bands. This is an honest failure and a useful one. A GP with an RBF trend, extrapolated far from data, reverts toward the prior; it has no way to know that emissions kept rising and the growth rate accelerated. Its bands are honest about the noise it has seen, not about the possibility that the kernel's assumptions are wrong. Better forecasts need a kernel that encodes accelerating growth, or physics (emissions data), which is the GP version of choosing the right features.</p>
+
+<div class="spot" id="sp7-7" data-kind="mc">
+<span class="lbl">spot check 7.7</span>
+<p class="q">In GP regression with noise variance \(\sigma^2&gt;0\), what is true of the posterior mean at a training input \(x_i\)?</p>
+<ul class="opts">
+<li data-ok>It is generally not equal to \(y_i\): with noise in the model, the posterior shrinks toward the prior mean and the neighbouring data.</li>
+<li data-oh="That is only true as σ² → 0.">It always equals \(y_i\) exactly.</li>
+<li data-oh="The posterior mean at x_i uses all the data, weighted by the kernel.">It depends only on \(y_i\).</li>
+<li data-oh="The variance shrinks near data; the mean is pulled toward the observations.">It is always 0, the prior mean.</li>
+</ul>
+<div class="hint">Look at the widget with a noise level of 0.5.</div>
+<div class="why">The mean is \(k(x_i)^\top(K+\sigma^2I)^{-1}y\), the kernel ridge fit with \(\lambda=\sigma^2\), which does not interpolate. For a single observation with \(k(x,x)=1\), it is \(y/(1+\sigma^2)\) (Exercise 7).</div>
+</div>
+
+<div class="box bayes">
+<span class="lbl">bayes &mdash; Bayesian optimisation: deciding where to look next</span>
+<p>When each evaluation of a function is expensive (training a large model with given hyperparameters, synthesising a material, running a simulation), a GP posterior can decide where to evaluate next. An <strong>acquisition function</strong> such as expected improvement, \(\mathbb E[\max(0,f(x)-f_{\text{best}})]\), is computed in closed form from the posterior mean and variance and trades off exploiting promising regions (high mean) against exploring uncertain ones (high variance). Snoek, Larochelle and Adams (2012) showed this tunes neural network hyperparameters better than experts; DeepMind tuned AlphaGo's hyperparameters this way (Chen et al., 2018), and it is now standard in materials and drug discovery.</p>
+</div>
+
+<!-- =================== 8 =================== -->
+<h2 id="s8">8 &mdash; Kernels at scale, in deep learning and on quantum computers</h2>
+
+<h3>Random features</h3>
+
+<p>Exact kernel methods cost \(O(n^3)\) time and \(O(n^2)\) memory, impractical beyond a few tens of thousands of points. Rahimi and Recht (2007) turned the kernel trick around: approximate \(k\) by an explicit, finite random feature map, then use a linear method.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 7.14 &mdash; Bochner's theorem and random Fourier features</span>
+<p>A continuous shift-invariant function \(k(x,z)=\kappa(x-z)\) on \(\mathbb R^p\) with \(\kappa(0)=1\) is a kernel if and only if \(\kappa\) is the Fourier transform of a probability distribution \(\rho\):</p>
+$$\kappa(\delta)=\mathbb E_{\omega\sim\rho}\cos(\omega^\top\delta)$$
+<p>(Bochner, 1933).</p>
+<p>Consequently, with \(\omega_1,\dots,\omega_D\sim\rho\) and \(b_j\sim\mathrm{Unif}[0,2\pi]\) independent, the features</p>
+$$z(x)=\sqrt{2/D}\,\big(\cos(\omega_1^\top x+b_1),\dots,\cos(\omega_D^\top x+b_D)\big)$$
+<p>satisfy</p>
+$$\mathbb E\,z(x)^\top z(x')=k(x,x'),$$
+<p>with error of order \(1/\sqrt D\).</p>
+<p>For the RBF kernel \(e^{-\|x-z\|^2/(2s^2)}\), \(\rho=\mathcal N(0,s^{-2}I)\).</p>
+<button class="sol-btn">show proof of unbiasedness</button>
+<div class="sol">
+$$2\cos(a+b)\cos(c+b)=\cos(a-c)+\cos(a+c+2b),$$
+<p>and averaging over \(b\sim\mathrm{Unif}[0,2\pi]\) kills the second term. So each coordinate pair contributes</p>
+$$\frac2D\cdot\frac12\mathbb E\cos(\omega^\top(x-x'))=\frac1D\kappa(x-x'),$$
+<p>and summing over \(D\) coordinates gives \(\kappa(x-x')\). \(\square\)</p>
+</div>
+</div>
+
+<div class="box tool">
+<span class="lbl">code &mdash; random Fourier features for the RBF kernel</span>
+<pre class="src"><span class="t-c1"># Random Fourier features: approximate exp(-||x - z||^2 / (2 s^2)) by an explicit D-dimensional map</span>
+<span class="t-n">rng</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-fn">default_rng</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">)</span>
+<span class="t-n">s</span> <span class="t-o">=</span> <span class="t-mf">3.0</span>
+<span class="t-n">K_exact</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">exp</span><span class="t-p">(</span><span class="t-o">-</span><span class="t-n">sq</span> <span class="t-o">/</span> <span class="t-p">(</span><span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">s</span><span class="t-o">**</span><span class="t-mi">2</span><span class="t-p">))</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'     D   max |K_approx - K_exact|   ridge classifier on the features: test acc.'</span><span class="t-p">)</span>
+<span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">sklearn.linear_model</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">RidgeClassifier</span>
+<span class="t-k">for</span> <span class="t-n">D</span> <span class="t-ow">in</span> <span class="t-p">[</span><span class="t-mi">10</span><span class="t-p">,</span> <span class="t-mi">100</span><span class="t-p">,</span> <span class="t-mi">1000</span><span class="t-p">,</span> <span class="t-mi">10000</span><span class="t-p">]:</span>
+    <span class="t-n">W</span> <span class="t-o">=</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-fn">standard_normal</span><span class="t-p">((</span><span class="t-mi">30</span><span class="t-p">,</span> <span class="t-n">D</span><span class="t-p">))</span> <span class="t-o">/</span> <span class="t-n">s</span>                       <span class="t-c1"># frequencies from the kernel's Fourier transform</span>
+    <span class="t-n">b</span> <span class="t-o">=</span> <span class="t-n">rng</span><span class="t-o">.</span><span class="t-fn">uniform</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">pi</span><span class="t-p">,</span> <span class="t-n">D</span><span class="t-p">)</span>
+    <span class="t-n">feat</span> <span class="t-o">=</span> <span class="t-k">lambda</span> <span class="t-n">A</span><span class="t-p">:</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sqrt</span><span class="t-p">(</span><span class="t-mi">2</span> <span class="t-o">/</span> <span class="t-n">D</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">cos</span><span class="t-p">(</span><span class="t-n">A</span> <span class="t-o">@</span> <span class="t-n">W</span> <span class="t-o">+</span> <span class="t-n">b</span><span class="t-p">)</span>
+    <span class="t-n">err</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">abs</span><span class="t-p">(</span><span class="t-fn">feat</span><span class="t-p">(</span><span class="t-n">S</span><span class="t-p">)</span> <span class="t-o">@</span> <span class="t-fn">feat</span><span class="t-p">(</span><span class="t-n">S</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-n">T</span> <span class="t-o">-</span> <span class="t-n">K_exact</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">max</span><span class="t-p">()</span>
+    <span class="t-n">clf</span> <span class="t-o">=</span> <span class="t-fn">RidgeClassifier</span><span class="t-p">(</span><span class="t-n">alpha</span><span class="t-o">=</span><span class="t-mf">1.0</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-fn">feat</span><span class="t-p">(</span><span class="t-n">Ztr</span><span class="t-p">),</span> <span class="t-n">ytr</span><span class="t-p">)</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">D</span><span class="t-si">:</span><span class="t-s1">6d</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">err</span><span class="t-si">:</span><span class="t-s1">24.4f</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">clf</span><span class="t-o">.</span><span class="t-fn">score</span><span class="t-p">(</span><span class="t-fn">feat</span><span class="t-p">(</span><span class="t-n">Zte</span><span class="t-p">),</span><span class="t-w"> </span><span class="t-n">yte</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">36.3f</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span></pre>
+<pre class="out">     D   max |K_approx - K_exact|   ridge classifier on the features: test acc.
+    10                     1.2474                                  0.731
+   100                     0.4335                                  0.901
+  1000                     0.1198                                  0.942
+ 10000                     0.0414                                  0.930</pre>
+</div>
+
+<p>The worst-case error in the 200 × 200 Gram matrix falls by about \(\sqrt{10}\) for each tenfold increase in \(D\), as the theorem predicts, and a plain ridge classifier on 1,000 random features matches the kernel SVM. These are the random-feature models of Lecture 6's double-descent experiment: a two-layer network whose first layer is random and frozen.</p>
+
+<h3>The neural tangent kernel</h3>
+
+<p>The link to networks goes further. Train a network \(f(x;\theta)\) by gradient descent on squared loss. If the network is very wide and the parameters barely move from their initial values \(\theta_0\), a first-order Taylor expansion \(f(x;\theta)\approx f(x;\theta_0)+\nabla_\theta f(x;\theta_0)^\top(\theta-\theta_0)\) is accurate, and the network is a linear model in the features \(\nabla_\theta f(x;\theta_0)\).</p>
+
+<div class="box thm">
+<span class="lbl">theorem 7.15 &mdash; the neural tangent kernel (informal)</span>
+<p>For fully connected networks in the "NTK parameterisation", as the widths of all hidden layers tend to infinity, the kernel</p>
+$$\Theta(x,x')=\nabla_\theta f(x;\theta)^\top\nabla_\theta f(x';\theta)$$
+<p>converges to a deterministic limit and stays constant during training.</p>
+<p>Gradient flow on squared loss then makes the network's function evolve exactly as kernel regression with kernel \(\Theta\), and the trained infinitely wide network equals the minimum-norm kernel interpolant (Jacot, Gabriel and Hongler, 2018; Lee et al., 2019).</p>
+</div>
+
+<p>The NTK made over-parameterised networks analysable with the tools of this lecture and Lecture 6. Its limitation is also its lesson: in this regime the features do not change, so the network does not <em>learn representations</em>, and finite networks that do (Chizat, Oyallon and Bach, 2019, call the NTK regime "lazy training") usually beat their NTK on real data. Why feature learning helps is one of the central open questions of deep learning theory.</p>
+
+<h3>Quantum kernels</h3>
+
+<p>A quantum computer can prepare a state \(|\varphi(x)\rangle\) in a space of dimension \(2^q\) by running a circuit whose gate angles depend on \(x\), and estimate overlaps \(|\langle\varphi(x)|\varphi(z)\rangle|^2\) by repeated measurement. That overlap is a kernel (it is \(\langle\rho(x),\rho(z)\rangle\) for the density matrices \(\rho=|\varphi\rangle\langle\varphi|\)), so any quantum feature map defines a kernel SVM. The code simulates the "ZZ feature map" of Havlíček et al. (2019) exactly on the breast-cancer data, compressed to \(q\) principal components.</p>
+
+<div class="box tool">
+<span class="lbl">code &mdash; a simulated quantum kernel</span>
+<pre class="src"><span class="t-c1"># A quantum kernel, simulated exactly: the ZZ feature map of Havlicek et al. (2019) on q qubits</span>
+<span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">functools</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">reduce</span>
+<span class="t-n">H</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">array</span><span class="t-p">([[</span><span class="t-mi">1</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">],</span> <span class="t-p">[</span><span class="t-mi">1</span><span class="t-p">,</span> <span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">]])</span> <span class="t-o">/</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">sqrt</span><span class="t-p">(</span><span class="t-mi">2</span><span class="t-p">)</span>
+
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">zz_state</span><span class="t-p">(</span><span class="t-n">x</span><span class="t-p">,</span> <span class="t-n">reps</span><span class="t-o">=</span><span class="t-mi">2</span><span class="t-p">):</span>
+    <span class="t-n">q</span> <span class="t-o">=</span> <span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">x</span><span class="t-p">)</span>
+    <span class="t-n">bits</span> <span class="t-o">=</span> <span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">arange</span><span class="t-p">(</span><span class="t-mi">2</span><span class="t-o">**</span><span class="t-n">q</span><span class="t-p">)[:,</span> <span class="t-kc">None</span><span class="t-p">]</span> <span class="t-o">&gt;&gt;</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">arange</span><span class="t-p">(</span><span class="t-n">q</span><span class="t-p">)[::</span><span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">])</span> <span class="t-o">&amp;</span> <span class="t-mi">1</span>
+    <span class="t-n">z</span> <span class="t-o">=</span> <span class="t-mi">1</span> <span class="t-o">-</span> <span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">bits</span>                                           <span class="t-c1"># eigenvalues of Z on each qubit: +1 or -1</span>
+    <span class="t-n">phase</span> <span class="t-o">=</span> <span class="t-n">z</span> <span class="t-o">@</span> <span class="t-n">x</span>                                              <span class="t-c1"># sum_i x_i Z_i</span>
+    <span class="t-k">for</span> <span class="t-n">i</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-n">q</span><span class="t-p">):</span>
+        <span class="t-k">for</span> <span class="t-n">j</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-n">i</span> <span class="t-o">+</span> <span class="t-mi">1</span><span class="t-p">,</span> <span class="t-n">q</span><span class="t-p">):</span>
+            <span class="t-n">phase</span> <span class="t-o">=</span> <span class="t-n">phase</span> <span class="t-o">+</span> <span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">pi</span> <span class="t-o">-</span> <span class="t-n">x</span><span class="t-p">[</span><span class="t-n">i</span><span class="t-p">])</span> <span class="t-o">*</span> <span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">pi</span> <span class="t-o">-</span> <span class="t-n">x</span><span class="t-p">[</span><span class="t-n">j</span><span class="t-p">])</span> <span class="t-o">*</span> <span class="t-n">z</span><span class="t-p">[:,</span> <span class="t-n">i</span><span class="t-p">]</span> <span class="t-o">*</span> <span class="t-n">z</span><span class="t-p">[:,</span> <span class="t-n">j</span><span class="t-p">]</span>   <span class="t-c1"># the ZZ couplings</span>
+    <span class="t-n">Hq</span> <span class="t-o">=</span> <span class="t-fn">reduce</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">kron</span><span class="t-p">,</span> <span class="t-p">[</span><span class="t-n">H</span><span class="t-p">]</span> <span class="t-o">*</span> <span class="t-n">q</span><span class="t-p">)</span>
+    <span class="t-n">psi</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">zeros</span><span class="t-p">(</span><span class="t-mi">2</span><span class="t-o">**</span><span class="t-n">q</span><span class="t-p">);</span> <span class="t-n">psi</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">]</span> <span class="t-o">=</span> <span class="t-mi">1</span>
+    <span class="t-k">for</span> <span class="t-n">_</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-n">reps</span><span class="t-p">):</span>
+        <span class="t-n">psi</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">exp</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-n">j</span> <span class="t-o">*</span> <span class="t-n">phase</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-p">(</span><span class="t-n">Hq</span> <span class="t-o">@</span> <span class="t-n">psi</span><span class="t-p">)</span>                  <span class="t-c1"># layer: Hadamards, then diagonal phases</span>
+    <span class="t-k">return</span> <span class="t-n">psi</span>
+
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">quantum_kernel</span><span class="t-p">(</span><span class="t-n">A</span><span class="t-p">,</span> <span class="t-n">B</span><span class="t-p">):</span>
+    <span class="t-n">SA</span><span class="t-p">,</span> <span class="t-n">SB</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">array</span><span class="t-p">([</span><span class="t-fn">zz_state</span><span class="t-p">(</span><span class="t-n">a</span><span class="t-p">)</span> <span class="t-k">for</span> <span class="t-n">a</span> <span class="t-ow">in</span> <span class="t-n">A</span><span class="t-p">]),</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">array</span><span class="t-p">([</span><span class="t-fn">zz_state</span><span class="t-p">(</span><span class="t-n">b</span><span class="t-p">)</span> <span class="t-k">for</span> <span class="t-n">b</span> <span class="t-ow">in</span> <span class="t-n">B</span><span class="t-p">])</span>
+    <span class="t-k">return</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">abs</span><span class="t-p">(</span><span class="t-n">SA</span><span class="t-o">.</span><span class="t-fn">conj</span><span class="t-p">()</span> <span class="t-o">@</span> <span class="t-n">SB</span><span class="t-o">.</span><span class="t-n">T</span><span class="t-p">)</span> <span class="t-o">**</span> <span class="t-mi">2</span>                       <span class="t-c1"># k(x, z) = |&lt;phi(x)|phi(z)&gt;|^2</span>
+
+<span class="t-kn">from</span><span class="t-w"> </span><span class="t-nn">sklearn.decomposition</span><span class="t-w"> </span><span class="t-kn">import</span> <span class="t-n">PCA</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s1">'qubits   quantum test acc.   RBF test acc.   spread of off-diagonal kernel values'</span><span class="t-p">)</span>
+<span class="t-k">for</span> <span class="t-n">q</span> <span class="t-ow">in</span> <span class="t-p">[</span><span class="t-mi">2</span><span class="t-p">,</span> <span class="t-mi">4</span><span class="t-p">,</span> <span class="t-mi">6</span><span class="t-p">,</span> <span class="t-mi">8</span><span class="t-p">]:</span>
+    <span class="t-n">pca</span> <span class="t-o">=</span> <span class="t-fn">PCA</span><span class="t-p">(</span><span class="t-n">q</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">Ztr</span><span class="t-p">)</span>
+    <span class="t-n">P_tr</span><span class="t-p">,</span> <span class="t-n">P_te</span> <span class="t-o">=</span> <span class="t-n">pca</span><span class="t-o">.</span><span class="t-fn">transform</span><span class="t-p">(</span><span class="t-n">Ztr</span><span class="t-p">),</span> <span class="t-n">pca</span><span class="t-o">.</span><span class="t-fn">transform</span><span class="t-p">(</span><span class="t-n">Zte</span><span class="t-p">)</span>
+    <span class="t-n">lo</span><span class="t-p">,</span> <span class="t-n">hi</span> <span class="t-o">=</span> <span class="t-n">P_tr</span><span class="t-o">.</span><span class="t-fn">min</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">),</span> <span class="t-n">P_tr</span><span class="t-o">.</span><span class="t-fn">max</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">)</span>
+    <span class="t-n">A_tr</span> <span class="t-o">=</span> <span class="t-p">(</span><span class="t-n">P_tr</span> <span class="t-o">-</span> <span class="t-n">lo</span><span class="t-p">)</span> <span class="t-o">/</span> <span class="t-p">(</span><span class="t-n">hi</span> <span class="t-o">-</span> <span class="t-n">lo</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">pi</span>                     <span class="t-c1"># scale features to [0, pi]</span>
+    <span class="t-n">A_te</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">clip</span><span class="t-p">((</span><span class="t-n">P_te</span> <span class="t-o">-</span> <span class="t-n">lo</span><span class="t-p">)</span> <span class="t-o">/</span> <span class="t-p">(</span><span class="t-n">hi</span> <span class="t-o">-</span> <span class="t-n">lo</span><span class="t-p">),</span> <span class="t-mi">0</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">pi</span>
+    <span class="t-n">Ktr</span><span class="t-p">,</span> <span class="t-n">Kte</span> <span class="t-o">=</span> <span class="t-fn">quantum_kernel</span><span class="t-p">(</span><span class="t-n">A_tr</span><span class="t-p">,</span> <span class="t-n">A_tr</span><span class="t-p">),</span> <span class="t-fn">quantum_kernel</span><span class="t-p">(</span><span class="t-n">A_te</span><span class="t-p">,</span> <span class="t-n">A_tr</span><span class="t-p">)</span>
+    <span class="t-n">qsvm</span> <span class="t-o">=</span> <span class="t-fn">SVC</span><span class="t-p">(</span><span class="t-n">kernel</span><span class="t-o">=</span><span class="t-s1">'precomputed'</span><span class="t-p">,</span> <span class="t-n">C</span><span class="t-o">=</span><span class="t-mi">10</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">Ktr</span><span class="t-p">,</span> <span class="t-n">ytr</span><span class="t-p">)</span>
+    <span class="t-n">rbf</span> <span class="t-o">=</span> <span class="t-fn">SVC</span><span class="t-p">(</span><span class="t-n">kernel</span><span class="t-o">=</span><span class="t-s1">'rbf'</span><span class="t-p">,</span> <span class="t-n">C</span><span class="t-o">=</span><span class="t-mi">10</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-fn">fit</span><span class="t-p">(</span><span class="t-n">A_tr</span><span class="t-p">,</span> <span class="t-n">ytr</span><span class="t-p">)</span>
+    <span class="t-n">off</span> <span class="t-o">=</span> <span class="t-n">Ktr</span><span class="t-p">[</span><span class="t-o">~</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-fn">eye</span><span class="t-p">(</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">Ktr</span><span class="t-p">),</span> <span class="t-n">dtype</span><span class="t-o">=</span><span class="t-nb">bool</span><span class="t-p">)]</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">q</span><span class="t-si">:</span><span class="t-s1">6d</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">qsvm</span><span class="t-o">.</span><span class="t-fn">score</span><span class="t-p">(</span><span class="t-n">Kte</span><span class="t-p">,</span><span class="t-w"> </span><span class="t-n">yte</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">17.3f</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">rbf</span><span class="t-o">.</span><span class="t-fn">score</span><span class="t-p">(</span><span class="t-n">A_te</span><span class="t-p">,</span><span class="t-w"> </span><span class="t-n">yte</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s1">13.3f</span><span class="t-si">}</span><span class="t-s1">   </span><span class="t-si">{</span><span class="t-n">off</span><span class="t-o">.</span><span class="t-fn">std</span><span class="t-p">()</span><span class="t-si">:</span><span class="t-s1">.4f</span><span class="t-si">}</span><span class="t-s1">'</span><span class="t-p">)</span></pre>
+<pre class="out">qubits   quantum test acc.   RBF test acc.   spread of off-diagonal kernel values
+     2               0.836           0.924   0.2746
+     4               0.749           0.936   0.0804
+     6               0.696           0.947   0.0210
+     8               0.667           0.947   0.0068</pre>
+</div>
+
+<p>On two qubits the quantum kernel gets 83.6% against 92.4% for an RBF kernel on the same inputs, and adding qubits makes it worse, not better. The last column shows why. The standard deviation of the off-diagonal kernel values falls from 0.27 to 0.007 as \(q\) goes from 2 to 8: in a space of dimension \(2^q\), random-looking states are nearly orthogonal, so every pair of patients looks equally dissimilar and the Gram matrix approaches the identity. On real hardware each entry would be estimated from measurement shots, and resolving differences of 0.007 needs tens of thousands of shots per entry.</p>
+
+<div class="box quantum">
+<span class="lbl">quantum &mdash; a quantum model is a kernel method</span>
+<p>Schuld (2021) observed that most supervised quantum models, which encode data with a circuit and then measure an observable, are linear models in the feature space \(\rho(x)\), and hence kernel methods: by the representer theorem, the best such model is a kernel machine with the quantum kernel. The question becomes when a quantum kernel is both hard to compute classically and useful. Liu, Arunachalam and Temme (2021) proved a rigorous advantage for a kernel built around the discrete logarithm, a problem believed to be classically hard. Huang et al. (2021) showed that, given data, classical learners can often match quantum kernels, and proposed a test for when they cannot. Thanasilp et al. (2024) proved that many feature maps suffer exactly the exponential concentration seen above, making them untrainable at scale. Quantum kernels are an active research area precisely because the classical theory of this lecture says what would have to be true for them to help.</p>
+</div>
+
+<div class="box causal">
+<span class="lbl">causal &mdash; kernels as independence tests</span>
+<p>Causal discovery (Lecture 20) needs tests of whether two variables are independent, or independent given a third, without assuming linear relationships. Kernels supply them. The Hilbert–Schmidt independence criterion (Gretton et al., 2005) is the squared norm of the cross-covariance between the RKHS features of \(X\) and \(Y\); with a characteristic kernel such as the RBF, it is zero <em>if and only if</em> \(X\) and \(Y\) are independent, so it detects nonlinear dependence that correlation misses. The kernel conditional independence test of Zhang et al. (2011) extends this and is a standard choice inside the PC algorithm. In treatment-effect estimation, kernel balancing chooses weights that make the treated and control groups' kernel mean embeddings match, a nonlinear version of the covariate balance checks of Lecture 4.</p>
+</div>
+
+<div class="box big">
+<span class="lbl">big picture &mdash; where kernels live today</span>
+<p>Deep networks displaced SVMs on images, speech and text, but kernels remain the method of choice when data are small and structured. Computational biology classifies protein sequences with string kernels (Leslie, Eskin and Noble, 2002) and molecules with graph kernels. Gaussian processes are the standard surrogate model in Bayesian optimisation, in geostatistics (where they are called kriging), and as fast emulators of expensive climate and engineering simulations. Kernel two-sample tests based on the maximum mean discrepancy check whether a generative model's samples match real data and detect dataset shift. And the theory of deep learning still speaks in kernels: NTK analyses, the random-feature models behind double descent, and the "kernel regime" against "feature learning regime" distinction appear throughout current papers.</p>
+</div>
+
+<!-- =================== 9 =================== -->
+<h2 id="s9">9 &mdash; Summary, exercises, projects, reading</h2>
+
+<div class="box thm">
+<span class="lbl">summary</span>
+<ul>
+<li>The hard-margin SVM minimises \(\frac12\|w\|^2\) subject to \(y_i(w^\top x_i+b)\ge1\), maximising the street width \(2/\|w\|\). The soft margin adds slack at price \(C\) and is hinge loss with a ridge penalty (Proposition 7.5).</li>
+<li>Lagrange duality and the KKT conditions (Theorem 7.2) give the dual SVM (Theorem 7.4): \(w=\sum\alpha_iy_ix_i\), with \(\alpha_i&gt;0\) only for support vectors, and the data enter only through inner products.</li>
+<li>The kernel trick replaces \(x^\top z\) by \(k(x,z)=\varphi(x)^\top\varphi(z)\). Polynomial kernels have \(\binom{p+d}d\) features; the RBF kernel has infinitely many, and \(\gamma\) is a bias–variance dial.</li>
+<li>\(k\) is a kernel iff all Gram matrices are positive semi-definite (Theorem 7.7); kernels are closed under sums, products and limits (Proposition 7.8); Mercer's theorem is the spectral theorem for kernels.</li>
+<li>The representer theorem (7.10) reduces regularised learning in an RKHS to \(n\) coefficients; kernel ridge regression has \(\alpha=(K+\lambda I)^{-1}y\).</li>
+<li>A Gaussian process posterior mean equals kernel ridge regression with \(\lambda=\sigma^2\) (Theorem 7.13), plus a variance; hyperparameters come from the marginal likelihood.</li>
+<li>Random Fourier features (Theorem 7.14) make kernels scale; wide networks behave like kernel machines with the NTK (Theorem 7.15); quantum models are kernel methods, and their kernels can concentrate.</li>
+</ul>
+<p><strong>Next:</strong> Lecture 8 turns to a very different way of building flexible models: decision trees, which split feature space into boxes, and the forests and boosted ensembles that make them the strongest methods for tabular data.</p>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises 7</span>
+<ol>
+<li>Find the hard-margin SVM for the two points \(x_1=(1,1)\), \(y_1=+1\) and \(x_2=(-1,-1)\), \(y_2=-1\), and check that the street width is the distance between them.
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>By symmetry \(b=0\) and \(w=c(1,1)\). Both constraints read \(2c\ge1\), so the smallest \(\|w\|\) has \(c=\tfrac12\), \(w=(\tfrac12,\tfrac12)\), \(\|w\|=1/\sqrt2\), width \(2\sqrt2\), which is \(\|x_1-x_2\|\). In the dual, \(\sum\alpha_iy_i=0\) forces \(\alpha_1=\alpha_2=\alpha\), and \(w=\alpha x_1-\alpha x_2=2\alpha(1,1)\), so \(\alpha=\tfrac14\).</p></div></li>
+<li>Show that at the hard-margin optimum \(\sum_i\alpha_i=\|w\|^2\), so the street width is \(2/\sqrt{\sum_i\alpha_i}\). Check with Exercise 1.
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>Complementary slackness gives \(\alpha_iy_i(w^\top x_i+b)=\alpha_i\) for every \(i\). Summing, \(w^\top\sum_i\alpha_iy_ix_i+b\sum_i\alpha_iy_i=\sum_i\alpha_i\), and the left side is \(w^\top w+0\). In Exercise 1, \(\sum\alpha_i=\tfrac12=\|w\|^2\).</p></div></li>
+<li>Show that the number of monomials of degree at most \(d\) in \(p\) variables is \(\binom{p+d}d\).
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>A monomial of degree at most \(d\) is a multiset of size exactly \(d\) drawn from the \(p\) variables plus a dummy symbol "1" (padding up to degree \(d\)). Multisets of size \(d\) from \(p+1\) symbols number \(\binom{p+1+d-1}d=\binom{p+d}d\) (stars and bars).</p></div></li>
+<li>Show directly from Proposition 7.8 that \(\exp(-\gamma\|x-z\|^2)\) is a kernel for \(\gamma&gt;0\), and that \(\exp(-\gamma\|x-z\|^2)\,(x^\top z+1)^2\) is too.
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>\(2\gamma x^\top z\) is a kernel (scaled linear kernel), so is its exponential, and multiplying by \(f(x)f(z)\) with \(f(x)=e^{-\gamma\|x\|^2}\) gives the RBF kernel. The second is a product of two kernels.</p></div></li>
+<li>Show that \(k(s,t)=\min(s,t)\) on \([0,\infty)\) is a kernel by finding a feature map into a space of functions. (It is the covariance of Brownian motion.)
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>Take \(\varphi(s)=\mathbb 1_{[0,s]}\in L^2[0,\infty)\). Then \(\langle\varphi(s),\varphi(t)\rangle=\int_0^\infty\mathbb 1[u\le s]\mathbb 1[u\le t]\,du=\min(s,t)\).</p></div></li>
+<li>Prove the "push-through" identity, for \(\lambda&gt;0\), $$(X^\top X+\lambda I)^{-1}X^\top=X^\top(XX^\top+\lambda I)^{-1},$$ and explain why it lets ridge regression with \(p\gg n\) features be solved with an \(n\times n\) system.
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>\(X^\top(XX^\top+\lambda I)=(X^\top X+\lambda I)X^\top\); multiply on the left by \((X^\top X+\lambda I)^{-1}\) and on the right by \((XX^\top+\lambda I)^{-1}\). The left form inverts a \(p\times p\) matrix, the right an \(n\times n\) one; kernel ridge regression always uses the right form.</p></div></li>
+<li>A GP with \(k(x,x)=1\) observes a single value \(y\) at \(x\) with noise variance \(\sigma^2\). Find the posterior mean and variance of \(f(x)\).
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>Mean \(\frac1{1+\sigma^2}y\), variance \(1-\frac1{1+\sigma^2}=\frac{\sigma^2}{1+\sigma^2}\). With \(\sigma^2=1\) the posterior splits the difference between prior mean 0 and observation \(y\), and the variance halves: two equally reliable sources of information.</p></div></li>
+<li>Show that a GP with the linear kernel \(k(x,z)=\tau^2x^\top z\) is Bayesian linear regression with prior \(w\sim\mathcal N(0,\tau^2I)\), and that its posterior mean is the ridge estimate of Lecture 3 with \(\lambda=\sigma^2/\tau^2\).
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>If \(f(x)=w^\top x\) with \(w\sim\mathcal N(0,\tau^2I)\), then \(\operatorname{Cov}(f(x),f(z))=\tau^2x^\top z\), so \(f\) is this GP. Theorem 7.13 gives mean \(\tau^2x^\top X^\top(\tau^2XX^\top+\sigma^2I)^{-1}y=x^\top(X^\top X+\tfrac{\sigma^2}{\tau^2}I)^{-1}X^\top y\) by the push-through identity: ridge with \(\lambda=\sigma^2/\tau^2\), as in Theorem 3.7.</p></div></li>
+<li>In the RBF widget, set \(\gamma=50\), \(C=100\) and then \(\gamma=0.1\), \(C=0.1\). Describe each boundary and explain the training and test accuracies in terms of bias and variance.
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>\(\gamma=50\): tiny bumps around individual points, 100% training accuracy, 93 support vectors, test accuracy 91.5%: low bias, high variance. \(\gamma=0.1\), \(C=0.1\): a nearly straight boundary that cannot follow the moons' curves, so both accuracies are mediocre: high bias, low variance. The best settings sit between.</p></div></li>
+<li>A quantum kernel's off-diagonal entries have standard deviation 0.007. Each entry is estimated by repeating the circuit \(N\) times and counting how often the all-zero outcome appears, a binomial proportion. Roughly how large must \(N\) be for the sampling error to be smaller than 0.007, if the entries are around 0.01?
+<button class="sol-btn">show solution</button>
+<div class="sol"><p>The standard error of a proportion near \(p=0.01\) is \(\sqrt{p(1-p)/N}\approx0.0995/\sqrt N\). Setting this to 0.007 gives \(N\approx(0.0995/0.007)^2\approx200\) for one standard error; to resolve the differences reliably (say, an error a tenth of the spread) needs about \(2\times10^4\) shots per entry, and a Gram matrix on 400 points has 80,000 distinct entries.</p></div></li>
+</ol>
+</div>
+
+<div class="box proj">
+<span class="lbl">student projects</span>
+<p>Each project uses this lecture's methods and public data, and has a clear result.</p>
+<h4>1. Air-quality maps with honest uncertainty</h4>
+<dl>
+<dt>question</dt><dd>How well can Gaussian-process interpolation map fine particulate matter (PM2.5) across New York City from a limited set of monitors, and are its uncertainty bands trustworthy?</dd>
+<dt>data</dt><dd>The NYC Community Air Survey (NYC Department of Health, on NYC Open Data), annual averages at about 60–100 street-level monitors, with land-use covariates (traffic density, building emissions).</dd>
+<dt>method</dt><dd>GP regression with RBF, Matérn and additive kernels, with and without covariates in the mean; leave-one-monitor-out cross-validation of both accuracy and the coverage of 95% intervals; compare with kriging as used by the survey.</dd>
+<dt>outcome</dt><dd>A validated map with honest uncertainty, and a comparison of kernels that shows which spatial assumptions the data support.</dd>
+</dl>
+<h4>2. Quantum against classical kernels, fairly</h4>
+<dl>
+<dt>question</dt><dd>On small classical benchmarks, does any simulated quantum feature map beat a well-tuned classical kernel, once both are tuned with the same budget?</dd>
+<dt>data</dt><dd>Small OpenML or UCI classification datasets (a few hundred rows, up to 20 features), as in the benchmark of Bowles, Ahmed and Schuld (2024).</dd>
+<dt>method</dt><dd>Simulate several feature maps (ZZ, IQP-style, with bandwidth scaling of the inputs) exactly for up to 12 qubits; tune RBF and polynomial baselines equally; measure accuracy and kernel concentration; add the geometric difference test of Huang et al. (2021).</dd>
+<dt>outcome</dt><dd>A careful comparison that can stand as a publishable result either way; well-executed negative results on quantum advantage are actively sought.</dd>
+</dl>
+<h4>3. Forecasting with honest uncertainty</h4>
+<dl>
+<dt>question</dt><dd>Which kernels give GP forecasts of the Keeling curve, or of NOAA global temperature, whose 95% bands actually cover 95% of later observations?</dd>
+<dt>data</dt><dd>Mauna Loa monthly CO₂ (this lecture) and NOAA's global surface temperature anomalies, using rolling forecast origins from 1990 onward.</dd>
+<dt>method</dt><dd>Composite kernels with RBF, linear, polynomial and accelerating trends; marginal-likelihood fitting versus cross-validated hyperparameters; coverage and interval-score evaluation at horizons of 1, 5 and 10 years.</dd>
+<dt>outcome</dt><dd>A clear account of how kernel choice drives long-range forecast uncertainty, directly useful for teaching and for climate communication.</dd>
+</dl>
+</div>
+
+<h3>Reading and sources</h3>
+<ul class="refs">
+<li>B. Schölkopf, A. J. Smola, <em>Learning with Kernels</em> (MIT Press, 2002), ch. 1–2 and 7.</li>
+<li>C. E. Rasmussen, C. K. I. Williams, <em>Gaussian Processes for Machine Learning</em> (MIT Press, 2006), ch. 2 and 5; free online.</li>
+<li>S. Boyd, L. Vandenberghe, <em>Convex Optimization</em> (Cambridge University Press, 2004), ch. 5; free online.</li>
+<li>C. Cortes, V. Vapnik, "Support-vector networks", <em>Machine Learning</em> 20, 273–297 (1995); B. E. Boser, I. M. Guyon, V. N. Vapnik, "A training algorithm for optimal margin classifiers", <em>COLT</em> (1992).</li>
+<li>M. A. Aizerman, E. M. Braverman, L. I. Rozonoer, "Theoretical foundations of the potential function method in pattern recognition learning", <em>Automation and Remote Control</em> 25, 821–837 (1964); V. Vapnik, A. Lerner, "Pattern recognition using generalized portrait method", <em>Automation and Remote Control</em> 24, 774–780 (1963).</li>
+<li>J. Platt, "Sequential minimal optimization: a fast algorithm for training support vector machines", Microsoft Research Technical Report MSR-TR-98-14 (1998); R.-E. Fan, P.-H. Chen, C.-J. Lin, "Working set selection using second order information for training support vector machines", <em>JMLR</em> 6, 1889–1918 (2005).</li>
+<li>J. Mercer, "Functions of positive and negative type, and their connection with the theory of integral equations", <em>Phil. Trans. Royal Society A</em> 209, 415–446 (1909); N. Aronszajn, "Theory of reproducing kernels", <em>Trans. AMS</em> 68(3), 337–404 (1950).</li>
+<li>G. Kimeldorf, G. Wahba, "Some results on Tchebycheffian spline functions", <em>J. Math. Anal. Appl.</em> 33(1), 82–95 (1971); B. Schölkopf, R. Herbrich, A. J. Smola, "A generalized representer theorem", <em>COLT</em> (2001).</li>
+<li>A. Rahimi, B. Recht, "Random features for large-scale kernel machines", <em>NeurIPS</em> 20 (2007).</li>
+<li>A. Jacot, F. Gabriel, C. Hongler, "Neural tangent kernel: convergence and generalization in neural networks", <em>NeurIPS</em> 31 (2018); J. Lee et al., "Wide neural networks of any depth evolve as linear models under gradient descent", <em>NeurIPS</em> 32 (2019); L. Chizat, E. Oyallon, F. Bach, "On lazy training in differentiable programming", <em>NeurIPS</em> 32 (2019).</li>
+<li>V. Havlíček et al., "Supervised learning with quantum-enhanced feature spaces", <em>Nature</em> 567, 209–212 (2019); M. Schuld, "Supervised quantum machine learning models are kernel methods", <a href="https://arxiv.org/abs/2101.11020">arXiv:2101.11020</a> (2021); H.-Y. Huang et al., "Power of data in quantum machine learning", <em>Nature Communications</em> 12, 2631 (2021); Y. Liu, S. Arunachalam, K. Temme, "A rigorous and robust quantum speed-up in supervised machine learning", <em>Nature Physics</em> 17, 1013–1017 (2021); S. Thanasilp, S. Wang, M. Cerezo, Z. Holmes, "Exponential concentration in quantum kernel methods", <em>Nature Communications</em> 15, 5200 (2024); J. Bowles, S. Ahmed, M. Schuld, "Better than classical? The subtle art of benchmarking quantum machine learning models", <a href="https://arxiv.org/abs/2403.07059">arXiv:2403.07059</a> (2024).</li>
+<li>A. Gretton, O. Bousquet, A. Smola, B. Schölkopf, "Measuring statistical dependence with Hilbert–Schmidt norms", <em>ALT</em> (2005); K. Zhang, J. Peters, D. Janzing, B. Schölkopf, "Kernel-based conditional independence test and application in causal discovery", <em>UAI</em> (2011).</li>
+<li>J. Snoek, H. Larochelle, R. P. Adams, "Practical Bayesian optimization of machine learning algorithms", <em>NeurIPS</em> 25 (2012); Y. Chen et al., "Bayesian optimization in AlphaGo", <a href="https://arxiv.org/abs/1812.06855">arXiv:1812.06855</a> (2018).</li>
+<li>C. Leslie, E. Eskin, W. S. Noble, "The spectrum kernel: a string kernel for SVM protein classification", <em>Pacific Symposium on Biocomputing</em> (2002).</li>
+</ul>
+<p><strong>Data.</strong> Breast cancer: W. N. Street, W. H. Wolberg, O. L. Mangasarian (1993), UCI Machine Learning Repository, via scikit-learn. Crash-helmet data: B. W. Silverman, "Some aspects of the spline smoothing approach to non-parametric regression curve fitting", <em>JRSS B</em> 47(1), 1–52 (1985), as <code>MASS::mcycle</code> via Rdatasets. CO₂: Dr. Pieter Tans, NOAA Global Monitoring Laboratory, and Dr. Ralph Keeling, Scripps Institution of Oceanography, monthly Mauna Loa record, via <a href="https://github.com/datasets/co2-ppm">github.com/datasets/co2-ppm</a> (ODC-PDDL). Two moons: scikit-learn's <code>make_moons</code> generator.</p>
+<p class="kicker" style="margin-top:2.4em">every number in the text and widgets is computed in verify_L07.py; code-box outputs are pasted from actual runs</p>
+</div>
+
+<script>
+/* ---------- shared helpers ---------- */
+(function(){
+  var NS='http://www.w3.org/2000/svg';
+  window.L1 = {
+    el: function(svg,t,at,txt){ var e=document.createElementNS(NS,t); for(var k in at) e.setAttribute(k,at[k]); if(txt!=null) e.textContent=txt; svg.appendChild(e); return e; },
+    clear: function(svg){ while(svg.firstChild) svg.removeChild(svg.firstChild); },
+    col: ['var(--sky)','var(--rose)','var(--moss)'],
+    names: ['Adélie','Chinstrap','Gentoo'],
+    rng: function(seed){ var a=seed>>>0; return function(){ a=(a+0x6D2B79F5)>>>0; var t=a; t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return ((t^(t>>>14))>>>0)/4294967296; }; },
+    svgPoint: function(svg,evt){ var pt=svg.createSVGPoint(); pt.x=evt.clientX; pt.y=evt.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); },
+    f: function(x,d){ return x.toFixed(d); }
+  };
+})();
+</script>
+<script>
+window.L07DATA = {"moons": {"X": [[0.0103, 0.9884], [2.0413, -0.0786], [0.9007, -0.0418], [-0.0375, -0.0003], [0.8633, -0.5327], [2.0819, 0.5725], [0.5611, 0.4237], [0.9441, -0.7101], [-0.0189, 0.3685], [1.7577, 0.3416], [-0.2293, 0.5633], [1.9864, -0.2466], [1.4538, -0.7011], [1.1332, 1.1217], [0.5396, 0.5282], [-0.363, 1.0895], [0.2776, 1.1922], [0.2589, 0.853], [-0.284, 0.7915], [1.1147, 0.5425], [-0.652, 0.6102], [0.4332, -0.1952], [0.734, 0.6593], [0.7172, -0.4616], [-0.7096, -0.0656], [-0.7885, -0.3085], [0.6594, 0.323], [2.1511, 0.0642], [1.8436, 0.0793], [1.4189, -0.1702], [0.4281, -0.1378], [1.1043, -0.9362], [1.8605, -0.0168], [0.4488, -0.3397], [0.0576, 0.5447], [-0.171, 0.9997], [0.1709, 0.9863], [0.1632, 0.2268], [-0.1575, 0.1209], [1.0162, -0.6047], [1.433, -0.027], [0.5745, -0.3528], [-0.8803, 0.1111], [-1.0366, 0.1957], [1.0167, 0.3571], [0.8714, 1.291], [0.6411, 1.4577], [-0.4471, 0.6983], [-0.9808, 0.243], [0.8036, 0.1806], [1.4823, -0.0043], [-0.2909, -0.2033], [0.768, 0.3727], [-0.5232, 0.7023], [0.2306, 0.4014], [0.1628, 0.2174], [0.5671, 0.9272], [-0.2886, 0.34], [0.2021, 1.2677], [-0.0878, 0.5302], [0.664, 0.7284], [-0.3777, 0.9798], [0.2529, -0.1406], [0.1226, -0.3054], [0.8094, -0.7431], [1.183, -0.354], [-0.2005, 0.9491], [1.5838, -0.5782], [0.7243, 0.6108], [2.117, -0.5995], [0.2624, 0.8644], [-0.8391, 0.9128], [-0.9019, 0.0604], [2.0178, 0.1647], [2.1211, 0.4585], [0.4052, -0.6385], [0.3363, 1.0895], [1.7742, 0.4133], [0.6722, -0.4539], [1.2663, -0.4904], [-0.1201, 1.2044], [-0.5879, 0.995], [1.3092, -0.2415], [-0.8931, 0.4531], [-0.9074, -0.2806], [0.0921, 0.0362], [0.1858, -0.0551], [0.7309, 0.3506], [1.696, -0.1931], [0.5423, -0.1742], [1.6761, -0.3867], [-0.7968, 0.6496], [0.2885, 0.8175], [1.4003, -0.7335], [1.115, 0.5896], [1.7465, 0.5412], [0.2718, -0.6082], [0.8568, -0.3968], [-1.264, 0.3739], [-1.2389, 0.206]], "y": [0, 1, 0, 1, 1, 1, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 0, 1, 1, 0, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0], "Xt": [[2.1185, 0.3631], [-0.2978, 1.1071], [1.1378, -0.3396], [1.0596, -0.4239], [-0.7929, 0.0638], [1.7589, -0.3451], [-1.0558, 0.1265], [0.8373, -0.5277], [1.3394, 0.4412], [0.5911, -0.6632], [-0.9894, 0.6613], [1.5733, 0.2343], [-0.9755, -0.0654], [1.077, -0.4459], [1.5304, 0.1036], [-0.1422, 0.187], [1.7049, 0.2523], [1.3698, 0.1041], [0.6075, 0.9717], [0.3958, 0.3906], [-0.0335, 1.0532], [-0.0169, 0.1051], [2.1482, -0.103], [0.3054, 0.1342], [1.3292, 0.1956], [0.2273, 1.0026], [2.2399, 0.6517], [-0.0906, 0.255], [2.0639, -0.1524], [0.2813, 0.6674], [0.226, 0.6255], [1.0393, 0.07], [-1.0218, 0.3206], [0.8434, -0.6358], [0.8259, 0.0781], [-0.068, 0.964], [0.4489, 1.0292], [-0.0206, 0.9041], [1.9073, 0.7348], [-0.5654, 1.2275], [0.6644, -0.3663], [-0.0743, 0.8933], [-0.9944, 0.3774], [0.3224, 0.7868], [2.2692, 0.4104], [0.4851, 1.1648], [2.2259, 0.2342], [1.4309, -0.5618], [0.9781, -0.3856], [0.6493, -0.6283], [0.371, 1.2119], [-0.0016, 0.5225], [-0.1964, -0.6235], [1.311, 0.2502], [1.1528, -0.5487], [0.8627, -0.7117], [0.5846, -0.4738], [-0.3657, 0.8602], [0.5852, -0.2342], [1.9239, -0.0166], [-0.484, 0.848], [0.4004, 0.9513], [0.3341, -0.1543], [0.3142, -0.5931], [1.9049, -0.2184], [-0.1854, -0.3328], [0.0778, 0.9998], [0.6573, -0.422], [0.5962, -0.1157], [1.0797, -0.0109], [-0.3192, 0.4393], [0.0773, 0.9568], [1.7604, -0.6893], [1.9465, 0.5133], [0.814, -0.1628], [1.6364, -0.2616], [0.6163, 0.3364], [-0.8591, 0.0033], [-0.1776, 0.7857], [0.2163, -0.0967], [0.2103, 0.6174], [0.8132, 0.3137], [1.1669, -0.7888], [1.8724, 0.0746], [0.2172, 0.6771], [0.6559, 0.8377], [2.0106, 0.4326], [0.0008, 0.1143], [2.0557, 0.3573], [-0.2599, 1.0398], [-0.4456, 0.8745], [1.6885, -0.1439], [0.7127, -1.0184], [1.5119, 0.1129], [-1.1042, 0.5318], [0.8428, -0.7864], [1.0595, -0.3994], [0.5704, -0.5118], [0.428, -0.8068], [-0.6373, 0.579], [0.6171, 0.9833], [1.7474, 0.4861], [-0.8914, 0.4806], [0.9089, 0.3634], [0.2175, 1.0433], [1.5158, -0.1957], [0.0006, 1.0547], [0.6066, 0.1693], [1.2122, -0.5975], [0.4505, -0.4008], [-0.0618, 0.7676], [2.2699, 0.0822], [-0.272, 0.8484], [0.0432, 0.1232], [-0.4434, 0.9585], [-0.0361, 0.8254], [1.2484, -0.5213], [0.2017, -0.206], [-0.8974, 0.0218], [1.8209, 0.2744], [0.8747, 0.6926], [-1.333, 0.6102], [1.9096, 0.5537], [0.108, 0.2846], [1.458, -0.2031], [0.5175, 0.4603], [-0.5875, 0.875], [0.778, 0.3387], [1.4684, -0.3083], [2.1153, 0.1696], [1.6867, -0.0354], [0.4956, -0.3038], [2.2518, -0.0356], [0.6981, -0.7911], [1.6762, -0.1609], [0.8674, -0.3055], [0.0238, 1.8012], [-0.5538, 0.7827], [-0.3734, 0.723], [1.7379, -0.1837], [1.0253, 0.1515], [-0.7639, 0.238], [-0.3318, 0.5896], [-0.7379, 0.9353], [-0.5461, 1.0495], [0.894, 0.9547], [-0.1319, 0.9233], [0.4695, 0.4583], [-0.7744, 0.4593], [1.077, 0.42], [2.3184, 0.0128], [0.8578, 0.3187], [0.101, 1.1987], [-1.3471, 0.572], [0.0928, 0.3811], [1.478, -0.3841], [0.2715, 0.6426], [0.854, 0.818], [-0.8954, 0.5925], [0.213, -0.0038], [-0.9616, 0.0483], [0.5773, -0.2293], [1.4781, -0.0486], [-0.9321, 0.9251], [-0.1798, -0.307], [1.0144, 0.6916], [-0.4525, 0.5106], [0.6217, -0.097], [-1.0402, -0.1389], [0.2257, 0.1339], [1.6531, 0.133], [2.301, 0.388], [1.4934, -0.5651], [0.7801, -0.3003], [-0.8898, 0.0189], [-0.4711, 0.4714], [1.2315, -0.4831], [0.2609, 1.0989], [0.802, 0.3752], [-0.0986, 1.0456], [-1.3315, 0.2708], [0.2161, 0.2002], [-0.5367, 1.0883], [1.8609, 0.3879], [-0.9845, 1.0593], [0.6103, 0.3019], [-0.2744, 0.8593], [-0.431, 0.6119], [0.8477, -0.2348], [1.2013, 0.366], [0.4296, -0.644], [0.0737, -0.3374], [0.1536, -0.5626], [0.1151, 0.9041], [1.3102, -0.0851], [-0.9696, 0.8039], [-0.0274, 0.6581], [1.6823, 0.4183], [0.0905, 1.1987], [0.7879, 0.8717], [1.9444, -0.3259], [-0.0235, 1.2316], [1.6418, -0.1232], [1.8463, -0.1565], [1.4836, -0.4795], [1.1944, 0.2648], [0.7582, 0.2141], [0.7576, 0.5805], [0.3623, 0.3537], [1.0857, 0.2139], [0.5077, -0.7837], [0.3613, 0.3642], [1.5174, -0.5145], [0.5862, 0.0963], [1.3499, -0.1764], [0.8794, 0.2004], [0.4649, -0.3188], [0.2518, 0.2114], [0.743, -0.501], [0.2327, 0.632], [-0.6897, 0.7285], [0.0441, 0.5721], [0.7556, 0.3711], [0.3153, -0.0914], [0.7847, 1.2236], [0.3452, -0.5389], [1.4594, -0.1079], [0.6606, 0.17], [1.3315, -0.0671], [2.2612, 0.4353], [1.4832, -0.0502], [0.6721, 0.3176], [0.0708, 0.195], [-0.8445, 0.3879], [1.2168, 0.009], [0.8856, 0.4883], [0.0661, 0.8273], [-0.1742, -0.0207], [0.0619, 0.1481], [0.7832, -0.6636], [0.3083, 0.3097], [1.0452, 0.3192], [0.2903, 0.8445], [-0.6077, 0.5579], [0.1455, 0.7052], [0.6891, 0.8961], [-0.9934, -0.1755], [1.9893, 0.1518], [-0.4427, 0.5484], [1.3779, 0.2662], [1.3847, -0.0365], [-1.2793, 0.2126], [-1.2171, 0.1452], [-0.0415, 0.8619], [-0.2702, 0.8225], [0.6714, -0.2704], [-0.3306, 0.9268], [-0.0784, 0.2951], [1.842, -0.5185], [1.6338, 0.2417], [1.4319, -0.2317], [0.0713, -0.1606], [-0.1061, 0.3715], [0.4427, 1.0177], [0.8318, -0.82], [0.7739, -0.4445], [0.9608, -0.6939], [-1.3761, 0.054], [0.079, 1.0039], [-0.0989, 1.1885], [-0.2996, 0.7645], [1.1556, -0.5452], [-0.1323, 0.2407], [1.6381, -0.0069], [0.5697, 0.8882], [-1.1622, 0.0556], [-1.3677, 0.1419], [-1.2173, 0.1201], [-1.1124, -0.0769], [1.6534, 0.2382], [0.003, 0.5466], [0.217, -0.3026], [-0.7685, 1.1825], [0.6748, -0.2118], [0.6581, 0.9266], [0.0406, 1.3927], [-1.0374, 0.0785], [-0.3283, 1.1079], [-0.3207, 0.6243], [-0.1405, 0.4795], [-0.8072, 0.5923], [1.3042, -0.4512], [1.0586, 0.7762], [0.2518, 0.1087], [0.0162, 1.2937], [0.2717, 0.4682], [0.4584, -0.1475], [0.6083, 0.5738], [1.1837, -0.6062], [0.4401, 0.5173], [1.8861, -0.0714], [1.1356, 0.2384], [1.3692, -0.2577], [0.4183, 1.0245], [0.2053, 0.894], [0.1208, 1.1515], [0.7619, -0.2406], [2.0896, 0.6893], [-1.1131, 0.7607], [2.1053, 0.0332], [0.8276, 0.0007], [0.6533, 0.7696], [1.0719, -0.4146], [0.9007, -0.1178], [0.2916, -0.1204], [-0.9249, 0.4958], [-0.796, 0.5892], [1.483, 0.0943], [1.121, -0.2241], [-1.0139, 0.2137], [0.8002, 1.3146], [0.0745, -0.0892], [1.6348, 0.335], [0.3437, 0.9199], [0.4546, -0.0101], [-0.3377, 0.8695], [1.4288, -0.166], [0.5882, -0.5214], [0.5583, -0.5253], [-0.6615, 0.8611], [-0.7187, 0.3431], [-0.1608, 1.1324], [1.7816, 0.0677], [-0.2025, 0.3484], [0.4588, -0.7184], [-0.7402, 0.746], [-0.5743, 0.246], [0.6668, -0.2025], [1.8276, 0.0812], [-0.7683, 0.7625], [-0.8917, 1.1486], [0.9854, -0.1717], [0.3101, 0.4784], [1.0342, 0.2359], [-0.9475, 0.0831], [0.3691, 0.7133], [0.5739, -0.0071], [1.0676, -0.2018], [-0.2547, 1.367], [1.2484, -0.4611], [1.2273, -0.1898], [0.8938, 0.8916], [0.3235, 0.8712], [0.4283, 0.5833], [0.469, -0.1506], [0.9382, 0.3387], [1.9776, 0.2504], [0.3818, 0.789], [2.2263, 0.3453], [1.0759, 0.3583], [-0.3999, 1.1039], [-0.0786, 1.0453], [2.0151, 0.0142], [-0.2699, 0.574], [0.566, -0.5982], [0.0888, 0.4434], [1.3688, -0.435], [0.6744, 0.1126], [0.7451, -0.6793], [0.9425, 0.3994], [1.0473, -0.5397], [1.0151, -0.0031], [0.9138, -0.157], [-0.0206, 0.4218], [0.1942, 1.3569], [1.3438, -0.308], [0.0862, 0.0166], [-0.2388, 0.6076], [0.4919, 0.867], [0.2755, 0.8974], [-0.8682, 0.5205], [0.2492, 0.2386], [1.784, 0.2101], [-0.0008, -0.4614], [0.5913, -0.2585], [-1.3669, 0.3133], [0.6444, -0.2345], [0.4298, -0.2971], [0.3833, 0.8587], [-0.3234, 1.067], [-1.0135, 0.8926], [1.9035, -0.0157], [-0.6285, 0.814], [-0.0259, 0.7098], [1.8007, 0.6143], [-0.0178, 0.2137], [0.1848, 0.8327], [1.9456, 0.4203], [0.415, -0.2419], [1.2245, 0.8119]], "yt": [1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 1, 1, 0, 1, 1, 0, 0, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 1, 1, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 0, 1, 1, 1, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 1, 0, 1, 1, 0, 0, 0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 1, 1, 0, 0, 0, 1, 0, 1, 1, 1, 0, 1, 1, 0]}, "lin": {"X": [[1.0, 1.2], [1.6, 2.2], [2.0, 1.0], [2.6, 1.8], [1.3, 0.5], [2.2, 2.6], [0.8, 2.0], [3.0, 1.2], [3.6, 3.8], [4.2, 3.0], [3.9, 4.6], [4.8, 3.9], [3.2, 4.2], [4.6, 2.6], [5.0, 4.8], [3.0, 3.1]], "y": [-1, -1, -1, -1, -1, -1, -1, -1, 1, 1, 1, 1, 1, 1, 1, 1]}, "gp": {"x": [-4.0, -2.5, -1.0, 0.5, 2.0, 3.5], "y": [-1.2, 0.3, 1.1, 0.4, -0.8, 0.2]}, "ref": {"lin_C0.1": {"w": [0.5599999999999999, 0.5100000000000001], "b": -2.9440001010894776, "nsv": 8}, "lin_C1": {"w": [0.8313724298707315, 0.6254897194829265], "b": -4.287450308468934, "nsv": 4}, "lin_C100": {"w": [1.7977503016786827, 1.1235939385491769], "b": -7.876393766399972, "nsv": 2}, "rbf_g0.5_C1": {"train": 0.93, "test": 0.915, "nsv": 41, "f0": -0.050942992279530266}, "rbf_g5_C10": {"train": 0.99, "test": 0.9275, "nsv": 30, "f0": -1.6659946453744294}, "rbf_g50_C100": {"train": 1.0, "test": 0.915, "nsv": 93, "f0": -0.194723695661481}, "gp_l1.0_s0.1": {"mean": [0.7909884686234221, 0.16867544169788007], "sd_f": [0.30094216184262945, 0.9407229313462202], "lml": -7.179608927693219}, "gp_l0.5_s0.3": {"mean": [0.3564003382018609, 0.00212207470350799], "sd_f": [0.8044614139534612, 0.9999433825155518], "lml": -7.414841198915722}}};
+/* ---------- shared: SMO solver for the SVM dual (the working-set rule of LIBSVM) ---------- */
+window.L7svm = function(K, y, C, eps){
+  var n=y.length, a=new Array(n).fill(0), G=new Array(n).fill(-1), TAU=1e-12; eps=eps||1e-4;
+  function Q(i,j){ return y[i]*y[j]*K[i][j]; }
+  for(var it=0; it<200000; it++){
+    var Gmax=-Infinity, gi=-1;
+    for(var t=0;t<n;t++){ if(y[t]===1){ if(a[t]<C && -G[t]>=Gmax){Gmax=-G[t];gi=t;} } else { if(a[t]>0 && G[t]>=Gmax){Gmax=G[t];gi=t;} } }
+    var i=gi, Gmax2=-Infinity, gj=-1, best=Infinity;
+    for(var j=0;j<n;j++){
+      if(y[j]===1){ if(a[j]>0){ var gd=Gmax+G[j]; if(G[j]>=Gmax2) Gmax2=G[j];
+          if(gd>0 && i>=0){ var qd=K[i][i]+K[j][j]-2*K[i][j]; var od=-gd*gd/(qd>0?qd:TAU); if(od<=best){gj=j;best=od;} } } }
+      else { if(a[j]<C){ var gd2=Gmax-G[j]; if(-G[j]>=Gmax2) Gmax2=-G[j];
+          if(gd2>0 && i>=0){ var qd2=K[i][i]+K[j][j]-2*K[i][j]; var od2=-gd2*gd2/(qd2>0?qd2:TAU); if(od2<=best){gj=j;best=od2;} } } }
+    }
+    if(Gmax+Gmax2<eps || gi<0 || gj<0) break;
+    var jj=gj, ai=a[i], aj=a[jj], qc;
+    if(y[i]!==y[jj]){ qc=K[i][i]+K[jj][jj]-2*K[i][jj]; if(qc<=0) qc=TAU;
+      var dl=(-G[i]-G[jj])/qc, diff=a[i]-a[jj]; a[i]+=dl; a[jj]+=dl;
+      if(diff>0){ if(a[jj]<0){a[jj]=0;a[i]=diff;} } else { if(a[i]<0){a[i]=0;a[jj]=-diff;} }
+      if(diff>0){ if(a[i]>C){a[i]=C;a[jj]=C-diff;} } else { if(a[jj]>C){a[jj]=C;a[i]=C+diff;} } }
+    else { qc=K[i][i]+K[jj][jj]-2*K[i][jj]; if(qc<=0) qc=TAU;
+      var dl2=(G[i]-G[jj])/qc, sum=a[i]+a[jj]; a[i]-=dl2; a[jj]+=dl2;
+      if(sum>C){ if(a[i]>C){a[i]=C;a[jj]=sum-C;} } else { if(a[jj]<0){a[jj]=0;a[i]=sum;} }
+      if(sum>C){ if(a[jj]>C){a[jj]=C;a[i]=sum-C;} } else { if(a[i]<0){a[i]=0;a[jj]=sum;} } }
+    var di=a[i]-ai, dj=a[jj]-aj;
+    for(var k=0;k<n;k++) G[k]+=Q(i,k)*di+Q(jj,k)*dj;
+  }
+  var ub=Infinity, lb=-Infinity, nf=0, sf=0;
+  for(var t2=0;t2<n;t2++){ var yG=y[t2]*G[t2];
+    if(a[t2]>=C){ if(y[t2]===-1) ub=Math.min(ub,yG); else lb=Math.max(lb,yG); }
+    else if(a[t2]<=0){ if(y[t2]===1) ub=Math.min(ub,yG); else lb=Math.max(lb,yG); }
+    else { nf++; sf+=yG; } }
+  var rho=nf>0?sf/nf:(ub+lb)/2;
+  return {alpha:a, b:-rho};
+};
+</script>
+<script>
+/* ---------- W1: the widest street ---------- */
+(function(){
+  var svg=document.getElementById('mgSvg'); if(!svg) return; var L=window.L1, D=window.L07DATA.lin;
+  function g(id){return document.getElementById(id);}
+  var P=D.X.map(function(p){return p.slice();}), Y=D.y.slice();
+  var PL=40, PR=540, PT=10, PB=300, x0=0, x1=6, y0=0, y1=5.6;
+  var X=function(v){return PL+(v-x0)/(x1-x0)*(PR-PL);}, Yv=function(v){return PB-(v-y0)/(y1-y0)*(PB-PT);};
+  function fit(){ var C=Math.pow(10,+g('mgC').value), K=P.map(function(a){return P.map(function(b){return a[0]*b[0]+a[1]*b[1];});});
+    var r=window.L7svm(K,Y,C,1e-6), w=[0,0]; P.forEach(function(p,i){ w[0]+=r.alpha[i]*Y[i]*p[0]; w[1]+=r.alpha[i]*Y[i]*p[1]; });
+    return {w:w,b:r.b,alpha:r.alpha,C:C}; }
+  function line(w,b,c,attrs){ // w.x + b = c, clipped to the box
+    var pts=[]; [[x0,null],[x1,null],[null,y0],[null,y1]].forEach(function(e){
+      if(e[0]!==null && Math.abs(w[1])>1e-12){ var yy=(c-b-w[0]*e[0])/w[1]; if(yy>=y0-1e-9&&yy<=y1+1e-9) pts.push([e[0],yy]); }
+      if(e[1]!==null && Math.abs(w[0])>1e-12){ var xx=(c-b-w[1]*e[1])/w[0]; if(xx>=x0-1e-9&&xx<=x1+1e-9) pts.push([xx,e[1]]); } });
+    if(pts.length>=2){ attrs.x1=X(pts[0][0]); attrs.y1=Yv(pts[0][1]); attrs.x2=X(pts[1][0]); attrs.y2=Yv(pts[1][1]); L.el(svg,'line',attrs); } }
+  function draw(){
+    var f=fit(); g('mgCv').textContent=f.C<1?f.C.toFixed(2):f.C.toFixed(0);
+    L.clear(svg); L.el(svg,'rect',{x:PL,y:PT,width:PR-PL,height:PB-PT,class:'plot-bg'});
+    // the street
+    var nw=Math.hypot(f.w[0],f.w[1]);
+    if(nw>1e-9){ var d=[-f.w[1],f.w[0]], quad=[];
+      [1,-1].forEach(function(c){ var base=[f.w[0]*(c-f.b)/(nw*nw), f.w[1]*(c-f.b)/(nw*nw)];
+        quad.push([base[0]-20*d[0],base[1]-20*d[1]],[base[0]+20*d[0],base[1]+20*d[1]]); });
+      var poly=[quad[0],quad[1],quad[3],quad[2]].map(function(p){return X(p[0])+','+Yv(p[1]);}).join(' ');
+      var cp=L.el(svg,'clipPath',{id:'mgClip'}); L.el(cp,'rect',{x:PL,y:PT,width:PR-PL,height:PB-PT});
+      L.el(svg,'polygon',{points:poly,fill:'var(--amber)',opacity:0.13,'clip-path':'url(#mgClip)'});
+      line(f.w,f.b,0,{stroke:'var(--ink)','stroke-width':2.2}); line(f.w,f.b,1,{stroke:'var(--moss)','stroke-width':1.5,'stroke-dasharray':'6 4'}); line(f.w,f.b,-1,{stroke:'var(--rose)','stroke-width':1.5,'stroke-dasharray':'6 4'}); }
+    var nsv=0, err=0, inside=0;
+    P.forEach(function(p,i){ var m=Y[i]*(f.w[0]*p[0]+f.w[1]*p[1]+f.b), sv=f.alpha[i]>1e-6; if(sv) nsv++; if(m<=0) err++; else if(m<1-1e-6) inside++;
+      if(sv) L.el(svg,'circle',{cx:X(p[0]),cy:Yv(p[1]),r:13,fill:'none',stroke:'var(--amber)','stroke-width':2});
+      L.el(svg,'circle',{cx:X(p[0]),cy:Yv(p[1]),r:7.5,fill:Y[i]>0?'var(--moss)':'var(--rose)',stroke:'var(--bg)','stroke-width':1.5,'data-i':i,style:'cursor:move'}); });
+    g('mgOut').innerHTML='street width 2/‖w‖ = '+(nw>1e-9?(2/nw).toFixed(3):'∞')+' &middot; support vectors (amber rings): '+nsv+' &middot; inside the street: '+inside+' &middot; misclassified: '+err;
+    return {w:f.w,b:f.b,nsv:nsv,width:2/nw};
+  }
+  var drag=null; svg.style.touchAction='none';
+  svg.addEventListener('pointerdown',function(ev){ var t=ev.target; if(t.getAttribute&&t.getAttribute('data-i')!=null){ drag=+t.getAttribute('data-i'); svg.setPointerCapture(ev.pointerId); ev.preventDefault(); } });
+  svg.addEventListener('pointermove',function(ev){ if(drag==null) return; var p=L.svgPoint(svg,ev);
+    P[drag]=[Math.max(x0+0.05,Math.min(x1-0.05,x0+(p.x-PL)/(PR-PL)*(x1-x0))),Math.max(y0+0.05,Math.min(y1-0.05,y0+(PB-p.y)/(PB-PT)*(y1-y0)))]; draw(); });
+  ['pointerup','pointercancel'].forEach(function(e){ svg.addEventListener(e,function(){ drag=null; }); });
+  g('mgC').addEventListener('input',draw);
+  g('mgReset').addEventListener('click',function(){ P=D.X.map(function(p){return p.slice();}); draw(); });
+  draw();
+  window.W7a={set:function(C){ P=D.X.map(function(p){return p.slice();}); g('mgC').value=Math.log10(C); return draw(); }};
+})();
+</script>
+<script>
+/* ---------- W2: lifting a line into a parabola ---------- */
+(function(){
+  var svg=document.getElementById('lfSvg'); if(!svg) return; var L=window.L1;
+  function g(id){return document.getElementById(id);}
+  var xs=[-2.6,-2.2,-1.9,-1.6,1.55,1.8,2.1,2.5,-0.9,-0.6,-0.3,0.05,0.35,0.7,1.0], cls=xs.map(function(x){return Math.abs(x)>1.3?1:-1;});
+  var PL=40, PR=540, PT=12, PB=270, X=function(v){return PL+(v+3)/6*(PR-PL);}, Y=function(v){return PB-v/8*(PB-PT);};
+  function draw(){
+    var t=+g('lfT').value, c=+g('lfC').value; g('lfTv').textContent=t.toFixed(2); g('lfCv').textContent=c.toFixed(2);
+    L.clear(svg); L.el(svg,'rect',{x:PL,y:PT,width:PR-PL,height:PB-PT,class:'plot-bg'});
+    L.el(svg,'line',{x1:PL,y1:Y(0),x2:PR,y2:Y(0),class:'axis'});
+    for(var v=-3;v<=3;v++) L.el(svg,'text',{x:X(v),y:PB+16,class:'axtext','text-anchor':'middle'},v);
+    L.el(svg,'text',{x:(PL+PR)/2,y:PB+34,class:'axtext','text-anchor':'middle'},'x');
+    if(t>0){ var d=''; for(var k=0;k<=120;k++){ var xx=-3+6*k/120; d+=(k?'L':'M')+X(xx).toFixed(1)+','+Y(t*xx*xx).toFixed(1); } L.el(svg,'path',{d:d,fill:'none',stroke:'var(--muted)','stroke-width':1.2,'stroke-dasharray':'3 3'}); }
+    var sep=t>0.02, mist=0;
+    if(sep){ L.el(svg,'line',{x1:PL,y1:Y(c),x2:PR,y2:Y(c),stroke:'var(--amber)','stroke-width':2.2});
+      L.el(svg,'text',{x:PR-4,y:Y(c)-6,class:'axtext','text-anchor':'end',fill:'var(--amber)'},'a straight line in the lifted plane'); }
+    var thr=sep?Math.sqrt(c/t):null;
+    if(thr!==null&&thr<3){ [-thr,thr].forEach(function(z){ L.el(svg,'line',{x1:X(z),y1:Y(0)-10,x2:X(z),y2:Y(0)+10,stroke:'var(--amber)','stroke-width':3}); }); }
+    xs.forEach(function(x,i){ var pred=sep?(t*x*x>c?1:-1):null; if(pred!==null&&pred!==cls[i]) mist++;
+      L.el(svg,'circle',{cx:X(x),cy:Y(t*x*x),r:7,fill:cls[i]>0?'var(--moss)':'var(--rose)',stroke:'var(--bg)','stroke-width':1.5}); });
+    g('lfOut').innerHTML=(t<=0.02?'In one dimension no single threshold separates the inner (rose) points from the outer (moss) ones.':
+      'Lifted point (x, '+t.toFixed(2)+'x²). The amber line height '+c.toFixed(2)+' separates the classes with '+mist+' mistakes; back on the x-axis it is the pair of thresholds x = ±'+(thr<3?thr.toFixed(2):'beyond 3')+'.');
+    return {mist:mist};
+  }
+  ['lfT','lfC'].forEach(function(id){ g(id).addEventListener('input',draw); });
+  draw(); window.W7b={set:function(t,c){ g('lfT').value=t; g('lfC').value=c; return draw(); }};
+})();
+</script>
+<script>
+/* ---------- W3: RBF SVM on two moons ---------- */
+(function(){
+  var svg=document.getElementById('rbSvg'); if(!svg) return; var L=window.L1, D=window.L07DATA.moons;
+  function g(id){return document.getElementById(id);}
+  var Xs=D.X, ys=D.y.map(function(v){return v?1:-1;}), n=Xs.length;
+  var PL=20, PR=540, PT=10, PB=290, x0=-1.8, x1=2.8, y0=-1.3, y1=1.7;
+  var X=function(v){return PL+(v-x0)/(x1-x0)*(PR-PL);}, Yv=function(v){return PB-(v-y0)/(y1-y0)*(PB-PT);};
+  function kern(a,b,gm){ var dx=a[0]-b[0], dy=a[1]-b[1]; return Math.exp(-gm*(dx*dx+dy*dy)); }
+  function fit(gm,C){ var K=Xs.map(function(a){return Xs.map(function(b){return kern(a,b,gm);});}); var r=window.L7svm(K,ys,C,1e-5);
+    var f=function(p){ var s=r.b; for(var i=0;i<n;i++) if(r.alpha[i]>0) s+=r.alpha[i]*ys[i]*kern(Xs[i],p,gm); return s; }; return {f:f,alpha:r.alpha}; }
+  function draw(){
+    var gm=Math.pow(10,+g('rbG').value), C=Math.pow(10,+g('rbC').value); g('rbGv').textContent=gm<1?gm.toFixed(3):gm.toFixed(1); g('rbCv').textContent=C<1?C.toFixed(2):C.toFixed(0);
+    var m=fit(gm,C); L.clear(svg);
+    var NX=78, NY=42, cw=(PR-PL)/NX, ch=(PB-PT)/NY;
+    for(var i=0;i<NX;i++) for(var j=0;j<NY;j++){ var p=[x0+(i+0.5)/NX*(x1-x0), y1-(j+0.5)/NY*(y1-y0)], v=m.f(p);
+      L.el(svg,'rect',{x:PL+i*cw,y:PT+j*ch,width:cw+0.4,height:ch+0.4,fill:v>0?'var(--moss)':'var(--rose)',opacity:Math.min(0.45,0.12+0.12*Math.abs(v))}); }
+    var nsv=0, tr=0;
+    Xs.forEach(function(p,i){ var sv=m.alpha[i]>1e-7; if(sv) nsv++; if((m.f(p)>0?1:-1)===ys[i]) tr++;
+      if(sv) L.el(svg,'circle',{cx:X(p[0]),cy:Yv(p[1]),r:8.5,fill:'none',stroke:'var(--amber)','stroke-width':1.6});
+      L.el(svg,'circle',{cx:X(p[0]),cy:Yv(p[1]),r:4.5,fill:ys[i]>0?'var(--moss)':'var(--rose)',stroke:'var(--bg)','stroke-width':1}); });
+    var te=0; D.Xt.forEach(function(p,i){ if((m.f(p)>0?1:0)===D.yt[i]) te++; });
+    g('rbOut').innerHTML='training accuracy '+(tr/n).toFixed(3)+' &middot; test accuracy (400 fresh moons) '+(te/D.Xt.length).toFixed(4)+' &middot; support vectors '+nsv+' of '+n;
+    return {train:tr/n,test:te/D.Xt.length,nsv:nsv,f0:m.f([0.5,0.25])};
+  }
+  ['rbG','rbC'].forEach(function(id){ g(id).addEventListener('change',draw); g(id).addEventListener('input',function(){ g('rbGv').textContent=Math.pow(10,+g('rbG').value).toPrecision(2); g('rbCv').textContent=Math.pow(10,+g('rbC').value).toPrecision(2); }); });
+  draw(); window.W7c={set:function(gm,C){ g('rbG').value=Math.log10(gm); g('rbC').value=Math.log10(C); return draw(); }};
+})();
+</script>
+<script>
+/* ---------- W4: Gaussian process regression ---------- */
+(function(){
+  var svg=document.getElementById('gpSvg'); if(!svg) return; var L=window.L1, D=window.L07DATA.gp;
+  function g(id){return document.getElementById(id);}
+  var xs=D.x.slice(), ys=D.y.slice();
+  var PL=40, PR=540, PT=10, PB=280, X=function(v){return PL+(v+5)/10*(PR-PL);}, Y=function(v){return PB-(v+3)/6*(PB-PT);};
+  function chol(A){ var n=A.length, Lm=[]; for(var i=0;i<n;i++){ Lm.push(new Array(n).fill(0)); for(var j=0;j<=i;j++){ var s=A[i][j]; for(var k=0;k<j;k++) s-=Lm[i][k]*Lm[j][k]; Lm[i][j]=i===j?Math.sqrt(s):s/Lm[j][j]; } } return Lm; }
+  function solveL(Lm,b){ var n=b.length, x=new Array(n); for(var i=0;i<n;i++){ var s=b[i]; for(var k=0;k<i;k++) s-=Lm[i][k]*x[k]; x[i]=s/Lm[i][i]; } return x; }
+  function solveLT(Lm,b){ var n=b.length, x=new Array(n); for(var i=n-1;i>=0;i--){ var s=b[i]; for(var k=i+1;k<n;k++) s-=Lm[k][i]*x[k]; x[i]=s/Lm[i][i]; } return x; }
+  function post(ell,sn,qs){ var n=xs.length, k=function(a,b){ return Math.exp(-(a-b)*(a-b)/(2*ell*ell)); };
+    if(!n) return {m:qs.map(function(){return 0;}), s:qs.map(function(){return 1;}), lml:0};
+    var K=xs.map(function(a){return xs.map(function(b){return k(a,b);});}); for(var i=0;i<n;i++) K[i][i]+=sn*sn;
+    var Lm=chol(K), al=solveLT(Lm,solveL(Lm,ys)), m=[], s=[];
+    qs.forEach(function(q){ var ks=xs.map(function(a){return k(a,q);}), mu=0; for(var i=0;i<n;i++) mu+=ks[i]*al[i]; var v=solveL(Lm,ks), vv=0; v.forEach(function(t){vv+=t*t;}); m.push(mu); s.push(Math.sqrt(Math.max(0,1-vv))); });
+    var lml=0; for(var i2=0;i2<n;i2++){ lml+=-0.5*ys[i2]*al[i2]-Math.log(Lm[i2][i2]); } lml-=n/2*Math.log(2*Math.PI);
+    return {m:m,s:s,lml:lml}; }
+  function draw(){
+    var ell=Math.pow(10,+g('gpL').value), sn=+g('gpS').value; g('gpLv').textContent=ell.toFixed(2); g('gpSv').textContent=sn.toFixed(2);
+    var qs=[]; for(var k=0;k<=200;k++) qs.push(-5+10*k/200); var r=post(ell,sn,qs);
+    L.clear(svg); L.el(svg,'rect',{x:PL,y:PT,width:PR-PL,height:PB-PT,class:'plot-bg',id:'gpBg'});
+    for(var v=-2;v<=2;v++){ L.el(svg,'line',{x1:PL,y1:Y(v),x2:PR,y2:Y(v),class:'gridline'}); L.el(svg,'text',{x:PL-6,y:Y(v)+4,class:'axtext','text-anchor':'end'},v); }
+    var up='', lo=''; qs.forEach(function(q,i){ up+=(i?'L':'M')+X(q).toFixed(1)+','+Y(r.m[i]+1.96*r.s[i]).toFixed(1); });
+    for(var i=qs.length-1;i>=0;i--) lo+='L'+X(qs[i]).toFixed(1)+','+Y(r.m[i]-1.96*r.s[i]).toFixed(1);
+    L.el(svg,'path',{d:up+lo+'Z',fill:'var(--sky)',opacity:0.2,'pointer-events':'none'});
+    var md=''; qs.forEach(function(q,i){ md+=(i?'L':'M')+X(q).toFixed(1)+','+Y(r.m[i]).toFixed(1); }); L.el(svg,'path',{d:md,fill:'none',stroke:'var(--sky)','stroke-width':2.4,'pointer-events':'none'});
+    xs.forEach(function(x,i){ L.el(svg,'circle',{cx:X(x),cy:Y(ys[i]),r:6,fill:'var(--amber)',stroke:'var(--bg)','stroke-width':1.5,'data-i':i,style:'cursor:pointer'}); });
+    g('gpOut').innerHTML=xs.length+' observations &middot; log marginal likelihood '+r.lml.toFixed(2)+' &middot; at x = 0: mean '+post(ell,sn,[0]).m[0].toFixed(3)+', 95% band ± '+(1.96*post(ell,sn,[0]).s[0]).toFixed(3);
+    return {lml:r.lml};
+  }
+  svg.addEventListener('click',function(ev){ var t=ev.target;
+    if(t.getAttribute&&t.getAttribute('data-i')!=null){ var i=+t.getAttribute('data-i'); xs.splice(i,1); ys.splice(i,1); draw(); return; }
+    var p=L.svgPoint(svg,ev); if(p.x<PL||p.x>PR||p.y<PT||p.y>PB) return;
+    xs.push(-5+(p.x-PL)/(PR-PL)*10); ys.push(-3+(PB-p.y)/(PB-PT)*6); draw(); });
+  ['gpL','gpS'].forEach(function(id){ g(id).addEventListener('input',draw); });
+  g('gpClear').addEventListener('click',function(){ xs=[]; ys=[]; draw(); });
+  g('gpReset').addEventListener('click',function(){ xs=D.x.slice(); ys=D.y.slice(); draw(); });
+  draw();
+  window.W7d={at:function(ell,sn){ xs=D.x.slice(); ys=D.y.slice(); g('gpL').value=Math.log10(ell); g('gpS').value=sn; var r=post(ell,sn,[0,5]); r.lml2=draw().lml; return r; }};
+})();
+</script>
+<script>
+/* ---------- spot checks ----------
+   <div class="spot" data-kind="num|mc|multi|select" ...> with p.q, div.hint, div.why
+   num:    data-ans="a|b" (any accepted), data-tol (absolute) or data-rtol (relative), data-show (text for show-answer)
+   mc:     ul.opts > li[data-ok] for the right option; li[data-oh] is a hint for that wrong option
+   multi:  ul.opts > li[data-ok] for every right option (all and only those must be chosen)
+   select: one or more select.sp in the question; option[data-ok] right, option[data-hint] hint
+   Green with the explanation when right; amber with a hint when wrong; "show answer" after two misses. */
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×|⋅/g,'*').replace(/,/g,'').replace(/\^/g,'**').replace(/\s+/g,'');
+    if(!s) return NaN;
+    var pct=false; if(/%$/.test(s)){pct=true; s=s.slice(0,-1);}
+    if(!/^(?:[0-9.e+\-*/()]|sqrt|pi|ln|log|exp)+$/.test(s.replace(/e[+\-]?\d/g,'0'))) return NaN;
+    s=s.replace(/sqrt/g,'Math.sqrt').replace(/\bpi\b/g,'Math.PI').replace(/\bln\b/g,'Math.log').replace(/\blog\b/g,'Math.log10').replace(/\bexp\b/g,'Math.exp');
+    try{ var v=Function('"use strict";return ('+s+');')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function tolFor(sp,a){
+    if(sp.dataset.tol) return parseFloat(sp.dataset.tol);
+    if(sp.dataset.rtol) return parseFloat(sp.dataset.rtol)*Math.abs(a);
+    if(Math.abs(a)>=2 && Math.abs(a-Math.round(a))<1e-12) return 1e-9;
+    if(Math.abs(a)>=0.1) return Math.max(0.005,0.005*Math.abs(a));
+    return Math.max(1e-12,0.02*Math.abs(a));
+  }
+  window.QFspot={evalNum:evalNum,tolFor:tolFor};
+  document.querySelectorAll('.spot').forEach(function(sp){
+    var kind=sp.dataset.kind||'num', misses=0;
+    var hint=sp.querySelector(':scope > .hint'), why=sp.querySelector(':scope > .why');
+    var fb=document.createElement('div'); fb.className='sr-only'; fb.setAttribute('aria-live','polite');
+    fb.style.cssText='position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)';
+    sp.appendChild(fb);
+    var ansBox=document.createElement('div'); ansBox.className='ans'; sp.appendChild(ansBox);
+    var row=document.createElement('div'); row.className='row';
+    var go=document.createElement('button'); go.className='ctl sp-go'; go.type='button'; go.textContent='check';
+    var show=document.createElement('button'); show.className='ctl sp-show'; show.type='button'; show.textContent='show answer'; show.hidden=true;
+    var defHint=hint?hint.innerHTML:'';
+    function setHint(h){ if(!hint) return; hint.innerHTML=h||defHint; if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([hint]); }
+    function right(){ sp.classList.remove('no'); sp.classList.add('ok'); if(hint) hint.classList.remove('on');
+      if(why) why.classList.add('on'); show.hidden=true; fb.textContent='Correct.'; }
+    function wrong(h){ misses++; sp.classList.remove('ok'); sp.classList.add('no'); setHint(h); if(hint) hint.classList.add('on');
+      if(misses>=2) show.hidden=false; fb.textContent='Not quite. '+(hint?hint.textContent:''); }
+    if(kind==='num'){
+      var inp=document.createElement('input'); inp.className='sp-in'; inp.type='text'; inp.setAttribute('inputmode','decimal');
+      inp.setAttribute('aria-label','your answer'); inp.placeholder='your answer'; inp.id=(sp.id||'sp')+'-in';
+      row.appendChild(inp);
+      if(sp.dataset.unit){var u=document.createElement('span'); u.className='unit'; u.textContent=sp.dataset.unit; row.appendChild(u);}
+      row.appendChild(go); row.appendChild(show);
+      var answers=sp.dataset.ans.split('|').map(evalNum);
+      function test(){ var v=evalNum(inp.value);
+        if(isNaN(v)){ wrong('Enter a number (fractions like 3/4, powers like 2^10, sqrt(2), pi and 1e-3 are fine).'); return; }
+        if(answers.some(function(a){return Math.abs(v-a)<=tolFor(sp,a);})) right(); else wrong(); }
+      go.addEventListener('click',test);
+      inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); test(); } });
+      show.addEventListener('click',function(){ ansBox.innerHTML=sp.dataset.show||sp.dataset.ans.split('|')[0]; ansBox.classList.add('on');
+        if(why) why.classList.add('on'); show.hidden=true; if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([ansBox]); });
+      sp.querySelector(':scope > .q').after(row);
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=sp.querySelector('ul.opts'), btns=[];
+      (function(){ var h=2166136261, id=sp.id||'', lis=Array.prototype.slice.call(ul.querySelectorAll(':scope > li'));
+        for(var c=0;c<id.length;c++){ h^=id.charCodeAt(c); h=Math.imul(h,16777619)>>>0; }
+        for(var k=lis.length-1;k>0;k--){ h=Math.imul(h^(h>>>13),1597334677)>>>0; var j=h%(k+1), t=lis[k]; lis[k]=lis[j]; lis[j]=t; }
+        lis.forEach(function(li){ ul.appendChild(li); }); })();
+      ul.querySelectorAll(':scope > li').forEach(function(li){
+        var b=document.createElement('button'); b.type='button'; b.className='opt'; b.setAttribute('aria-pressed','false');
+        while(li.firstChild) b.appendChild(li.firstChild); li.appendChild(b); b._ok=li.hasAttribute('data-ok'); b._oh=li.dataset.oh||'';
+        btns.push(b);
+        b.addEventListener('click',function(){
+          if(kind==='mc'){ btns.forEach(function(x){x.setAttribute('aria-pressed','false'); x.classList.remove('good','bad');});
+            b.setAttribute('aria-pressed','true');
+            if(b._ok){ b.classList.add('good'); right(); } else { b.classList.add('bad'); wrong(b._oh); } }
+          else { b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')==='true'?'false':'true'); btns.forEach(function(x){x.classList.remove('good','bad');}); }
+        });
+      });
+      if(kind==='multi'){ row.appendChild(go); row.appendChild(show); ul.after(row);
+        go.addEventListener('click',function(){
+          var chosen=btns.filter(function(x){return x.getAttribute('aria-pressed')==='true';});
+          var bad=btns.filter(function(x){return (x.getAttribute('aria-pressed')==='true')!==x._ok;});
+          if(!bad.length){ chosen.forEach(function(x){x.classList.add('good');}); right(); }
+          else { var wrongPick=bad.find(function(x){return !x._ok;}); wrong(wrongPick?wrongPick._oh:''); }
+        });
+      } else { row.appendChild(show); ul.after(row); }
+      show.addEventListener('click',function(){ btns.forEach(function(x){ x.classList.remove('bad'); if(x._ok){x.classList.add('good');} });
+        if(why) why.classList.add('on'); show.hidden=true; });
+    } else if(kind==='select'){
+      var sels=[].slice.call(sp.querySelectorAll('select.sp'));
+      sels.forEach(function(s,i){ if(!s.getAttribute('aria-label')) s.setAttribute('aria-label','choose'); s.id=(sp.id||'sp')+'-s'+i;
+        s.addEventListener('change',function(){ s.classList.remove('good','bad'); }); });
+      row.appendChild(go); row.appendChild(show); sp.querySelector(':scope > .q').after(row);
+      go.addEventListener('click',function(){ var allOk=true, h='';
+        sels.forEach(function(s){ var o=s.options[s.selectedIndex]; var ok=o && o.hasAttribute('data-ok');
+          s.classList.toggle('good',ok); s.classList.toggle('bad',!ok); if(!ok){ allOk=false; if(!h && o && o.dataset.hint) h=o.dataset.hint; } });
+        if(allOk) right(); else wrong(h); });
+      show.addEventListener('click',function(){ sels.forEach(function(s){ for(var i=0;i<s.options.length;i++) if(s.options[i].hasAttribute('data-ok')) s.selectedIndex=i;
+        s.classList.add('good'); s.classList.remove('bad'); }); if(why) why.classList.add('on'); show.hidden=true; });
+    }
+  });
+})();
+</script>
+<script>
+/* ---------- solution / proof toggles ---------- */
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  var noun=b.textContent.replace(/^show\s+/,'');
+  b.dataset.noun=noun; b.type='button';
+  b.setAttribute('aria-expanded','false');
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    b.textContent=(open?'hide ':'show ')+b.dataset.noun;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+});
+/* ---------- theme: follows the system (or the viewer's choice) until the button is pressed ---------- */
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement;
+ function current(){ var a=root.getAttribute('data-theme'); if(a==='light'||a==='dark') return a;
+   return (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark'; }
+ function label(){ t.textContent = current()==='light' ? 'dark' : 'light'; }
+ label();
+ t.addEventListener('click',function(){ var next=current()==='light'?'dark':'light'; root.setAttribute('data-theme',next); label(); });
+ if(window.matchMedia) window.matchMedia('(prefers-color-scheme: light)').addEventListener('change',label);
+})();
+</script>
+
+<script>/* keep the light/dark button label right when the site sets the theme */
+(function(){var t=document.getElementById("theme"),r=document.documentElement;if(!t||!window.MutationObserver)return;new MutationObserver(function(){var a=r.getAttribute("data-theme");if(a==="light"||a==="dark")t.textContent=(a==="light")?"dark":"light";}).observe(r,{attributes:true,attributeFilter:["data-theme"]});})();</script>
+</body>
+</html>

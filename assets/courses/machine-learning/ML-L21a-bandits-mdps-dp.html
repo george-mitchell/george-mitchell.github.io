@@ -1,0 +1,905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Lecture 21a — Reinforcement Learning I: Bandits, MDPs and Dynamic Programming · Machine Learning</title>
+<meta name="color-scheme" content="dark light">
+<script>
+window.MathJax={
+  tex:{inlineMath:[['\\(','\\)']],displayMath:[['$$','$$']]},
+  svg:{scale:1.12, displayAlign:'left', displayIndent:(window.innerWidth<560?'0em':'1.2em'), fontCache:'global'},
+  options:{renderActions:{addMenu:[]}}
+};
+</script>
+<script async src="https://cdn.jsdelivr.net/npm/mathjax@3.2.2/es5/tex-mml-svg.js"></script>
+<style>
+  /* harbour theme (Quantum Frontiers notes): dark-first, light under prefers-color-scheme or the toggle.
+     layout: one 760px reading column; boxes by role; widgets as instruments in surface panels */
+  :root{ color-scheme:dark;
+    --bg:#151d22; --surface:#1d282e; --surface2:#243138;
+    --ink:#eaf1f2; --muted:#93a7ad; --rule:#33454d;
+    --rose:#f0907e; --moss:#7fcdb0; --amber:#e8bd6d; --sky:#8ab6e8;
+    --grid:#2a3941; --axis:#7d949c; --cap:#c9dade; --plum:#c3a6e8;
+    --mono: ui-monospace, "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+    --serif: "Iowan Old Style", Charter, Georgia, serif;
+  }
+  @media (prefers-color-scheme: light){ :root:not([data-theme="dark"]){ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a; --plum:#5b3a8c; } }
+  :root[data-theme="light"]{ color-scheme:light;
+    --bg:#f7fafa; --surface:#eaf1f2; --surface2:#dde8ea;
+    --ink:#10191d; --muted:#4a5f68; --rule:#bacdd2;
+    --rose:#ad3b28; --moss:#1d6b54; --amber:#805907; --sky:#1d5187;
+    --grid:#d5e3e6; --axis:#6c848c; --cap:#26343a; --plum:#5b3a8c; }
+  *{box-sizing:border-box}
+  html{font-size:17.5px;background:var(--bg)}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--serif);
+       font-size:1.06rem;line-height:1.78;-webkit-text-size-adjust:100%}
+  /* maths keeps text size: wide display equations scroll sideways instead of shrinking */
+  mjx-container[display="true"]{margin:1.1em 0 !important;overflow-x:auto;overflow-y:hidden;max-width:100%;
+    padding-bottom:4px;scrollbar-width:thin;-webkit-overflow-scrolling:touch}
+  mjx-container{color:var(--ink)}
+  mjx-container svg{max-width:none !important}
+  .wrap{max-width:760px;margin:0 auto;padding-block:22px 110px;
+        padding-left:max(20px, env(safe-area-inset-left, 0px));padding-right:max(20px, env(safe-area-inset-right, 0px))}
+  h1,h2,h3,h4,summary,.mono,button,figcaption,th,.tag{font-family:var(--mono)}
+  h1{color:var(--rose);font-size:1.75rem;line-height:1.25;letter-spacing:-.5px;margin:.1em 0 .05em;text-wrap:balance}
+  h2{color:var(--rose);font-size:1.24rem;margin:2.8em 0 .5em;scroll-margin-top:14px;text-wrap:balance}
+  h3{font-size:1.06rem;margin:1.9em 0 .4em;color:var(--ink)}
+  .kicker{color:var(--muted);font-family:var(--mono);font-size:.9rem;margin:0 0 1.6em}
+  p{margin:0 0 1.1em}
+  a{color:var(--moss)}
+  a:focus-visible,button:focus-visible,summary:focus-visible,input:focus-visible,select:focus-visible{
+    outline:2px solid var(--sky);outline-offset:3px;border-radius:3px}
+  code,.m{font-family:var(--mono);font-size:.92em;color:var(--amber)}
+  ul,ol{padding-left:1.35em} li{margin-bottom:.3em}
+  hr{border:0;border-top:1px solid var(--rule);margin:3.2em 0}
+
+  /* ---- content boxes ---- */
+  .box{border:1px solid var(--rule);border-left-width:3px;background:var(--surface);
+       border-radius:0 8px 8px 0;padding:12px 16px;margin:1.5em 0;min-width:0}
+  .box > :last-child{margin-bottom:0}
+  .box .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.3em}
+  .def{border-left-color:var(--rose)}      .def .lbl{color:var(--rose)}
+  .thm{border-left-color:var(--moss)}      .thm .lbl{color:var(--moss)}
+  .ex{border-left-color:var(--amber)}      .ex .lbl{color:var(--amber)}
+  .idea{border-left-color:var(--sky);background:var(--surface2)} .idea .lbl{color:var(--sky)}
+  .hist{border-left-color:var(--rose);background:var(--surface2)} .hist .lbl{color:var(--rose)}
+  .tool{border-left-color:var(--sky);background:var(--surface2)} .tool .lbl{color:var(--sky)}
+  .exr{border-left-color:var(--amber);border-style:dashed;border-left-style:solid} .exr .lbl{color:var(--amber)}
+  .data{border-left-color:var(--cap);background:var(--surface2)} .data .lbl{color:var(--cap)}
+  /* machine-learning course additions, same family */
+  .big{border-left-color:var(--plum);background:var(--surface2)} .big .lbl{color:var(--plum)}
+  .causal{border-left-color:var(--moss);background:var(--surface2)} .causal .lbl{color:var(--moss)}
+  .bayes{border-left-color:var(--sky);background:var(--surface2)} .bayes .lbl{color:var(--sky)}
+  .quantum{border-left-color:var(--plum);border-left-style:double;border-left-width:4px;background:var(--surface2)} .quantum .lbl{color:var(--plum)}
+  .proj{border-left:3px dashed var(--rose);background:var(--surface2)} .proj .lbl{color:var(--rose)}
+  .proj h4{font-family:var(--mono);font-size:.95rem;color:var(--ink);margin:1.1em 0 .2em;font-weight:600}
+  .proj dl{margin:.1em 0 .4em} .proj dt{font-family:var(--mono);font-size:.84rem;color:var(--cap);margin-top:.35em}
+  .proj dd{margin:.05em 0 0 1em}
+  .tool pre{font-family:var(--mono);font-size:.86rem;line-height:1.55;background:var(--bg);color:var(--ink);
+       border:1px solid var(--rule);border-radius:6px;padding:10px 12px;overflow-x:auto;margin:.5em 0 .8em}
+  .tool pre .cm{color:var(--muted)}
+  .tool pre.out{color:var(--cap);border-style:dashed}
+  /* syntax colours (build-time highlighting), drawn from the theme tokens */
+  .tool pre.src{border-left:3px solid var(--sky)}
+  .t-c,.t-c1,.t-cm,.t-ch,.t-cs{color:var(--muted);font-style:italic}
+  .t-k,.t-kd,.t-kr,.t-ow{color:var(--rose);font-weight:600}
+  .t-kn{color:var(--plum);font-weight:600}
+  .t-kc{color:var(--amber);font-weight:600}
+  .t-nb,.t-bp,.t-fm{color:var(--sky)}
+  .t-nf,.t-nc{color:var(--sky);font-weight:600}
+  .t-nn{color:var(--plum)}
+  .t-nd{color:var(--plum)}
+  .t-s,.t-s1,.t-s2,.t-sa,.t-sb,.t-sc,.t-sd,.t-se,.t-sh,.t-sx{color:var(--moss)}
+  .t-si{color:var(--amber)}
+  .t-m,.t-mi,.t-mf,.t-mh,.t-mo,.t-il{color:var(--amber)}
+  .t-o{color:var(--cap)}
+  .t-p{color:var(--muted)}
+  .t-n,.t-nv,.t-na{color:var(--ink)}
+  .t-fn{color:var(--sky)}
+  .notation dt{font-family:var(--mono);color:var(--sky);font-size:.92rem;margin-top:.5em}
+  .notation dd{margin:.05em 0 0 1em}
+
+  /* ---- solutions ---- */
+  .sol-btn{font-family:var(--mono);font-size:.85rem;background:transparent;color:var(--moss);
+    border:1px solid var(--moss);padding:5px 12px;border-radius:999px;cursor:pointer;margin:.4em 0}
+  .sol-btn:hover{background:var(--moss);color:var(--bg)}
+  .sol{display:none;border-top:1px dashed var(--rule);margin-top:.7em;padding-top:.7em}
+  .sol.open{display:block}
+
+  /* ---- figures ---- */
+  figure{margin:1.8em 0;text-align:center;overflow-x:auto}
+  .toon{margin:1.1em 0 1.9em;text-align:left}
+  .toon svg{max-width:100%;height:auto}
+  .tooncap{font-family:var(--mono);font-size:.88rem;color:var(--cap);margin-top:.4em;line-height:1.5;text-align:left}
+  .ctext{font-family:var(--mono);font-size:13.5px;fill:var(--ink);stroke:none}
+  svg{max-width:100%;height:auto}
+  figcaption{font-size:.95rem;color:var(--cap);margin-top:.6em;text-align:left;line-height:1.6}
+  .plot-bg{fill:var(--surface)}
+  .gridline{stroke:var(--grid);stroke-width:1}
+  .axis{stroke:var(--axis);stroke-width:1.5}
+  .axtext{fill:var(--cap);font-family:var(--mono);font-size:13px}
+  .lbltext{fill:var(--ink);font-family:var(--mono);font-size:14.5px}
+
+  /* ---- widgets ---- */
+  .widget{background:var(--surface);border:1px solid var(--rule);border-radius:10px;
+          padding:14px;margin:1.8em 0;min-width:0}
+  .widget h4{margin:0 0 .5em;font-size:.95rem;color:var(--sky);font-weight:400}
+  .widget .wtxt{font-size:.92rem;margin:.2em 0 .6em}
+  .widget > svg,.wrow > svg{display:block;margin:0 auto;touch-action:manipulation}
+  .ctrls{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-top:10px;
+         font-family:var(--mono);font-size:.88rem;color:var(--cap)}
+  .ctrls label{display:flex;flex-direction:column;gap:2px;flex:1 1 150px;min-width:0}
+  input[type=range]{width:100%;accent-color:var(--moss)}
+  .readout{font-family:var(--mono);font-size:.88rem;color:var(--ink);margin-top:8px;min-height:1.4em;line-height:1.6;font-variant-numeric:tabular-nums}
+  button.ctl{font-family:var(--mono);font-size:.85rem;background:var(--surface2);color:var(--ink);
+    border:1px solid var(--rule);padding:7px 12px;border-radius:6px;cursor:pointer}
+  button.ctl:hover{border-color:var(--sky)}
+  button.ctl.on{border-color:var(--moss);color:var(--moss)}
+  .wrow{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start}
+  .wrow > *{flex:1 1 280px;min-width:0}
+  .legend{font-family:var(--mono);font-size:.8rem;color:var(--cap);display:flex;flex-wrap:wrap;gap:4px 14px;margin:.3em 0}
+  .legend i{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:5px;vertical-align:0}
+  table{width:100%;border-collapse:collapse;font-size:.96rem;margin:1.2em 0}
+  th,td{border-bottom:1px solid var(--rule);padding:7px 8px;text-align:left}
+  th{color:var(--cap);font-size:.88rem;font-weight:400}
+  .tscroll{overflow-x:auto}
+  .toc{background:var(--surface);border:1px solid var(--rule);border-radius:10px;padding:12px 18px;margin:2em 0}
+  .toc ol{margin:.3em 0;font-family:var(--mono);font-size:.95rem}
+  .topbar{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:1.4em}
+  .topbar a{font-family:var(--mono);font-size:.88rem;color:var(--muted);text-decoration:none}
+  .refs li{font-size:.95rem;margin-bottom:.55em}
+
+  /* ---- spot checks ---- */
+  .spot{border:1px solid var(--rule);border-left:3px solid var(--sky);background:var(--surface);
+        border-radius:0 8px 8px 0;padding:10px 16px 12px;margin:1.4em 0;transition:border-color .2s ease,background .2s ease}
+  .spot > .lbl{font-family:var(--mono);font-size:.82rem;letter-spacing:.06em;display:block;margin-bottom:.25em;color:var(--sky)}
+  .spot .q{margin:0 0 .55em}
+  .spot .hint,.spot .why,.spot .ans{display:none;font-size:.95rem;margin:.55em 0 0;padding:.45em .7em;border-radius:6px;line-height:1.6}
+  .spot .hint{border:1px solid var(--amber);color:var(--ink);background:var(--surface2)}
+  .spot .why{border:1px solid var(--moss);color:var(--ink);background:var(--surface2)}
+  .spot .ans{border:1px dashed var(--rule);color:var(--ink)}
+  .spot .hint::before{content:"not quite \2014  ";font-family:var(--mono);font-size:.82rem;color:var(--amber)}
+  .spot .why::before{content:"correct \2014  ";font-family:var(--mono);font-size:.82rem;color:var(--moss)}
+  .spot .ans::before{content:"answer \2014  ";font-family:var(--mono);font-size:.82rem;color:var(--cap)}
+  .spot.no{border-left-color:var(--amber);border-color:var(--amber)} .spot.no > .lbl{color:var(--amber)}
+  .spot.ok{border-left-color:var(--moss);border-color:var(--moss)} .spot.ok > .lbl{color:var(--moss)}
+  .spot.no .hint.on,.spot .why.on,.spot .ans.on{display:block}
+  .spot .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .spot input.sp-in{font-family:var(--mono);font-size:.95rem;background:var(--bg);color:var(--ink);
+        border:1px solid var(--rule);border-radius:6px;padding:6px 9px;width:11em;max-width:100%}
+  .spot.ok input.sp-in{border-color:var(--moss)} .spot.no input.sp-in{border-color:var(--amber)}
+  .spot select.sp{font-family:var(--mono);font-size:.9rem;background:var(--bg);color:var(--ink);
+        border:1px solid var(--rule);border-radius:6px;padding:3px 6px;margin:0 .15em;max-width:100%}
+  .spot select.sp.good{border-color:var(--moss)} .spot select.sp.bad{border-color:var(--amber)}
+  .spot ul.opts{list-style:none;padding:0;margin:.3em 0 .2em;display:grid;gap:7px}
+  .spot ul.opts li{margin:0}
+  .spot ul.opts button.opt{width:100%;text-align:left;font-family:var(--serif);font-size:1rem;line-height:1.55;
+        background:var(--bg);color:var(--ink);border:1px solid var(--rule);border-radius:7px;padding:7px 12px;cursor:pointer}
+  .spot ul.opts button.opt:hover{border-color:var(--sky)}
+  .spot ul.opts button.opt[aria-pressed="true"]{border-color:var(--sky);box-shadow:inset 3px 0 0 var(--sky)}
+  .spot ul.opts button.opt.good{border-color:var(--moss);box-shadow:inset 3px 0 0 var(--moss)}
+  .spot ul.opts button.opt.bad{border-color:var(--amber);box-shadow:inset 3px 0 0 var(--amber)}
+  .spot .unit{font-family:var(--mono);font-size:.9rem;color:var(--muted)}
+  .spot button.sp-show{border-style:dashed}
+  @media (max-width:520px){
+    html{font-size:16.5px} .wrap{padding-left:max(16px, env(safe-area-inset-left, 0px));padding-right:max(16px, env(safe-area-inset-right, 0px));padding-block:16px 90px} h1{font-size:1.45rem}
+    .box{padding:11px 13px} .widget{padding:11px}
+  }
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+  /* formal statements: airy, clean spacing (added Oct 2026) */
+  mjx-container[display="true"]{margin:1.35em 0 !important}
+  .box.def,.box.thm{padding:18px 22px 16px}
+  .box.def > .lbl,.box.thm > .lbl{margin-bottom:.85em;padding-bottom:.5em;border-bottom:1px solid var(--rule)}
+  .box.def p,.box.thm p,.sol p{margin:.8em 0}
+  .box.def mjx-container[display="true"],.box.thm mjx-container[display="true"],.sol mjx-container[display="true"]{margin:1.6em 0 !important}
+  .box.def ul,.box.thm ul,.box.def ol,.box.thm ol{margin:.7em 0;padding-left:1.35em}
+  .box.def li,.box.thm li{margin:.55em 0}
+  .box .sol-btn{margin-top:1em}
+  .sol{margin-top:1.1em;padding-top:1.1em}
+  .box.def p.stmt,.box.thm p.stmt{margin:.9em 0 .9em 1.1em}
+  @media (max-width:520px){ .box.def,.box.thm{padding:13px 14px 12px} .box.def p.stmt,.box.thm p.stmt{margin-left:.4em} }
+</style>
+
+<script src="/assets/courses/common/course-nav.js" data-course="machine-learning" defer></script>
+</head>
+<body>
+<div class="wrap">
+<div class="topbar">
+  <a href="#top">Machine Learning · Lecture 21a</a>
+  <button class="ctl" id="theme" type="button">light</button>
+</div>
+<h1 id="top">Lecture 21a<br>Reinforcement Learning I: Bandits, MDPs and Dynamic Programming</h1>
+<p class="kicker">Part VI &middot; Decisions &nbsp;|&nbsp; the agent&ndash;environment loop, returns and discounting, multi-armed bandits, ε-greedy, UCB and Thompson sampling, regret and its lower bound, logged bandit data and off-policy evaluation, Markov decision processes, value functions, Bellman equations, value iteration and policy iteration &nbsp;|&nbsp; reading: Sutton &amp; Barto (2018), ch. 1&ndash;4; Lattimore &amp; Szepesvári (2020), ch. 1&ndash;8; Auer, Cesa-Bianchi &amp; Fischer (2002) &nbsp;|&nbsp; learning from experience follows in <a href="ML-L21b-td-q-learning-dqn.html">Lecture 21b</a></p>
+
+<figure class="toon">
+<svg viewBox="0 0 600 210" width="600" height="210" role="img" aria-labelledby="c21t c21d">
+<title id="c21t">Cartoon: the favourite restaurant</title><desc id="c21d">A stick figure stands between two restaurants. One is labelled "my usual", the other "new place". A speech bubble says: the usual is good, but the new place might be better.</desc>
+<defs><filter id="rough21" x="-8%" y="-8%" width="116%" height="116%"><feTurbulence type="fractalNoise" baseFrequency="0.021" numOctaves="3" seed="211" result="n"/><feDisplacementMap in="SourceGraphic" in2="n" scale="2.6" xChannelSelector="R" yChannelSelector="G"/></filter></defs>
+<g filter="url(#rough21)" stroke="var(--ink)" stroke-width="2" fill="none" stroke-linecap="round">
+<path d="M 60 196 L 60 120 L 110 90 L 160 120 L 160 196" fill="var(--surface2)"/><rect x="95" y="160" width="30" height="36"/>
+<path d="M 440 196 L 440 120 L 490 90 L 540 120 L 540 196" fill="var(--surface2)"/><rect x="475" y="160" width="30" height="36"/>
+<path d="M 470 110 L 476 98 L 482 110 M 498 104 L 504 92 L 510 104" stroke="var(--amber)"/>
+<circle cx="300" cy="128" r="10"/><path d="M 300 138 L 300 164 M 300 146 L 286 160 M 300 146 L 314 160 M 300 164 L 291 190 M 300 164 L 309 190"/>
+<rect x="190" y="14" width="220" height="62" rx="9" fill="var(--surface2)"/><path d="M 296 76 L 300 112" stroke-width="1.6"/>
+<path d="M 10 200 L 590 200" stroke-width="1.6"/>
+</g>
+<text x="110" y="140" class="ctext" text-anchor="middle">my usual</text>
+<text x="490" y="140" class="ctext" text-anchor="middle">new place</text>
+<text x="200" y="36" class="ctext">The usual is good.</text><text x="200" y="54" class="ctext">The new place might</text><text x="200" y="72" class="ctext">be better.</text>
+</svg>
+<figcaption class="tooncap">Exploit what you know, or explore what you might be missing: the dilemma at the heart of reinforcement learning</figcaption></figure>
+
+<div class="toc">
+<strong class="mono">In this lecture</strong>
+<ol>
+<li><a href="#s1">The agent&ndash;environment loop</a></li>
+<li><a href="#s2">Multi-armed bandits</a></li>
+<li><a href="#s3">Markov decision processes and value functions</a></li>
+<li><a href="#s4">Bellman equations and dynamic programming</a></li>
+<li><a href="#s5">Summary, exercises, projects, reading</a></li>
+</ol>
+</div>
+
+<p>Every method so far learned from a fixed data set. <strong>Reinforcement learning</strong> (RL) learns by acting: an agent tries actions, sees what happens, and improves. The data now depend on the agent's own choices, and nobody provides the right answer, only a reward. Two tensions run through the subject. Should the agent <em>exploit</em> what it already knows, or <em>explore</em> to learn more? And should it wait for the true outcome of its actions, which is unbiased but noisy, or trust its own estimates, which are stable but biased? This page treats the first tension and the case where the environment is known; <a href="ML-L21b-td-q-learning-dqn.html">Lecture 21b</a> treats learning from experience.</p>
+
+<p>By the end you should be able to define returns, policies and value functions; compare ε-greedy, UCB and Thompson sampling by their regret, and prove the UCB1 regret bound; explain why logged bandit data need importance weighting; write the Bellman equations; and prove that value iteration and policy iteration find an optimal policy.</p>
+
+<!-- =================== 1 =================== -->
+<h2 id="s1">1 &mdash; The agent&ndash;environment loop</h2>
+
+<p>At each time step \(t\) the agent observes a state \(S_t\), chooses an action \(A_t\), and the environment returns a reward \(R_{t+1}\) and a new state \(S_{t+1}\). A <strong>policy</strong> \(\pi(a\mid s)\) is the agent's rule for choosing actions. The agent's goal is not the next reward but the total it will collect.</p>
+
+<div class="box def">
+<span class="lbl">definition 21.1 &mdash; return and discounting</span>
+<p>The <strong>return</strong> from time \(t\) is the discounted sum of future rewards,</p>
+$$G_t=R_{t+1}+\gamma R_{t+2}+\gamma^2R_{t+3}+\cdots=\sum_{k\ge0}\gamma^kR_{t+k+1},$$
+<p>with <strong>discount factor</strong> \(0\le\gamma\le1\). A reward received \(k\) steps after the next one counts \(\gamma^{k}\) as much as the next reward. With \(\gamma<1\) and bounded rewards the sum is finite; \(\gamma\) close to 1 makes the agent far-sighted.</p>
+</div>
+
+<p>Three things make RL harder than supervised learning. The feedback is a <em>score</em>, not a label: a reward says how good an action was, not which action would have been best. Rewards are <em>delayed</em>: a move that wins a game may come many steps before the win. And the data are <em>not independent</em>: what the agent sees next depends on what it did.</p>
+
+<div class="box tool">
+<span class="lbl">code &mdash; the interaction loop: a random agent on slippery ice</span>
+<pre class="src"><span class="t-c1"># The agent-environment loop: a random agent on FrozenLake (4 x 4, slippery ice)</span>
+<span class="t-kn">import</span><span class="t-w"> </span><span class="t-nn">numpy</span><span class="t-w"> </span><span class="t-k">as</span><span class="t-w"> </span><span class="t-nn">np</span><span class="t-o">,</span><span class="t-w"> </span><span class="t-nn">gymnasium</span><span class="t-w"> </span><span class="t-k">as</span><span class="t-w"> </span><span class="t-nn">gym</span><span class="t-o">,</span><span class="t-w"> </span><span class="t-nn">warnings</span><span class="t-p">;</span> <span class="t-n">warnings</span><span class="t-o">.</span><span class="t-n">filterwarnings</span><span class="t-p">(</span><span class="t-s1">'ignore'</span><span class="t-p">)</span>
+<span class="t-n">env</span> <span class="t-o">=</span> <span class="t-n">gym</span><span class="t-o">.</span><span class="t-n">make</span><span class="t-p">(</span><span class="t-s1">'FrozenLake-v1'</span><span class="t-p">,</span> <span class="t-n">is_slippery</span><span class="t-o">=</span><span class="t-kc">True</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s2">"map (S start, F frozen, H hole, G goal):"</span><span class="t-p">,</span> <span class="t-s2">" / "</span><span class="t-o">.</span><span class="t-n">join</span><span class="t-p">(</span><span class="t-sa">b</span><span class="t-s2">""</span><span class="t-o">.</span><span class="t-n">join</span><span class="t-p">(</span><span class="t-n">r</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-n">decode</span><span class="t-p">()</span> <span class="t-k">for</span> <span class="t-n">r</span> <span class="t-ow">in</span> <span class="t-n">env</span><span class="t-o">.</span><span class="t-n">unwrapped</span><span class="t-o">.</span><span class="t-n">desc</span><span class="t-p">))</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s2">"from the square left of the goal, action 'right' leads to:"</span><span class="t-p">,</span>
+      <span class="t-s2">", "</span><span class="t-o">.</span><span class="t-n">join</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"square </span><span class="t-si">{</span><span class="t-n">s2</span><span class="t-si">}</span><span class="t-s2"> with probability </span><span class="t-si">{</span><span class="t-n">pr</span><span class="t-si">:</span><span class="t-s2">.2f</span><span class="t-si">}</span><span class="t-s2">"</span> <span class="t-o">+</span> <span class="t-p">(</span><span class="t-s2">" (goal, reward 1)"</span> <span class="t-k">if</span> <span class="t-n">r</span> <span class="t-k">else</span> <span class="t-s2">""</span><span class="t-p">)</span> <span class="t-k">for</span> <span class="t-n">pr</span><span class="t-p">,</span> <span class="t-n">s2</span><span class="t-p">,</span> <span class="t-n">r</span><span class="t-p">,</span> <span class="t-n">_</span> <span class="t-ow">in</span> <span class="t-n">env</span><span class="t-o">.</span><span class="t-n">unwrapped</span><span class="t-o">.</span><span class="t-n">P</span><span class="t-p">[</span><span class="t-mi">14</span><span class="t-p">][</span><span class="t-mi">2</span><span class="t-p">]))</span>
+<span class="t-n">rng</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-n">default_rng</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">);</span> <span class="t-n">wins</span><span class="t-p">,</span> <span class="t-n">lengths</span> <span class="t-o">=</span> <span class="t-mi">0</span><span class="t-p">,</span> <span class="t-p">[]</span>
+<span class="t-k">for</span> <span class="t-n">ep</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-mi">10_000</span><span class="t-p">):</span>
+    <span class="t-n">s</span><span class="t-p">,</span> <span class="t-n">_</span> <span class="t-o">=</span> <span class="t-n">env</span><span class="t-o">.</span><span class="t-n">reset</span><span class="t-p">(</span><span class="t-n">seed</span><span class="t-o">=</span><span class="t-nb">int</span><span class="t-p">(</span><span class="t-n">rng</span><span class="t-o">.</span><span class="t-n">integers</span><span class="t-p">(</span><span class="t-mi">1</span> <span class="t-o">&lt;&lt;</span> <span class="t-mi">30</span><span class="t-p">)));</span> <span class="t-n">done</span><span class="t-p">,</span> <span class="t-n">t</span> <span class="t-o">=</span> <span class="t-kc">False</span><span class="t-p">,</span> <span class="t-mi">0</span>
+    <span class="t-k">while</span> <span class="t-ow">not</span> <span class="t-n">done</span><span class="t-p">:</span>
+        <span class="t-n">a</span> <span class="t-o">=</span> <span class="t-nb">int</span><span class="t-p">(</span><span class="t-n">rng</span><span class="t-o">.</span><span class="t-n">integers</span><span class="t-p">(</span><span class="t-mi">4</span><span class="t-p">))</span>                                  <span class="t-c1"># the policy: pick one of the four moves at random</span>
+        <span class="t-n">s</span><span class="t-p">,</span> <span class="t-n">r</span><span class="t-p">,</span> <span class="t-n">term</span><span class="t-p">,</span> <span class="t-n">trunc</span><span class="t-p">,</span> <span class="t-n">_</span> <span class="t-o">=</span> <span class="t-n">env</span><span class="t-o">.</span><span class="t-n">step</span><span class="t-p">(</span><span class="t-n">a</span><span class="t-p">);</span> <span class="t-n">done</span> <span class="t-o">=</span> <span class="t-n">term</span> <span class="t-ow">or</span> <span class="t-n">trunc</span><span class="t-p">;</span> <span class="t-n">t</span> <span class="t-o">+=</span> <span class="t-mi">1</span>
+    <span class="t-n">wins</span> <span class="t-o">+=</span> <span class="t-n">r</span><span class="t-p">;</span> <span class="t-n">lengths</span><span class="t-o">.</span><span class="t-n">append</span><span class="t-p">(</span><span class="t-n">t</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"random policy, 10,000 episodes: reaches the goal in </span><span class="t-si">{</span><span class="t-n">wins</span><span class="t-w"> </span><span class="t-o">/</span><span class="t-w"> </span><span class="t-mi">10_000</span><span class="t-si">:</span><span class="t-s2">.1%</span><span class="t-si">}</span><span class="t-s2">, mean episode length </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">(</span><span class="t-n">lengths</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s2">.1f</span><span class="t-si">}</span><span class="t-s2"> steps"</span><span class="t-p">)</span>
+<span class="t-k">for</span> <span class="t-n">gam</span> <span class="t-ow">in</span> <span class="t-p">(</span><span class="t-mf">0.9</span><span class="t-p">,</span> <span class="t-mf">0.99</span><span class="t-p">):</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"discount gamma = </span><span class="t-si">{</span><span class="t-n">gam</span><span class="t-si">}</span><span class="t-s2">: a reward of 1 after 6 steps is worth </span><span class="t-si">{</span><span class="t-n">gam</span><span class="t-w"> </span><span class="t-o">**</span><span class="t-w"> </span><span class="t-mi">5</span><span class="t-si">:</span><span class="t-s2">.3f</span><span class="t-si">}</span><span class="t-s2"> now; after 30 steps </span><span class="t-si">{</span><span class="t-n">gam</span><span class="t-w"> </span><span class="t-o">**</span><span class="t-w"> </span><span class="t-mi">29</span><span class="t-si">:</span><span class="t-s2">.3f</span><span class="t-si">}</span><span class="t-s2">"</span><span class="t-p">)</span></pre>
+<pre class="out">map (S start, F frozen, H hole, G goal): SFFF / FHFH / FFFH / HFFG
+from the square left of the goal, action 'right' leads to: square 14 with probability 0.33, square 15 with probability 0.33 (goal, reward 1), square 10 with probability 0.33
+random policy, 10,000 episodes: reaches the goal in 1.4%, mean episode length 7.6 steps
+discount gamma = 0.9: a reward of 1 after 6 steps is worth 0.590 now; after 30 steps 0.047
+discount gamma = 0.99: a reward of 1 after 6 steps is worth 0.951 now; after 30 steps 0.747</pre>
+</div>
+
+<p>The ice is slippery: the intended move happens only a third of the time, and the agent slides sideways otherwise. Acting at random, it reaches the goal in 1.4% of episodes; most end within a few steps in a hole (mean length 7.6 steps). The discount sets how much the far future matters: with \(\gamma=0.9\) a reward 30 steps away is worth 0.047 of a reward now, with \(\gamma=0.99\) it is worth 0.747.</p>
+
+<!-- =================== 2 =================== -->
+<h2 id="s2">2 &mdash; Multi-armed bandits</h2>
+
+<p>The simplest RL problem has a single state. A <strong>multi-armed bandit</strong> (after the "one-armed bandit", a slot machine) has \(K\) actions, or arms. Pulling arm \(a\) gives a random reward with unknown mean \(\mu_a\). Which advert to show, which version of a web page to serve, which treatment to give the next patient: each is a bandit problem. A good policy must find the best arm while not wasting too many pulls on the others.</p>
+
+<div class="box def">
+<span class="lbl">definition 21.2 &mdash; regret</span>
+<p>Let \(\mu^*=\max_a\mu_a\) and \(\Delta_a=\mu^*-\mu_a\) be the gap of arm \(a\). The <strong>regret</strong> of a policy after \(T\) rounds is the expected reward lost by not always pulling the best arm,</p>
+$$\mathcal R_T=T\mu^*-\mathbb E\Big[\sum_{t=1}^TR_t\Big]=\sum_a\Delta_a\,\mathbb E[N_a(T)],$$
+<p>where \(N_a(T)\) is the number of pulls of arm \(a\). Good policies have regret that grows like \(\log T\): they eventually stop pulling bad arms, except rarely.</p>
+</div>
+
+<p>Three classic policies:</p>
+<p><strong>ε-greedy</strong> pulls the arm with the best average reward so far, except that with probability \(\varepsilon\) it pulls a random arm. It is simple, but it keeps exploring at the same rate forever, so its regret grows linearly in \(T\).</p>
+<p><strong>UCB1</strong> (upper confidence bound; Auer, Cesa-Bianchi and Fischer, 2002) pulls the arm with the largest optimistic estimate</p>
+$$\hat\mu_a+\sqrt{\frac{2\ln t}{N_a}} .$$
+<p>The bonus is large for arms tried rarely and shrinks as \(N_a\) grows: <em>optimism in the face of uncertainty</em>.</p>
+<p><strong>Thompson sampling</strong> (Thompson, 1933) keeps a posterior distribution for each \(\mu_a\), draws one sample from each, and pulls the arm whose sample is largest. Each arm is pulled with exactly the probability that it is the best, given the data so far.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 21.1 &mdash; UCB1 has logarithmic regret (Auer et al., 2002)</span>
+<p>For rewards in \([0,1]\), every suboptimal arm \(a\) satisfies</p>
+$$\mathbb E[N_a(T)]\;\le\;\frac{8\ln T}{\Delta_a^2}+1+\frac{\pi^2}{3},$$
+<p>so the regret of UCB1 is</p>
+$$\mathcal R_T\;\le\;\sum_{a:\Delta_a>0}\Big(\frac{8\ln T}{\Delta_a}+\big(1+\tfrac{\pi^2}{3}\big)\Delta_a\Big)=O(\log T).$$
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Write \(c_{t,s}=\sqrt{2\ln t/s}\) and \(\ell=\lceil8\ln T/\Delta_a^2\rceil\). After arm \(a\) has been pulled \(\ell\) times, it can be pulled again at time \(t\) only if its index beats the best arm's:</p>
+$$\hat\mu^*_{s}+c_{t,s}\;\le\;\hat\mu_{a,s_a}+c_{t,s_a}\qquad\text{for some }s\lt t,\ \ell\le s_a\lt t .$$
+<p>This requires at least one of three events:</p>
+<ol>
+<li>\(\hat\mu^*_s\le\mu^*-c_{t,s}\): the best arm is badly underestimated;</li>
+<li>\(\hat\mu_{a,s_a}\ge\mu_a+c_{t,s_a}\): arm \(a\) is badly overestimated;</li>
+<li>\(\mu^*<\mu_a+2c_{t,s_a}\): the gap is smaller than twice the bonus.</li>
+</ol>
+<p>Event 3 is impossible once \(s_a\ge\ell\), because then \(2c_{t,s_a}\le2\sqrt{2\ln T/\ell}\le\Delta_a\). By Hoeffding's inequality, events 1 and 2 each have probability at most \(e^{-4\ln t}=t^{-4}\).</p>
+<p>Summing over all \(t\), \(s\) and \(s_a\),</p>
+$$\mathbb E[N_a(T)]\le\ell+\sum_{t\ge1}\sum_{s=1}^{t}\sum_{s_a=1}^{t}2t^{-4}\le\ell+\sum_{t\ge1}2t^{-2}=\ell+\frac{\pi^2}{3}.$$
+<p>Since \(\ell\le8\ln T/\Delta_a^2+1\), this gives the bound. Multiplying by \(\Delta_a\) and summing over arms gives the regret. \(\square\)</p>
+</div>
+</div>
+
+<div class="box thm">
+<span class="lbl">theorem 21.2 &mdash; the Lai&ndash;Robbins lower bound (1985)</span>
+<p>For Bernoulli arms, every policy whose regret is \(o(T^\alpha)\) for all \(\alpha>0\) on every instance satisfies</p>
+$$\liminf_{T\to\infty}\frac{\mathcal R_T}{\ln T}\;\ge\;\sum_{a:\Delta_a>0}\frac{\Delta_a}{\mathrm{KL}(\mu_a,\mu^*)},$$
+<p>where \(\mathrm{KL}(p,q)=p\ln\frac pq+(1-p)\ln\frac{1-p}{1-q}\). (Statement.) Thompson sampling and KL-UCB attain this constant; UCB1 attains the \(\log T\) rate with a larger constant.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">code &mdash; ε-greedy, UCB1 and Thompson sampling, 200 runs of 50,000 rounds</span>
+<pre class="src"><span class="t-c1"># Multi-armed bandits: epsilon-greedy, UCB1 and Thompson sampling on five arms with click rates of 4-12%</span>
+<span class="t-n">mu</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">array</span><span class="t-p">([</span><span class="t-mf">0.12</span><span class="t-p">,</span> <span class="t-mf">0.10</span><span class="t-p">,</span> <span class="t-mf">0.08</span><span class="t-p">,</span> <span class="t-mf">0.06</span><span class="t-p">,</span> <span class="t-mf">0.04</span><span class="t-p">])</span>                    <span class="t-c1"># arm 0 is best</span>
+<span class="t-n">K</span><span class="t-p">,</span> <span class="t-n">T</span><span class="t-p">,</span> <span class="t-n">runs</span> <span class="t-o">=</span> <span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">mu</span><span class="t-p">),</span> <span class="t-mi">50_000</span><span class="t-p">,</span> <span class="t-mi">200</span><span class="t-p">;</span> <span class="t-n">best</span> <span class="t-o">=</span> <span class="t-n">mu</span><span class="t-o">.</span><span class="t-n">max</span><span class="t-p">()</span>
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">play</span><span class="t-p">(</span><span class="t-n">policy</span><span class="t-p">,</span> <span class="t-n">seed</span><span class="t-p">):</span>
+    <span class="t-n">g</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-n">default_rng</span><span class="t-p">(</span><span class="t-n">seed</span><span class="t-p">);</span> <span class="t-n">n</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">zeros</span><span class="t-p">((</span><span class="t-n">runs</span><span class="t-p">,</span> <span class="t-n">K</span><span class="t-p">));</span> <span class="t-n">s</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">zeros</span><span class="t-p">((</span><span class="t-n">runs</span><span class="t-p">,</span> <span class="t-n">K</span><span class="t-p">));</span> <span class="t-n">regret</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">zeros</span><span class="t-p">(</span><span class="t-n">T</span><span class="t-p">);</span> <span class="t-n">idx</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">arange</span><span class="t-p">(</span><span class="t-n">runs</span><span class="t-p">)</span>
+    <span class="t-k">for</span> <span class="t-n">t</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-n">T</span><span class="t-p">):</span>
+        <span class="t-k">if</span> <span class="t-n">policy</span> <span class="t-o">==</span> <span class="t-s1">'ucb1'</span><span class="t-p">:</span>
+            <span class="t-n">a</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">where</span><span class="t-p">(</span><span class="t-n">n</span><span class="t-o">.</span><span class="t-n">min</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">)</span> <span class="t-o">==</span> <span class="t-mi">0</span><span class="t-p">,</span> <span class="t-n">n</span><span class="t-o">.</span><span class="t-n">argmin</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">),</span> <span class="t-p">(</span><span class="t-n">s</span> <span class="t-o">/</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">maximum</span><span class="t-p">(</span><span class="t-n">n</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">)</span> <span class="t-o">+</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">sqrt</span><span class="t-p">(</span><span class="t-mi">2</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">log</span><span class="t-p">(</span><span class="t-n">t</span> <span class="t-o">+</span> <span class="t-mi">1</span><span class="t-p">)</span> <span class="t-o">/</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">maximum</span><span class="t-p">(</span><span class="t-n">n</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">)))</span><span class="t-o">.</span><span class="t-n">argmax</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">))</span>
+        <span class="t-k">elif</span> <span class="t-n">policy</span> <span class="t-o">==</span> <span class="t-s1">'thompson'</span><span class="t-p">:</span>
+            <span class="t-n">a</span> <span class="t-o">=</span> <span class="t-n">g</span><span class="t-o">.</span><span class="t-n">beta</span><span class="t-p">(</span><span class="t-mi">1</span> <span class="t-o">+</span> <span class="t-n">s</span><span class="t-p">,</span> <span class="t-mi">1</span> <span class="t-o">+</span> <span class="t-n">n</span> <span class="t-o">-</span> <span class="t-n">s</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-n">argmax</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">)</span>                         <span class="t-c1"># sample a click rate per arm from its posterior</span>
+        <span class="t-k">else</span><span class="t-p">:</span>
+            <span class="t-n">eps</span> <span class="t-o">=</span> <span class="t-nb">float</span><span class="t-p">(</span><span class="t-n">policy</span><span class="t-o">.</span><span class="t-n">split</span><span class="t-p">(</span><span class="t-s1">'='</span><span class="t-p">)[</span><span class="t-mi">1</span><span class="t-p">]);</span> <span class="t-n">greedy</span> <span class="t-o">=</span> <span class="t-p">(</span><span class="t-n">s</span> <span class="t-o">/</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">maximum</span><span class="t-p">(</span><span class="t-n">n</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">)</span> <span class="t-o">+</span> <span class="t-mf">1e-9</span> <span class="t-o">*</span> <span class="t-n">g</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-p">((</span><span class="t-n">runs</span><span class="t-p">,</span> <span class="t-n">K</span><span class="t-p">)))</span><span class="t-o">.</span><span class="t-n">argmax</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">)</span>
+            <span class="t-n">a</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">where</span><span class="t-p">(</span><span class="t-n">g</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-p">(</span><span class="t-n">runs</span><span class="t-p">)</span> <span class="t-o">&lt;</span> <span class="t-n">eps</span><span class="t-p">,</span> <span class="t-n">g</span><span class="t-o">.</span><span class="t-n">integers</span><span class="t-p">(</span><span class="t-n">K</span><span class="t-p">,</span> <span class="t-n">size</span><span class="t-o">=</span><span class="t-n">runs</span><span class="t-p">),</span> <span class="t-n">greedy</span><span class="t-p">)</span>
+        <span class="t-n">r</span> <span class="t-o">=</span> <span class="t-n">g</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-p">(</span><span class="t-n">runs</span><span class="t-p">)</span> <span class="t-o">&lt;</span> <span class="t-n">mu</span><span class="t-p">[</span><span class="t-n">a</span><span class="t-p">];</span> <span class="t-n">n</span><span class="t-p">[</span><span class="t-n">idx</span><span class="t-p">,</span> <span class="t-n">a</span><span class="t-p">]</span> <span class="t-o">+=</span> <span class="t-mi">1</span><span class="t-p">;</span> <span class="t-n">s</span><span class="t-p">[</span><span class="t-n">idx</span><span class="t-p">,</span> <span class="t-n">a</span><span class="t-p">]</span> <span class="t-o">+=</span> <span class="t-n">r</span><span class="t-p">;</span> <span class="t-n">regret</span><span class="t-p">[</span><span class="t-n">t</span><span class="t-p">]</span> <span class="t-o">=</span> <span class="t-n">best</span> <span class="t-o">-</span> <span class="t-n">mu</span><span class="t-p">[</span><span class="t-n">a</span><span class="t-p">]</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">()</span>
+    <span class="t-k">return</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">cumsum</span><span class="t-p">(</span><span class="t-n">regret</span><span class="t-p">),</span> <span class="t-n">n</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">)</span>
+<span class="t-n">res</span> <span class="t-o">=</span> <span class="t-p">{</span><span class="t-n">pol</span><span class="t-p">:</span> <span class="t-n">play</span><span class="t-p">(</span><span class="t-n">pol</span><span class="t-p">,</span> <span class="t-mi">1</span><span class="t-p">)</span> <span class="t-k">for</span> <span class="t-n">pol</span> <span class="t-ow">in</span> <span class="t-p">[</span><span class="t-s1">'eps=0.1'</span><span class="t-p">,</span> <span class="t-s1">'eps=0.01'</span><span class="t-p">,</span> <span class="t-s1">'ucb1'</span><span class="t-p">,</span> <span class="t-s1">'thompson'</span><span class="t-p">]}</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"</span><span class="t-si">{</span><span class="t-n">K</span><span class="t-si">}</span><span class="t-s2"> arms, best click rate </span><span class="t-si">{</span><span class="t-n">best</span><span class="t-si">}</span><span class="t-s2">, </span><span class="t-si">{</span><span class="t-n">T</span><span class="t-si">:</span><span class="t-s2">,</span><span class="t-si">}</span><span class="t-s2"> rounds, averaged over </span><span class="t-si">{</span><span class="t-n">runs</span><span class="t-si">}</span><span class="t-s2"> runs"</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-s2">"policy          regret after 1,000 / 10,000 / 50,000 rounds   growth per unit of ln T (10k-50k)   pulls of the best arm"</span><span class="t-p">)</span>
+<span class="t-k">for</span> <span class="t-n">pol</span><span class="t-p">,</span> <span class="t-p">(</span><span class="t-n">R</span><span class="t-p">,</span> <span class="t-n">pulls</span><span class="t-p">)</span> <span class="t-ow">in</span> <span class="t-n">res</span><span class="t-o">.</span><span class="t-n">items</span><span class="t-p">():</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"</span><span class="t-si">{</span><span class="t-n">pol</span><span class="t-si">:</span><span class="t-s2">14s</span><span class="t-si">}</span><span class="t-s2">  </span><span class="t-si">{</span><span class="t-n">R</span><span class="t-p">[</span><span class="t-mi">999</span><span class="t-p">]</span><span class="t-si">:</span><span class="t-s2">7.1f</span><span class="t-si">}</span><span class="t-s2"> </span><span class="t-si">{</span><span class="t-n">R</span><span class="t-p">[</span><span class="t-mi">9999</span><span class="t-p">]</span><span class="t-si">:</span><span class="t-s2">7.1f</span><span class="t-si">}</span><span class="t-s2"> </span><span class="t-si">{</span><span class="t-n">R</span><span class="t-p">[</span><span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">]</span><span class="t-si">:</span><span class="t-s2">7.1f</span><span class="t-si">}</span><span class="t-s2">               </span><span class="t-si">{</span><span class="t-p">(</span><span class="t-n">R</span><span class="t-p">[</span><span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">]</span><span class="t-w"> </span><span class="t-o">-</span><span class="t-w"> </span><span class="t-n">R</span><span class="t-p">[</span><span class="t-mi">9999</span><span class="t-p">])</span><span class="t-w"> </span><span class="t-o">/</span><span class="t-w"> </span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">log</span><span class="t-p">(</span><span class="t-n">T</span><span class="t-w"> </span><span class="t-o">/</span><span class="t-w"> </span><span class="t-mi">10_000</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s2">6.1f</span><span class="t-si">}</span><span class="t-s2">                       </span><span class="t-si">{</span><span class="t-n">pulls</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">]</span><span class="t-w"> </span><span class="t-o">/</span><span class="t-w"> </span><span class="t-n">T</span><span class="t-si">:</span><span class="t-s2">.0%</span><span class="t-si">}</span><span class="t-s2">"</span><span class="t-p">)</span>
+<span class="t-n">kl</span> <span class="t-o">=</span> <span class="t-k">lambda</span> <span class="t-n">p</span><span class="t-p">,</span> <span class="t-n">q</span><span class="t-p">:</span> <span class="t-n">p</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">log</span><span class="t-p">(</span><span class="t-n">p</span> <span class="t-o">/</span> <span class="t-n">q</span><span class="t-p">)</span> <span class="t-o">+</span> <span class="t-p">(</span><span class="t-mi">1</span> <span class="t-o">-</span> <span class="t-n">p</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">log</span><span class="t-p">((</span><span class="t-mi">1</span> <span class="t-o">-</span> <span class="t-n">p</span><span class="t-p">)</span> <span class="t-o">/</span> <span class="t-p">(</span><span class="t-mi">1</span> <span class="t-o">-</span> <span class="t-n">q</span><span class="t-p">))</span>
+<span class="t-n">lr</span> <span class="t-o">=</span> <span class="t-nb">sum</span><span class="t-p">((</span><span class="t-n">best</span> <span class="t-o">-</span> <span class="t-n">m</span><span class="t-p">)</span> <span class="t-o">/</span> <span class="t-n">kl</span><span class="t-p">(</span><span class="t-n">m</span><span class="t-p">,</span> <span class="t-n">best</span><span class="t-p">)</span> <span class="t-k">for</span> <span class="t-n">m</span> <span class="t-ow">in</span> <span class="t-n">mu</span><span class="t-p">[</span><span class="t-mi">1</span><span class="t-p">:])</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"Lai-Robbins lower bound: for any consistent policy, regret eventually grows by at least </span><span class="t-si">{</span><span class="t-n">lr</span><span class="t-si">:</span><span class="t-s2">.1f</span><span class="t-si">}</span><span class="t-s2"> per unit of ln T"</span><span class="t-p">)</span></pre>
+<pre class="out">5 arms, best click rate 0.12, 50,000 rounds, averaged over 200 runs
+policy          regret after 1,000 / 10,000 / 50,000 rounds   growth per unit of ln T (10k-50k)   pulls of the best arm
+eps=0.1            20.3    96.1   289.9                120.5                       84%
+eps=0.01           25.5   151.2   362.5                131.3                       73%
+ucb1               34.0   247.6   719.0                292.9                       61%
+thompson           21.1    61.9    85.6                 14.7                       94%
+Lai-Robbins lower bound: for any consistent policy, regret eventually grows by at least 19.7 per unit of ln T</pre>
+</div>
+
+<p>Thompson sampling wins clearly: regret 85.6 after 50,000 rounds, with 94% of pulls on the best arm. Its regret grows by about 14.7 per unit of \(\ln T\) late in the run, close to the Lai&ndash;Robbins constant of 19.7 (the bound holds only in the limit, so a finite run can sit a little below it). ε-greedy with \(\varepsilon=0.1\) learns quickly, but its regret keeps rising in a straight line (289.9), because it never stops pulling bad arms one time in ten. The surprise is UCB1, the worst here (719.0). Its bonus \(\sqrt{2\ln t/N_a}\) is built for the worst case, rewards spread over \([0,1]\); with click rates near 0.1 the bonus dwarfs the differences between arms, so it explores for a long time. Its regret is still logarithmic, but with a large constant. KL-UCB (Exercise 6) fixes this by using a confidence bound suited to rare clicks.</p>
+
+<figure>
+<svg viewBox="0 0 640 320" width="640" height="320" role="img" aria-label="Cumulative regret over 50,000 rounds: epsilon-greedy grows linearly, UCB1 grows fast at first, Thompson sampling stays lowest"><rect class="plot-bg" x="58" y="16" width="568" height="260"/><line class="gridline" x1="58.0" x2="58.0" y1="16" y2="276"/><text class="axtext" x="58.0" y="293" text-anchor="middle">0</text><line class="gridline" x1="171.6" x2="171.6" y1="16" y2="276"/><text class="axtext" x="171.6" y="293" text-anchor="middle">10,000</text><line class="gridline" x1="285.2" x2="285.2" y1="16" y2="276"/><text class="axtext" x="285.2" y="293" text-anchor="middle">20,000</text><line class="gridline" x1="398.8" x2="398.8" y1="16" y2="276"/><text class="axtext" x="398.8" y="293" text-anchor="middle">30,000</text><line class="gridline" x1="512.4" x2="512.4" y1="16" y2="276"/><text class="axtext" x="512.4" y="293" text-anchor="middle">40,000</text><line class="gridline" x1="626.0" x2="626.0" y1="16" y2="276"/><text class="axtext" x="626.0" y="293" text-anchor="middle">50,000</text><line class="gridline" x1="58" x2="626" y1="276.0" y2="276.0"/><text class="axtext" x="52" y="280.0" text-anchor="end">0</text><line class="gridline" x1="58" x2="626" y1="207.1" y2="207.1"/><text class="axtext" x="52" y="211.1" text-anchor="end">200</text><line class="gridline" x1="58" x2="626" y1="138.2" y2="138.2"/><text class="axtext" x="52" y="142.2" text-anchor="end">400</text><line class="gridline" x1="58" x2="626" y1="69.4" y2="69.4"/><text class="axtext" x="52" y="73.4" text-anchor="end">600</text><line class="axis" x1="58" x2="626" y1="276" y2="276"/><line class="axis" x1="58" x2="58" y1="16" y2="276"/><text class="axtext" x="342.0" y="314" text-anchor="middle">round t</text><text class="axtext" transform="translate(14,146.0) rotate(-90)" text-anchor="middle">cumulative regret</text><path d="M58.0 276.0 L58.0 276.0 L58.0 276.0 L58.0 275.9 L58.0 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.8 L58.1 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.7 L58.2 275.7 L58.3 275.7 L58.3 275.7 L58.3 275.7 L58.3 275.7 L58.3 275.6 L58.4 275.6 L58.4 275.6 L58.4 275.6 L58.4 275.6 L58.4 275.6 L58.5 275.5 L58.5 275.5 L58.5 275.5 L58.6 275.5 L58.6 275.4 L58.6 275.4 L58.7 275.4 L58.7 275.3 L58.7 275.3 L58.8 275.3 L58.8 275.2 L58.9 275.2 L58.9 275.2 L59.0 275.1 L59.0 275.1 L59.1 275.0 L59.1 275.0 L59.2 274.9 L59.3 274.9 L59.4 274.8 L59.4 274.7 L59.5 274.7 L59.6 274.6 L59.7 274.5 L59.8 274.5 L59.9 274.4 L60.0 274.3 L60.1 274.2 L60.2 274.1 L60.3 274.0 L60.5 273.9 L60.6 273.8 L60.7 273.7 L60.9 273.6 L61.1 273.5 L61.2 273.4 L61.4 273.2 L61.6 273.1 L61.8 273.0 L62.0 272.8 L62.2 272.7 L62.5 272.5 L62.7 272.4 L63.0 272.2 L63.3 272.0 L63.6 271.9 L63.9 271.7 L64.2 271.5 L64.6 271.3 L64.9 271.1 L65.3 270.9 L65.7 270.7 L66.2 270.5 L66.6 270.3 L67.1 270.0 L67.6 269.8 L68.2 269.6 L68.7 269.3 L69.3 269.0 L70.0 268.8 L70.6 268.5 L71.3 268.2 L72.1 267.9 L72.9 267.6 L73.7 267.2 L74.6 266.9 L75.5 266.6 L76.5 266.2 L77.5 265.8 L78.6 265.5 L79.7 265.1 L81.0 264.6 L82.2 264.2 L83.6 263.8 L85.0 263.3 L86.5 262.8 L88.1 262.3 L89.8 261.8 L91.6 261.3 L93.5 260.7 L95.5 260.2 L97.6 259.6 L99.8 258.9 L102.1 258.3 L104.6 257.6 L107.2 256.9 L109.9 256.2 L112.8 255.5 L115.9 254.7 L119.1 253.9 L122.5 253.1 L126.1 252.3 L129.9 251.5 L134.0 250.6 L138.2 249.7 L142.7 248.7 L147.4 247.7 L152.4 246.7 L157.7 245.7 L163.3 244.6 L169.1 243.4 L175.4 242.2 L181.9 241.0 L188.8 239.7 L196.2 238.5 L203.9 237.1 L212.0 235.7 L220.6 234.2 L229.7 232.7 L239.3 231.1 L249.5 229.4 L260.2 227.7 L271.4 225.9 L283.4 224.0 L296.0 222.0 L309.3 220.0 L323.3 217.9 L338.1 215.7 L353.8 213.3 L370.3 211.0 L387.8 208.5 L406.2 205.9 L425.6 203.2 L446.2 200.3 L467.9 197.3 L490.8 194.2 L515.0 190.9 L540.5 187.5 L567.5 183.8 L595.9 180.1 L626.0 176.1" fill="none" stroke="var(--amber)" stroke-width="2.5"/><text class="lbltext" x="620.0" y="208.1" text-anchor="end" style="fill:var(--amber)">ε-greedy, ε = 0.1</text><path d="M58.0 276.0 L58.0 276.0 L58.0 276.0 L58.0 275.9 L58.0 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.8 L58.1 275.8 L58.1 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.7 L58.2 275.7 L58.3 275.7 L58.3 275.7 L58.3 275.7 L58.3 275.7 L58.3 275.6 L58.4 275.6 L58.4 275.6 L58.4 275.6 L58.4 275.6 L58.4 275.6 L58.5 275.5 L58.5 275.5 L58.5 275.5 L58.6 275.5 L58.6 275.4 L58.6 275.4 L58.7 275.4 L58.7 275.3 L58.7 275.3 L58.8 275.3 L58.8 275.2 L58.9 275.2 L58.9 275.2 L59.0 275.1 L59.0 275.1 L59.1 275.0 L59.1 275.0 L59.2 274.9 L59.3 274.9 L59.4 274.8 L59.4 274.7 L59.5 274.7 L59.6 274.6 L59.7 274.5 L59.8 274.4 L59.9 274.4 L60.0 274.3 L60.1 274.2 L60.2 274.1 L60.3 274.0 L60.5 273.9 L60.6 273.8 L60.7 273.6 L60.9 273.5 L61.1 273.4 L61.2 273.2 L61.4 273.1 L61.6 272.9 L61.8 272.8 L62.0 272.6 L62.2 272.4 L62.5 272.2 L62.7 272.0 L63.0 271.8 L63.3 271.6 L63.6 271.4 L63.9 271.2 L64.2 270.9 L64.6 270.7 L64.9 270.4 L65.3 270.1 L65.7 269.8 L66.2 269.5 L66.6 269.2 L67.1 268.8 L67.6 268.4 L68.2 268.0 L68.7 267.6 L69.3 267.2 L70.0 266.8 L70.6 266.3 L71.3 265.9 L72.1 265.4 L72.9 264.8 L73.7 264.3 L74.6 263.7 L75.5 263.1 L76.5 262.5 L77.5 261.8 L78.6 261.1 L79.7 260.4 L81.0 259.6 L82.2 258.9 L83.6 258.0 L85.0 257.2 L86.5 256.3 L88.1 255.4 L89.8 254.5 L91.6 253.5 L93.5 252.5 L95.5 251.5 L97.6 250.4 L99.8 249.3 L102.1 248.2 L104.6 247.1 L107.2 246.0 L109.9 244.9 L112.8 243.7 L115.9 242.5 L119.1 241.2 L122.5 239.9 L126.1 238.6 L129.9 237.3 L134.0 235.9 L138.2 234.5 L142.7 233.0 L147.4 231.4 L152.4 229.8 L157.7 228.1 L163.3 226.4 L169.1 224.7 L175.4 222.8 L181.9 220.9 L188.8 218.9 L196.2 216.9 L203.9 214.9 L212.0 212.9 L220.6 210.8 L229.7 208.7 L239.3 206.6 L249.5 204.4 L260.2 202.2 L271.4 199.9 L283.4 197.4 L296.0 195.1 L309.3 192.9 L323.3 190.5 L338.1 188.1 L353.8 185.7 L370.3 183.2 L387.8 180.6 L406.2 177.8 L425.6 175.0 L446.2 172.2 L467.9 169.4 L490.8 166.4 L515.0 163.4 L540.5 160.3 L567.5 157.2 L595.9 154.2 L626.0 151.2" fill="none" stroke="var(--plum)" stroke-width="2.5"/><text class="lbltext" x="620.0" y="144.2" text-anchor="end" style="fill:var(--plum)">ε-greedy, ε = 0.01</text><path d="M58.0 276.0 L58.0 276.0 L58.0 276.0 L58.0 276.0 L58.0 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.8 L58.1 275.8 L58.1 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.7 L58.2 275.7 L58.2 275.7 L58.2 275.7 L58.3 275.7 L58.3 275.7 L58.3 275.6 L58.3 275.6 L58.3 275.6 L58.4 275.6 L58.4 275.6 L58.4 275.5 L58.4 275.5 L58.4 275.5 L58.5 275.4 L58.5 275.4 L58.5 275.4 L58.6 275.3 L58.6 275.3 L58.6 275.3 L58.7 275.2 L58.7 275.2 L58.7 275.1 L58.8 275.1 L58.8 275.1 L58.9 275.0 L58.9 274.9 L59.0 274.9 L59.0 274.8 L59.1 274.8 L59.1 274.7 L59.2 274.6 L59.3 274.5 L59.4 274.4 L59.4 274.4 L59.5 274.3 L59.6 274.2 L59.7 274.1 L59.8 274.0 L59.9 273.9 L60.0 273.8 L60.1 273.6 L60.2 273.5 L60.3 273.4 L60.5 273.2 L60.6 273.1 L60.7 272.9 L60.9 272.8 L61.1 272.6 L61.2 272.4 L61.4 272.2 L61.6 272.0 L61.8 271.8 L62.0 271.6 L62.2 271.4 L62.5 271.1 L62.7 270.8 L63.0 270.6 L63.3 270.3 L63.6 270.0 L63.9 269.7 L64.2 269.3 L64.6 269.0 L64.9 268.6 L65.3 268.2 L65.7 267.8 L66.2 267.4 L66.6 266.9 L67.1 266.4 L67.6 266.0 L68.2 265.4 L68.7 264.9 L69.3 264.3 L70.0 263.7 L70.6 263.1 L71.3 262.4 L72.1 261.8 L72.9 261.0 L73.7 260.3 L74.6 259.5 L75.5 258.6 L76.5 257.7 L77.5 256.8 L78.6 255.8 L79.7 254.8 L81.0 253.7 L82.2 252.6 L83.6 251.4 L85.0 250.3 L86.5 249.0 L88.1 247.7 L89.8 246.3 L91.6 244.9 L93.5 243.4 L95.5 241.8 L97.6 240.2 L99.8 238.5 L102.1 236.7 L104.6 234.8 L107.2 232.8 L109.9 230.8 L112.8 228.6 L115.9 226.5 L119.1 224.2 L122.5 221.9 L126.1 219.3 L129.9 216.6 L134.0 213.9 L138.2 211.0 L142.7 208.2 L147.4 205.2 L152.4 202.2 L157.7 198.9 L163.3 195.6 L169.1 192.1 L175.4 188.6 L181.9 184.9 L188.8 181.2 L196.2 177.2 L203.9 173.1 L212.0 168.7 L220.6 164.5 L229.7 160.1 L239.3 155.7 L249.5 150.9 L260.2 146.1 L271.4 141.0 L283.4 135.9 L296.0 130.7 L309.3 125.3 L323.3 119.6 L338.1 114.0 L353.8 108.0 L370.3 102.2 L387.8 96.1 L406.2 89.8 L425.6 83.7 L446.2 77.3 L467.9 70.8 L490.8 63.9 L515.0 56.8 L540.5 49.7 L567.5 42.8 L595.9 35.8 L626.0 28.4" fill="none" stroke="var(--rose)" stroke-width="2.5"/><text class="lbltext" x="620.0" y="21.4" text-anchor="end" style="fill:var(--rose)">UCB1</text><path d="M58.0 276.0 L58.0 276.0 L58.0 276.0 L58.0 275.9 L58.0 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.9 L58.1 275.8 L58.1 275.8 L58.1 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.8 L58.2 275.7 L58.2 275.7 L58.2 275.7 L58.2 275.7 L58.2 275.7 L58.3 275.7 L58.3 275.7 L58.3 275.6 L58.3 275.6 L58.3 275.6 L58.4 275.6 L58.4 275.6 L58.4 275.5 L58.4 275.5 L58.4 275.5 L58.5 275.4 L58.5 275.4 L58.5 275.4 L58.6 275.4 L58.6 275.3 L58.6 275.3 L58.7 275.3 L58.7 275.2 L58.7 275.2 L58.8 275.1 L58.8 275.1 L58.9 275.0 L58.9 275.0 L59.0 274.9 L59.0 274.9 L59.1 274.8 L59.1 274.8 L59.2 274.7 L59.3 274.7 L59.4 274.6 L59.4 274.5 L59.5 274.4 L59.6 274.4 L59.7 274.3 L59.8 274.2 L59.9 274.1 L60.0 274.0 L60.1 274.0 L60.2 273.9 L60.3 273.8 L60.5 273.6 L60.6 273.5 L60.7 273.4 L60.9 273.3 L61.1 273.2 L61.2 273.0 L61.4 272.9 L61.6 272.8 L61.8 272.6 L62.0 272.5 L62.2 272.3 L62.5 272.2 L62.7 272.0 L63.0 271.8 L63.3 271.7 L63.6 271.5 L63.9 271.3 L64.2 271.1 L64.6 271.0 L64.9 270.8 L65.3 270.6 L65.7 270.4 L66.2 270.2 L66.6 269.9 L67.1 269.7 L67.6 269.5 L68.2 269.2 L68.7 269.0 L69.3 268.8 L70.0 268.5 L70.6 268.2 L71.3 267.9 L72.1 267.7 L72.9 267.4 L73.7 267.1 L74.6 266.8 L75.5 266.5 L76.5 266.2 L77.5 265.9 L78.6 265.5 L79.7 265.2 L81.0 264.9 L82.2 264.5 L83.6 264.2 L85.0 263.8 L86.5 263.5 L88.1 263.1 L89.8 262.8 L91.6 262.4 L93.5 262.1 L95.5 261.7 L97.6 261.3 L99.8 261.0 L102.1 260.6 L104.6 260.3 L107.2 259.9 L109.9 259.6 L112.8 259.2 L115.9 258.8 L119.1 258.5 L122.5 258.1 L126.1 257.7 L129.9 257.4 L134.0 257.1 L138.2 256.7 L142.7 256.4 L147.4 256.1 L152.4 255.7 L157.7 255.4 L163.3 255.1 L169.1 254.8 L175.4 254.5 L181.9 254.2 L188.8 253.9 L196.2 253.6 L203.9 253.3 L212.0 253.0 L220.6 252.7 L229.7 252.4 L239.3 252.1 L249.5 251.8 L260.2 251.5 L271.4 251.2 L283.4 250.9 L296.0 250.7 L309.3 250.4 L323.3 250.2 L338.1 249.9 L353.8 249.6 L370.3 249.4 L387.8 249.1 L406.2 248.8 L425.6 248.6 L446.2 248.3 L467.9 248.1 L490.8 247.8 L515.0 247.6 L540.5 247.3 L567.5 247.0 L595.9 246.8 L626.0 246.5" fill="none" stroke="var(--sky)" stroke-width="2.5"/><text class="lbltext" x="620.0" y="239.5" text-anchor="end" style="fill:var(--sky)">Thompson sampling</text></svg>
+<figcaption>Cumulative regret of the four policies on the five-arm problem, averaged over 200 runs.</figcaption>
+</figure>
+
+<div class="widget" id="w-bandit">
+<h4>Bandit arena</h4>
+<p class="wtxt">Three agents play the same five-armed bandit for 5,000 rounds, facing the same random clicks. Watch the regret curves and how each agent spreads its pulls. Change ε, or the seed, and run again.</p>
+<svg id="baSvg" viewBox="0 0 620 250" width="620" height="250" role="img" aria-label="Live regret curves of three bandit agents"></svg>
+<svg id="baBars" viewBox="0 0 620 140" width="620" height="140" role="img" aria-label="Share of pulls per arm for each agent"></svg>
+<div class="ctrls">
+<label><span>ε = <b id="baEpsl">0.10</b></span><input type="range" id="baEps" min="0" max="0.3" step="0.01" value="0.1" aria-label="epsilon"></label>
+<label><span>seed</span><select id="baSeed"><option>1</option><option>2</option><option>3</option><option>4</option><option>5</option></select></label>
+<button class="ctl" id="baRun" type="button">run</button>
+<button class="ctl" id="baReset" type="button">reset</button>
+</div>
+<div class="readout" id="baRes" role="status" aria-live="polite"></div>
+</div>
+
+<div class="box bayes">
+<span class="lbl">bayes &mdash; Thompson sampling is posterior sampling</span>
+<p>For click/no-click rewards, put a Beta(1, 1) prior on each click rate. After \(s\) clicks in \(n\) pulls the posterior is Beta\((1+s,1+n-s)\) (Lecture 5). Thompson sampling draws one rate from each posterior and acts as if the draws were true. Uncertain arms produce widely spread draws and are sometimes chosen; well-known bad arms almost never are. Exploration falls out of the posterior with no tuning parameter. The same idea extends to whole MDPs: <strong>posterior sampling for reinforcement learning</strong> (Osband, Russo and Van Roy, 2013) samples one MDP from the posterior at the start of each episode and follows its optimal policy. The fully Bayesian alternative, planning in a <strong>Bayes-adaptive MDP</strong> whose state includes the posterior, is optimal but usually intractable.</p>
+</div>
+
+<div class="box data">
+<span class="lbl">data &mdash; the Open Bandit Dataset (ZOZOTOWN)</span>
+<p>Saito, Aihara, Matsutani and Narita (<em>NeurIPS Datasets and Benchmarks</em>, 2021) released about 26 million impressions from ZOZOTOWN, a large Japanese fashion e-commerce site, collected in a seven-day experiment in late November 2019. Each impression records which of 80 items was shown in one of three positions, whether it was clicked, and the probability (<strong>propensity</strong>) with which the logging policy chose it. Two policies ran side by side: uniform random and Bernoulli Thompson sampling. The <code>obp</code> package (PyPI) ships a 10,000-impression sample from each policy, which we use; the full archive is too large for the build environment.</p>
+</div>
+
+<div class="box tool">
+<span class="lbl">code &mdash; off-policy evaluation with inverse propensity weighting</span>
+<pre class="src"><span class="t-c1"># Logged bandit feedback from ZOZOTOWN: estimate one policy's click rate from another policy's logs</span>
+<span class="t-kn">import</span><span class="t-w"> </span><span class="t-nn">pandas</span><span class="t-w"> </span><span class="t-k">as</span><span class="t-w"> </span><span class="t-nn">pd</span>
+<span class="t-n">base</span> <span class="t-o">=</span> <span class="t-s1">'data/obd_raw/obp/dataset/obd'</span>
+<span class="t-n">rnd</span> <span class="t-o">=</span> <span class="t-n">pd</span><span class="t-o">.</span><span class="t-n">read_csv</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">base</span><span class="t-si">}</span><span class="t-s1">/random/all/all.csv'</span><span class="t-p">,</span> <span class="t-n">index_col</span><span class="t-o">=</span><span class="t-mi">0</span><span class="t-p">);</span> <span class="t-n">bts</span> <span class="t-o">=</span> <span class="t-n">pd</span><span class="t-o">.</span><span class="t-n">read_csv</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s1">'</span><span class="t-si">{</span><span class="t-n">base</span><span class="t-si">}</span><span class="t-s1">/bts/all/all.csv'</span><span class="t-p">,</span> <span class="t-n">index_col</span><span class="t-o">=</span><span class="t-mi">0</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"uniform-random policy logs: </span><span class="t-si">{</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">rnd</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s2">,</span><span class="t-si">}</span><span class="t-s2"> impressions, </span><span class="t-si">{</span><span class="t-n">rnd</span><span class="t-o">.</span><span class="t-n">click</span><span class="t-o">.</span><span class="t-n">sum</span><span class="t-p">()</span><span class="t-si">}</span><span class="t-s2"> clicks, click rate </span><span class="t-si">{</span><span class="t-n">rnd</span><span class="t-o">.</span><span class="t-n">click</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">()</span><span class="t-si">:</span><span class="t-s2">.4f</span><span class="t-si">}</span><span class="t-s2">"</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"Bernoulli Thompson sampling logs: </span><span class="t-si">{</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">bts</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s2">,</span><span class="t-si">}</span><span class="t-s2"> impressions, </span><span class="t-si">{</span><span class="t-n">bts</span><span class="t-o">.</span><span class="t-n">click</span><span class="t-o">.</span><span class="t-n">sum</span><span class="t-p">()</span><span class="t-si">}</span><span class="t-s2"> clicks, click rate </span><span class="t-si">{</span><span class="t-n">bts</span><span class="t-o">.</span><span class="t-n">click</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">()</span><span class="t-si">:</span><span class="t-s2">.4f</span><span class="t-si">}</span><span class="t-s2">"</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"items: </span><span class="t-si">{</span><span class="t-n">rnd</span><span class="t-o">.</span><span class="t-n">item_id</span><span class="t-o">.</span><span class="t-n">nunique</span><span class="t-p">()</span><span class="t-si">}</span><span class="t-s2">; logged propensity under the random policy </span><span class="t-si">{</span><span class="t-n">rnd</span><span class="t-o">.</span><span class="t-n">propensity_score</span><span class="t-o">.</span><span class="t-n">iloc</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">]</span><span class="t-si">:</span><span class="t-s2">.4f</span><span class="t-si">}</span><span class="t-s2"> (= 1/80); "</span>
+      <span class="t-sa">f</span><span class="t-s2">"under Thompson sampling from </span><span class="t-si">{</span><span class="t-n">bts</span><span class="t-o">.</span><span class="t-n">propensity_score</span><span class="t-o">.</span><span class="t-n">min</span><span class="t-p">()</span><span class="t-si">:</span><span class="t-s2">.5f</span><span class="t-si">}</span><span class="t-s2"> to </span><span class="t-si">{</span><span class="t-n">bts</span><span class="t-o">.</span><span class="t-n">propensity_score</span><span class="t-o">.</span><span class="t-n">max</span><span class="t-p">()</span><span class="t-si">:</span><span class="t-s2">.2f</span><span class="t-si">}</span><span class="t-s2">"</span><span class="t-p">)</span>
+<span class="t-c1"># estimate the random policy's click rate from the Thompson-sampling logs alone</span>
+<span class="t-n">w</span> <span class="t-o">=</span> <span class="t-p">(</span><span class="t-mi">1</span> <span class="t-o">/</span> <span class="t-mi">80</span><span class="t-p">)</span> <span class="t-o">/</span> <span class="t-n">bts</span><span class="t-o">.</span><span class="t-n">propensity_score</span><span class="t-o">.</span><span class="t-n">values</span><span class="t-p">;</span> <span class="t-n">c</span> <span class="t-o">=</span> <span class="t-n">bts</span><span class="t-o">.</span><span class="t-n">click</span><span class="t-o">.</span><span class="t-n">values</span>
+<span class="t-n">naive</span><span class="t-p">,</span> <span class="t-n">ipw</span> <span class="t-o">=</span> <span class="t-n">c</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">(),</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">(</span><span class="t-n">w</span> <span class="t-o">*</span> <span class="t-n">c</span><span class="t-p">)</span>
+<span class="t-n">g</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">random</span><span class="t-o">.</span><span class="t-n">default_rng</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">);</span> <span class="t-n">boot</span> <span class="t-o">=</span> <span class="t-p">[</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">((</span><span class="t-n">w</span> <span class="t-o">*</span> <span class="t-n">c</span><span class="t-p">)[</span><span class="t-n">i</span><span class="t-p">])</span> <span class="t-k">for</span> <span class="t-n">i</span> <span class="t-ow">in</span> <span class="t-p">(</span><span class="t-n">g</span><span class="t-o">.</span><span class="t-n">integers</span><span class="t-p">(</span><span class="t-mi">0</span><span class="t-p">,</span> <span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">c</span><span class="t-p">),</span> <span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">c</span><span class="t-p">))</span> <span class="t-k">for</span> <span class="t-n">_</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-mi">2000</span><span class="t-p">))]</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"</span><span class="t-se">\n</span><span class="t-s2">estimating the random policy's click rate from the Thompson logs:"</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"  naive (average click of the logs)          </span><span class="t-si">{</span><span class="t-n">naive</span><span class="t-si">:</span><span class="t-s2">.4f</span><span class="t-si">}</span><span class="t-s2">"</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"  inverse propensity weighting               </span><span class="t-si">{</span><span class="t-n">ipw</span><span class="t-si">:</span><span class="t-s2">.4f</span><span class="t-si">}</span><span class="t-s2">   (95% bootstrap interval </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">percentile</span><span class="t-p">(</span><span class="t-n">boot</span><span class="t-p">,</span><span class="t-w"> </span><span class="t-mf">2.5</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s2">.4f</span><span class="t-si">}</span><span class="t-s2"> to </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">percentile</span><span class="t-p">(</span><span class="t-n">boot</span><span class="t-p">,</span><span class="t-w"> </span><span class="t-mf">97.5</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s2">.4f</span><span class="t-si">}</span><span class="t-s2">)"</span><span class="t-p">)</span>
+<span class="t-n">tr</span> <span class="t-o">=</span> <span class="t-n">rnd</span><span class="t-o">.</span><span class="t-n">click</span><span class="t-o">.</span><span class="t-n">mean</span><span class="t-p">();</span> <span class="t-n">se</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">sqrt</span><span class="t-p">(</span><span class="t-n">tr</span> <span class="t-o">*</span> <span class="t-p">(</span><span class="t-mi">1</span> <span class="t-o">-</span> <span class="t-n">tr</span><span class="t-p">)</span> <span class="t-o">/</span> <span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">rnd</span><span class="t-p">))</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"  truth, from the random policy's own logs   </span><span class="t-si">{</span><span class="t-n">tr</span><span class="t-si">:</span><span class="t-s2">.4f</span><span class="t-si">}</span><span class="t-s2">   (95% interval </span><span class="t-si">{</span><span class="t-n">tr</span><span class="t-w"> </span><span class="t-o">-</span><span class="t-w"> </span><span class="t-mf">1.96</span><span class="t-w"> </span><span class="t-o">*</span><span class="t-w"> </span><span class="t-n">se</span><span class="t-si">:</span><span class="t-s2">.4f</span><span class="t-si">}</span><span class="t-s2"> to </span><span class="t-si">{</span><span class="t-n">tr</span><span class="t-w"> </span><span class="t-o">+</span><span class="t-w"> </span><span class="t-mf">1.96</span><span class="t-w"> </span><span class="t-o">*</span><span class="t-w"> </span><span class="t-n">se</span><span class="t-si">:</span><span class="t-s2">.4f</span><span class="t-si">}</span><span class="t-s2">)"</span><span class="t-p">)</span>
+<span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"  importance weights range from </span><span class="t-si">{</span><span class="t-n">w</span><span class="t-o">.</span><span class="t-n">min</span><span class="t-p">()</span><span class="t-si">:</span><span class="t-s2">.3f</span><span class="t-si">}</span><span class="t-s2"> to </span><span class="t-si">{</span><span class="t-n">w</span><span class="t-o">.</span><span class="t-n">max</span><span class="t-p">()</span><span class="t-si">:</span><span class="t-s2">.1f</span><span class="t-si">}</span><span class="t-s2">; effective sample size </span><span class="t-si">{</span><span class="t-n">w</span><span class="t-o">.</span><span class="t-n">sum</span><span class="t-p">()</span><span class="t-w"> </span><span class="t-o">**</span><span class="t-w"> </span><span class="t-mi">2</span><span class="t-w"> </span><span class="t-o">/</span><span class="t-w"> </span><span class="t-p">(</span><span class="t-n">w</span><span class="t-w"> </span><span class="t-o">**</span><span class="t-w"> </span><span class="t-mi">2</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-n">sum</span><span class="t-p">()</span><span class="t-si">:</span><span class="t-s2">,.0f</span><span class="t-si">}</span><span class="t-s2"> of </span><span class="t-si">{</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">w</span><span class="t-p">)</span><span class="t-si">:</span><span class="t-s2">,</span><span class="t-si">}</span><span class="t-s2">"</span><span class="t-p">)</span></pre>
+<pre class="out">uniform-random policy logs: 10,000 impressions, 38 clicks, click rate 0.0038
+Bernoulli Thompson sampling logs: 10,000 impressions, 42 clicks, click rate 0.0042
+items: 80; logged propensity under the random policy 0.0125 (= 1/80); under Thompson sampling from 0.00005 to 0.95
+
+estimating the random policy's click rate from the Thompson logs:
+  naive (average click of the logs)          0.0042
+  inverse propensity weighting               0.0024   (95% bootstrap interval 0.0010 to 0.0043)
+  truth, from the random policy's own logs   0.0038   (95% interval 0.0026 to 0.0050)
+  importance weights range from 0.013 to 277.8; effective sample size 340 of 10,000</pre>
+</div>
+
+<p>The naive estimate, 0.0042, is simply the Thompson policy's own click rate: it answers the wrong question. Inverse propensity weighting reweights each logged click by how much more (or less) often the random policy would have shown that item. Its estimate, 0.0024, has an interval (0.0010 to 0.0043) that contains the truth from the random policy's own logs (0.0038), but the interval is wide. Some items were almost never shown by Thompson sampling, so their weights reach 277.8, and the 10,000 impressions are worth an effective sample of only 340. With 38 and 42 clicks in the two samples, even the truth is uncertain (0.0026 to 0.0050). On the full data set (millions of impressions) these intervals shrink; the bias&ndash;variance trade-off of off-policy evaluation does not go away.</p>
+
+<div class="box causal">
+<span class="lbl">causal &mdash; logged bandit data are observational data</span>
+<p>A log records outcomes only for the actions the logging policy chose. Estimating how another policy would have done is a counterfactual question, like estimating a treatment effect from observational data (Lecture 13). If the logging policy chose action \(a\) in context \(x\) with known probability \(\pi_0(a\mid x)\), the <strong>inverse propensity weighting</strong> (IPW) estimate of a new policy \(\pi\)'s value,</p>
+$$\hat V_{\text{IPW}}(\pi)=\frac1n\sum_{i=1}^n\frac{\pi(a_i\mid x_i)}{\pi_0(a_i\mid x_i)}\,r_i ,$$
+<p>is unbiased, provided \(\pi_0\) gives every action that \(\pi\) might take a positive probability. The weights reweight the logged population into the one the new policy would have produced, exactly as propensity scores do in causal inference. The price is variance: rare actions get huge weights. Doubly robust estimators (Dudík, Langford and Li, 2011) add a reward model to reduce it.</p>
+</div>
+
+<div class="box big">
+<span class="lbl">big picture &mdash; bandits in production</span>
+<p>Bandits are the most widely deployed form of RL. Web companies use them instead of fixed A/B tests, so that traffic moves to the better version while the test runs. Yahoo!'s front page chose news articles with contextual bandits (Li, Chu, Langford and Schapire, 2010), and the same approach selects adverts, thumbnails and notifications. Adaptive clinical trials shift patients towards better-performing treatments as evidence accumulates, an idea that goes back to Thompson's 1933 paper, written with medical trials in mind. In all these settings the logs are later reused to evaluate new policies offline, with the weighting of the causal box above.</p>
+</div>
+
+<!-- =================== 3 =================== -->
+<h2 id="s3">3 &mdash; Markov decision processes and value functions</h2>
+
+<p>Bandits have one state. In most problems actions also change the situation: a move in a game changes the board, a step on the ice changes where you stand. The standard model is the Markov decision process.</p>
+
+<div class="box def">
+<span class="lbl">definition 21.3 &mdash; Markov decision process</span>
+<p>A <strong>Markov decision process</strong> (MDP) consists of states \(\mathcal S\), actions \(\mathcal A\), transition probabilities and expected rewards</p>
+$$p(s'\mid s,a),\qquad r(s,a)=\mathbb E\big[R_{t+1}\mid S_t=s,A_t=a\big],$$
+<p>and a discount factor \(\gamma\). It is <strong>Markov</strong>: what happens next depends on the history only through the current state and action.</p>
+</div>
+
+<div class="box def">
+<span class="lbl">definition 21.4 &mdash; value functions and optimal policies</span>
+<p>The <strong>state value</strong> of policy \(\pi\) is the expected return from state \(s\), and the <strong>action value</strong> is the expected return after taking action \(a\) in \(s\) and following \(\pi\) afterwards:</p>
+$$v_\pi(s)=\mathbb E_\pi\big[G_t\mid S_t=s\big],\qquad q_\pi(s,a)=\mathbb E_\pi\big[G_t\mid S_t=s,A_t=a\big].$$
+<p>A policy \(\pi^*\) is <strong>optimal</strong> if \(v_{\pi^*}(s)\ge v_\pi(s)\) for every state and every policy. All optimal policies share the optimal value functions \(v^*\) and \(q^*\), and acting greedily with respect to \(q^*\) is optimal:</p>
+$$\pi^*(s)=\arg\max_aq^*(s,a).$$
+</div>
+
+<p>Value functions turn a long-horizon problem into a one-step one. If you knew \(q^*\), you would never need to look ahead: the best action now is the one with the largest \(q^*\). Most of RL is about estimating these functions.</p>
+
+<!-- =================== 4 =================== -->
+<h2 id="s4">4 &mdash; Bellman equations and dynamic programming</h2>
+
+<p>The value of a state equals the reward of the next step plus the discounted value of where you land. Written out, this gives a system of equations, one per state.</p>
+
+<div class="box def">
+<span class="lbl">definition 21.5 &mdash; Bellman equations</span>
+<p>For a policy \(\pi\), the value function is the unique solution of the <strong>Bellman expectation equation</strong></p>
+$$v_\pi(s)=\sum_a\pi(a\mid s)\Big[r(s,a)+\gamma\sum_{s'}p(s'\mid s,a)\,v_\pi(s')\Big].$$
+<p>The optimal value function solves the <strong>Bellman optimality equation</strong> \(v^*=\mathcal Tv^*\), where</p>
+$$(\mathcal Tv)(s)=\max_a\Big[r(s,a)+\gamma\sum_{s'}p(s'\mid s,a)\,v(s')\Big].$$
+</div>
+
+<p>When the MDP is known, the Bellman equations can be solved by <strong>dynamic programming</strong> (Bellman, 1957). <strong>Value iteration</strong> applies the operator repeatedly, \(v_{k+1}=\mathcal Tv_k\). <strong>Policy iteration</strong> alternates two steps: <em>evaluate</em> the current policy exactly (a linear system), then <em>improve</em> it by acting greedily with respect to its value.</p>
+
+<div class="box thm">
+<span class="lbl">theorem 21.3 &mdash; the Bellman optimality operator is a contraction</span>
+<p>For \(\gamma<1\) and any two value functions \(u\), \(v\),</p>
+$$\lVert\mathcal Tu-\mathcal Tv\rVert_\infty\;\le\;\gamma\,\lVert u-v\rVert_\infty .$$
+<p>Hence \(\mathcal T\) has a unique fixed point \(v^*\), and value iteration converges to it from any start, geometrically:</p>
+$$\lVert v_k-v^*\rVert_\infty\le\gamma^k\lVert v_0-v^*\rVert_\infty .$$
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>For any two functions of \(a\), \(|\max_af(a)-\max_ag(a)|\le\max_a|f(a)-g(a)|\). Apply this in each state with \(f\) and \(g\) the bracketed terms for \(u\) and \(v\); the rewards cancel:</p>
+$$|(\mathcal Tu)(s)-(\mathcal Tv)(s)|\le\gamma\max_a\sum_{s'}p(s'\mid s,a)\,|u(s')-v(s')|\le\gamma\lVert u-v\rVert_\infty ,$$
+<p>because the probabilities sum to 1. Take the maximum over \(s\).</p>
+<p>The space of bounded value functions with the sup norm is complete, so Banach's fixed-point theorem gives a unique fixed point. Applying the contraction \(k\) times to \(v_0\) and \(v^*=\mathcal Tv^*\) gives the geometric rate. \(\square\)</p>
+</div>
+</div>
+
+<div class="box thm">
+<span class="lbl">theorem 21.4 &mdash; policy improvement; policy iteration terminates</span>
+<p>Let \(\pi\) and \(\pi'\) be deterministic policies with</p>
+$$q_\pi\big(s,\pi'(s)\big)\;\ge\;v_\pi(s)\qquad\text{for all }s .$$
+<p>Then \(v_{\pi'}(s)\ge v_\pi(s)\) for all \(s\). In a finite MDP, policy iteration therefore reaches an optimal policy after finitely many improvements.</p>
+<button class="sol-btn">show proof</button>
+<div class="sol">
+<p>Start from the assumption and expand \(q_\pi\) one step, then apply the assumption again in the next state:</p>
+$$v_\pi(s)\le q_\pi(s,\pi'(s))=\mathbb E_{\pi'}\big[R_{t+1}+\gamma v_\pi(S_{t+1})\mid S_t=s\big]\le\mathbb E_{\pi'}\big[R_{t+1}+\gamma R_{t+2}+\gamma^2v_\pi(S_{t+2})\mid S_t=s\big]\le\cdots$$
+<p>The limit of the right-hand side is \(\mathbb E_{\pi'}[G_t\mid S_t=s]=v_{\pi'}(s)\).</p>
+<p>The greedy policy \(\pi'(s)=\arg\max_aq_\pi(s,a)\) satisfies the assumption, so each improvement step never makes any state worse. If it makes no state strictly better, then \(v_\pi\) satisfies the Bellman optimality equation, so \(\pi\) is optimal. Otherwise the new policy is strictly better somewhere, so no policy repeats. A finite MDP has finitely many deterministic policies (\(|\mathcal A|^{|\mathcal S|}\)), so the process stops. \(\square\)</p>
+</div>
+</div>
+
+<div class="box tool">
+<span class="lbl">code &mdash; value iteration and policy iteration on FrozenLake</span>
+<pre class="src"><span class="t-c1"># Dynamic programming on FrozenLake: value iteration and policy iteration from the transition table</span>
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">tables</span><span class="t-p">(</span><span class="t-n">env</span><span class="t-p">):</span>
+    <span class="t-n">P</span> <span class="t-o">=</span> <span class="t-n">env</span><span class="t-o">.</span><span class="t-n">unwrapped</span><span class="t-o">.</span><span class="t-n">P</span><span class="t-p">;</span> <span class="t-n">nS</span><span class="t-p">,</span> <span class="t-n">nA</span> <span class="t-o">=</span> <span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">P</span><span class="t-p">),</span> <span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">P</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">]);</span> <span class="t-n">Pm</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">zeros</span><span class="t-p">((</span><span class="t-n">nS</span><span class="t-p">,</span> <span class="t-n">nA</span><span class="t-p">,</span> <span class="t-n">nS</span><span class="t-p">));</span> <span class="t-n">Rm</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">zeros</span><span class="t-p">((</span><span class="t-n">nS</span><span class="t-p">,</span> <span class="t-n">nA</span><span class="t-p">))</span>
+    <span class="t-k">for</span> <span class="t-n">s</span> <span class="t-ow">in</span> <span class="t-n">P</span><span class="t-p">:</span>
+        <span class="t-k">for</span> <span class="t-n">a</span> <span class="t-ow">in</span> <span class="t-n">P</span><span class="t-p">[</span><span class="t-n">s</span><span class="t-p">]:</span>
+            <span class="t-k">for</span> <span class="t-n">pr</span><span class="t-p">,</span> <span class="t-n">s2</span><span class="t-p">,</span> <span class="t-n">r</span><span class="t-p">,</span> <span class="t-n">term</span> <span class="t-ow">in</span> <span class="t-n">P</span><span class="t-p">[</span><span class="t-n">s</span><span class="t-p">][</span><span class="t-n">a</span><span class="t-p">]:</span> <span class="t-n">Pm</span><span class="t-p">[</span><span class="t-n">s</span><span class="t-p">,</span> <span class="t-n">a</span><span class="t-p">,</span> <span class="t-n">s2</span><span class="t-p">]</span> <span class="t-o">+=</span> <span class="t-n">pr</span><span class="t-p">;</span> <span class="t-n">Rm</span><span class="t-p">[</span><span class="t-n">s</span><span class="t-p">,</span> <span class="t-n">a</span><span class="t-p">]</span> <span class="t-o">+=</span> <span class="t-n">pr</span> <span class="t-o">*</span> <span class="t-n">r</span>
+    <span class="t-k">for</span> <span class="t-n">s</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-n">nS</span><span class="t-p">):</span>                                           <span class="t-c1"># holes and the goal are absorbing: no further reward</span>
+        <span class="t-k">if</span> <span class="t-n">env</span><span class="t-o">.</span><span class="t-n">unwrapped</span><span class="t-o">.</span><span class="t-n">desc</span><span class="t-o">.</span><span class="t-n">ravel</span><span class="t-p">()[</span><span class="t-n">s</span><span class="t-p">]</span> <span class="t-ow">in</span> <span class="t-sa">b</span><span class="t-s1">'HG'</span><span class="t-p">:</span> <span class="t-n">Pm</span><span class="t-p">[</span><span class="t-n">s</span><span class="t-p">]</span> <span class="t-o">=</span> <span class="t-mi">0</span><span class="t-p">;</span> <span class="t-n">Pm</span><span class="t-p">[</span><span class="t-n">s</span><span class="t-p">,</span> <span class="t-p">:,</span> <span class="t-n">s</span><span class="t-p">]</span> <span class="t-o">=</span> <span class="t-mi">1</span><span class="t-p">;</span> <span class="t-n">Rm</span><span class="t-p">[</span><span class="t-n">s</span><span class="t-p">]</span> <span class="t-o">=</span> <span class="t-mi">0</span>
+    <span class="t-k">return</span> <span class="t-n">Pm</span><span class="t-p">,</span> <span class="t-n">Rm</span>
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">value_iteration</span><span class="t-p">(</span><span class="t-n">Pm</span><span class="t-p">,</span> <span class="t-n">Rm</span><span class="t-p">,</span> <span class="t-n">gamma</span><span class="t-p">,</span> <span class="t-n">tol</span><span class="t-o">=</span><span class="t-mf">1e-10</span><span class="t-p">):</span>
+    <span class="t-n">v</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">zeros</span><span class="t-p">(</span><span class="t-n">Pm</span><span class="t-o">.</span><span class="t-n">shape</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">]);</span> <span class="t-n">gaps</span> <span class="t-o">=</span> <span class="t-p">[]</span>
+    <span class="t-k">while</span> <span class="t-kc">True</span><span class="t-p">:</span>
+        <span class="t-n">v_new</span> <span class="t-o">=</span> <span class="t-p">(</span><span class="t-n">Rm</span> <span class="t-o">+</span> <span class="t-n">gamma</span> <span class="t-o">*</span> <span class="t-n">Pm</span> <span class="t-o">@</span> <span class="t-n">v</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-n">max</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">);</span> <span class="t-n">gaps</span><span class="t-o">.</span><span class="t-n">append</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">abs</span><span class="t-p">(</span><span class="t-n">v_new</span> <span class="t-o">-</span> <span class="t-n">v</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-n">max</span><span class="t-p">());</span> <span class="t-n">v</span> <span class="t-o">=</span> <span class="t-n">v_new</span>   <span class="t-c1"># Bellman optimality operator</span>
+        <span class="t-k">if</span> <span class="t-n">gaps</span><span class="t-p">[</span><span class="t-o">-</span><span class="t-mi">1</span><span class="t-p">]</span> <span class="t-o">&lt;</span> <span class="t-n">tol</span><span class="t-p">:</span> <span class="t-k">return</span> <span class="t-n">v</span><span class="t-p">,</span> <span class="t-p">(</span><span class="t-n">Rm</span> <span class="t-o">+</span> <span class="t-n">gamma</span> <span class="t-o">*</span> <span class="t-n">Pm</span> <span class="t-o">@</span> <span class="t-n">v</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-n">argmax</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">),</span> <span class="t-n">gaps</span>
+<span class="t-k">def</span><span class="t-w"> </span><span class="t-nf">policy_iteration</span><span class="t-p">(</span><span class="t-n">Pm</span><span class="t-p">,</span> <span class="t-n">Rm</span><span class="t-p">,</span> <span class="t-n">gamma</span><span class="t-p">):</span>
+    <span class="t-n">nS</span> <span class="t-o">=</span> <span class="t-n">Pm</span><span class="t-o">.</span><span class="t-n">shape</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">];</span> <span class="t-n">pi</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">zeros</span><span class="t-p">(</span><span class="t-n">nS</span><span class="t-p">,</span> <span class="t-nb">int</span><span class="t-p">);</span> <span class="t-n">k</span> <span class="t-o">=</span> <span class="t-mi">0</span>
+    <span class="t-k">while</span> <span class="t-kc">True</span><span class="t-p">:</span>
+        <span class="t-n">k</span> <span class="t-o">+=</span> <span class="t-mi">1</span><span class="t-p">;</span> <span class="t-n">Ppi</span><span class="t-p">,</span> <span class="t-n">Rpi</span> <span class="t-o">=</span> <span class="t-n">Pm</span><span class="t-p">[</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">arange</span><span class="t-p">(</span><span class="t-n">nS</span><span class="t-p">),</span> <span class="t-n">pi</span><span class="t-p">],</span> <span class="t-n">Rm</span><span class="t-p">[</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">arange</span><span class="t-p">(</span><span class="t-n">nS</span><span class="t-p">),</span> <span class="t-n">pi</span><span class="t-p">]</span>
+        <span class="t-n">v</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">linalg</span><span class="t-o">.</span><span class="t-n">solve</span><span class="t-p">(</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">eye</span><span class="t-p">(</span><span class="t-n">nS</span><span class="t-p">)</span> <span class="t-o">-</span> <span class="t-n">gamma</span> <span class="t-o">*</span> <span class="t-n">Ppi</span><span class="t-p">,</span> <span class="t-n">Rpi</span><span class="t-p">)</span>                    <span class="t-c1"># policy evaluation: solve the Bellman equation exactly</span>
+        <span class="t-n">new</span> <span class="t-o">=</span> <span class="t-p">(</span><span class="t-n">Rm</span> <span class="t-o">+</span> <span class="t-n">gamma</span> <span class="t-o">*</span> <span class="t-n">Pm</span> <span class="t-o">@</span> <span class="t-n">v</span><span class="t-p">)</span><span class="t-o">.</span><span class="t-n">argmax</span><span class="t-p">(</span><span class="t-mi">1</span><span class="t-p">)</span>                                 <span class="t-c1"># policy improvement: act greedily</span>
+        <span class="t-k">if</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">all</span><span class="t-p">((</span><span class="t-n">Rm</span> <span class="t-o">+</span> <span class="t-n">gamma</span> <span class="t-o">*</span> <span class="t-n">Pm</span> <span class="t-o">@</span> <span class="t-n">v</span><span class="t-p">)[</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">arange</span><span class="t-p">(</span><span class="t-n">nS</span><span class="t-p">),</span> <span class="t-n">new</span><span class="t-p">]</span> <span class="t-o">&lt;=</span> <span class="t-p">(</span><span class="t-n">Rm</span> <span class="t-o">+</span> <span class="t-n">gamma</span> <span class="t-o">*</span> <span class="t-n">Pm</span> <span class="t-o">@</span> <span class="t-n">v</span><span class="t-p">)[</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">arange</span><span class="t-p">(</span><span class="t-n">nS</span><span class="t-p">),</span> <span class="t-n">pi</span><span class="t-p">]</span> <span class="t-o">+</span> <span class="t-mf">1e-12</span><span class="t-p">):</span> <span class="t-k">return</span> <span class="t-n">v</span><span class="t-p">,</span> <span class="t-n">pi</span><span class="t-p">,</span> <span class="t-n">k</span>
+        <span class="t-n">pi</span> <span class="t-o">=</span> <span class="t-n">new</span>
+<span class="t-n">arrow</span> <span class="t-o">=</span> <span class="t-n">np</span><span class="t-o">.</span><span class="t-n">array</span><span class="t-p">([</span><span class="t-s1">'&lt;'</span><span class="t-p">,</span> <span class="t-s1">'v'</span><span class="t-p">,</span> <span class="t-s1">'&gt;'</span><span class="t-p">,</span> <span class="t-s1">'^'</span><span class="t-p">])</span>
+<span class="t-k">for</span> <span class="t-n">name</span> <span class="t-ow">in</span> <span class="t-p">[</span><span class="t-s1">'4x4'</span><span class="t-p">,</span> <span class="t-s1">'8x8'</span><span class="t-p">]:</span>
+    <span class="t-n">e</span> <span class="t-o">=</span> <span class="t-n">gym</span><span class="t-o">.</span><span class="t-n">make</span><span class="t-p">(</span><span class="t-s1">'FrozenLake-v1'</span><span class="t-p">,</span> <span class="t-n">map_name</span><span class="t-o">=</span><span class="t-n">name</span><span class="t-p">,</span> <span class="t-n">is_slippery</span><span class="t-o">=</span><span class="t-kc">True</span><span class="t-p">);</span> <span class="t-n">Pm</span><span class="t-p">,</span> <span class="t-n">Rm</span> <span class="t-o">=</span> <span class="t-n">tables</span><span class="t-p">(</span><span class="t-n">e</span><span class="t-p">);</span> <span class="t-n">gamma</span> <span class="t-o">=</span> <span class="t-mf">0.99</span>
+    <span class="t-n">v</span><span class="t-p">,</span> <span class="t-n">pi</span><span class="t-p">,</span> <span class="t-n">gaps</span> <span class="t-o">=</span> <span class="t-n">value_iteration</span><span class="t-p">(</span><span class="t-n">Pm</span><span class="t-p">,</span> <span class="t-n">Rm</span><span class="t-p">,</span> <span class="t-n">gamma</span><span class="t-p">);</span> <span class="t-n">v2</span><span class="t-p">,</span> <span class="t-n">pi2</span><span class="t-p">,</span> <span class="t-n">k</span> <span class="t-o">=</span> <span class="t-n">policy_iteration</span><span class="t-p">(</span><span class="t-n">Pm</span><span class="t-p">,</span> <span class="t-n">Rm</span><span class="t-p">,</span> <span class="t-n">gamma</span><span class="t-p">)</span>
+    <span class="t-n">ratio</span> <span class="t-o">=</span> <span class="t-nb">max</span><span class="t-p">(</span><span class="t-n">gaps</span><span class="t-p">[</span><span class="t-n">i</span> <span class="t-o">+</span> <span class="t-mi">1</span><span class="t-p">]</span> <span class="t-o">/</span> <span class="t-n">gaps</span><span class="t-p">[</span><span class="t-n">i</span><span class="t-p">]</span> <span class="t-k">for</span> <span class="t-n">i</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">gaps</span><span class="t-p">)</span> <span class="t-o">-</span> <span class="t-mi">1</span><span class="t-p">)</span> <span class="t-k">if</span> <span class="t-n">gaps</span><span class="t-p">[</span><span class="t-n">i</span><span class="t-p">]</span> <span class="t-o">&gt;</span> <span class="t-mf">1e-12</span><span class="t-p">)</span>
+    <span class="t-n">wins</span> <span class="t-o">=</span> <span class="t-mi">0</span>
+    <span class="t-k">for</span> <span class="t-n">ep</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-mi">10_000</span><span class="t-p">):</span>
+        <span class="t-n">s</span><span class="t-p">,</span> <span class="t-n">_</span> <span class="t-o">=</span> <span class="t-n">e</span><span class="t-o">.</span><span class="t-n">reset</span><span class="t-p">(</span><span class="t-n">seed</span><span class="t-o">=</span><span class="t-n">ep</span><span class="t-p">);</span> <span class="t-n">done</span> <span class="t-o">=</span> <span class="t-kc">False</span>
+        <span class="t-k">while</span> <span class="t-ow">not</span> <span class="t-n">done</span><span class="t-p">:</span> <span class="t-n">s</span><span class="t-p">,</span> <span class="t-n">r</span><span class="t-p">,</span> <span class="t-n">term</span><span class="t-p">,</span> <span class="t-n">trunc</span><span class="t-p">,</span> <span class="t-n">_</span> <span class="t-o">=</span> <span class="t-n">e</span><span class="t-o">.</span><span class="t-n">step</span><span class="t-p">(</span><span class="t-nb">int</span><span class="t-p">(</span><span class="t-n">pi</span><span class="t-p">[</span><span class="t-n">s</span><span class="t-p">]));</span> <span class="t-n">done</span> <span class="t-o">=</span> <span class="t-n">term</span> <span class="t-ow">or</span> <span class="t-n">trunc</span>
+        <span class="t-n">wins</span> <span class="t-o">+=</span> <span class="t-n">r</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"FrozenLake </span><span class="t-si">{</span><span class="t-n">name</span><span class="t-si">}</span><span class="t-s2">, gamma = </span><span class="t-si">{</span><span class="t-n">gamma</span><span class="t-si">}</span><span class="t-s2">: value iteration converged in </span><span class="t-si">{</span><span class="t-nb">len</span><span class="t-p">(</span><span class="t-n">gaps</span><span class="t-p">)</span><span class="t-si">}</span><span class="t-s2"> sweeps (largest ratio of successive changes "</span>
+          <span class="t-sa">f</span><span class="t-s2">"</span><span class="t-si">{</span><span class="t-n">ratio</span><span class="t-si">:</span><span class="t-s2">.4f</span><span class="t-si">}</span><span class="t-s2"> &lt;= gamma); policy iteration in </span><span class="t-si">{</span><span class="t-n">k</span><span class="t-si">}</span><span class="t-s2"> improvements; same optimal values: </span><span class="t-si">{</span><span class="t-n">np</span><span class="t-o">.</span><span class="t-n">allclose</span><span class="t-p">(</span><span class="t-n">v</span><span class="t-p">,</span><span class="t-w"> </span><span class="t-n">v2</span><span class="t-p">,</span><span class="t-w"> </span><span class="t-n">atol</span><span class="t-o">=</span><span class="t-mf">1e-6</span><span class="t-p">)</span><span class="t-si">}</span><span class="t-s2">"</span><span class="t-p">)</span>
+    <span class="t-nb">print</span><span class="t-p">(</span><span class="t-sa">f</span><span class="t-s2">"  value of the start </span><span class="t-si">{</span><span class="t-n">v</span><span class="t-p">[</span><span class="t-mi">0</span><span class="t-p">]</span><span class="t-si">:</span><span class="t-s2">.3f</span><span class="t-si">}</span><span class="t-s2">; the optimal policy reaches the goal in </span><span class="t-si">{</span><span class="t-n">wins</span><span class="t-w"> </span><span class="t-o">/</span><span class="t-w"> </span><span class="t-mi">10_000</span><span class="t-si">:</span><span class="t-s2">.1%</span><span class="t-si">}</span><span class="t-s2"> of 10,000 simulated episodes (episodes stop after </span><span class="t-si">{</span><span class="t-n">e</span><span class="t-o">.</span><span class="t-n">spec</span><span class="t-o">.</span><span class="t-n">max_episode_steps</span><span class="t-si">}</span><span class="t-s2"> steps)"</span><span class="t-p">)</span>
+    <span class="t-k">if</span> <span class="t-n">name</span> <span class="t-o">==</span> <span class="t-s1">'4x4'</span><span class="t-p">:</span>
+        <span class="t-n">desc</span> <span class="t-o">=</span> <span class="t-n">e</span><span class="t-o">.</span><span class="t-n">unwrapped</span><span class="t-o">.</span><span class="t-n">desc</span><span class="t-o">.</span><span class="t-n">ravel</span><span class="t-p">()</span>
+        <span class="t-nb">print</span><span class="t-p">(</span><span class="t-s2">"  optimal policy:"</span><span class="t-p">,</span> <span class="t-s2">" / "</span><span class="t-o">.</span><span class="t-n">join</span><span class="t-p">(</span><span class="t-s2">""</span><span class="t-o">.</span><span class="t-n">join</span><span class="t-p">(</span><span class="t-n">c</span><span class="t-o">.</span><span class="t-n">decode</span><span class="t-p">()</span> <span class="t-k">if</span> <span class="t-n">c</span> <span class="t-ow">in</span> <span class="t-sa">b</span><span class="t-s1">'HG'</span> <span class="t-k">else</span> <span class="t-n">arrow</span><span class="t-p">[</span><span class="t-n">pi</span><span class="t-p">[</span><span class="t-n">i</span> <span class="t-o">*</span> <span class="t-mi">4</span> <span class="t-o">+</span> <span class="t-n">j</span><span class="t-p">]]</span> <span class="t-k">for</span> <span class="t-n">j</span><span class="t-p">,</span> <span class="t-n">c</span> <span class="t-ow">in</span> <span class="t-nb">enumerate</span><span class="t-p">(</span><span class="t-n">desc</span><span class="t-p">[</span><span class="t-n">i</span> <span class="t-o">*</span> <span class="t-mi">4</span><span class="t-p">:(</span><span class="t-n">i</span> <span class="t-o">+</span> <span class="t-mi">1</span><span class="t-p">)</span> <span class="t-o">*</span> <span class="t-mi">4</span><span class="t-p">]))</span> <span class="t-k">for</span> <span class="t-n">i</span> <span class="t-ow">in</span> <span class="t-nb">range</span><span class="t-p">(</span><span class="t-mi">4</span><span class="t-p">)))</span></pre>
+<pre class="out">FrozenLake 4x4, gamma = 0.99: value iteration converged in 571 sweeps (largest ratio of successive changes 0.9900 &lt;= gamma); policy iteration in 8 improvements; same optimal values: True
+  value of the start 0.542; the optimal policy reaches the goal in 73.7% of 10,000 simulated episodes (episodes stop after 100 steps)
+  optimal policy: &lt;^^^ / &lt;H&lt;H / ^v&lt;H / H&gt;vG
+FrozenLake 8x8, gamma = 0.99: value iteration converged in 662 sweeps (largest ratio of successive changes 0.9897 &lt;= gamma); policy iteration in 5 improvements; same optimal values: True
+  value of the start 0.415; the optimal policy reaches the goal in 62.6% of 10,000 simulated episodes (episodes stop after 100 steps)</pre>
+</div>
+
+<p>Both methods find the same optimal values. Value iteration needs 571 sweeps on the 4 × 4 map, and the ratio of successive changes is 0.9900: the error shrinks by a factor \(\gamma\) per sweep, exactly the rate of Theorem 21.3. Policy iteration needs only 8 improvements, each one solving a linear system. The optimal policy raises the success rate from 1.4% to 73.7%, and it is cautious in an instructive way: from the start it pushes <em>left</em>, into the wall. Since the ice slips sideways, pushing into a wall means the only possible slips are up or down, never into a hole. On the 8 × 8 map the optimal policy succeeds in 62.6% of episodes.</p>
+
+<div class="widget" id="w-grid">
+<h4>Gridworld: watch value iteration</h4>
+<p class="wtxt">Click cells to place walls, pits (−1) and goals (+1), choose how slippery the floor is, then sweep. Each sweep applies the Bellman optimality operator once: value spreads outwards from the goal, and the arrows show the greedy policy. With a slippery floor and a small step cost, the best path keeps away from pits even if it is longer.</p>
+<svg id="gwSvg" viewBox="0 0 480 360" width="480" height="360" role="img" aria-label="Editable gridworld showing values and greedy arrows"></svg>
+<div class="ctrls">
+<label><span>click places</span><select id="gwTool"><option value="W">wall</option><option value="P">pit (−1)</option><option value="G">goal (+1)</option></select></label>
+<label><span>slip = <b id="gwSlipl">0.20</b></span><input type="range" id="gwSlip" min="0" max="0.66" step="0.02" value="0.2" aria-label="slip probability"></label>
+<label><span>γ = <b id="gwGaml">0.95</b></span><input type="range" id="gwGam" min="0.5" max="0.99" step="0.01" value="0.95" aria-label="discount"></label>
+<label><span>reward per step = <b id="gwStepl">0.00</b></span><input type="range" id="gwStep" min="-0.1" max="0" step="0.01" value="0" aria-label="reward per step"></label>
+</div>
+<div class="ctrls">
+<button class="ctl" id="gwSweep" type="button">one sweep</button>
+<button class="ctl" id="gwRun" type="button">run to convergence</button>
+<button class="ctl" id="gwReset" type="button">reset grid</button>
+</div>
+<div class="readout" id="gwRes" role="status" aria-live="polite"></div>
+</div>
+
+<div class="spot" id="sp21-1" data-kind="num" data-ans="10" data-tol="0.01">
+<span class="lbl">spot check 21.1</span>
+<p class="q">A state gives reward 1 at every step forever, with \(\gamma=0.9\). What is its value?</p>
+<div class="hint">Sum the geometric series \(1+\gamma+\gamma^2+\cdots\).</div>
+<div class="why">\(1/(1-0.9)=10\). The quantity \(1/(1-\gamma)\) is often called the effective horizon: with \(\gamma=0.99\) the agent looks about 100 steps ahead.</div>
+</div>
+
+<div class="box hist">
+<span class="lbl">history &mdash; from cats in boxes to the Turing Award</span>
+<p>Edward Thorndike's cats (1898) escaped from puzzle boxes faster with practice, and his "law of effect" (actions followed by satisfaction are repeated) is reinforcement in its plainest form. William Thompson proposed posterior sampling for medical trials in 1933. Richard Bellman named dynamic programming and the equation that bears his name in the 1950s (<em>Dynamic Programming</em>, 1957). Arthur Samuel's checkers program (1959) improved by playing itself, and Donald Michie's MENACE (1961) learned noughts and crosses with 304 matchboxes of coloured beads. Christopher Watkins introduced Q-learning in his 1989 PhD thesis; Gerald Tesauro's TD-Gammon (1992) reached expert backgammon by temporal-difference learning; and DeepMind's DQN (Mnih et al., 2015) learned dozens of Atari games from pixels. Andrew Barto and Richard Sutton received the 2024 Turing Award for the conceptual and algorithmic foundations of reinforcement learning.</p>
+</div>
+
+<div class="box quantum">
+<span class="lbl">quantum &mdash; a quadratic speed-up for exploration</span>
+<p>Finding the best arm with a classical algorithm needs about \(\sum_a1/\Delta_a^2\) pulls. Wang, You, Li and Childs (<em>AAAI</em>, 2021) showed that if each arm can be pulled as a quantum oracle, in superposition, quantum amplitude estimation finds it with about \(\sqrt{\sum_a1/\Delta_a^2}\) queries: a quadratic gain, the same as Grover search. The assumption is strong. A real advert or treatment cannot be "pulled in superposition"; the oracle model fits simulated or physical systems that are themselves quantum. As elsewhere in this course, the speed-up is real but lives in a specific access model.</p>
+</div>
+
+<!-- =================== 5 =================== -->
+<h2 id="s5">5 &mdash; Summary, exercises, projects, reading</h2>
+
+<div class="box thm">
+<span class="lbl">summary</span>
+<ul>
+<li>An agent chooses actions to maximise the discounted return (Definition 21.1). Rewards are scores, often delayed, and the data depend on the agent's own choices. A random agent on FrozenLake reaches the goal in 1.4% of episodes.</li>
+<li>In bandits, regret measures the cost of learning (Definition 21.2). ε-greedy has linear regret; UCB1 has \(O(\log T)\) regret (Theorem 21.1); no policy beats the Lai&ndash;Robbins rate (Theorem 21.2). Over 50,000 rounds on five arms: Thompson sampling 85.6, ε-greedy 289.9, UCB1 719.0.</li>
+<li>Logged bandit data are observational; inverse propensity weighting evaluates a new policy without bias but with high variance. From 10,000 ZOZOTOWN impressions: IPW 0.0024 against a true 0.0038, effective sample size 340.</li>
+<li>Value functions summarise the future (Definition 21.4) and satisfy the Bellman equations (Definition 21.5). The optimality operator is a \(\gamma\)-contraction, so value iteration converges (Theorem 21.3), and policy iteration terminates at an optimal policy (Theorem 21.4). On FrozenLake 4 × 4: 571 sweeps of value iteration, 8 steps of policy iteration, goal reached in 73.7% of episodes.</li>
+</ul>
+</div>
+
+<div class="box exr">
+<span class="lbl">exercises</span>
+<ol>
+<li>Show that ε-greedy with a fixed \(\varepsilon>0\) has regret at least \(\varepsilon\,T\,\bar\Delta\), where \(\bar\Delta=\frac1K\sum_a\Delta_a\).
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>In every round, with probability \(\varepsilon\) the policy pulls an arm uniformly at random, which costs \(\bar\Delta\) in expectation. The greedy rounds cost at least 0. Summing over \(T\) rounds, \(\mathcal R_T\ge\varepsilon T\bar\Delta\), which grows linearly. A schedule \(\varepsilon_t\propto1/t\) removes the linear term, but the constant must be tuned to the unknown gaps.</p>
+</div></li>
+<li>An arm has a Beta(1, 1) prior on its click rate and has been shown 200 times with 9 clicks. What is its posterior, and its posterior mean? Why does Thompson sampling still sometimes choose an arm with a lower posterior mean than another?
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>The posterior is Beta\((1+9,\,1+191)=\)Beta(10, 192), with mean \(10/202\approx0.050\).</p>
+<p>Thompson sampling chooses the arm with the largest <em>draw</em>. An arm shown only a few times has a wide posterior, so its draw is sometimes large even if its mean is lower. As evidence accumulates the posteriors narrow and such choices become rare. This is how exploration fades out on its own.</p>
+</div></li>
+<li>Derive the Bellman expectation equation of Definition 21.5 from the definition of \(v_\pi\), using \(G_t=R_{t+1}+\gamma G_{t+1}\) and the Markov property.
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(v_\pi(s)=\mathbb E_\pi[R_{t+1}+\gamma G_{t+1}\mid S_t=s]\). Condition on the action and the next state:</p>
+$$v_\pi(s)=\sum_a\pi(a\mid s)\sum_{s'}p(s'\mid s,a)\big(\mathbb E[R_{t+1}\mid s,a,s']+\gamma\,\mathbb E_\pi[G_{t+1}\mid S_{t+1}=s']\big).$$
+<p>By the Markov property, the expected return from \(s'\) does not depend on how we got there, so it equals \(v_\pi(s')\). Summing the reward term over \(s'\) gives \(r(s,a)\).</p>
+</div></li>
+<li>A two-state MDP: in state 1 the agent can <em>stay</em> (reward 1, remain in 1) or <em>move</em> (reward 0, go to state 2); state 2 gives reward 2 per step forever. With \(\gamma=0.9\), find \(v^*\) and the optimal action in state 1. For which \(\gamma\) does the answer change?
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>\(v^*(2)=2/(1-0.9)=20\). In state 1, staying forever is worth \(1/(1-0.9)=10\), moving is worth \(0+0.9\times20=18\). So \(v^*(1)=18\) and the agent moves.</p>
+<p>In general staying gives \(1/(1-\gamma)\) and moving \(2\gamma/(1-\gamma)\). Moving is better when \(2\gamma>1\), that is \(\gamma>0.5\). A short-sighted agent takes the immediate reward.</p>
+</div></li>
+<li>Show that the IPW estimate in the causal box is unbiased when \(\pi_0(a\mid x)>0\) whenever \(\pi(a\mid x)>0\).
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>For one logged round, with \(x\) drawn from the context distribution, \(a\sim\pi_0(\cdot\mid x)\) and \(r\) drawn given \((x,a)\):</p>
+$$\mathbb E\Big[\frac{\pi(a\mid x)}{\pi_0(a\mid x)}r\Big]=\mathbb E_x\sum_a\pi_0(a\mid x)\frac{\pi(a\mid x)}{\pi_0(a\mid x)}\bar r(x,a)=\mathbb E_x\sum_a\pi(a\mid x)\bar r(x,a)=V(\pi).$$
+<p>If \(\pi_0(a\mid x)=0\) for an action that \(\pi\) uses, that action never appears in the log, and no reweighting can recover its reward.</p>
+</div></li>
+<li>(Code.) Implement KL-UCB, which pulls the arm maximising the largest \(q\) with \(N_a\,\mathrm{KL}(\hat\mu_a,q)\le\ln t\) (solve for \(q\) by bisection), and add it to the bandit comparison. How does its regret compare with UCB1 and Thompson sampling?
+<button class="sol-btn">show solution</button>
+<div class="sol">
+<p>For each arm, bisect on \(q\in[\hat\mu_a,1]\) until \(N_a\,\mathrm{KL}(\hat\mu_a,q)\) reaches \(\ln t\). KL-UCB's confidence bound adapts to the small variance of rare clicks, unlike UCB1's \(\sqrt{2\ln t/N_a}\), which is designed for the worst case of rewards spread over \([0,1]\). Expect regret close to Thompson sampling's and far below UCB1's: KL-UCB attains the Lai&ndash;Robbins constant (Garivier and Cappé, 2011).</p>
+</div></li>
+</ol>
+</div>
+
+<div class="box proj">
+<span class="lbl">student projects</span>
+<p>Each project uses this lecture's methods and public data, and has a clear result.</p>
+<h4>1. Off-policy evaluation on the Open Bandit Dataset</h4>
+<dl>
+<dt>question</dt><dd>Can logs from one policy predict how another would have performed, and which estimator comes closest to the truth?</dd>
+<dt>data</dt><dd>The full Open Bandit Dataset (about 26 million impressions, two logging policies, three campaigns), with each policy's own logs as the ground truth for the other.</dd>
+<dt>method</dt><dd>Direct method (a click model), IPW, self-normalised IPW and doubly robust estimators, with the <code>obp</code> package; bootstrap intervals; how accuracy depends on sample size and on clipping large weights.</dd>
+<dt>outcome</dt><dd>A comparison of estimators against the on-policy ground truth, reproducing and extending Saito et al. (2021).</dd>
+</dl>
+<h4>2. Bandits for choosing practice problems</h4>
+<dl>
+<dt>question</dt><dd>If a tutoring system chose the next practice problem with a bandit, how quickly would students reach mastery compared with a fixed sequence?</dd>
+<dt>data</dt><dd>A public ASSISTments data set of student answers, used to fit a simple model of how each skill's success probability grows with practice.</dd>
+<dt>method</dt><dd>A simulator built from the fitted model; ε-greedy, UCB and Thompson sampling over skills, with reward defined as learning gain; comparison with the order used in the data; sensitivity to the simulator's assumptions.</dd>
+<dt>outcome</dt><dd>Simulated time to mastery for each policy, with a frank discussion of how far a simulator built from logs can be trusted.</dd>
+</dl>
+</div>
+
+<h3>Reading and sources</h3>
+<ul class="refs">
+<li>R. S. Sutton, A. G. Barto, <em>Reinforcement Learning: An Introduction</em>, 2nd ed., MIT Press (2018), ch. 1&ndash;4, free online; T. Lattimore, C. Szepesvári, <em>Bandit Algorithms</em>, Cambridge University Press (2020), free online; R. Bellman, <em>Dynamic Programming</em>, Princeton University Press (1957); M. L. Puterman, <em>Markov Decision Processes</em>, Wiley (1994).</li>
+<li>W. R. Thompson, "On the likelihood that one unknown probability exceeds another in view of the evidence of two samples", <em>Biometrika</em> 25, 285&ndash;294 (1933); T. L. Lai, H. Robbins, "Asymptotically efficient adaptive allocation rules", <em>Advances in Applied Mathematics</em> 6, 4&ndash;22 (1985); P. Auer, N. Cesa-Bianchi, P. Fischer, "Finite-time analysis of the multiarmed bandit problem", <em>Machine Learning</em> 47, 235&ndash;256 (2002); A. Garivier, O. Cappé, "The KL-UCB algorithm for bounded stochastic bandits and beyond", <em>COLT</em> (2011); S. Agrawal, N. Goyal, "Analysis of Thompson sampling for the multi-armed bandit problem", <em>COLT</em> (2012).</li>
+<li>Y. Saito, S. Aihara, M. Matsutani, Y. Narita, "Open Bandit Dataset and Pipeline: towards realistic and reproducible off-policy evaluation", <em>NeurIPS Datasets and Benchmarks</em> (2021); M. Dudík, J. Langford, L. Li, "Doubly robust policy evaluation and learning", <em>ICML</em> (2011); L. Li, W. Chu, J. Langford, R. E. Schapire, "A contextual-bandit approach to personalized news article recommendation", <em>WWW</em> (2010).</li>
+<li>I. Osband, D. Russo, B. Van Roy, "(More) efficient reinforcement learning via posterior sampling", <em>NeurIPS</em> 26 (2013); D. Wang, X. You, T. Li, A. M. Childs, "Quantum exploration algorithms for multi-armed bandits", <em>AAAI</em> (2021); D. Michie, "Experiments on the mechanization of game-learning, part I: characterization of the model and its parameters", <em>The Computer Journal</em> 6(3), 232&ndash;236 (1963).</li>
+</ul>
+<p><strong>Data.</strong> Open Bandit Dataset samples (10,000 impressions each from the uniform-random and Bernoulli Thompson sampling policies, "all" campaign) shipped with the <code>obp</code> package (PyPI, version 0.4.1), from Saito et al. (2021); the full data are at <a href="https://research.zozo.com/data.html">research.zozo.com/data.html</a>. FrozenLake: Gymnasium (Farama Foundation), <code>FrozenLake-v1</code>. The bandit problems are simulated.</p>
+<p class="kicker" style="margin-top:2.4em">numbers in the text not printed by a code box are computed in verify_L21a.py, figures in figs_L21a.py; code-box outputs are pasted from actual runs (numpy, pandas and Gymnasium on two CPU cores)</p>
+</div>
+
+<script>
+/* ---------- shared helpers ---------- */
+(function(){
+  var NS='http://www.w3.org/2000/svg';
+  window.L1 = {
+    el: function(svg,t,at,txt){ var e=document.createElementNS(NS,t); for(var k in at) e.setAttribute(k,at[k]); if(txt!=null) e.textContent=txt; svg.appendChild(e); return e; },
+    clear: function(svg){ while(svg.firstChild) svg.removeChild(svg.firstChild); },
+    col: ['var(--sky)','var(--rose)','var(--moss)'],
+    names: ['Adélie','Chinstrap','Gentoo'],
+    rng: function(seed){ var a=seed>>>0; return function(){ a=(a+0x6D2B79F5)>>>0; var t=a; t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return ((t^(t>>>14))>>>0)/4294967296; }; },
+    svgPoint: function(svg,evt){ var pt=svg.createSVGPoint(); pt.x=evt.clientX; pt.y=evt.clientY; return pt.matrixTransform(svg.getScreenCTM().inverse()); },
+    f: function(x,d){ return x.toFixed(d); }
+  };
+})();
+</script>
+<script>
+window.L21a = {"mu": [0.12, 0.1, 0.08, 0.06, 0.04]};
+window.L21rng = function(seed){ var a=seed>>>0; return function(){ a=(a+0x6D2B79F5)>>>0; var t=a; t=Math.imul(t^(t>>>15),t|1); t^=t+Math.imul(t^(t>>>7),t|61); return ((t^(t>>>14))>>>0)/4294967296; }; };
+window.L21gamma = function(k,u){ if(k<1){ return L21gamma(k+1,u)*Math.pow(u(),1/k); } var d=k-1/3, c=1/Math.sqrt(9*d);
+  while(true){ var x, v; do{ var u1=u(), u2=u(); x=Math.sqrt(-2*Math.log(u1+1e-300))*Math.cos(2*Math.PI*u2); v=1+c*x; }while(v<=0); v=v*v*v; var w=u(); if(w<1-0.0331*x*x*x*x||Math.log(w)<0.5*x*x+d*(1-v+Math.log(v))) return d*v; } };
+/* W21a: bandit arena */
+(function(){
+  var g=function(id){return document.getElementById(id);}; if(!g('baSvg')) return;
+  var mu=L21a.mu, K=mu.length, best=Math.max.apply(null,mu), T=5000, st, timer=null;
+  var names=['ε-greedy','UCB1','Thompson'], cols=['var(--amber)','var(--rose)','var(--sky)'];
+  function reset(){ var seed=+g('baSeed').value; st={t:0, u:L21rng(seed*7919+1), agents:names.map(function(){ return {n:new Array(K).fill(0), s:new Array(K).fill(0), reg:0, curve:[0]}; })}; draw(); }
+  function choose(k,A,t,u){ var i, b=0;
+    if(k===0){ if(u()<+g('baEps').value){ return Math.floor(u()*K); } var bv=-1; for(i=0;i<K;i++){ var m=A.n[i]?A.s[i]/A.n[i]:0; if(m+1e-9*u()>bv){ bv=m+1e-9*u(); b=i; } } return b; }
+    if(k===1){ for(i=0;i<K;i++) if(A.n[i]===0) return i; var bv=-1; for(i=0;i<K;i++){ var v=A.s[i]/A.n[i]+Math.sqrt(2*Math.log(t+1)/A.n[i]); if(v>bv){ bv=v; b=i; } } return b; }
+    var bv=-1; for(i=0;i<K;i++){ var x=L21gamma(1+A.s[i],u), y=L21gamma(1+A.n[i]-A.s[i],u), th=x/(x+y); if(th>bv){ bv=th; b=i; } } return b; }
+  function step(n){ for(var r=0;r<n&&st.t<T;r++){ var draws=[]; for(var i=0;i<K;i++) draws.push(st.u()<mu[i]?1:0);     // the same clicks are on offer to all three agents
+      st.agents.forEach(function(A,k){ var a=choose(k,A,st.t,st.u); A.n[a]++; A.s[a]+=draws[a]; A.reg+=best-mu[a]; }); st.t++;
+      if(st.t%25===0) st.agents.forEach(function(A){ A.curve.push(A.reg); }); } }
+  function draw(){ var svg=g('baSvg'), W=620, H=250, L=46, B=30, ymax=10; L1.clear(svg);
+    st.agents.forEach(function(A){ ymax=Math.max(ymax,A.reg*1.1); });
+    var sx=function(t){return L+t/T*(W-L-10);}, sy=function(v){return H-B-v/ymax*(H-B-10);};
+    L1.el(svg,'rect',{'class':'plot-bg',x:L,y:10,width:W-L-10,height:H-B-10});
+    [0,1000,2000,3000,4000,5000].forEach(function(t){ L1.el(svg,'text',{'class':'axtext',x:sx(t),y:H-12,'text-anchor':'middle'},t.toLocaleString('en-GB')); });
+    var yt=ymax>100?50:(ymax>40?20:5); for(var v=0;v<ymax;v+=yt){ L1.el(svg,'line',{'class':'gridline',x1:L,x2:W-10,y1:sy(v),y2:sy(v)}); L1.el(svg,'text',{'class':'axtext',x:L-5,y:sy(v)+4,'text-anchor':'end'},v); }
+    st.agents.forEach(function(A,k){ var d='M'+A.curve.map(function(v,i){ return sx(i*25).toFixed(1)+' '+sy(v).toFixed(1); }).join(' L');
+      L1.el(svg,'path',{d:d,fill:'none',stroke:cols[k],'stroke-width':2.4}); });
+    L1.el(svg,'text',{'class':'axtext',x:L+6,y:24},'cumulative regret');
+    var bs=g('baBars'); L1.clear(bs); var bw=(620-60)/3;
+    st.agents.forEach(function(A,k){ var x0=30+k*bw; L1.el(bs,'text',{'class':'lbltext',x:x0+bw/2-10,y:16,'text-anchor':'middle',style:'fill:'+cols[k]},names[k]);
+      for(var i=0;i<K;i++){ var h=st.t?A.n[i]/st.t*90:0; L1.el(bs,'rect',{x:x0+i*(bw-30)/K,y:118-h,width:(bw-30)/K-4,height:h,fill:cols[k],opacity:i===0?1:0.45});
+        L1.el(bs,'text',{'class':'axtext',x:x0+i*(bw-30)/K+((bw-30)/K-4)/2,y:134,'text-anchor':'middle',style:'font-size:10px'},(mu[i]*100).toFixed(0)+'%'); } });
+    g('baRes').textContent='round '+st.t.toLocaleString('en-GB')+' · regret: '+st.agents.map(function(A,k){ return names[k]+' '+A.reg.toFixed(1); }).join(', ')+' · bars: share of pulls per arm (true click rate below; arm 1 is best)';
+    return st.agents.map(function(A){ return A.reg; }); }
+  g('baRun').addEventListener('click',function(){ if(timer){ clearInterval(timer); timer=null; g('baRun').textContent='run'; return; }
+    if(st.t>=T) reset(); g('baRun').textContent='pause'; timer=setInterval(function(){ step(100); draw(); if(st.t>=T){ clearInterval(timer); timer=null; g('baRun').textContent='run'; } },40); });
+  g('baReset').addEventListener('click',function(){ if(timer){ clearInterval(timer); timer=null; g('baRun').textContent='run'; } reset(); });
+  g('baEps').addEventListener('input',function(){ g('baEpsl').textContent=(+g('baEps').value).toFixed(2); });
+  g('baSeed').addEventListener('change',reset); reset();
+  window.W21a={set:function(seed,eps,rounds){ g('baSeed').value=seed; g('baEps').value=eps; reset(); step(rounds); return draw(); }};
+})();
+/* W21b: gridworld editor with value iteration */
+(function(){
+  var g=function(id){return document.getElementById(id);}; if(!g('gwSvg')) return;
+  var R=6, C=8, cell=60, grid, V, sweeps=0, timer=null, dirs=[[0,-1],[1,0],[0,1],[-1,0]], arrows=['↑','→','↓','←'];
+  function blank(){ grid=[]; for(var r=0;r<R;r++){ grid.push(new Array(C).fill('.')); } grid[0][C-1]='G'; grid[1][C-1]='P'; grid[1][1]='W'; grid[2][1]='W'; grid[3][1]='W'; grid[2][4]='W'; grid[3][4]='P'; grid[4][5]='W'; zero(); }
+  function zero(){ V=[]; for(var r=0;r<R;r++) V.push(new Array(C).fill(0)); sweeps=0; }
+  function move(r,c,a){ var nc=c+dirs[a][0], nr=r+dirs[a][1]; if(nr<0||nr>=R||nc<0||nc>=C||grid[nr][nc]==='W') return [r,c]; return [nr,nc]; }
+  function q(r,c,a,Vo){ var slip=+g('gwSlip').value, gam=+g('gwGam').value, step=+g('gwStep').value, tot=0;
+    [[a,1-slip],[(a+1)%4,slip/2],[(a+3)%4,slip/2]].forEach(function(o){ if(o[1]===0) return; var s2=move(r,c,o[0]), t=grid[s2[0]][s2[1]];
+      var rew=step+(t==='G'?1:(t==='P'?-1:0)), cont=(t==='G'||t==='P')?0:Vo[s2[0]][s2[1]]; tot+=o[1]*(rew+gam*cont); }); return tot; }
+  function sweep(){ var Vo=V.map(function(row){return row.slice();}), delta=0;
+    for(var r=0;r<R;r++) for(var c=0;c<C;c++){ var t=grid[r][c]; if(t!=='.') continue; var b=-1e9; for(var a=0;a<4;a++) b=Math.max(b,q(r,c,a,Vo)); delta=Math.max(delta,Math.abs(b-V[r][c])); V[r][c]=b; }
+    sweeps++; return delta; }
+  function colour(v){ var a=Math.min(1,Math.abs(v)); return v>=0?'rgba(47,158,143,'+(0.12+0.75*a)+')':'rgba(196,86,63,'+(0.12+0.75*a)+')'; }
+  var lastDelta=null;
+  function draw(){ var svg=g('gwSvg'); L1.clear(svg);
+    for(var r=0;r<R;r++) for(var c=0;c<C;c++){ var t=grid[r][c], x=c*cell, y=r*cell;
+      var rc=L1.el(svg,'rect',{x:x+1,y:y+1,width:cell-2,height:cell-2,rx:5,fill:t==='W'?'var(--ink)':(t==='G'?'rgba(47,158,143,0.95)':(t==='P'?'rgba(196,86,63,0.95)':colour(V[r][c]))),stroke:'var(--rule)',style:'cursor:pointer'});
+      (function(r,c){ rc.addEventListener('click',function(){ var tool=g('gwTool').value; if(grid[r][c]===tool) grid[r][c]='.'; else grid[r][c]=tool; zero(); draw(); }); })(r,c);
+      if(t==='G'||t==='P'){ L1.el(svg,'text',{x:x+cell/2,y:y+cell/2+5,'text-anchor':'middle','class':'lbltext',style:'fill:#fff;pointer-events:none'},t==='G'?'+1':'−1'); continue; }
+      if(t==='W') continue;
+      L1.el(svg,'text',{x:x+cell/2,y:y+cell-8,'text-anchor':'middle','class':'axtext',style:'font-size:11px;pointer-events:none'},V[r][c].toFixed(2));
+      if(sweeps>0){ var b=0, bv=-1e9; for(var a=0;a<4;a++){ var v=q(r,c,a,V); if(v>bv+1e-12){ bv=v; b=a; } } L1.el(svg,'text',{x:x+cell/2,y:y+cell/2+2,'text-anchor':'middle','class':'lbltext',style:'font-size:20px;pointer-events:none'},arrows[b]); } }
+    g('gwRes').textContent='sweeps of value iteration: '+sweeps+(lastDelta!==null?' · largest change in the last sweep '+lastDelta.toExponential(2):'')+' · slip '+(+g('gwSlip').value).toFixed(2)+', γ = '+(+g('gwGam').value).toFixed(2)+', reward per step '+(+g('gwStep').value).toFixed(2);
+    return {sweeps:sweeps, delta:lastDelta}; }
+  function stop(){ if(timer){ clearInterval(timer); timer=null; g('gwRun').textContent='run to convergence'; } }
+  g('gwSweep').addEventListener('click',function(){ stop(); lastDelta=sweep(); draw(); });
+  g('gwRun').addEventListener('click',function(){ if(timer){ stop(); return; } g('gwRun').textContent='pause';
+    timer=setInterval(function(){ lastDelta=sweep(); draw(); if(lastDelta<1e-4||sweeps>2000) stop(); },60); });
+  g('gwReset').addEventListener('click',function(){ stop(); blank(); lastDelta=null; draw(); });
+  ['gwSlip','gwGam','gwStep'].forEach(function(id){ g(id).addEventListener('input',function(){ g(id+'l').textContent=(+g(id).value).toFixed(2); zero(); lastDelta=null; draw(); }); });
+  blank(); draw();
+  window.W21b={set:function(slip,gam,step,n){ stop(); g('gwSlip').value=slip; g('gwGam').value=gam; g('gwStep').value=step; zero(); for(var i=0;i<n;i++) lastDelta=sweep(); return draw(); }, val:function(r,c){ return V[r][c]; }};
+})();
+</script>
+
+<script>
+/* ---------- spot checks ----------
+   <div class="spot" data-kind="num|mc|multi|select" ...> with p.q, div.hint, div.why
+   num:    data-ans="a|b" (any accepted), data-tol (absolute) or data-rtol (relative), data-show (text for show-answer)
+   mc:     ul.opts > li[data-ok] for the right option; li[data-oh] is a hint for that wrong option
+   multi:  ul.opts > li[data-ok] for every right option (all and only those must be chosen)
+   select: one or more select.sp in the question; option[data-ok] right, option[data-hint] hint
+   Green with the explanation when right; amber with a hint when wrong; "show answer" after two misses. */
+(function(){
+  function evalNum(s){
+    s=String(s).trim().toLowerCase().replace(/−/g,'-').replace(/×|⋅/g,'*').replace(/,/g,'').replace(/\^/g,'**').replace(/\s+/g,'');
+    if(!s) return NaN;
+    var pct=false; if(/%$/.test(s)){pct=true; s=s.slice(0,-1);}
+    if(!/^(?:[0-9.e+\-*/()]|sqrt|pi|ln|log|exp)+$/.test(s.replace(/e[+\-]?\d/g,'0'))) return NaN;
+    s=s.replace(/sqrt/g,'Math.sqrt').replace(/\bpi\b/g,'Math.PI').replace(/\bln\b/g,'Math.log').replace(/\blog\b/g,'Math.log10').replace(/\bexp\b/g,'Math.exp');
+    try{ var v=Function('"use strict";return ('+s+');')(); v=Number(v); return pct? v/100 : v; }catch(e){ return NaN; }
+  }
+  function tolFor(sp,a){
+    if(sp.dataset.tol) return parseFloat(sp.dataset.tol);
+    if(sp.dataset.rtol) return parseFloat(sp.dataset.rtol)*Math.abs(a);
+    if(Math.abs(a)>=2 && Math.abs(a-Math.round(a))<1e-12) return 1e-9;
+    if(Math.abs(a)>=0.1) return Math.max(0.005,0.005*Math.abs(a));
+    return Math.max(1e-12,0.02*Math.abs(a));
+  }
+  window.QFspot={evalNum:evalNum,tolFor:tolFor};
+  document.querySelectorAll('.spot').forEach(function(sp){
+    var kind=sp.dataset.kind||'num', misses=0;
+    var hint=sp.querySelector(':scope > .hint'), why=sp.querySelector(':scope > .why');
+    var fb=document.createElement('div'); fb.className='sr-only'; fb.setAttribute('aria-live','polite');
+    fb.style.cssText='position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)';
+    sp.appendChild(fb);
+    var ansBox=document.createElement('div'); ansBox.className='ans'; sp.appendChild(ansBox);
+    var row=document.createElement('div'); row.className='row';
+    var go=document.createElement('button'); go.className='ctl sp-go'; go.type='button'; go.textContent='check';
+    var show=document.createElement('button'); show.className='ctl sp-show'; show.type='button'; show.textContent='show answer'; show.hidden=true;
+    var defHint=hint?hint.innerHTML:'';
+    function setHint(h){ if(!hint) return; hint.innerHTML=h||defHint; if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([hint]); }
+    function right(){ sp.classList.remove('no'); sp.classList.add('ok'); if(hint) hint.classList.remove('on');
+      if(why) why.classList.add('on'); show.hidden=true; fb.textContent='Correct.'; }
+    function wrong(h){ misses++; sp.classList.remove('ok'); sp.classList.add('no'); setHint(h); if(hint) hint.classList.add('on');
+      if(misses>=2) show.hidden=false; fb.textContent='Not quite. '+(hint?hint.textContent:''); }
+    if(kind==='num'){
+      var inp=document.createElement('input'); inp.className='sp-in'; inp.type='text'; inp.setAttribute('inputmode','decimal');
+      inp.setAttribute('aria-label','your answer'); inp.placeholder='your answer'; inp.id=(sp.id||'sp')+'-in';
+      row.appendChild(inp);
+      if(sp.dataset.unit){var u=document.createElement('span'); u.className='unit'; u.textContent=sp.dataset.unit; row.appendChild(u);}
+      row.appendChild(go); row.appendChild(show);
+      var answers=sp.dataset.ans.split('|').map(evalNum);
+      function test(){ var v=evalNum(inp.value);
+        if(isNaN(v)){ wrong('Enter a number (fractions like 3/4, powers like 2^10, sqrt(2), pi and 1e-3 are fine).'); return; }
+        if(answers.some(function(a){return Math.abs(v-a)<=tolFor(sp,a);})) right(); else wrong(); }
+      go.addEventListener('click',test);
+      inp.addEventListener('keydown',function(e){ if(e.key==='Enter'){ e.preventDefault(); test(); } });
+      show.addEventListener('click',function(){ ansBox.innerHTML=sp.dataset.show||sp.dataset.ans.split('|')[0]; ansBox.classList.add('on');
+        if(why) why.classList.add('on'); show.hidden=true; if(window.MathJax&&MathJax.typesetPromise) MathJax.typesetPromise([ansBox]); });
+      sp.querySelector(':scope > .q').after(row);
+    } else if(kind==='mc'||kind==='multi'){
+      var ul=sp.querySelector('ul.opts'), btns=[];
+      (function(){ var h=2166136261, id=sp.id||'', lis=Array.prototype.slice.call(ul.querySelectorAll(':scope > li'));
+        for(var c=0;c<id.length;c++){ h^=id.charCodeAt(c); h=Math.imul(h,16777619)>>>0; }
+        for(var k=lis.length-1;k>0;k--){ h=Math.imul(h^(h>>>13),1597334677)>>>0; var j=h%(k+1), t=lis[k]; lis[k]=lis[j]; lis[j]=t; }
+        lis.forEach(function(li){ ul.appendChild(li); }); })();
+      ul.querySelectorAll(':scope > li').forEach(function(li){
+        var b=document.createElement('button'); b.type='button'; b.className='opt'; b.setAttribute('aria-pressed','false');
+        while(li.firstChild) b.appendChild(li.firstChild); li.appendChild(b); b._ok=li.hasAttribute('data-ok'); b._oh=li.dataset.oh||'';
+        btns.push(b);
+        b.addEventListener('click',function(){
+          if(kind==='mc'){ btns.forEach(function(x){x.setAttribute('aria-pressed','false'); x.classList.remove('good','bad');});
+            b.setAttribute('aria-pressed','true');
+            if(b._ok){ b.classList.add('good'); right(); } else { b.classList.add('bad'); wrong(b._oh); } }
+          else { b.setAttribute('aria-pressed', b.getAttribute('aria-pressed')==='true'?'false':'true'); btns.forEach(function(x){x.classList.remove('good','bad');}); }
+        });
+      });
+      if(kind==='multi'){ row.appendChild(go); row.appendChild(show); ul.after(row);
+        go.addEventListener('click',function(){
+          var chosen=btns.filter(function(x){return x.getAttribute('aria-pressed')==='true';});
+          var bad=btns.filter(function(x){return (x.getAttribute('aria-pressed')==='true')!==x._ok;});
+          if(!bad.length){ chosen.forEach(function(x){x.classList.add('good');}); right(); }
+          else { var wrongPick=bad.find(function(x){return !x._ok;}); wrong(wrongPick?wrongPick._oh:''); }
+        });
+      } else { row.appendChild(show); ul.after(row); }
+      show.addEventListener('click',function(){ btns.forEach(function(x){ x.classList.remove('bad'); if(x._ok){x.classList.add('good');} });
+        if(why) why.classList.add('on'); show.hidden=true; });
+    } else if(kind==='select'){
+      var sels=[].slice.call(sp.querySelectorAll('select.sp'));
+      sels.forEach(function(s,i){ if(!s.getAttribute('aria-label')) s.setAttribute('aria-label','choose'); s.id=(sp.id||'sp')+'-s'+i;
+        s.addEventListener('change',function(){ s.classList.remove('good','bad'); }); });
+      row.appendChild(go); row.appendChild(show); sp.querySelector(':scope > .q').after(row);
+      go.addEventListener('click',function(){ var allOk=true, h='';
+        sels.forEach(function(s){ var o=s.options[s.selectedIndex]; var ok=o && o.hasAttribute('data-ok');
+          s.classList.toggle('good',ok); s.classList.toggle('bad',!ok); if(!ok){ allOk=false; if(!h && o && o.dataset.hint) h=o.dataset.hint; } });
+        if(allOk) right(); else wrong(h); });
+      show.addEventListener('click',function(){ sels.forEach(function(s){ for(var i=0;i<s.options.length;i++) if(s.options[i].hasAttribute('data-ok')) s.selectedIndex=i;
+        s.classList.add('good'); s.classList.remove('bad'); }); if(why) why.classList.add('on'); show.hidden=true; });
+    }
+  });
+})();
+</script>
+<script>
+/* ---------- solution / proof toggles ---------- */
+document.querySelectorAll('.sol-btn').forEach(function(b){
+  var noun=b.textContent.replace(/^show\s+/,'');
+  b.dataset.noun=noun; b.type='button';
+  b.setAttribute('aria-expanded','false');
+  b.addEventListener('click',function(){
+    var s=b.nextElementSibling;
+    var open=s.classList.toggle('open');
+    b.textContent=(open?'hide ':'show ')+b.dataset.noun;
+    b.setAttribute('aria-expanded',open?'true':'false');
+  });
+});
+/* ---------- theme: follows the system (or the viewer's choice) until the button is pressed ---------- */
+(function(){
+ var t=document.getElementById('theme'), root=document.documentElement;
+ function current(){ var a=root.getAttribute('data-theme'); if(a==='light'||a==='dark') return a;
+   return (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches) ? 'light' : 'dark'; }
+ function label(){ t.textContent = current()==='light' ? 'dark' : 'light'; }
+ label();
+ t.addEventListener('click',function(){ var next=current()==='light'?'dark':'light'; root.setAttribute('data-theme',next); label(); });
+ if(window.matchMedia) window.matchMedia('(prefers-color-scheme: light)').addEventListener('change',label);
+})();
+</script>
+
+<script>/* keep the light/dark button label right when the site sets the theme */
+(function(){var t=document.getElementById("theme"),r=document.documentElement;if(!t||!window.MutationObserver)return;new MutationObserver(function(){var a=r.getAttribute("data-theme");if(a==="light"||a==="dark")t.textContent=(a==="light")?"dark":"light";}).observe(r,{attributes:true,attributeFilter:["data-theme"]});})();</script>
+</body>
+</html>
