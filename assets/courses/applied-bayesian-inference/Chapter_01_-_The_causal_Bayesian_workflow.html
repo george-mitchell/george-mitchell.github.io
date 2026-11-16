@@ -355,7 +355,7 @@ dl.pdl dd{margin:0}
 <li><strong>Sections 1.1 to 1.3</strong> set up the Bayesian half: what a model is, how a posterior is computed, and how to read one. The running example is the 2020 vaccine trial.</li>
 <li><strong>Sections 1.4 to 1.6</strong> set up the causal half: directed acyclic graphs, the four structures every graph is built from, and the back-door criterion that tells you which variables belong in a model.</li>
 <li><strong>Sections 1.7 and 1.8</strong> put the two halves together in one complete analysis of Antarctic penguins: simulate the priors, fit the model, check it, find what is wrong, and fix it.</li>
-<li><strong>Section 1.9</strong> draws the whole thing as a loop, and shows what the first step looks like for a real research project with ten variables.</li>
+<li><strong>Section 1.9</strong> draws the whole thing as a loop, following the <em>Bayesian Workflow</em> of Gelman, Vehtari and McElreath (2026), maps every later chapter onto that book, and shows what the first step looks like for a real research project with ten variables.</li>
 </ul>
 
 <div class="box think"><h4 class="lbl">Think About It: Before You Start</h4>
@@ -1719,14 +1719,14 @@ scale reduction factor on split chains (at convergence, Rhat = 1).</code></pre>
 
 <p>Before believing those numbers, check that the computation worked. Three columns of the summary do that job.</p>
 <ul>
-<li><strong>Rhat</strong> compares the four independent chains with each other. If they have all explored the same distribution, Rhat is 1.00. Values above 1.01 mean the chains disagree, and the summary should not be trusted.</li>
+<li><strong>Rhat</strong> compares the four independent chains with each other. If they have all explored the same distribution, Rhat is 1.00. For any result you report, every Rhat should be below 1.01; above that, the chains disagree and the summary should not be trusted.</li>
 <li><strong>Bulk_ESS</strong> and <strong>Tail_ESS</strong> are <em>effective sample sizes</em>: how many independent draws the correlated samples are worth, for the centre and for the tails of the distribution. A few hundred is enough for most summaries.</li>
 <li>Any warnings about <strong>divergent transitions</strong> (there were none) mean the sampler met geometry it could not handle (Chapter 5).</li>
 </ul>
 <p>Here every Rhat is 1.00 and every ESS is in the thousands, so the computation is sound. An algorithm that fails these checks has not given you a slightly worse answer. It has given you no answer.</p>
 
 <div class="box pub"><h4 class="lbl">Research Practice: What to Report About Computation</h4>
-<p>Following Vehtari et al. (2021) and the BARG, a methods section should state: the software and version (here <code>brms</code> 2.20 with Stan 2.32), the number of chains, warm-up and sampling iterations, that all <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mover accent="true"><mrow><mi>R</mi></mrow><mo>&#x0005E;</mo></mover><mo>&#x0003C;</mo><mn>1.01</mn></mrow></math>, the minimum bulk and tail ESS (at least 400 is a common requirement), and the number of divergent transitions (ideally zero). Put the full model code and the random seed in a public repository. Reviewers increasingly check.</p>
+<p>Following Vehtari et al. (2021), the BARG and Gelman, Vehtari and McElreath (2026, Chapter 11), a methods section should state: the software and version (here <code>brms</code> 2.20 with Stan 2.32), the number of chains (at least four), warm-up and sampling iterations, that all <math xmlns="http://www.w3.org/1998/Math/MathML" display="inline"><mrow><mover accent="true"><mrow><mi>R</mi></mrow><mo>&#x0005E;</mo></mover><mo>&#x0003C;</mo><mn>1.01</mn></mrow></math>, the minimum bulk and tail ESS (at least 400 is a common requirement), and the number of divergent transitions (ideally zero). Report no more digits than the Monte Carlo error supports: two significant digits are usually enough (Section 5.5 shows how to check). Put the full model code and the random seed in a public repository. Reviewers increasingly check.</p>
 </div>
 
 <h3 class="unnumbered" id="check">Check</h3>
@@ -1886,7 +1886,7 @@ m1 -93.6      11.2  </code></pre>
 </div>
 
 
-<p>The richer model is better by about 94 units of expected log predictive density, with a standard error of 11: an overwhelming difference.</p>
+<p>The richer model is better by about 94 units of expected log predictive density, with a standard error of 11: an overwhelming difference. A rule of thumb from Gelman, Vehtari and McElreath (2026, Section 9.4) tells you when such a comparison can be read this way: with more than about a hundred observations and models that pass their checks, a difference larger than about 4 can be judged against its standard error; a smaller difference means the models predict about equally well, whatever the standard error says.</p>
 
 <div class="box rex"><h4 class="lbl">Check Yourself</h4>
 <div class="chk" data-answer="2" data-kind="mc" id="chk-1-12"><fieldset class="chk-fs"><legend id="chk-1-12-p">A model's summary shows Rhat = 1.00 and Bulk_ESS = 3,000 for every parameter, but its posterior predictive check shows it cannot reproduce the data. What should you conclude?</legend><label class="chk-opt" for="chk-1-12-o1"><input aria-label="The model is fine, because the diagnostics are good." id="chk-1-12-o1" name="chk-1-12" type="radio" value="1"/><span>The model is fine, because the diagnostics are good.</span></label><label class="chk-opt" for="chk-1-12-o2"><input aria-label="The computation is reliable but the model is wrong: revise the model (often the graph or the likelihood), not the sampler." id="chk-1-12-o2" name="chk-1-12" type="radio" value="2"/><span>The computation is reliable but the model is wrong: revise the model (often the graph or the likelihood), not the sampler.</span></label><label class="chk-opt" for="chk-1-12-o3"><input aria-label="Run the sampler for more iterations." id="chk-1-12-o3" name="chk-1-12" type="radio" value="3"/><span>Run the sampler for more iterations.</span></label></fieldset><div class="chk-row"><button class="ctl chk-go" type="button">check</button></div><div aria-live="polite" class="chk-fb" role="status"></div><button class="chk-reveal" hidden="" type="button">stuck? show the answer</button><div class="chk-store chk-hint" data-opt="1" hidden="">
@@ -1911,10 +1911,10 @@ m1 -93.6      11.2  </code></pre>
 
 <h2 id="sec-1-9">1.9 The workflow loop, and graphs that are not small</h2>
 
-<p>Putting the pieces together gives the loop below, which follows the "Bayesian workflow" of Gelman et al. (2020). It is a loop, not a pipeline: a failed check sends you back to the graph or the likelihood, never onward to the write-up.</p>
+<p>Putting the pieces together gives the loop below. It is a condensed version of the workflow set out in <em>Bayesian Workflow</em> by Andrew Gelman, Aki Vehtari and Richard McElreath (2026), a book that brings together the authors of <em>Bayesian Data Analysis</em> and <em>Statistical Rethinking</em>, the two traditions this course draws on; their Figure 2.1 draws the full map, with many more branches than any one analysis will use. It is a loop, not a pipeline: a failed check sends you back to the graph or the likelihood, never onward to the write-up.</p>
 
 <figure class="diagram">
-<svg aria-label="The causal-Bayesian workflow drawn as a loop of seven boxes: 1 draw the DAG, 2 choose likelihood and priors, 3 prior predictive check, 4 fit the model, 5 diagnose computation, 6 posterior predictive check, 7 critique and interpret. Arrows run from each step to the next, and a dashed arrow labelled revise runs from step 7 back to step 1 down the left side." role="img" viewBox="0 0 660 256" style="max-width:660px;margin:0 auto;display:block">
+<svg aria-label="The causal-Bayesian workflow drawn as a loop of seven boxes: 1 draw the DAG, 2 choose likelihood and priors, 3 prior predictive check, 4 fake-data check, 5 fit and diagnose, 6 posterior check, 7 compare and critique. Arrows run from each step to the next, and a dashed arrow labelled revise runs from step 7 back to step 1 down the left side." role="img" viewBox="0 0 660 256" style="max-width:660px;margin:0 auto;display:block">
 <defs><marker id="wl-a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--ink)"/></marker><marker id="wl-b" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" style="fill:var(--rose)"/></marker></defs>
 <g style="fill:var(--surface2);stroke:var(--ink);stroke-width:1.5">
 <rect x="52" y="20" width="176" height="44" rx="8"/><rect x="262" y="20" width="176" height="44" rx="8"/><rect x="472" y="20" width="176" height="44" rx="8"/>
@@ -1928,13 +1928,40 @@ m1 -93.6      11.2  </code></pre>
 </g>
 <g style="font-family:var(--mono);font-size:13px;fill:var(--ink);text-anchor:middle">
 <text x="140" y="47">1 · draw the DAG</text><text x="350" y="47">2 · likelihood, priors</text><text x="560" y="47">3 · prior predictive</text>
-<text x="560" y="137">4 · fit</text><text x="350" y="137">5 · diagnose</text><text x="140" y="137">6 · posterior check</text><text x="140" y="223">7 · critique</text>
+<text x="560" y="137">4 · fake-data check</text><text x="350" y="137">5 · fit, diagnose</text><text x="140" y="137">6 · posterior check</text><text x="140" y="223">7 · compare, critique</text>
 <text x="12" y="132" transform="rotate(-90 12 132)" style="fill:var(--rose);font-size:12px">revise</text>
 </g>
 </svg>
-<figcaption>The causal–Bayesian workflow. Steps 1–3 are construction (before the data are used), 4–5 are computation, 6–7 are criticism. Failure at 5 or 6 returns you to the model, not to the conclusions.</figcaption></figure>
+<figcaption>The causal–Bayesian workflow, condensed from Figure 2.1 of Gelman, Vehtari and McElreath (2026). Steps 1–3 are construction (before the data are used). Steps 4–5 are computation: first check that the code recovers known parameters from data simulated by the model, then fit the real data and diagnose. Steps 6–7 are criticism: check the fitted model against the data, and compare it with the other models in the series. A model that passes is provisionally accepted for the question at hand; failure at 4, 5 or 6 returns you to the model, not to the conclusions.</figcaption></figure>
 
-<p>Three principles travel with the loop. <strong>Build models you understand</strong>: start simple and add structure when a check demands it, as we did with species and sex. <strong>Computation is part of the model</strong>: a sampler that fails to converge has given you no answer. And <strong>criticism is not optional</strong>: the posterior predictive check is where the small world is held up against the large world, and skipping it skips the only honest test the method offers.</p>
+<p>Section 1.8 skipped step 4, the fake-data check, because its model is a standard linear regression that <code>brms</code> has fitted correctly many thousands of times: for well-trodden models the bridge has already been built and tested. For any model you have written or extended yourself, the step is not optional, and Section 5.8 shows how to do it.</p>
+
+<p>Four principles travel with the loop, and each is a theme of the book. <strong>Build models you understand, and keep the series.</strong> Start simple and add structure when a check demands it, as we did with species and sex; compare each model's inferences with its predecessor's and find out why they differ, because the sequence of models, not only the last one, is part of the result. <strong>Computation is part of the model.</strong> A sampler that fails to converge has given you no answer, and a model that is hard to fit is often a model that is wrong, so when the computation struggles, find out why quickly rather than running it longer: <em>fit fast, fail fast</em> (Chapter 5). <strong>Criticism is not optional.</strong> The posterior predictive check and cross-validation are where the small world is held up against the large world, and skipping them skips the only honest test the method offers. And <strong>acceptance is provisional.</strong> A model that survives its checks is good enough for the question at hand, until new data or a new question break it, and then the loop goes round again.</p>
+
+<div class="box read"><h4 class="lbl">Companion Reading: <em>Bayesian Workflow</em>, Chapter by Chapter</h4>
+<p>The workflow book by Gelman, Vehtari and McElreath (2026) is the companion text for the whole course. Its Parts 2 and 3 set out the statistical and computational workflow, and its Part 4 works through sixteen case studies in full, including the dead ends. The table says where it takes up the themes of each chapter of this course; section numbers are the book's.</p>
+<div class="table-wrap"><table>
+<thead><tr><th>Chapter of this course</th><th>Where the book takes it further</th></tr></thead>
+<tbody>
+<tr><td>1 The causal–Bayesian workflow</td><td>Chapter 2 (the map of the workflow, Figure 2.1); Chapter 4 (one example from first model to breaking the model); 5.9 prior predictive checking; 8.2 posterior predictive checking</td></tr>
+<tr><td>2 Graphs and priors</td><td>5.2 relating a model to subject-matter assumptions; 5.6 prior distributions; 8.5 the influence of likelihood and prior; Chapter 17 (prior specification for regression models)</td></tr>
+<tr><td>3 Linear models</td><td>5.1 choosing an initial model; Chapter 17 (priors for linear and multilevel models); Chapter 25 (golf putting: building a model from first principles)</td></tr>
+<tr><td>4 Generalized linear models</td><td>Chapter 24 (Poisson, negative binomial and zero-inflated models, checked and compared by cross-validation)</td></tr>
+<tr><td>5 Markov chain Monte Carlo</td><td>Chapter 11 (chains, effective sample size and how many digits to report); Chapter 12 (diagnosing and fixing problems, "fit fast, fail fast"); Chapter 14 (simulation-based calibration checking); Chapters 29 and 30 (near-collinearity and multimodality)</td></tr>
+<tr><td>6 Multilevel models</td><td>17.2–17.3 priors for multilevel models; Chapter 19 (building up to a hierarchical model); Chapter 21 (posterior predictive checking of a hierarchical model)</td></tr>
+<tr><td>7 Missing data</td><td>7.1 poststratification; Chapter 22 (censored data, developed incrementally)</td></tr>
+<tr><td>8 Time-dependent data</td><td>Chapter 26 (hidden Markov models); Chapter 27 (Gaussian-process decomposition of a time series)</td></tr>
+<tr><td>9 Variational inference</td><td>Chapter 13 (approximate algorithms and approximate models, including Pathfinder); 8.3 cross-validation checking</td></tr>
+<tr><td>10 Bayesian machine learning</td><td>9.4–9.6 model selection, overfitting and stacking; Chapter 28 (projection predictive variable selection)</td></tr>
+<tr><td>11 Unsupervised models</td><td>Chapter 16 (latent item and rater parameters); Chapter 30 (multimodality); Chapter 31 (calibration checking while developing a mixture model)</td></tr>
+<tr><td>12 Text and image data</td><td>8.2–8.3 predictive checks and cross-validation; Chapter 20 (from predicted probabilities to decisions in a classification problem)</td></tr>
+<tr><td>13 Causal inference</td><td>7.2 causal inference as generalization; Chapter 18 (a clinical trial: extension, sensitivity and the treatment effect)</td></tr>
+<tr><td>14 Experiments and decisions</td><td>7.3 from inference to decision; 10.5 simulated-data experimentation as virtual replication; Chapter 20 (decision analysis)</td></tr>
+<tr><td>15 Bayesian nonparametrics</td><td>9.1 big data need big models; 27.3 Gaussian-process models</td></tr>
+<tr><td>16 Bayesian deep learning and causal AI</td><td>13.3 simulation-based and amortized inference</td></tr>
+<tr><td>Afterword</td><td>Chapter 10 (statistical and scientific inference, and the replication crisis); Chapter 15 (statistical modeling as software development); Appendix A (workflow for Bayesians and non-Bayesians)</td></tr>
+</tbody></table></div>
+</div>
 
 <h3 class="unnumbered" id="ems">When the graph is not small</h3>
 
@@ -2012,7 +2039,7 @@ m1 -93.6      11.2  </code></pre>
 </div>
 
 <div class="box pub"><h4 class="lbl">Research Practice: Reproducible from the First Line</h4>
-<p>Every analysis in these notes is a script that runs from top to bottom: data are read from a stable source, random seeds are set, and fitted models are cached with <code>file =</code>. For a paper, also record package versions (<code>sessionInfo()</code>, or better, an <code>renv</code> lock file), keep raw data read-only and do all cleaning in code, and deposit the code and data (or instructions to obtain them) in a public archive with a DOI, such as Zenodo or OSF. A reader who cannot rerun your analysis cannot fully trust it, and increasingly neither can an editor.</p>
+<p>Every analysis in these notes is a script that runs from top to bottom: data are read from a stable source, random seeds are set, and fitted models are cached with <code>file =</code>. For a paper, also record package versions (<code>sessionInfo()</code>, or better, an <code>renv</code> lock file), keep raw data read-only and do all cleaning in code, and deposit the code and data (or instructions to obtain them) in a public archive with a DOI, such as Zenodo or OSF. A reader who cannot rerun your analysis cannot fully trust it, and increasingly neither can an editor. Gelman, Vehtari and McElreath (2026, Chapter 15) treat the whole of statistical modelling as software development, with version control and tests that run as the model grows.</p>
 </div>
 
 <div class="box rex"><h4 class="lbl">Check Yourself</h4>
@@ -2033,7 +2060,8 @@ m1 -93.6      11.2  </code></pre>
 
 <div class="box take"><h4 class="lbl">Key Takeaways</h4>
 <ul>
-<li>The workflow is a <strong>loop</strong>: DAG → likelihood and priors → prior check → fit → diagnose → posterior check → critique, and back again.</li>
+<li>The workflow is a <strong>loop</strong>: DAG → likelihood and priors → prior check → fake-data check → fit and diagnose → posterior check → compare and critique, and back again. It condenses Gelman, Vehtari and McElreath's <em>Bayesian Workflow</em> (2026), the companion text for every chapter.</li>
+<li>Fit a <strong>series of models</strong> and compare them; the series is part of the result, and any model you keep is accepted provisionally.</li>
 <li>For real graphs, let software (<code>dagitty</code>) find adjustment sets: a variable can block one path and open another. The judgement about the graph remains yours.</li>
 <li>A DAG can tell you an effect is <strong>not identified</strong>. Report that; do not hide it.</li>
 </ul>
@@ -2108,7 +2136,7 @@ m1 -93.6      11.2  </code></pre>
 <div class="box read"><h4 class="lbl">Further Reading</h4>
 <ul>
 <li>McElreath, <em>Statistical Rethinking</em> (2nd ed., 2020), Chapters 1–2 (small worlds, Bayesian updating) and 5–6 (DAGs, the four structures, back-door paths). The most readable introduction to this way of working.</li>
-<li>Gelman et al., "Bayesian Workflow" (2020). The definitive account of the loop in Section 1.9, with many worked failures.</li>
+<li>Gelman, Vehtari and McElreath, <em>Bayesian Workflow</em> (2026), Chapters 2 and 4. The book-length account of the loop in Section 1.9, with sixteen worked case studies, dead ends included; an electronic edition is free for non-commercial use from Aki Vehtari's website. The companion table in Section 1.9 maps the rest of the book onto this course.</li>
 <li>Pearl, Glymour and Jewell, <em>Causal Inference in Statistics: A Primer</em> (2016). A short, rigorous treatment of d-separation and the back-door criterion.</li>
 <li>Kruschke, "Bayesian Analysis Reporting Guidelines" (2021). Print it and keep it next to your keyboard.</li>
 </ul>
@@ -2118,7 +2146,7 @@ m1 -93.6      11.2  </code></pre>
 <li>Berkson, J. (1946). Limitations of the application of fourfold table analysis to hospital data. <em>Biometrics Bulletin</em>, 2(3), 47–53.</li>
 <li>Doob, J. L. (1949). Application of the theory of martingales. In <em>Le Calcul des Probabilités et ses Applications</em>, 23–27. CNRS, Paris.</li>
 <li>FDA (2020). <em>Vaccines and Related Biological Products Advisory Committee Briefing Document: Pfizer-BioNTech COVID-19 Vaccine</em>, 10 December 2020.</li>
-<li>Gelman, A., Vehtari, A., Simpson, D., et al. (2020). Bayesian workflow. arXiv:2011.01808.</li>
+<li>Gelman, A., Vehtari, A., McElreath, R., Simpson, D., Margossian, C. C., Yao, Y., Kennedy, L., Gabry, J., Bürkner, P.-C., Modrák, M. and Leos Barajas, V. (2026). <em>Bayesian Workflow</em>. Chapman and Hall/CRC.</li>
 <li>Griffith, G. J., Morris, T. T., Tudball, M. J., et al. (2020). Collider bias undermines our understanding of COVID-19 disease risk and severity. <em>Nature Communications</em>, 11, 5749.</li>
 <li>Horst, A. M., Hill, A. P. and Gorman, K. B. (2020). <em>palmerpenguins: Palmer Archipelago (Antarctica) penguin data</em>. R package. Data originally from Gorman, Williams and Fraser (2014), <em>PLoS ONE</em> 9(3), e90081.</li>
 <li>Kruschke, J. K. (2021). Bayesian analysis reporting guidelines. <em>Nature Human Behaviour</em>, 5, 1282–1291.</li>
